@@ -8,8 +8,10 @@ import com.zbs.de.model.EventType;
 import com.zbs.de.model.dto.DtoEventType;
 import com.zbs.de.repository.RepositoryEventType;
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.util.UtilRandomKey;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,9 +38,48 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 	}
 
 	@Override
+	public List<DtoEventType> getAllEventTypesWithSubEvents() {
+		List<EventType> list = repositoryEventType.findByBlnIsDeleted(false);
+		List<DtoEventType> dtos = new ArrayList<>();
+		for (EventType type : list) {
+			if(UtilRandomKey.isNotNull(type.getBlnIsMainEvent()) && !type.getBlnIsMainEvent()) {
+				continue;
+			}
+			DtoEventType eventType = MapperEventType.toDto(type);
+
+			// ******** Filtering Sub Events ****************
+			// **********************************************
+			List<DtoEventType> subEvents = new ArrayList<>();
+			for (EventType subtype : list) {
+				if (UtilRandomKey.isNotNull(subtype.getParentEventType()) && subtype.getParentEventType()
+						.getSerEventTypeId().intValue() == type.getSerEventTypeId().intValue()) {
+					subEvents.add(MapperEventType.toDto(subtype));
+
+				}
+			}
+
+			eventType.setSubEvents(subEvents);
+			dtos.add(eventType);
+
+		}
+		return dtos;
+	}
+
+	@Override
 	public ResponseMessage saveAndUpdate(DtoEventType dto) {
 		ResponseMessage res = new ResponseMessage();
 		try {
+
+			EventType entity = null;
+			if (dto.getSerEventTypeId() != null) {
+				Optional<EventType> existingOptional = repositoryEventType.findById(dto.getSerEventTypeId());
+				if (existingOptional.isEmpty()) {
+					res.setMessage("Event type not found for update.");
+					return res;
+				}
+				entity = existingOptional.get();
+			}
+
 			// Prevent self-parenting
 			if (dto.getParentEventTypeId() != null && dto.getSerEventTypeId() != null
 					&& dto.getParentEventTypeId().equals(dto.getSerEventTypeId())) {
@@ -56,11 +97,18 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 				parent = parentOptional.get();
 			}
 
-			EventType entity = MapperEventType.toEntity(dto);
-			entity.setParentEventType(parent);
-			entity.setBlnIsActive(true);
-			entity.setBlnIsDeleted(false);
-			entity.setBlnIsApproved(true);
+			if (entity == null) {
+				entity = MapperEventType.toEntity(dto);
+				entity.setParentEventType(parent);
+				entity.setBlnIsActive(true);
+				entity.setBlnIsDeleted(false);
+				entity.setBlnIsApproved(true);
+			} else {
+				entity.setTxtEventTypeName(dto.getTxtEventTypeName());
+				entity.setBlnIsMainEvent(dto.getBlnIsMainEvent());
+				entity.setBlnIsActive(dto.getBlnIsActive());
+				entity.setUpdatedDate(new Date());
+			}
 
 			EventType saved = repositoryEventType.saveAndFlush(entity);
 			res.setMessage("Saved successfully");

@@ -1,12 +1,16 @@
 package com.zbs.de.model.dto;
 
+import java.util.List;
+
 public class DtoEventType {
 	private Integer serEventTypeId;
 	private String txtEventTypeCode;
 	private String txtEventTypeName;
-	private String blnIsMainEvent;
+	private Boolean blnIsMainEvent;
 	private Integer parentEventTypeId;
 	private Boolean blnIsActive;
+
+	private List<DtoEventType> subEvents;
 
 	public Integer getSerEventTypeId() {
 		return serEventTypeId;
@@ -32,14 +36,6 @@ public class DtoEventType {
 		this.txtEventTypeName = txtEventTypeName;
 	}
 
-	public String getBlnIsMainEvent() {
-		return blnIsMainEvent;
-	}
-
-	public void setBlnIsMainEvent(String blnIsMainEvent) {
-		this.blnIsMainEvent = blnIsMainEvent;
-	}
-
 	public Integer getParentEventTypeId() {
 		return parentEventTypeId;
 	}
@@ -54,6 +50,22 @@ public class DtoEventType {
 
 	public void setBlnIsActive(Boolean blnIsActive) {
 		this.blnIsActive = blnIsActive;
+	}
+
+	public List<DtoEventType> getSubEvents() {
+		return subEvents;
+	}
+
+	public void setSubEvents(List<DtoEventType> subEvents) {
+		this.subEvents = subEvents;
+	}
+
+	public Boolean getBlnIsMainEvent() {
+		return blnIsMainEvent;
+	}
+
+	public void setBlnIsMainEvent(Boolean blnIsMainEvent) {
+		this.blnIsMainEvent = blnIsMainEvent;
 	}
 
 }

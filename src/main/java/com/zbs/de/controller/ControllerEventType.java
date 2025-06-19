@@ -50,4 +50,11 @@ public class ControllerEventType {
 	public ResponseMessage getById(@RequestBody DtoSearch dtoSearch) {
 		return serviceEventType.getById(dtoSearch.getId());
 	}
+
+	@PostMapping(value = "/getAllEventsWithSubEvents", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllEventsWithSubEvents() {
+		List<DtoEventType> list = serviceEventType.getAllEventTypesWithSubEvents();
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Event Types", list);
+	}
+
 }

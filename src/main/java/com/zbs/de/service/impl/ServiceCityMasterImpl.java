@@ -90,4 +90,20 @@ public class ServiceCityMasterImpl implements ServiceCityMaster {
 		}
 		return res;
 	}
+	
+	
+	@Override
+	public CityMaster getByPK(Integer serCityId) {
+		try {
+			Optional<CityMaster> entity = repositoryCityMaster.findById(serCityId);
+			if (entity.isPresent()) {
+				return entity.get();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error fetching city by ID", e);
+			return null;
+		}
+	}
 }

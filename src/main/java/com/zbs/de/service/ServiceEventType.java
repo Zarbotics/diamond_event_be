@@ -12,4 +12,6 @@ public interface ServiceEventType {
 	ResponseMessage saveAndUpdate(DtoEventType dtoEventType);
 
 	ResponseMessage getById(Integer id);
+	
+	List<DtoEventType> getAllEventTypesWithSubEvents();
 }

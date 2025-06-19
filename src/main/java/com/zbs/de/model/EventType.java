@@ -17,7 +17,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Entity
 @DynamicInsert
 @Data
@@ -44,7 +43,7 @@ public class EventType extends BaseEntity implements Serializable {
 	private String txtEventTypeName;
 
 	@Column(name = "bln_is_main_event")
-	private String blnIsMainEvent;
+	private Boolean blnIsMainEvent;
 
 	@ManyToOne
 	@JoinColumn(name = "parent_event_type")
@@ -74,20 +73,20 @@ public class EventType extends BaseEntity implements Serializable {
 		this.txtEventTypeName = txtEventTypeName;
 	}
 
-	public String getBlnIsMainEvent() {
-		return blnIsMainEvent;
-	}
-
-	public void setBlnIsMainEvent(String blnIsMainEvent) {
-		this.blnIsMainEvent = blnIsMainEvent;
-	}
-
 	public EventType getParentEventType() {
 		return parentEventType;
 	}
 
 	public void setParentEventType(EventType parentEventType) {
 		this.parentEventType = parentEventType;
+	}
+
+	public Boolean getBlnIsMainEvent() {
+		return blnIsMainEvent;
+	}
+
+	public void setBlnIsMainEvent(Boolean blnIsMainEvent) {
+		this.blnIsMainEvent = blnIsMainEvent;
 	}
 
 }
