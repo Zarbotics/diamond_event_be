@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.DeApplication;
 import com.zbs.de.model.dto.DtoCustomerMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceCustomerMaster;
 
@@ -30,12 +32,18 @@ import org.slf4j.LoggerFactory;
 @CrossOrigin(origins = "")
 public class ControllerCustomerMaster {
 
+	private final DeApplication deApplication;
+
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerCustomerMaster.class);
 
 	/** The service main acct. */
 	@Autowired
 	ServiceCustomerMaster serviceCustomerMaster;
+
+	ControllerCustomerMaster(DeApplication deApplication) {
+		this.deApplication = deApplication;
+	}
 
 	/**
 	 * Gets the all data.
@@ -87,6 +95,29 @@ public class ControllerCustomerMaster {
 			ResponseMessage res = serviceCustomerMaster.getById(dtoSearch.getId());
 			responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
 					res.getResult());
+		} catch (Exception e) {
+			LOGGER.error("Error fetching customer", e);
+			responseMessage = new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
+					"Customer not found", null);
+		}
+		LOGGER.info("Fetching customer by ID" + dtoSearch);
+		return responseMessage;
+	}
+
+	@RequestMapping(value = "/getByEmail", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
+	public ResponseMessage getByEmail(@RequestBody DtoSearch dtoSearch) {
+		LOGGER.info("Fetching customer by ID" + dtoSearch);
+		ResponseMessage responseMessage = new ResponseMessage();
+		try {
+			DtoResult dtoResult = serviceCustomerMaster.getByEmail(dtoSearch.getSearchKeyword());
+			if (dtoResult.getTxtMessage().equalsIgnoreCase("success")) {
+				responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
+						dtoResult.getResult());
+			} else {
+				responseMessage = new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
+						dtoResult.getTxtMessage(), null);
+			}
+
 		} catch (Exception e) {
 			LOGGER.error("Error fetching customer", e);
 			responseMessage = new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,

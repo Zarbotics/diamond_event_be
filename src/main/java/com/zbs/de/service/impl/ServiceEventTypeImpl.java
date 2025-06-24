@@ -138,4 +138,21 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 		}
 		return res;
 	}
+	
+	@Override
+	public EventType getByPK(Integer id) {
+		try {
+			Optional<EventType> optional = repositoryEventType.findById(id);
+			if (optional.isPresent()) {
+				return optional.get();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(),e);
+			LOGGER.debug("Error fetching event type", e);
+			return null;
+		}
+
+	}
 }

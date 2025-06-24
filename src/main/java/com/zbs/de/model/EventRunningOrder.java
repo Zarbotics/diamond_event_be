@@ -20,7 +20,7 @@ import lombok.Setter;
 @Data
 @Getter
 @Setter
-@Table(name = "event_rnning_order")
+@Table(name = "event_running_order")
 @NamedQuery(name = "EventRunningOrder.findAll", query = "SELECT a FROM EventRunningOrder a")
 public class EventRunningOrder extends BaseEntity implements Serializable {
 
