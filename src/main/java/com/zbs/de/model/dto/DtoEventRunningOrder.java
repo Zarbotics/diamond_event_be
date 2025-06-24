@@ -1,59 +1,16 @@
-package com.zbs.de.model;
+package com.zbs.de.model.dto;
 
-import java.io.Serializable;
+public class DtoEventRunningOrder {
 
-import org.hibernate.annotations.DynamicInsert;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
-@Entity
-@DynamicInsert
-@Data
-@Getter
-@Setter
-@Table(name = "event_rnning_order")
-@NamedQuery(name = "EventRunningOrder.findAll", query = "SELECT a FROM EventRunningOrder a")
-public class EventRunningOrder extends BaseEntity implements Serializable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "ser_event_running_order_id")
 	private Integer serEventRunningOrderId;
-
-	@Column(name = "txt_event_running_order_code")
 	private String txtEventRunningOrderCode;
-
-	@Column(name = "txt_guest_arrival")
 	private String txtGuestArrival;
-
-	@Column(name = "txt_barat_arrival")
 	private String txtBaratArrival;
-
-	@Column(name = "txt_nikah")
 	private String txtNikah;
-
-	@Column(name = "txt_bride_entrance")
 	private String txtBrideEntrance;
-
-	@Column(name = "txt_meal")
 	private String txtMeal;
-
-	@Column(name = "dte_end_of_night")
 	private String txtEndOfNight;
+	private Boolean blnIsActive;
 
 	public Integer getSerEventRunningOrderId() {
 		return serEventRunningOrderId;
@@ -117,6 +74,14 @@ public class EventRunningOrder extends BaseEntity implements Serializable {
 
 	public void setTxtEndOfNight(String txtEndOfNight) {
 		this.txtEndOfNight = txtEndOfNight;
+	}
+
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
 	}
 
 }

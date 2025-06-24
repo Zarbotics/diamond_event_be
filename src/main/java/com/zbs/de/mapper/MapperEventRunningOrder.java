@@ -1,7 +1,7 @@
 package com.zbs.de.mapper;
 
-import com.zbs.de.model.DtoEventRunningOrder;
 import com.zbs.de.model.EventRunningOrder;
+import com.zbs.de.model.dto.DtoEventRunningOrder;
 
 public class MapperEventRunningOrder {
 	public static DtoEventRunningOrder toDto(EventRunningOrder entity) {
@@ -12,12 +12,12 @@ public class MapperEventRunningOrder {
 		DtoEventRunningOrder dto = new DtoEventRunningOrder();
 		dto.setSerEventRunningOrderId(entity.getSerEventRunningOrderId());
 		dto.setTxtEventRunningOrderCode(entity.getTxtEventRunningOrderCode());
-		dto.setDteGuestArrival(entity.getDteGuestArrival());
-		dto.setDteBaratArrival(entity.getDteBaratArrival());
-		dto.setDteNikah(entity.getDteNikah());
-		dto.setDteBrideEntrance(entity.getDteBrideEntrance());
-		dto.setDte_Meal(entity.getDte_Meal());
-		dto.setDteEndOfNight(entity.getDteEndOfNight());
+		dto.setTxtGuestArrival(entity.getTxtGuestArrival());
+		dto.setTxtBaratArrival(entity.getTxtBaratArrival());
+		dto.setTxtNikah(entity.getTxtNikah());
+		dto.setTxtBrideEntrance(entity.getTxtBrideEntrance());
+		dto.setTxtMeal(entity.getTxtMeal());
+		dto.setTxtEndOfNight(entity.getTxtEndOfNight());
 		dto.setBlnIsActive(entity.getBlnIsActive());
 
 		return dto;
@@ -31,12 +31,12 @@ public class MapperEventRunningOrder {
 		EventRunningOrder entity = new EventRunningOrder();
 		entity.setSerEventRunningOrderId(dto.getSerEventRunningOrderId());
 		entity.setTxtEventRunningOrderCode(dto.getTxtEventRunningOrderCode());
-		entity.setDteGuestArrival(dto.getDteGuestArrival());
-		entity.setDteBaratArrival(dto.getDteBaratArrival());
-		entity.setDteNikah(dto.getDteNikah());
-		entity.setDteBrideEntrance(dto.getDteBrideEntrance());
-		entity.setDte_Meal(dto.getDte_Meal());
-		entity.setDteEndOfNight(dto.getDteEndOfNight());
+		entity.setTxtGuestArrival(dto.getTxtGuestArrival());
+		entity.setTxtBaratArrival(dto.getTxtBaratArrival());
+		entity.setTxtNikah(dto.getTxtNikah());
+		entity.setTxtBrideEntrance(dto.getTxtBrideEntrance());
+		entity.setTxtMeal(dto.getTxtMeal());
+		entity.setTxtEndOfNight(dto.getTxtEndOfNight());
 		entity.setBlnIsActive(dto.getBlnIsActive());
 
 		return entity;

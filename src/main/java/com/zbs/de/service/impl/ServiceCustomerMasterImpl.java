@@ -46,6 +46,7 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 			}
 
 			CustomerMaster customerMaster = MapperCustomerMaster.toEntity(dtoCustomerMaster);
+			customerMaster.setTxtCustCode(this.generateCustomerCode());
 			customerMaster.setBlnIsActive(Boolean.valueOf(true));
 			customerMaster.setBlnIsDeleted(Boolean.valueOf(false));
 			customerMaster.setBlnIsApproved(Boolean.valueOf(true));
@@ -79,6 +80,22 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 
 		return res;
 
+	}
+	
+	public String generateCustomerCode() {
+	    String maxCode = repositoryCustomerMaster.findMaxCustomerCode(); // e.g., "CUST-009"
+
+	    int nextNumber = 1;
+
+	    if (maxCode != null && maxCode.startsWith("CUST-")) {
+	        try {
+	            nextNumber = Integer.parseInt(maxCode.substring(5)) + 1;
+	        } catch (NumberFormatException e) {
+	            nextNumber = 1;
+	        }
+	    }
+
+	    return String.format("CUST-%03d", nextNumber); // e.g., CUST-010
 	}
 
 }

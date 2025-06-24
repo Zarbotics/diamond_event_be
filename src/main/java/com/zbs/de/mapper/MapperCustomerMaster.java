@@ -28,6 +28,9 @@ public class MapperCustomerMaster {
 		dto.setTxtPostalCode(entity.getTxtPostalCode());
 		dto.setTxtDistrict(entity.getTxtDistrict());
 		dto.setTxtCountryCode(entity.getTxtCountryCode());
+		dto.setTxtCustCode(entity.getTxtCustCode());
+		dto.setTxtFirstName(entity.getTxtFirstName());
+		dto.setTxtLastName(entity.getTxtLastName());
 
 		if (entity.getCountryMaster() != null) {
 			dto.setSerCountryId(entity.getCountryMaster().getSerCountryId());
@@ -75,6 +78,9 @@ public class MapperCustomerMaster {
 		entity.setTxtPostalCode(dto.getTxtPostalCode());
 		entity.setTxtDistrict(dto.getTxtDistrict());
 		entity.setTxtCountryCode(dto.getTxtCountryCode());
+		entity.setTxtFirstName(dto.getTxtFirstName());
+		entity.setTxtLastName(dto.getTxtLastName());
+		entity.setTxtCustCode(dto.getTxtCustCode());
 
 		// From BaseEntity
 		entity.setBlnIsActive(dto.getBlnIsActive());

@@ -11,4 +11,6 @@ public interface ServiceEventMaster {
 //	ResponseMessage saveAndUpdate(DtoEventType dtoEventType);
 //
 //	ResponseMessage getById(Integer id);
+	
+	 String generateNextEventMasterCode();
 }

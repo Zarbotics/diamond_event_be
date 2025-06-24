@@ -53,6 +53,15 @@ public class EventMaster {
 	@ManyToOne
 	@JoinColumn(name = "ser_cust_id")
 	private CustomerMaster customerMaster;
+	
+	@ManyToOne
+	@JoinColumn(name = "ser_event_running_order_id")
+	private EventRunningOrder eventRunningOrder;
+	
+	@ManyToOne
+	@JoinColumn(name = "ser_event_type_id")
+	private EventType eventType;
+	
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //	private List<EventType> eventTypeLst = new ArrayList<>();

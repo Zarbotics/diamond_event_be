@@ -9,5 +9,6 @@ public interface ServiceCustomerMaster {
 	List<DtoCustomerMaster> getAllData();
 	ResponseMessage saveAndUpdate(DtoCustomerMaster dtoCustomerMaster);
 	ResponseMessage getById(Integer id);
+	String generateCustomerCode();
 	
 }

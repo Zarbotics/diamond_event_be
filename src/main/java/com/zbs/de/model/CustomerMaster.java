@@ -35,6 +35,15 @@ public class CustomerMaster extends BaseEntity implements Serializable {
 	@Column(name = "ser_cust_id")
 	private Integer serCustId;
 
+	@Column(name = "txt_cust_code")
+	private String txtCustCode;
+
+	@Column(name = "txt_first_name")
+	private String txtFirstName;
+
+	@Column(name = "txt_last_name")
+	private String txtLastName;
+
 	@Column(name = "txt_address_1", columnDefinition = "VARCHAR(255)")
 	private String txtAddress1;
 
@@ -116,7 +125,7 @@ public class CustomerMaster extends BaseEntity implements Serializable {
 
 	public String getTxtAddress2() {
 		return txtAddress2;
-		
+
 	}
 
 	public void setTxtAddress2(String txtAddress2) {
@@ -265,6 +274,30 @@ public class CustomerMaster extends BaseEntity implements Serializable {
 
 	public void setStateMaster(StateMaster stateMaster) {
 		this.stateMaster = stateMaster;
+	}
+
+	public String getTxtCustCode() {
+		return txtCustCode;
+	}
+
+	public void setTxtCustCode(String txtCustCode) {
+		this.txtCustCode = txtCustCode;
+	}
+
+	public String getTxtFirstName() {
+		return txtFirstName;
+	}
+
+	public void setTxtFirstName(String txtFirstName) {
+		this.txtFirstName = txtFirstName;
+	}
+
+	public String getTxtLastName() {
+		return txtLastName;
+	}
+
+	public void setTxtLastName(String txtLastName) {
+		this.txtLastName = txtLastName;
 	}
 
 }
