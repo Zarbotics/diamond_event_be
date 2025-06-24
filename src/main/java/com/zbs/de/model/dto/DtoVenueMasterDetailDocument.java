@@ -7,6 +7,7 @@ public class DtoVenueMasterDetailDocument {
 	private String originalName;
 	private String size;
 	private byte[] documentFile;
+	private String txtDocumentUrl;
 
 	public Integer getDocumentId() {
 		return documentId;
@@ -54,6 +55,14 @@ public class DtoVenueMasterDetailDocument {
 
 	public void setDocumentFile(byte[] documentFile) {
 		this.documentFile = documentFile;
+	}
+
+	public String getTxtDocumentUrl() {
+		return txtDocumentUrl;
+	}
+
+	public void setTxtDocumentUrl(String txtDocumentUrl) {
+		this.txtDocumentUrl = txtDocumentUrl;
 	}
 
 }

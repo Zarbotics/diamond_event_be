@@ -18,7 +18,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "venue_master_detail_document")
 @NamedQuery(name = "VenueMasterDetailDocument.findAll", query = "SELECT r FROM VenueMasterDetailDocument r")
-public class VenueMasterDetailDocument implements Serializable{
+public class VenueMasterDetailDocument implements Serializable {
 
 	/**
 	 * 
@@ -42,9 +42,8 @@ public class VenueMasterDetailDocument implements Serializable{
 	@Column(name = "txt_size")
 	private String size;
 
-	@Lob
-	@Column(name = "payment_document", nullable = false)
-	private byte[] documentFile;
+	@Column(name = "file_path")
+	private String filePath;
 
 	@JsonIgnoreProperties(value = { "candidateDocuments", "rcsCandidateVerificationData" })
 	@ManyToOne(fetch = FetchType.EAGER)
@@ -91,20 +90,20 @@ public class VenueMasterDetailDocument implements Serializable{
 		this.size = size;
 	}
 
-	public byte[] getDocumentFile() {
-		return documentFile;
-	}
-
-	public void setDocumentFile(byte[] documentFile) {
-		this.documentFile = documentFile;
-	}
-
 	public VenueMasterDetail getVenueMasterDetail() {
 		return venueMasterDetail;
 	}
 
 	public void setVenueMasterDetail(VenueMasterDetail venueMasterDetail) {
 		this.venueMasterDetail = venueMasterDetail;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
 	}
 
 }

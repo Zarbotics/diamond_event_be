@@ -1,5 +1,11 @@
 package com.zbs.de.service;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.dto.DtoVenueMaster;
 import com.zbs.de.util.ResponseMessage;
 
@@ -11,4 +17,6 @@ public interface ServiceVenueMaster {
 	ResponseMessage getAllVenuesGroupedByCity();
 
 	ResponseMessage getVenuesByCityId(Integer cityId);
+
+	VenueMaster saveVenueWithDetails(DtoVenueMaster dto, List<MultipartFile> files) throws IOException;
 }

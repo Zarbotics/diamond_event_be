@@ -45,7 +45,7 @@ public class MapperVenueMaster {
 						d.setDocumentType(doc.getDocumentType());
 						d.setOriginalName(doc.getOriginalName());
 						d.setSize(doc.getSize());
-						d.setDocumentFile(doc.getDocumentFile());
+//						d.setDocumentFile(doc.getDocumentFile());
 						return d;
 					}).collect(Collectors.toList()));
 				}
@@ -106,7 +106,7 @@ public class MapperVenueMaster {
 		doc.setDocumentType(dto.getDocumentType());
 		doc.setOriginalName(dto.getOriginalName());
 		doc.setSize(dto.getSize());
-		doc.setDocumentFile(dto.getDocumentFile());
+//		doc.setDocumentFile(dto.getDocumentFile());
 		return doc;
 	}
 

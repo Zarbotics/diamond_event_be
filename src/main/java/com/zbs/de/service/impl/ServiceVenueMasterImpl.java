@@ -10,12 +10,15 @@ import com.zbs.de.repository.RepositoryVenueMaster;
 import com.zbs.de.service.ServiceCityMaster;
 import com.zbs.de.service.ServiceVenueMaster;
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -144,4 +147,48 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 					"Error fetching venues by city: " + e.getMessage(), null);
 		}
 	}
+	
+	
+	public VenueMaster saveVenueWithDetails(DtoVenueMaster dto, List<MultipartFile> files) throws IOException{
+	    VenueMaster venue = new VenueMaster();
+	    venue.setTxtVenueName(dto.getTxtVenueName());
+	    venue.setTxtVenueCode(dto.getTxtVenueCode());
+	    venue.setTxtAddress(dto.getTxtAddress());
+	    venue.setCityMaster(serviceCityMaster.getByPK(dto.getSerCityId()));
+
+	    List<VenueMasterDetail> details = new ArrayList<>();
+	    Map<String, MultipartFile> fileMap = files.stream().collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
+
+	    for (DtoVenueMasterDetail detailDto : dto.getVenueMasterDetails()) {
+	        VenueMasterDetail detail = new VenueMasterDetail();
+	        detail.setTxtHallName(detailDto.getTxtHallName());
+	        detail.setTxtHallCode(detailDto.getTxtHallCode());
+	        detail.setNumCapacity(detailDto.getNumCapacity());
+	        detail.setNumPrice(detailDto.getNumPrice());
+	        detail.setVenueMaster(venue);
+
+	        List<VenueMasterDetailDocument> documents = new ArrayList<>();
+	        for (String fileName : detailDto.getTxtDocuments()) {
+	            MultipartFile file = fileMap.get(fileName);
+	            String uploadPath = UtilFileStorage.saveFile(file, "venues");
+	            VenueMasterDetailDocument doc = new VenueMasterDetailDocument();
+	            doc.setDocumentName(file.getName());
+	            doc.setOriginalName(file.getOriginalFilename());
+	            doc.setDocumentType(file.getContentType());
+	            doc.setSize(String.valueOf(file.getSize()));
+	            doc.setFilePath(uploadPath);
+	            doc.setVenueMasterDetail(detail);
+	            documents.add(doc);
+	        }
+	        detail.setVenueMasterDetailDocument(documents);
+	        details.add(detail);
+	    }
+
+	    venue.setVenueMasterDetails(details);
+	    repositoryVenueMaster.save(venue);
+
+	    return venue;
+	}
+	
+	
 }

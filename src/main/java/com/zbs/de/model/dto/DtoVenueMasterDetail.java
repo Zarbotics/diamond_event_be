@@ -12,6 +12,7 @@ public class DtoVenueMasterDetail {
 	private BigDecimal numPrice;
 	private Boolean blnIsActive;
 	private List<DtoVenueMasterDetailDocument> documents;
+	private List<String> txtDocuments;
 
 	public Integer getSerVenueMasterDetailId() {
 		return serVenueMasterDetailId;
@@ -77,5 +78,12 @@ public class DtoVenueMasterDetail {
 		this.blnIsActive = blnIsActive;
 	}
 
-	
+	public List<String> getTxtDocuments() {
+		return txtDocuments;
+	}
+
+	public void setTxtDocuments(List<String> txtDocuments) {
+		this.txtDocuments = txtDocuments;
+	}
+
 }
