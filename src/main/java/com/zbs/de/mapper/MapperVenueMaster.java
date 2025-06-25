@@ -45,6 +45,7 @@ public class MapperVenueMaster {
 						d.setDocumentType(doc.getDocumentType());
 						d.setOriginalName(doc.getOriginalName());
 						d.setSize(doc.getSize());
+						d.setTxtDocumentUrl(doc.getFilePath());
 //						d.setDocumentFile(doc.getDocumentFile());
 						return d;
 					}).collect(Collectors.toList()));

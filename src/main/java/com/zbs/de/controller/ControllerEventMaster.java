@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.util.ResponseMessage;
 
@@ -40,6 +41,18 @@ public class ControllerEventMaster {
 	public ResponseMessage generateEventCode() {
 		String txtCode = serviceEventMaster.generateNextEventMasterCode();
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Event Types", txtCode);
+	}
+	
+	
+	@PostMapping(value = "/getByEventIdAndCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage saveOrUpdate(@RequestBody DtoSearch dtoSearch) {
+		LOGGER.info("Searching Event Master: {}", dtoSearch);
+		DtoResult result = serviceEventMaster.getByEventTypeIdAndCustId(dtoSearch);
+		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to Fetch",
+				dtoSearch);
 	}
 
 }

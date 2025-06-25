@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.deser.Deserializers.Base;
 
 import jakarta.persistence.CascadeType;
@@ -56,9 +58,11 @@ public class VenueMasterDetail extends BaseEntity implements Serializable {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_venue_master_id", nullable = false)
+	@JsonBackReference
 	private VenueMaster venueMaster;
 
 	@OneToMany(mappedBy = "venueMasterDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
 	private List<VenueMasterDetailDocument> venueMasterDetailDocument;
 
 	public Integer getSerVenueMasterDetailId() {

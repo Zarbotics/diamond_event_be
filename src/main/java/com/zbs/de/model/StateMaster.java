@@ -9,6 +9,9 @@ import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -44,11 +47,13 @@ public class StateMaster extends BaseEntity implements Serializable {
 
 	// bi-directional many-to-one association to CityMaster
 	@OneToMany(mappedBy = "stateMaster")
+	@JsonManagedReference
 	private List<CityMaster> cityMasters;
 
 	// bi-directional many-to-one association to CountryMaster
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_country_id")
+	@JsonBackReference
 	private CountryMaster countryMaster;
 
 	public int getSerStateId() {

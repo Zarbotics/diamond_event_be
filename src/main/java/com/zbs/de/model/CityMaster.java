@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -40,6 +42,7 @@ public class CityMaster extends BaseEntity implements Serializable {
 	// bi-directional many-to-one association to StateMaster
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_state_id")
+	@JsonBackReference
 	private StateMaster stateMaster;
 
 	public int getSerCityId() {

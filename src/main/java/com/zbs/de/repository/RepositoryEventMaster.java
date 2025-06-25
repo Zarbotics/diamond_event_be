@@ -15,7 +15,7 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 	@Query("SELECT MAX(e.txtEventMasterCode) FROM EventMaster e")
 	String findMaxEventCode();
 
-	@Query("SELECT e FROM EventMaster e WHERE e.customerMaster.serCustId = :custId AND e.eventType.serEventTypeId = :eventTypeId")
+	@Query("SELECT e FROM EventMaster e WHERE e.customerMaster.serCustId = :custId AND e.eventType.serEventTypeId = :eventTypeId AND e.blnIsDeleted = false")
 	Optional<EventMaster> findByCustomerAndEventType(@Param("custId") Integer custId,
 			@Param("eventTypeId") Integer eventTypeId);
 

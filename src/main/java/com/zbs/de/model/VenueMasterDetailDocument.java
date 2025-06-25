@@ -2,6 +2,7 @@ package com.zbs.de.model;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
@@ -48,6 +49,7 @@ public class VenueMasterDetailDocument implements Serializable {
 	@JsonIgnoreProperties(value = { "candidateDocuments", "rcsCandidateVerificationData" })
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "ser_venue_master_detail_id")
+	@JsonBackReference
 	private VenueMasterDetail venueMasterDetail;
 
 	public Integer getDocumentId() {

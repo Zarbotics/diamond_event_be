@@ -22,6 +22,7 @@ import jakarta.servlet.http.Part;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zbs.de.model.VenueMaster;
+import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.model.dto.DtoVenueMaster;
 import com.zbs.de.service.ServiceVenueMaster;
 
@@ -43,14 +44,14 @@ public class ControllerVenueMaster {
 		return serviceVenueMaster.saveOrUpdate(dto);
 	}
 
-	@PostMapping(value = "/getAll", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/getAll", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAll() {
 		return serviceVenueMaster.getAllVenues();
 	}
 
 	@PostMapping(value = "/getByCityId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getByCityId(@RequestBody Integer cityId) {
-		return serviceVenueMaster.getVenuesByCityId(cityId);
+	public ResponseMessage getByCityId(@RequestBody DtoSearch dtoSearch) {
+		return serviceVenueMaster.getVenuesByCityId(dtoSearch.getId());
 	}
 
 	@PostMapping(value = "/getAllGroupedByCity", produces = MediaType.APPLICATION_JSON_VALUE)

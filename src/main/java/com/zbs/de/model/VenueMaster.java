@@ -13,6 +13,8 @@ import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.NamedQuery;
@@ -51,6 +53,7 @@ public class VenueMaster extends BaseEntity implements Serializable {
 	private CityMaster cityMaster;
 
 	@OneToMany(mappedBy = "venueMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
 	private List<VenueMasterDetail> venueMasterDetails;
 
 	public Integer getSerVenueMasterId() {

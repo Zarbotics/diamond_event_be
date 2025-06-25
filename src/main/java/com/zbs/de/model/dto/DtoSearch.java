@@ -33,6 +33,10 @@ public class DtoSearch {
 	/** The id. */
 	private Integer id;
 
+	private Integer id1;
+
+	private Integer id2;
+
 	/** The ids. */
 	private List<String> ids;
 
@@ -228,6 +232,22 @@ public class DtoSearch {
 
 	public void setAttachment(byte[] attachment) {
 		this.attachment = attachment;
+	}
+
+	public Integer getId1() {
+		return id1;
+	}
+
+	public void setId1(Integer id1) {
+		this.id1 = id1;
+	}
+
+	public Integer getId2() {
+		return id2;
+	}
+
+	public void setId2(Integer id2) {
+		this.id2 = id2;
 	}
 
 }

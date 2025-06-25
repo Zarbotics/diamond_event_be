@@ -14,6 +14,7 @@ import com.zbs.de.model.EventRunningOrder;
 import com.zbs.de.model.EventType;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
@@ -186,5 +187,33 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		}
 
 		return String.format("EVT-%03d", nextNumber);
+	}
+
+	@Override
+	public DtoResult getByEventTypeIdAndCustId(DtoSearch dtoSearch) {
+		DtoResult dtoResult = new DtoResult();
+
+		try {
+			if (dtoSearch == null || dtoSearch.getId() == null || dtoSearch.getId1() == null) {
+				dtoResult.setTxtMessage("Event Type ID and Customer ID are required");
+				return dtoResult;
+			}
+
+			Optional<EventMaster> optionalEvent = repositoryEventMaster.findByCustomerAndEventType(dtoSearch.getId1(),
+					dtoSearch.getId());
+
+			if (optionalEvent.isPresent()) {
+				DtoEventMaster dto = MapperEventMaster.toDto(optionalEvent.get());
+				dtoResult.setResult(dto);
+				dtoResult.setTxtMessage("Success");
+			} else {
+				dtoResult.setTxtMessage("No record found");
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
+		}
+
+		return dtoResult;
 	}
 }

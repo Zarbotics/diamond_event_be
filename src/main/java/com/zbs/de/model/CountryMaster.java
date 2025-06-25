@@ -10,6 +10,8 @@ import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.OneToMany;
@@ -51,6 +53,7 @@ public class CountryMaster extends BaseEntity implements Serializable {
 
 	// bi-directional many-to-one association to StateMaster
 	@OneToMany(mappedBy = "countryMaster")
+	@JsonManagedReference
 	private List<StateMaster> stateMasters;
 
 	public Integer getSerCountryId() {
