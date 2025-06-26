@@ -8,7 +8,6 @@ import org.hibernate.annotations.DynamicInsert;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.databind.deser.Deserializers.Base;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

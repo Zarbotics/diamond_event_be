@@ -1,30 +1,26 @@
 package com.zbs.de.model;
 
-import java.io.Serializable;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
+import lombok.Data;
+
+
+import org.hibernate.annotations.DynamicInsert;
 
 @Entity
-@Table(name = "venue_master_detail_document")
-@NamedQuery(name = "VenueMasterDetailDocument.findAll", query = "SELECT r FROM VenueMasterDetailDocument r")
-public class VenueMasterDetailDocument implements Serializable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
+@DynamicInsert
+@Data
+@Table(name = "decor_reference_image")
+@NamedQuery(name = "DecorReferenceDocument.findAll", query = "SELECT a FROM DecorReferenceDocument a")
+public class DecorReferenceDocument {
 	@Id
 	@GeneratedValue
 	@Column(name = "ser_document_id")
@@ -45,11 +41,18 @@ public class VenueMasterDetailDocument implements Serializable {
 	@Column(name = "file_path")
 	private String filePath;
 
-	@JsonIgnoreProperties(value = { "candidateDocuments", "rcsCandidateVerificationData" })
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "ser_venue_master_detail_id")
-	@JsonBackReference
-	private VenueMasterDetail venueMasterDetail;
+    // For referencing decor components
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ser_themed_stage_id")
+    private DecorThemedStage themedStage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ser_chair_id")
+    private DecorChair chair;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ser_centerpiece_id")
+    private DecorTableCenterpiece tableCenterpiece;
 
 	public Integer getDocumentId() {
 		return documentId;
@@ -91,14 +94,6 @@ public class VenueMasterDetailDocument implements Serializable {
 		this.size = size;
 	}
 
-	public VenueMasterDetail getVenueMasterDetail() {
-		return venueMasterDetail;
-	}
-
-	public void setVenueMasterDetail(VenueMasterDetail venueMasterDetail) {
-		this.venueMasterDetail = venueMasterDetail;
-	}
-
 	public String getFilePath() {
 		return filePath;
 	}
@@ -107,4 +102,29 @@ public class VenueMasterDetailDocument implements Serializable {
 		this.filePath = filePath;
 	}
 
+	public DecorThemedStage getThemedStage() {
+		return themedStage;
+	}
+
+	public void setThemedStage(DecorThemedStage themedStage) {
+		this.themedStage = themedStage;
+	}
+
+	public DecorChair getChair() {
+		return chair;
+	}
+
+	public void setChair(DecorChair chair) {
+		this.chair = chair;
+	}
+
+	public DecorTableCenterpiece getTableCenterpiece() {
+		return tableCenterpiece;
+	}
+
+	public void setTableCenterpiece(DecorTableCenterpiece tableCenterpiece) {
+		this.tableCenterpiece = tableCenterpiece;
+	}
+    
+    
 }
