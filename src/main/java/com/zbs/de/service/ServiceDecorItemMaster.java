@@ -1,14 +1,15 @@
 package com.zbs.de.service;
 
-import java.util.List;
-
 import com.zbs.de.model.dto.DtoDecorItemMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.util.ResponseMessage;
 
 public interface ServiceDecorItemMaster {
-	List<DtoDecorItemMaster> getAllData();
+	DtoResult saveOrUpdate(DtoDecorItemMaster dto);
 
-	ResponseMessage saveAndUpdate(DtoDecorItemMaster dto);
+	DtoResult getAll();
 
-	ResponseMessage getById(Integer id);
+	DtoResult getById(Integer id);
+
+	DtoResult deleteById(Integer id);
 }

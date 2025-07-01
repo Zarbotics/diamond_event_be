@@ -6,12 +6,13 @@ import com.zbs.de.service.ServiceDecorItemMaster;
 import com.zbs.de.mapper.MapperDecorItemMaster;
 import com.zbs.de.model.DecorItemMaster;
 import com.zbs.de.model.dto.DtoDecorItemMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryDecorItemMaster;
-import com.zbs.de.util.ResponseMessage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,48 +27,31 @@ public class ServiceDecorItemMasterImpl implements ServiceDecorItemMaster {
 	RepositoryDecorItemMaster repositoryDecorItemMaster;
 
 	@Override
-	public List<DtoDecorItemMaster> getAllData() {
-		List<DecorItemMaster> list = repositoryDecorItemMaster.findByBlnIsDeleted(false);
-		List<DtoDecorItemMaster> dtos = new ArrayList<>();
-		for (DecorItemMaster item : list) {
-			dtos.add(MapperDecorItemMaster.toDto(item));
-		}
-		return dtos;
+	public DtoResult saveOrUpdate(DtoDecorItemMaster dto) {
+		DecorItemMaster entity = MapperDecorItemMaster.toEntity(dto);
+		repositoryDecorItemMaster.save(entity);
+		return new DtoResult("Saved Successfully", null, MapperDecorItemMaster.toDto(entity), null);
 	}
 
 	@Override
-	public ResponseMessage saveAndUpdate(DtoDecorItemMaster dto) {
-		ResponseMessage res = new ResponseMessage();
-		try {
-			DecorItemMaster entity = MapperDecorItemMaster.toEntity(dto);
-			entity.setBlnIsActive(true);
-			entity.setBlnIsDeleted(false);
-			entity.setBlnIsApproved(true);
-			entity = repositoryDecorItemMaster.saveAndFlush(entity);
-			res.setMessage("Saved successfully");
-			res.setResult(entity);
-		} catch (Exception e) {
-			LOGGER.error("Error saving DecorItemMaster", e);
-			res.setMessage("Unexpected error occurred while saving");
-		}
-		return res;
+	public DtoResult getAll() {
+		List<DtoDecorItemMaster> list = repositoryDecorItemMaster.findAll().stream().map(MapperDecorItemMaster::toDto)
+				.collect(Collectors.toList());
+		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
 
 	@Override
-	public ResponseMessage getById(Integer id) {
-		ResponseMessage res = new ResponseMessage();
-		try {
-			Optional<DecorItemMaster> optional = repositoryDecorItemMaster.findById(id);
-			if (optional.isPresent()) {
-				res.setMessage("Record fetched successfully");
-				res.setResult(optional.get());
-			} else {
-				res.setMessage("DecorItemMaster not found");
-			}
-		} catch (Exception e) {
-			LOGGER.error("Error fetching DecorItemMaster by ID", e);
-			res.setMessage("Unexpected error occurred");
+	public DtoResult getById(Integer id) {
+		Optional<DecorItemMaster> optional = repositoryDecorItemMaster.findById(id);
+		if (optional.isPresent()) {
+			return new DtoResult("Found", null, MapperDecorItemMaster.toDto(optional.get()), null);
 		}
-		return res;
+		return new DtoResult("Not Found", null, null, null);
+	}
+
+	@Override
+	public DtoResult deleteById(Integer id) {
+		repositoryDecorItemMaster.deleteById(id);
+		return new DtoResult("Deleted", null, null, null);
 	}
 }

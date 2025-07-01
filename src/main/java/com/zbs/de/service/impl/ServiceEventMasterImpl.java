@@ -1,17 +1,24 @@
 package com.zbs.de.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.zbs.de.mapper.MapperEventDecorItemSelection;
 import com.zbs.de.mapper.MapperEventMaster;
 import com.zbs.de.mapper.MapperEventRunningOrder;
 import com.zbs.de.model.CustomerMaster;
+import com.zbs.de.model.EventDecorItemSelection;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventRunningOrder;
 import com.zbs.de.model.EventType;
+import com.zbs.de.model.VenueMaster;
+import com.zbs.de.model.dto.DtoEventDecorItemSelection;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
@@ -20,6 +27,7 @@ import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.service.ServiceEventType;
+import com.zbs.de.service.ServiceVenueMaster;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilRandomKey;
 
@@ -37,6 +45,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceEventType serviceEventType;
+
+	@Autowired
+	private ServiceVenueMaster serviceVenueMaster;
+
+	@Autowired
+	private ServiceEventDecorItemSelectionImpl serviceEventDecorItemSelectionImpl;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
@@ -69,39 +83,41 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			entity.setTxtBirthDayCelebrant(dtoEventMaster.getTxtBirthDayCelebrant());
 			entity.setTxtAgeCategory(dtoEventMaster.getTxtAgeCategory());
 			entity.setTxtChiefGuest(dtoEventMaster.getTxtChiefGuest());
+			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
+				entity.setNumInfoFilledStatus(0);
+			}
 
 			// Set customer
-			CustomerMaster customer = serviceCustomerMaster.getByPK(dtoEventMaster.getSerCustId());
-			if (UtilRandomKey.isNull(customer)) {
-				dtoResult.setTxtMessage("Customer Not Foound For Id" + dtoEventMaster.getSerCustId());
-				return dtoResult;
-			}
-
-			if (UtilRandomKey.isNull(entity.getCustomerMaster())) {
-				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
-					entity.setNumInfoFilledStatus(0);
+			// ************
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerCustId())) {
+				CustomerMaster customer = serviceCustomerMaster.getByPK(dtoEventMaster.getSerCustId());
+				if (UtilRandomKey.isNull(customer)) {
+					dtoResult.setTxtMessage("Customer Not Foound For Id" + dtoEventMaster.getSerCustId());
+					return dtoResult;
 				}
-				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				if (UtilRandomKey.isNull(entity.getCustomerMaster())) {
+					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				}
+				entity.setCustomerMaster(customer);
 			}
-			entity.setCustomerMaster(customer);
 
 			// Set event type
-			EventType eventType = serviceEventType.getByPK(dtoEventMaster.getSerEventTypeId());
-			if (UtilRandomKey.isNull(eventType)) {
-				dtoResult.setTxtMessage("Event Type Not Foound For Id" + dtoEventMaster.getSerEventTypeId());
-				return dtoResult;
-			}
-
-			if (UtilRandomKey.isNull(entity.getEventType())) {
-				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
-					entity.setNumInfoFilledStatus(0);
+			// **************
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerEventTypeId())) {
+				EventType eventType = serviceEventType.getByPK(dtoEventMaster.getSerEventTypeId());
+				if (UtilRandomKey.isNull(eventType)) {
+					dtoResult.setTxtMessage("Event Type Not Foound For Id" + dtoEventMaster.getSerEventTypeId());
+					return dtoResult;
 				}
-				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+
+				if (UtilRandomKey.isNull(entity.getEventType())) {
+					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				}
+				entity.setEventType(eventType);
 			}
-			entity.setEventType(eventType);
-			entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 
 			// Set optional event running order
+			// ********************************
 			if (dtoEventMaster.getDtoEventRunningOrder() != null) {
 				EventRunningOrder runningOrder = new EventRunningOrder();
 
@@ -118,12 +134,36 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				} else {
 					runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
 					runningOrder = repositoryEventRunningOrder.save(runningOrder);
-					if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
-						entity.setNumInfoFilledStatus(0);
-					}
 					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 				}
 				entity.setEventRunningOrder(runningOrder);
+
+			}
+
+			// Set Decore Item Selections
+			// **************************
+			if (dtoEventMaster.getDtoEventDecorItemSelections() != null) {
+				serviceEventDecorItemSelectionImpl.deleteByEventMasterId(entity.getSerEventMasterId());
+				for (DtoEventDecorItemSelection decorDto : dtoEventMaster.getDtoEventDecorItemSelections()) {
+					decorDto.setSerEventMasterId(entity.getSerEventMasterId());
+					serviceEventDecorItemSelectionImpl.saveOrUpdate(decorDto);
+				}
+				entity.setNumInfoFilledStatus(4);
+			}
+
+			// Setting Venue Master
+			// ********************
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+				VenueMaster venueMaster = serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId());
+				if (UtilRandomKey.isNull(venueMaster)) {
+					dtoResult.setTxtMessage("Venue Not Found For Id: " + dtoEventMaster.getSerVenueMasterId());
+				}
+
+				if (UtilRandomKey.isNull(entity.getVenueMaster())) {
+					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				}
+
+				entity.setVenueMaster(venueMaster);
 			}
 
 		} else {
@@ -134,29 +174,58 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 			// Set customer
-			CustomerMaster customer = serviceCustomerMaster.getByPK(dtoEventMaster.getSerCustId());
-			if (UtilRandomKey.isNull(customer)) {
-				dtoResult.setTxtMessage("Customer Not Foound For Id" + dtoEventMaster.getSerCustId());
-				return dtoResult;
+			// ************
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerCustId())) {
+				CustomerMaster customer = serviceCustomerMaster.getByPK(dtoEventMaster.getSerCustId());
+				if (UtilRandomKey.isNull(customer)) {
+					dtoResult.setTxtMessage("Customer Not Foound For Id" + dtoEventMaster.getSerCustId());
+					return dtoResult;
+				}
+				entity.setCustomerMaster(customer);
+				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+
 			}
-			entity.setCustomerMaster(customer);
-			entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 
 			// Set event type
-			EventType eventType = serviceEventType.getByPK(dtoEventMaster.getSerEventTypeId());
-			if (UtilRandomKey.isNull(eventType)) {
-				dtoResult.setTxtMessage("Event Type Not Foound For Id" + dtoEventMaster.getSerEventTypeId());
-				return dtoResult;
+			// **************
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerEventTypeId())) {
+				EventType eventType = serviceEventType.getByPK(dtoEventMaster.getSerEventTypeId());
+				if (UtilRandomKey.isNull(eventType)) {
+					dtoResult.setTxtMessage("Event Type Not Foound For Id" + dtoEventMaster.getSerEventTypeId());
+					return dtoResult;
+				}
+				entity.setEventType(eventType);
+				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 			}
-			entity.setEventType(eventType);
-			entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 
 			// Set optional event running order
+			// ********************************
 			if (dtoEventMaster.getDtoEventRunningOrder() != null) {
 				EventRunningOrder runningOrder = new EventRunningOrder();
 				runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
 				runningOrder = repositoryEventRunningOrder.save(runningOrder);
 				entity.setEventRunningOrder(runningOrder);
+				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+			}
+
+			// Set Venue Master
+			// ****************
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+				VenueMaster venueMaster = serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId());
+				if (UtilRandomKey.isNull(venueMaster)) {
+					dtoResult.setTxtMessage("Venue Not Found For Id: " + dtoEventMaster.getSerVenueMasterId());
+				}
+				entity.setVenueMaster(venueMaster);
+				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+			}
+
+			// Set Decore Item Selections
+			// **************************
+			if (dtoEventMaster.getDtoEventDecorItemSelections() != null) {
+				for (DtoEventDecorItemSelection decorDto : dtoEventMaster.getDtoEventDecorItemSelections()) {
+					decorDto.setSerEventMasterId(entity.getSerEventMasterId());
+					serviceEventDecorItemSelectionImpl.saveOrUpdate(decorDto);
+				}
 				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 			}
 
@@ -204,6 +273,17 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			if (optionalEvent.isPresent()) {
 				DtoEventMaster dto = MapperEventMaster.toDto(optionalEvent.get());
+				List<EventDecorItemSelection> eventDecorItemSelections = serviceEventDecorItemSelectionImpl
+						.getByEventMasterId(dto.getSerEventMasterId());
+				List<DtoEventDecorItemSelection> dtoEventDecorItemSelections = new ArrayList<>();
+				if (UtilRandomKey.isNotNull(eventDecorItemSelections)) {
+					for (EventDecorItemSelection entity : eventDecorItemSelections) {
+						DtoEventDecorItemSelection dtoEventDecorItemSelection = MapperEventDecorItemSelection
+								.toDto(entity);
+						dtoEventDecorItemSelections.add(dtoEventDecorItemSelection);
+					}
+				}
+				dto.setDtoEventDecorItemSelections(dtoEventDecorItemSelections);
 				dtoResult.setResult(dto);
 				dtoResult.setTxtMessage("Success");
 			} else {

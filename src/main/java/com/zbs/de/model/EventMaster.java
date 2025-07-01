@@ -86,6 +86,10 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@JoinColumn(name = "ser_event_type_id")
 	private EventType eventType;
 
+	@ManyToOne
+	@JoinColumn(name = "ser_venue_master_id")
+	private VenueMaster venueMaster;
+
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
 	}
@@ -204,6 +208,14 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setEventType(EventType eventType) {
 		this.eventType = eventType;
+	}
+
+	public VenueMaster getVenueMaster() {
+		return venueMaster;
+	}
+
+	public void setVenueMaster(VenueMaster venueMaster) {
+		this.venueMaster = venueMaster;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)

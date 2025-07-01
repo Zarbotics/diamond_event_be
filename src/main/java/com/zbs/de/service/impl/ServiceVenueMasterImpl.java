@@ -192,4 +192,19 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 		return venue;
 	}
 
+	@Override
+	public VenueMaster getByPK(Integer serVenueMasterId) {
+		try {
+			Optional<VenueMaster> entity = repositoryVenueMaster.findById(serVenueMasterId);
+			if (entity.isPresent()) {
+				return entity.get();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error Fetching Venue Master by ID", e);
+			return null;
+		}
+	}
+
 }

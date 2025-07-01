@@ -31,6 +31,9 @@ public class DecorColorMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_color_name")
 	private String txtColorName;
+	
+	@Column(name = "txt_color_code")
+	private String txtColorCode;
 
 	@Column(name = "txt_color_hex")
 	private String txtColorHex;
@@ -69,5 +72,15 @@ public class DecorColorMaster extends BaseEntity implements Serializable {
 	public void setBlnIsActive(Boolean blnIsActive) {
 		this.blnIsActive = blnIsActive;
 	}
+
+	public String getTxtColorCode() {
+		return txtColorCode;
+	}
+
+	public void setTxtColorCode(String txtColorCode) {
+		this.txtColorCode = txtColorCode;
+	}
+	
+	
 
 }

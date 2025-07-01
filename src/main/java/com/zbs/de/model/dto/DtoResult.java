@@ -9,6 +9,19 @@ public class DtoResult {
 	Object result;
 	List<Object> resulList;
 
+	public DtoResult() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public DtoResult(String txtMessage, List<String> txtMessageLst, Object result, List<Object> resulList) {
+		super();
+		this.txtMessage = txtMessage;
+		this.txtMessageLst = txtMessageLst;
+		this.result = result;
+		this.resulList = resulList;
+	}
+
 	public String getTxtMessage() {
 		return txtMessage;
 	}

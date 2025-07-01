@@ -1,14 +1,16 @@
 package com.zbs.de.model.dto;
 
-import java.math.BigDecimal;
-
 public class DtoDecorItemMaster {
 
 	private Integer serDecorItemId;
 	private String txtDecorCode;
 	private String txtDecorName;
-	private String txtDescription;
-	private BigDecimal numPrice;
+	private Integer serDecorCategoryId;
+	private String txtDecorCategoryCode;
+	private String txtDecorCategoryName;
+	private Boolean blnIsColorRequired;
+	private Boolean blnIsImageRequired;
+	private Boolean blnIsCountRequired;
 	private Boolean blnIsActive;
 
 	public Integer getSerDecorItemId() {
@@ -35,20 +37,52 @@ public class DtoDecorItemMaster {
 		this.txtDecorName = txtDecorName;
 	}
 
-	public String getTxtDescription() {
-		return txtDescription;
+	public Integer getSerDecorCategoryId() {
+		return serDecorCategoryId;
 	}
 
-	public void setTxtDescription(String txtDescription) {
-		this.txtDescription = txtDescription;
+	public void setSerDecorCategoryId(Integer serDecorCategoryId) {
+		this.serDecorCategoryId = serDecorCategoryId;
 	}
 
-	public BigDecimal getNumPrice() {
-		return numPrice;
+	public String getTxtDecorCategoryCode() {
+		return txtDecorCategoryCode;
 	}
 
-	public void setNumPrice(BigDecimal numPrice) {
-		this.numPrice = numPrice;
+	public void setTxtDecorCategoryCode(String txtDecorCategoryCode) {
+		this.txtDecorCategoryCode = txtDecorCategoryCode;
+	}
+
+	public String getTxtDecorCategoryName() {
+		return txtDecorCategoryName;
+	}
+
+	public void setTxtDecorCategoryName(String txtDecorCategoryName) {
+		this.txtDecorCategoryName = txtDecorCategoryName;
+	}
+
+	public Boolean getBlnIsColorRequired() {
+		return blnIsColorRequired;
+	}
+
+	public void setBlnIsColorRequired(Boolean blnIsColorRequired) {
+		this.blnIsColorRequired = blnIsColorRequired;
+	}
+
+	public Boolean getBlnIsImageRequired() {
+		return blnIsImageRequired;
+	}
+
+	public void setBlnIsImageRequired(Boolean blnIsImageRequired) {
+		this.blnIsImageRequired = blnIsImageRequired;
+	}
+
+	public Boolean getBlnIsCountRequired() {
+		return blnIsCountRequired;
+	}
+
+	public void setBlnIsCountRequired(Boolean blnIsCountRequired) {
+		this.blnIsCountRequired = blnIsCountRequired;
 	}
 
 	public Boolean getBlnIsActive() {

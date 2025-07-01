@@ -4,6 +4,7 @@ import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventRunningOrder;
 import com.zbs.de.util.UtilDateAndTime;
+import com.zbs.de.util.UtilRandomKey;
 
 public class MapperEventMaster {
 
@@ -49,6 +50,12 @@ public class MapperEventMaster {
 			dto.setSerEventTypeId(entity.getEventType().getSerEventTypeId());
 			dto.setTxtEventTypeCode(entity.getEventType().getTxtEventTypeCode());
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
+		}
+		
+		if(UtilRandomKey.isNotNull(entity.getVenueMaster())) {
+			dto.setSerVenueMasterId(entity.getVenueMaster().getSerVenueMasterId());
+			dto.setTxtVenueCode(entity.getVenueMaster().getTxtVenueCode());
+			dto.setTxtVenueName(entity.getVenueMaster().getTxtVenueName());
 		}
 
 		return dto;

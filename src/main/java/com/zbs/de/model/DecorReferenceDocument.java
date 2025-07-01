@@ -12,6 +12,7 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+import java.io.Serializable;
 
 import org.hibernate.annotations.DynamicInsert;
 
@@ -20,7 +21,12 @@ import org.hibernate.annotations.DynamicInsert;
 @Data
 @Table(name = "decor_reference_image")
 @NamedQuery(name = "DecorReferenceDocument.findAll", query = "SELECT a FROM DecorReferenceDocument a")
-public class DecorReferenceDocument {
+public class DecorReferenceDocument extends BaseEntity implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue
 	@Column(name = "ser_document_id")
@@ -41,18 +47,9 @@ public class DecorReferenceDocument {
 	@Column(name = "file_path")
 	private String filePath;
 
-    // For referencing decor components
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ser_themed_stage_id")
-    private DecorThemedStage themedStage;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ser_chair_id")
-    private DecorChair chair;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ser_centerpiece_id")
-    private DecorTableCenterpiece tableCenterpiece;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ser_decor_item_id")
+	private DecorItemMaster decorItemMaster;
 
 	public Integer getDocumentId() {
 		return documentId;
@@ -102,29 +99,12 @@ public class DecorReferenceDocument {
 		this.filePath = filePath;
 	}
 
-	public DecorThemedStage getThemedStage() {
-		return themedStage;
+	public DecorItemMaster getDecorItemMaster() {
+		return decorItemMaster;
 	}
 
-	public void setThemedStage(DecorThemedStage themedStage) {
-		this.themedStage = themedStage;
+	public void setDecorItemMaster(DecorItemMaster decorItemMaster) {
+		this.decorItemMaster = decorItemMaster;
 	}
 
-	public DecorChair getChair() {
-		return chair;
-	}
-
-	public void setChair(DecorChair chair) {
-		this.chair = chair;
-	}
-
-	public DecorTableCenterpiece getTableCenterpiece() {
-		return tableCenterpiece;
-	}
-
-	public void setTableCenterpiece(DecorTableCenterpiece tableCenterpiece) {
-		this.tableCenterpiece = tableCenterpiece;
-	}
-    
-    
 }

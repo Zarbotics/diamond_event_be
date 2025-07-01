@@ -33,6 +33,9 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 	@Column(name = "ser_decor_category_id")
 	private Integer serDecorCategoryId;
 
+	@Column(name = "txt_decore_category_code")
+	private String txtDecorCategoryCode;
+
 	@Column(name = "txt_decor_category_name")
 	private String txtDecorCategoryName;
 
@@ -72,6 +75,14 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 
 	public void setColorMappings(List<DecorCategoryColorMapping> colorMappings) {
 		this.colorMappings = colorMappings;
+	}
+
+	public String getTxtDecorCategoryCode() {
+		return txtDecorCategoryCode;
+	}
+
+	public void setTxtDecorCategoryCode(String txtDecorCategoryCode) {
+		this.txtDecorCategoryCode = txtDecorCategoryCode;
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.zbs.de.model.dto;
 
+import java.util.List;
+
 public class DtoEventMaster {
 	private Integer serEventMasterId;
 	private String txtEventMasterCode;
@@ -18,11 +20,17 @@ public class DtoEventMaster {
 	private String txtCustCode;
 	private String txtCustName;
 
-	private DtoEventRunningOrder dtoEventRunningOrder;
-
 	private Integer serEventTypeId;
 	private String txtEventTypeCode;
 	private String txtEventTypeName;
+
+	private Integer serVenueMasterId;
+	private String txtVenueCode;
+	private String txtVenueName;
+
+	private DtoEventRunningOrder dtoEventRunningOrder;
+
+	private List<DtoEventDecorItemSelection> dtoEventDecorItemSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -174,6 +182,38 @@ public class DtoEventMaster {
 
 	public void setDtoEventRunningOrder(DtoEventRunningOrder dtoEventRunningOrder) {
 		this.dtoEventRunningOrder = dtoEventRunningOrder;
+	}
+
+	public Integer getSerVenueMasterId() {
+		return serVenueMasterId;
+	}
+
+	public void setSerVenueMasterId(Integer serVenueMasterId) {
+		this.serVenueMasterId = serVenueMasterId;
+	}
+
+	public String getTxtVenueCode() {
+		return txtVenueCode;
+	}
+
+	public void setTxtVenueCode(String txtVenueCode) {
+		this.txtVenueCode = txtVenueCode;
+	}
+
+	public String getTxtVenueName() {
+		return txtVenueName;
+	}
+
+	public void setTxtVenueName(String txtVenueName) {
+		this.txtVenueName = txtVenueName;
+	}
+
+	public List<DtoEventDecorItemSelection> getDtoEventDecorItemSelections() {
+		return dtoEventDecorItemSelections;
+	}
+
+	public void setDtoEventDecorItemSelections(List<DtoEventDecorItemSelection> dtoEventDecorItemSelections) {
+		this.dtoEventDecorItemSelections = dtoEventDecorItemSelections;
 	}
 
 }
