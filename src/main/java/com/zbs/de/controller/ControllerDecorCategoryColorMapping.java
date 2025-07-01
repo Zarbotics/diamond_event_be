@@ -30,7 +30,7 @@ public class ControllerDecorCategoryColorMapping {
 	ServiceDecorCategoryColorMapping serviceDecorCategoryColorMapping;
 
 	@PostMapping(value = "/getByCategoryId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getByCategoryId(HttpServletRequest request, DtoSearch dtoSearch) {
+	public ResponseMessage getByCategoryId(HttpServletRequest request,@RequestBody DtoSearch dtoSearch) {
 		LOGGER.info("Fetching all Category Color");
 		DtoResult dtoResult = serviceDecorCategoryColorMapping.getByCategoryId(dtoSearch.getId());
 		if (dtoResult.getResulList() != null && !dtoResult.getResulList().isEmpty()) {
