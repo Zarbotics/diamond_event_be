@@ -22,7 +22,7 @@ import org.hibernate.annotations.DynamicInsert;
 @Data
 @Table(name = "decor_category_color_mapping")
 @NamedQuery(name = "DecorCategoryColorMapping.findAll", query = "SELECT a FROM DecorCategoryColorMapping a")
-public class DecorCategoryColorMapping implements Serializable {
+public class DecorCategoryColorMapping extends BaseEntity implements Serializable {
 	/**
 	 * 
 	 */

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ import com.zbs.de.service.ServiceDecorColorMaster;
 
 @Service("serviceDecorColorMasterImpl")
 public class ServiceDecorColorMasterImpl implements ServiceDecorColorMaster {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
 
 	@Autowired
 	private RepositoryDecorColorMaster repositoryDecorColorMaster;
@@ -42,6 +46,22 @@ public class ServiceDecorColorMasterImpl implements ServiceDecorColorMaster {
 			return new DtoResult("Found", null, MapperDecorColorMaster.toDto(optional.get()), null);
 		}
 		return new DtoResult("Not Found", null, null, null);
+	}
+
+	@Override
+	public DecorColorMaster getByPK(Integer id) {
+
+		try {
+			Optional<DecorColorMaster> optional = repositoryDecorColorMaster.findById(id);
+			if (optional.isPresent()) {
+				return optional.get();
+			}
+			return null;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
+
 	}
 
 	@Override
