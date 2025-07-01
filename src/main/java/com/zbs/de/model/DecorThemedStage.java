@@ -47,8 +47,8 @@ public class DecorThemedStage extends BaseEntity implements Serializable {
 	@Column(name = "txt_platform_size")
 	private String txtPlatformSize;
 
-	@OneToMany(mappedBy = "themedStage", cascade = CascadeType.ALL)
-	private List<DecorReferenceDocument> referenceImages;
+//	@OneToMany(mappedBy = "themedStage", cascade = CascadeType.ALL)
+//	private List<DecorReferenceDocument> referenceImages;
 
 	public Integer getSerThemedStageId() {
 		return serThemedStageId;
@@ -82,12 +82,12 @@ public class DecorThemedStage extends BaseEntity implements Serializable {
 		this.txtPlatformSize = txtPlatformSize;
 	}
 
-	public List<DecorReferenceDocument> getReferenceImages() {
-		return referenceImages;
-	}
-
-	public void setReferenceImages(List<DecorReferenceDocument> referenceImages) {
-		this.referenceImages = referenceImages;
-	}
+//	public List<DecorReferenceDocument> getReferenceImages() {
+//		return referenceImages;
+//	}
+//
+//	public void setReferenceImages(List<DecorReferenceDocument> referenceImages) {
+//		this.referenceImages = referenceImages;
+//	}
 
 }

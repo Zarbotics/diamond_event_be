@@ -1,5 +1,7 @@
 package com.zbs.de.model.dto;
 
+import java.util.List;
+
 public class DtoDecorItemMaster {
 
 	private Integer serDecorItemId;
@@ -12,6 +14,8 @@ public class DtoDecorItemMaster {
 	private Boolean blnIsImageRequired;
 	private Boolean blnIsCountRequired;
 	private Boolean blnIsActive;
+
+	private List<DtoDecorReferenceDocument> dtoDecorReferenceDocumentLst;
 
 	public Integer getSerDecorItemId() {
 		return serDecorItemId;
@@ -91,6 +95,14 @@ public class DtoDecorItemMaster {
 
 	public void setBlnIsActive(Boolean blnIsActive) {
 		this.blnIsActive = blnIsActive;
+	}
+
+	public List<DtoDecorReferenceDocument> getDtoDecorReferenceDocumentLst() {
+		return dtoDecorReferenceDocumentLst;
+	}
+
+	public void setDtoDecorReferenceDocumentLst(List<DtoDecorReferenceDocument> dtoDecorReferenceDocumentLst) {
+		this.dtoDecorReferenceDocumentLst = dtoDecorReferenceDocumentLst;
 	}
 
 }

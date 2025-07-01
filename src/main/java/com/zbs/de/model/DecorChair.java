@@ -48,8 +48,8 @@ public class DecorChair extends BaseEntity implements Serializable {
 	@JoinColumn(name = "ser_sash_color_id")
 	private DecorColorMaster sashColor;
 
-	@OneToMany(mappedBy = "chair", cascade = CascadeType.ALL)
-	private List<DecorReferenceDocument> referenceImages;
+//	@OneToMany(mappedBy = "chair", cascade = CascadeType.ALL)
+//	private List<DecorReferenceDocument> referenceImages;
 
 	public Integer getSerChairId() {
 		return serChairId;
@@ -82,14 +82,14 @@ public class DecorChair extends BaseEntity implements Serializable {
 	public void setSashColor(DecorColorMaster sashColor) {
 		this.sashColor = sashColor;
 	}
-
-	public List<DecorReferenceDocument> getReferenceImages() {
-		return referenceImages;
-	}
-
-	public void setReferenceImages(List<DecorReferenceDocument> referenceImages) {
-		this.referenceImages = referenceImages;
-	}
-	
+//
+//	public List<DecorReferenceDocument> getReferenceImages() {
+//		return referenceImages;
+//	}
+//
+//	public void setReferenceImages(List<DecorReferenceDocument> referenceImages) {
+//		this.referenceImages = referenceImages;
+//	}
+//	
 	
 }

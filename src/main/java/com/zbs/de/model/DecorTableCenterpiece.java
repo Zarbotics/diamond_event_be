@@ -40,9 +40,9 @@ public class DecorTableCenterpiece extends BaseEntity implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_event_master_id")
 	private EventMaster eventMaster;
-
-	@OneToMany(mappedBy = "tableCenterpiece", cascade = CascadeType.ALL)
-	private List<DecorReferenceDocument> referenceImages;
+//
+//	@OneToMany(mappedBy = "tableCenterpiece", cascade = CascadeType.ALL)
+//	private List<DecorReferenceDocument> referenceImages;
 
 	public Integer getSerCenterpieceId() {
 		return serCenterpieceId;
@@ -60,12 +60,12 @@ public class DecorTableCenterpiece extends BaseEntity implements Serializable {
 		this.eventMaster = eventMaster;
 	}
 
-	public List<DecorReferenceDocument> getReferenceImages() {
-		return referenceImages;
-	}
-
-	public void setReferenceImages(List<DecorReferenceDocument> referenceImages) {
-		this.referenceImages = referenceImages;
-	}
+//	public List<DecorReferenceDocument> getReferenceImages() {
+//		return referenceImages;
+//	}
+//
+//	public void setReferenceImages(List<DecorReferenceDocument> referenceImages) {
+//		this.referenceImages = referenceImages;
+//	}
 	
 }

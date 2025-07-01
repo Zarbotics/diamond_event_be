@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.zbs.de.mapper.MapperDecorColorMaster;
 import com.zbs.de.model.DecorColorMaster;
@@ -14,6 +15,7 @@ import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryDecorColorMaster;
 import com.zbs.de.service.ServiceDecorColorMaster;
 
+@Service("serviceDecorColorMasterImpl")
 public class ServiceDecorColorMasterImpl implements ServiceDecorColorMaster {
 
 	@Autowired

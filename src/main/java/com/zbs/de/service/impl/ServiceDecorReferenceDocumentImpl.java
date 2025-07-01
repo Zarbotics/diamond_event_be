@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.zbs.de.mapper.MapperDecorReferenceDocument;
 import com.zbs.de.model.DecorReferenceDocument;
@@ -14,6 +15,7 @@ import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryDecorReferenceDocument;
 import com.zbs.de.service.ServiceDecorReferenceDocument;
 
+@Service("serviceDecorReferenceDocument")
 public class ServiceDecorReferenceDocumentImpl implements ServiceDecorReferenceDocument {
 
 	@Autowired

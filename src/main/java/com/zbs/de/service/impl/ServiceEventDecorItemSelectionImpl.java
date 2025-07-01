@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.zbs.de.mapper.MapperEventDecorItemSelection;
 import com.zbs.de.model.EventDecorItemSelection;
@@ -17,6 +18,7 @@ import com.zbs.de.repository.RepositoryEventDecorItemSelection;
 import com.zbs.de.service.ServiceEventDecorItemSelection;
 import com.zbs.de.util.UtilRandomKey;
 
+@Service("serviceEventDecorItemSelection")
 public class ServiceEventDecorItemSelectionImpl implements ServiceEventDecorItemSelection {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);

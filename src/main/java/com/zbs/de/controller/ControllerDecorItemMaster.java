@@ -9,13 +9,19 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.util.UtilRandomKey;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zbs.de.model.dto.DtoDecorItemMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceDecorItemMaster;
+
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,5 +68,26 @@ public class ControllerDecorItemMaster {
 					dtoResult.getResult());
 		}
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, dtoResult.getTxtMessage(), null);
+	}
+
+	@PostMapping(value = "/saveDecorItem", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseMessage saveDecorItem(@RequestPart("decorData") String decorJson,
+			@RequestPart("files") List<MultipartFile> files) {
+		LOGGER.info("Saving DecorItem with documents");
+
+		try {
+			DtoDecorItemMaster dto = new ObjectMapper().readValue(decorJson, DtoDecorItemMaster.class);
+			DtoResult saved = serviceDecorItemMaster.saveDecorItemWithDocuments(dto, files);
+			if (UtilRandomKey.isNotNull(saved) && saved.getTxtMessage().equalsIgnoreCase("Saved Successfully")) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved Successfully", dto);
+			} else {
+				return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+						"Failed to save decor item", null);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error saving DecorItem", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to save decor item", null);
+		}
 	}
 }

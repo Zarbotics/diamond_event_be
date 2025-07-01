@@ -1,8 +1,16 @@
 package com.zbs.de.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.zbs.de.model.DecorCategoryMaster;
 import com.zbs.de.model.DecorItemMaster;
+import com.zbs.de.model.DecorReferenceDocument;
 import com.zbs.de.model.dto.DtoDecorItemMaster;
+import com.zbs.de.model.dto.DtoDecorReferenceDocument;
+import com.zbs.de.model.dto.DtoVenueMasterDetailDocument;
+import com.zbs.de.util.UtilRandomKey;
 
 public class MapperDecorItemMaster {
 	public static DecorItemMaster toEntity(DtoDecorItemMaster dto) {
@@ -37,6 +45,21 @@ public class MapperDecorItemMaster {
 			dto.setSerDecorCategoryId(entity.getDecorCategoryMaster().getSerDecorCategoryId());
 			dto.setTxtDecorCategoryCode(entity.getDecorCategoryMaster().getTxtDecorCategoryCode());
 			dto.setTxtDecorCategoryName(entity.getDecorCategoryMaster().getTxtDecorCategoryName());
+		}
+
+		if (UtilRandomKey.isNotNull(entity.getDecorReferenceDocuments())) {
+			List<DtoDecorReferenceDocument> dtoDecorReferenceDocuments = new ArrayList<>();
+			for (DecorReferenceDocument doc : entity.getDecorReferenceDocuments()) {
+				DtoDecorReferenceDocument d = new DtoDecorReferenceDocument();
+				d.setSerDecorReferenceDocumentId(doc.getDocumentId());
+				d.setTxtDocumentName(doc.getDocumentName());
+				d.setTxtDocumentType(doc.getDocumentType());
+				d.setTxtOriginalName(doc.getOriginalName());
+				d.setTxtSize(doc.getSize());
+				d.setTxtFilePath(doc.getFilePath());
+				dtoDecorReferenceDocuments.add(d);
+			}
+			dto.setDtoDecorReferenceDocumentLst(dtoDecorReferenceDocuments);
 		}
 		return dto;
 	}
