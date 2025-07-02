@@ -1,10 +1,13 @@
 package com.zbs.de.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +16,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.Getter;
@@ -89,6 +93,13 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "ser_venue_master_id")
 	private VenueMaster venueMaster;
+
+	@ManyToOne
+	@JoinColumn(name = "ser_vendor_id")
+	private VendorMaster vendorMaster;
+
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -216,6 +227,22 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setVenueMaster(VenueMaster venueMaster) {
 		this.venueMaster = venueMaster;
+	}
+
+	public List<EventMenuFoodSelection> getFoodSelections() {
+		return foodSelections;
+	}
+
+	public void setFoodSelections(List<EventMenuFoodSelection> foodSelections) {
+		this.foodSelections = foodSelections;
+	}
+
+	public VendorMaster getVendorMaster() {
+		return vendorMaster;
+	}
+
+	public void setVendorMaster(VendorMaster vendorMaster) {
+		this.vendorMaster = vendorMaster;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)

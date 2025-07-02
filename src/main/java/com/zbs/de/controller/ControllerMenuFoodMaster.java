@@ -60,4 +60,15 @@ public class ControllerMenuFoodMaster {
 		}
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, res.getMessage(), null);
 	}
+
+	@RequestMapping(value = "/getFoodByType", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getFoodByType(@RequestBody DtoSearch dtoSearch) {
+		LOGGER.info("Fetching MenuFoodMaster by Type : {}", dtoSearch.getSearchKeyword());
+		ResponseMessage res = serviceMenuFoodMaster.getByType(dtoSearch.getSearchKeyword());
+		if (res.getResult() != null) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully", res.getResult());
+		}
+		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, res.getMessage(), null);
+	}
+
 }

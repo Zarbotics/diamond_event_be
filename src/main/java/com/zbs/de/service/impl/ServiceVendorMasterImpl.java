@@ -70,4 +70,19 @@ public class ServiceVendorMasterImpl implements ServiceVendorMaster {
 		}
 		return res;
 	}
+
+	@Override
+	public VendorMaster getByPK(Integer id) {
+		try {
+			Optional<VendorMaster> optional = repositoryVendorMaster.findById(id);
+			if (optional.isPresent()) {
+				return optional.get();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error fetching vendor by id", e);
+			return null;
+		}
+	}
 }

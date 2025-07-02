@@ -2,6 +2,8 @@ package com.zbs.de.model.dto;
 
 import java.util.List;
 
+import jakarta.persistence.Column;
+
 public class DtoEventMaster {
 	private Integer serEventMasterId;
 	private String txtEventMasterCode;
@@ -28,9 +30,14 @@ public class DtoEventMaster {
 	private String txtVenueCode;
 	private String txtVenueName;
 
+	private Integer serVendorId;
+	private String txtVendorCode;
+	private String txtVendorName;
+
 	private DtoEventRunningOrder dtoEventRunningOrder;
 
 	private List<DtoEventDecorItemSelection> dtoEventDecorItemSelections;
+	private List<DtoEventMenuFoodSelection> foodSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -214,6 +221,38 @@ public class DtoEventMaster {
 
 	public void setDtoEventDecorItemSelections(List<DtoEventDecorItemSelection> dtoEventDecorItemSelections) {
 		this.dtoEventDecorItemSelections = dtoEventDecorItemSelections;
+	}
+
+	public List<DtoEventMenuFoodSelection> getFoodSelections() {
+		return foodSelections;
+	}
+
+	public void setFoodSelections(List<DtoEventMenuFoodSelection> foodSelections) {
+		this.foodSelections = foodSelections;
+	}
+
+	public Integer getSerVendorId() {
+		return serVendorId;
+	}
+
+	public void setSerVendorId(Integer serVendorId) {
+		this.serVendorId = serVendorId;
+	}
+
+	public String getTxtVendorCode() {
+		return txtVendorCode;
+	}
+
+	public void setTxtVendorCode(String txtVendorCode) {
+		this.txtVendorCode = txtVendorCode;
+	}
+
+	public String getTxtVendorName() {
+		return txtVendorName;
+	}
+
+	public void setTxtVendorName(String txtVendorName) {
+		this.txtVendorName = txtVendorName;
 	}
 
 }

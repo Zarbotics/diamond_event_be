@@ -11,22 +11,30 @@ import org.springframework.stereotype.Service;
 
 import com.zbs.de.mapper.MapperEventDecorItemSelection;
 import com.zbs.de.mapper.MapperEventMaster;
+import com.zbs.de.mapper.MapperEventMenuFoodSelection;
 import com.zbs.de.mapper.MapperEventRunningOrder;
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.EventDecorItemSelection;
 import com.zbs.de.model.EventMaster;
+import com.zbs.de.model.EventMenuFoodSelection;
 import com.zbs.de.model.EventRunningOrder;
 import com.zbs.de.model.EventType;
+import com.zbs.de.model.MenuFoodMaster;
+import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.dto.DtoEventDecorItemSelection;
 import com.zbs.de.model.dto.DtoEventMaster;
+import com.zbs.de.model.dto.DtoEventMenuFoodSelection;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
 import com.zbs.de.service.ServiceEventMaster;
+import com.zbs.de.service.ServiceEventMenuFoodSelection;
 import com.zbs.de.service.ServiceEventType;
+import com.zbs.de.service.ServiceMenuFoodMaster;
+import com.zbs.de.service.ServiceVendorMaster;
 import com.zbs.de.service.ServiceVenueMaster;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilRandomKey;
@@ -50,7 +58,16 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private ServiceVenueMaster serviceVenueMaster;
 
 	@Autowired
+	private ServiceVendorMaster serviceVendorMaster;
+
+	@Autowired
 	private ServiceEventDecorItemSelectionImpl serviceEventDecorItemSelectionImpl;
+
+	@Autowired
+	private ServiceEventMenuFoodSelection serviceEventMenuFoodSelection;
+
+	@Autowired
+	private ServiceMenuFoodMaster serviceMenuFoodMaster;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
@@ -166,6 +183,46 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setVenueMaster(venueMaster);
 			}
 
+			// Set Vendor
+			// **********
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
+				VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
+				if (UtilRandomKey.isNotNull(vendorMaster)) {
+
+					if (UtilRandomKey.isNotNull(entity.getVendorMaster())) {
+						entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+					}
+					entity.setVendorMaster(vendorMaster);
+				} else {
+					dtoResult.setTxtMessage(
+							"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
+					return dtoResult;
+				}
+			}
+
+			// Set Food Menu
+			// *************
+			if (dtoEventMaster.getFoodSelections() != null && !dtoEventMaster.getFoodSelections().isEmpty()) {
+				List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
+				for (DtoEventMenuFoodSelection foodDto : dtoEventMaster.getFoodSelections()) {
+					MenuFoodMaster menu = serviceMenuFoodMaster.getByPK(foodDto.getSerMenuFoodId());
+					if (menu != null) {
+						EventMenuFoodSelection selection = new EventMenuFoodSelection();
+						selection.setEventMaster(entity); // event already persisted
+						selection.setMenuFoodMaster(menu);
+						selection.setTxtFoodType(foodDto.getTxtFoodType());
+						foodSelections.add(selection);
+					}
+				}
+
+				// Clear previous and reassign
+				if (UtilRandomKey.isNull(entity.getFoodSelections())) {
+					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				}
+				entity.getFoodSelections().clear();
+				entity.getFoodSelections().addAll(foodSelections);
+			}
+
 		} else {
 			// Create new
 			entity = MapperEventMaster.toEntity(dtoEventMaster);
@@ -214,9 +271,24 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				VenueMaster venueMaster = serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId());
 				if (UtilRandomKey.isNull(venueMaster)) {
 					dtoResult.setTxtMessage("Venue Not Found For Id: " + dtoEventMaster.getSerVenueMasterId());
+					return dtoResult;
 				}
 				entity.setVenueMaster(venueMaster);
 				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+			}
+
+			// Set Vendor
+			// **********
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
+				VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
+				if (UtilRandomKey.isNotNull(vendorMaster)) {
+					entity.setVendorMaster(vendorMaster);
+					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				} else {
+					dtoResult.setTxtMessage(
+							"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
+					return dtoResult;
+				}
 			}
 
 			// Set Decore Item Selections
@@ -227,6 +299,26 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					serviceEventDecorItemSelectionImpl.saveOrUpdate(decorDto);
 				}
 				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+			}
+
+			// Set Food Menu
+			// *************
+			if (dtoEventMaster.getFoodSelections() != null && !dtoEventMaster.getFoodSelections().isEmpty()) {
+				List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
+				for (DtoEventMenuFoodSelection foodDto : dtoEventMaster.getFoodSelections()) {
+					MenuFoodMaster menu = serviceMenuFoodMaster.getByPK(foodDto.getSerMenuFoodId());
+					if (menu != null) {
+						EventMenuFoodSelection selection = new EventMenuFoodSelection();
+						selection.setEventMaster(entity); // event already persisted
+						selection.setMenuFoodMaster(menu);
+						selection.setTxtFoodType(foodDto.getTxtFoodType());
+						foodSelections.add(selection);
+					}
+				}
+
+				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				entity.getFoodSelections().clear();
+				entity.getFoodSelections().addAll(foodSelections);
 			}
 
 			// Generate event master code
@@ -284,6 +376,22 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					}
 				}
 				dto.setDtoEventDecorItemSelections(dtoEventDecorItemSelections);
+
+				// Fetching Event Menu Food Selection
+				// ***********************************
+
+				List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
+						.getByEventMasterId(dto.getSerEventMasterId());
+				List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+				if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+					for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
+						DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
+								.toDto(entity);
+						dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+					}
+				}
+				dto.setFoodSelections(dtoEventMenuFoodSelections);
+
 				dtoResult.setResult(dto);
 				dtoResult.setTxtMessage("Success");
 			} else {

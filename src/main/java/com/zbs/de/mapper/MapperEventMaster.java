@@ -57,6 +57,12 @@ public class MapperEventMaster {
 			dto.setTxtVenueCode(entity.getVenueMaster().getTxtVenueCode());
 			dto.setTxtVenueName(entity.getVenueMaster().getTxtVenueName());
 		}
+		
+		if(UtilRandomKey.isNotNull(entity.getVendorMaster())) {
+			dto.setSerVendorId(entity.getVendorMaster().getSerVendorId());
+			dto.setTxtVendorCode(entity.getVendorMaster().getTxtVendorCode());
+			dto.setTxtVendorName(entity.getVendorMaster().getTxtVendorName());
+		}
 
 		return dto;
 	}

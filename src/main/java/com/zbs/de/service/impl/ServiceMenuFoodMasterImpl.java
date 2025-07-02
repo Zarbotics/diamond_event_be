@@ -8,6 +8,7 @@ import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
 import com.zbs.de.repository.RepositoryMenuFoodMaster;
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.util.UtilRandomKey;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,4 +71,38 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 		}
 		return res;
 	}
+
+	@Override
+	public ResponseMessage getByType(String type) {
+		ResponseMessage res = new ResponseMessage();
+		try {
+			List<MenuFoodMaster> menuFoodMasterLSt = repositoryMenuFoodMaster.findByFoodType(type);
+			if (UtilRandomKey.isNotNull(menuFoodMasterLSt)) {
+				res.setMessage("Record fetched successfully");
+				res.setResult(menuFoodMasterLSt);
+			} else {
+				res.setMessage("MenuFoodMaster not found");
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error fetching by Type", e);
+			res.setMessage("Unexpected error occurred");
+		}
+		return res;
+	}
+
+	@Override
+	public MenuFoodMaster getByPK(Integer id) {
+		try {
+			Optional<MenuFoodMaster> optional = repositoryMenuFoodMaster.findById(id);
+			if (optional.isPresent()) {
+				return optional.get();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error fetching by ID", e);
+			return null;
+		}
+	}
+
 }
