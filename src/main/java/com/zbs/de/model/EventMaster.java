@@ -51,7 +51,7 @@ public class EventMaster extends BaseEntity implements Serializable {
 	private Date dteEventDate;
 
 	@Column(name = "num_number_of_guests")
-	private Integer numNumberOfGuests;
+	private String numNumberOfGuests;
 
 	@Column(name = "num_number_of_tables")
 	private Integer numNumberOfTables;
@@ -133,12 +133,12 @@ public class EventMaster extends BaseEntity implements Serializable {
 		this.dteEventDate = dteEventDate;
 	}
 
-	public Integer getNumNumberOfGuests() {
+	public String getNumNumberOfGuests() {
 		return numNumberOfGuests;
 	}
 
-	public void setNumNumberOfGuests(Integer numNumberOfGuests) {
-		this.numNumberOfGuests = numNumberOfGuests;
+	public void setNumNumberOfGuests(String string) {
+		this.numNumberOfGuests = string;
 	}
 
 	public Integer getNumNumberOfTables() {

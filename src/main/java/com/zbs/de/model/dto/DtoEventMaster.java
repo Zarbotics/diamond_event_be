@@ -9,7 +9,7 @@ public class DtoEventMaster {
 	private String txtEventMasterCode;
 	private String txtEventMasterName;
 	private String dteEventDate;
-	private Integer numNumberOfGuests;
+	private String numNumberOfGuests;
 	private Integer numNumberOfTables;
 	private Integer numInfoFilledStatus;
 	private String txtBrideName;
@@ -71,11 +71,11 @@ public class DtoEventMaster {
 		this.dteEventDate = dteEventDate;
 	}
 
-	public Integer getNumNumberOfGuests() {
+	public String getNumNumberOfGuests() {
 		return numNumberOfGuests;
 	}
 
-	public void setNumNumberOfGuests(Integer numNumberOfGuests) {
+	public void setNumNumberOfGuests(String numNumberOfGuests) {
 		this.numNumberOfGuests = numNumberOfGuests;
 	}
 

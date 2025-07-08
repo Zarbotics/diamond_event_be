@@ -41,6 +41,8 @@ public class DtoCustomerMaster extends DtoBaseEntity {
 	private Integer serStateId;
 	private String txtStateCode;
 	private String txtStateName;
+	private String txtBrideName;
+	private String txtGroomName;
 
 	private Boolean blnIsActive;
 
@@ -282,6 +284,22 @@ public class DtoCustomerMaster extends DtoBaseEntity {
 
 	public void setTxtLastName(String txtLastName) {
 		this.txtLastName = txtLastName;
+	}
+
+	public String getTxtBrideName() {
+		return txtBrideName;
+	}
+
+	public void setTxtBrideName(String txtBrideName) {
+		this.txtBrideName = txtBrideName;
+	}
+
+	public String getTxtGroomName() {
+		return txtGroomName;
+	}
+
+	public void setTxtGroomName(String txtGroomName) {
+		this.txtGroomName = txtGroomName;
 	}
 
 }

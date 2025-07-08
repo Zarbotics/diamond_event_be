@@ -106,6 +106,12 @@ public class CustomerMaster extends BaseEntity implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_state_id")
 	private StateMaster stateMaster;
+	
+	@Column(name = "txt_bride_name")
+	private String txtBrideName;
+
+	@Column(name = "txt_groom_name")
+	private String txtGroomName;
 
 	public Integer getSerCustId() {
 		return serCustId;
@@ -298,6 +304,22 @@ public class CustomerMaster extends BaseEntity implements Serializable {
 
 	public void setTxtLastName(String txtLastName) {
 		this.txtLastName = txtLastName;
+	}
+	
+	public String getTxtGroomName() {
+		return txtGroomName;
+	}
+
+	public void setTxtGroomName(String txtGroomName) {
+		this.txtGroomName = txtGroomName;
+	}
+	
+	public String getTxtBrideName() {
+		return txtBrideName;
+	}
+
+	public void setTxtBrideName(String txtBrideName) {
+		this.txtBrideName = txtBrideName;
 	}
 
 }

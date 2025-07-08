@@ -81,6 +81,8 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster.setTxtFirstName(dtoCustomerMaster.getTxtFirstName());
 				customerMaster.setTxtLastName(dtoCustomerMaster.getTxtLastName());
 				customerMaster.setUpdatedDate(UtilDateAndTime.getCurrentDate());
+				customerMaster.setTxtBrideName(dtoCustomerMaster.getTxtBrideName());
+				customerMaster.setTxtGroomName(dtoCustomerMaster.getTxtGroomName());
 				LOGGER.info("Updating existing customer with email: " + email);
 			} else {
 				// Create new
