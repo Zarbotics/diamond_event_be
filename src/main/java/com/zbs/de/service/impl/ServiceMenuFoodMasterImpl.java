@@ -11,7 +11,9 @@ import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -101,6 +103,40 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error fetching by ID", e);
+			return null;
+		}
+	}
+
+	@Override
+	public Map<String, List<DtoMenuFoodMaster>> getAllFoodGroupedByType() {
+		Map<String, List<DtoMenuFoodMaster>> grouped = new HashMap<>();
+		try {
+			List<MenuFoodMaster> allItems = repositoryMenuFoodMaster.findByBlnIsDeleted(false);
+			for (MenuFoodMaster item : allItems) {
+				if (Boolean.TRUE.equals(item.getBlnIsDessert())) {
+					grouped.computeIfAbsent("Dessert", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsDrink())) {
+					grouped.computeIfAbsent("Drink", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsStarter())) {
+					grouped.computeIfAbsent("Starter", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsAppetiser())) {
+					grouped.computeIfAbsent("Appetiser", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsSaladAndCondiment())) {
+					grouped.computeIfAbsent("SaladAndCondiment", k -> new ArrayList<>())
+							.add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsMainCourse())) {
+					grouped.computeIfAbsent("MainCourse", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+			}
+
+			return grouped;
+		} catch (Exception e) {
+			LOGGER.error("Error fetching grouped food items", e);
 			return null;
 		}
 	}

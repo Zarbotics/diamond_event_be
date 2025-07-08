@@ -2,14 +2,13 @@ package com.zbs.de.model.dto;
 
 import java.util.List;
 
-import jakarta.persistence.Column;
-
 public class DtoEventMaster {
 	private Integer serEventMasterId;
 	private String txtEventMasterCode;
 	private String txtEventMasterName;
 	private String dteEventDate;
 	private Integer numNumberOfGuests;
+	private String txtNumberOfGuests;
 	private Integer numNumberOfTables;
 	private Integer numInfoFilledStatus;
 	private String txtBrideName;
@@ -25,7 +24,7 @@ public class DtoEventMaster {
 	private Integer serEventTypeId;
 	private String txtEventTypeCode;
 	private String txtEventTypeName;
-
+	private String txtOtherEventType;
 	private Integer serVenueMasterId;
 	private String txtVenueCode;
 	private String txtVenueName;
@@ -253,6 +252,22 @@ public class DtoEventMaster {
 
 	public void setTxtVendorName(String txtVendorName) {
 		this.txtVendorName = txtVendorName;
+	}
+
+	public String getTxtNumberOfGuests() {
+		return txtNumberOfGuests;
+	}
+
+	public void setTxtNumberOfGuests(String txtNumberOfGuests) {
+		this.txtNumberOfGuests = txtNumberOfGuests;
+	}
+
+	public String getTxtOtherEventType() {
+		return txtOtherEventType;
+	}
+
+	public void setTxtOtherEventType(String txtOtherEventType) {
+		this.txtOtherEventType = txtOtherEventType;
 	}
 
 }

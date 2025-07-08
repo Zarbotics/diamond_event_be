@@ -26,6 +26,8 @@ public class MapperEventMaster {
 		dto.setTxtBirthDayCelebrant(entity.getTxtBirthDayCelebrant());
 		dto.setTxtAgeCategory(entity.getTxtAgeCategory());
 		dto.setTxtChiefGuest(entity.getTxtChiefGuest());
+		dto.setTxtNumberOfGuests(entity.getTxtNumberOfGuests());
+		dto.setTxtOtherEventType(entity.getTxtOtherEventType());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -85,6 +87,8 @@ public class MapperEventMaster {
 		entity.setTxtBirthDayCelebrant(dto.getTxtBirthDayCelebrant());
 		entity.setTxtAgeCategory(dto.getTxtAgeCategory());
 		entity.setTxtChiefGuest(dto.getTxtChiefGuest());
+		entity.setTxtNNumberOfGuests(dto.getTxtNumberOfGuests());
+		entity.setTxtOtherEventType(dto.getTxtOtherEventType());
 
 		return entity;
 	}

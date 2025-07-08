@@ -53,6 +53,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "num_number_of_guests")
 	private Integer numNumberOfGuests;
 
+	@Column(name = "txt_number_of_guests")
+	private String txtNumberOfGuests;
+
 	@Column(name = "num_number_of_tables")
 	private Integer numNumberOfTables;
 
@@ -89,6 +92,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "ser_event_type_id")
 	private EventType eventType;
+
+	@Column(name = "txt_other_event_type")
+	private String txtOtherEventType;
 
 	@ManyToOne
 	@JoinColumn(name = "ser_venue_master_id")
@@ -243,6 +249,22 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setVendorMaster(VendorMaster vendorMaster) {
 		this.vendorMaster = vendorMaster;
+	}
+
+	public String getTxtNumberOfGuests() {
+		return txtNumberOfGuests;
+	}
+
+	public void setTxtNNumberOfGuests(String txtNumberOfGuests) {
+		this.txtNumberOfGuests = txtNumberOfGuests;
+	}
+
+	public String getTxtOtherEventType() {
+		return txtOtherEventType;
+	}
+
+	public void setTxtOtherEventType(String txtOtherEventType) {
+		this.txtOtherEventType = txtOtherEventType;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
