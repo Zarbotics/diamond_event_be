@@ -12,8 +12,8 @@ public class UtilFileStorage {
 
 	public static String saveFile(MultipartFile file, String category) throws IOException {
 		// Resolve home directory properly on Linux
-		String userHome = System.getProperty("user.home"); // e.g., /home/username
-		String folder = userHome + "/Desktop/diamondMedia/" + category;
+//		String userHome = System.getProperty("user.home"); // e.g., /home/username
+		String folder = "/home/talha/Desktop/diamondMedia/" + category;
 
 		Files.createDirectories(Paths.get(folder));
 
@@ -21,7 +21,7 @@ public class UtilFileStorage {
 		Path filePath = Paths.get(folder, fileName);
 		file.transferTo(filePath);
 
-		return filePath.toString();
+		return filePath.toString(); 
 	}
 
 }
