@@ -1,19 +1,27 @@
 package com.zbs.de.service.impl;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.service.ServiceEventType;
 import com.zbs.de.mapper.MapperEventType;
 import com.zbs.de.model.EventType;
+import com.zbs.de.model.EventTypeDocument;
 import com.zbs.de.model.dto.DtoEventType;
+import com.zbs.de.model.dto.DtoEventTypeDocument;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryEventType;
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +50,7 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 		List<EventType> list = repositoryEventType.findByBlnIsDeleted(false);
 		List<DtoEventType> dtos = new ArrayList<>();
 		for (EventType type : list) {
-			if(UtilRandomKey.isNotNull(type.getBlnIsMainEvent()) && !type.getBlnIsMainEvent()) {
+			if (UtilRandomKey.isNotNull(type.getBlnIsMainEvent()) && !type.getBlnIsMainEvent()) {
 				continue;
 			}
 			DtoEventType eventType = MapperEventType.toDto(type);
@@ -138,7 +146,7 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 		}
 		return res;
 	}
-	
+
 	@Override
 	public EventType getByPK(Integer id) {
 		try {
@@ -149,10 +157,81 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 				return null;
 			}
 		} catch (Exception e) {
-			LOGGER.error(e.getMessage(),e);
+			LOGGER.error(e.getMessage(), e);
 			LOGGER.debug("Error fetching event type", e);
 			return null;
 		}
 
 	}
+
+	@Override
+	public DtoResult saveEventTypeWithDocuments(DtoEventType dto, List<MultipartFile> files) throws IOException {
+		DtoResult dtoResult = new DtoResult();
+		EventType entity = null;
+		if (dto.getSerEventTypeId() != null) {
+			Optional<EventType> existingOptional = repositoryEventType.findById(dto.getSerEventTypeId());
+			if (existingOptional.isEmpty()) {
+				dtoResult.setTxtMessage("Event type not found for update.");
+				return dtoResult;
+			}
+			entity = existingOptional.get();
+		}
+
+		// Prevent self-parenting
+		if (dto.getParentEventTypeId() != null && dto.getSerEventTypeId() != null
+				&& dto.getParentEventTypeId().equals(dto.getSerEventTypeId())) {
+			dtoResult.setTxtMessage("An event cannot be its own parent.");
+			return dtoResult;
+		}
+
+		EventType parent = null;
+		if (dto.getParentEventTypeId() != null) {
+			Optional<EventType> parentOptional = repositoryEventType.findById(dto.getParentEventTypeId());
+			if (parentOptional.isEmpty()) {
+				dtoResult.setTxtMessage("Parent Event Type not found.");
+				return dtoResult;
+			}
+			parent = parentOptional.get();
+		}
+
+		if (entity == null) {
+			entity = MapperEventType.toEntity(dto);
+			entity.setParentEventType(parent);
+			entity.setBlnIsActive(true);
+			entity.setBlnIsDeleted(false);
+			entity.setBlnIsApproved(true);
+		} else {
+			entity.setTxtEventTypeName(dto.getTxtEventTypeName());
+			entity.setBlnIsMainEvent(dto.getBlnIsMainEvent());
+			entity.setBlnIsActive(dto.getBlnIsActive());
+			entity.setUpdatedDate(new Date());
+		}
+
+		Map<String, MultipartFile> fileMap = files.stream()
+				.collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
+
+		List<EventTypeDocument> documents = new ArrayList<>();
+		for (DtoEventTypeDocument docDto : dto.getDocuments()) {
+			MultipartFile file = fileMap.get(docDto.getOriginalName());
+			if (file != null) {
+				String uploadPath = UtilFileStorage.saveFile(file, "eventTypes");
+				EventTypeDocument doc = new EventTypeDocument();
+				doc.setDocumentName(file.getName());
+				doc.setOriginalName(file.getOriginalFilename());
+				doc.setDocumentType(file.getContentType());
+				doc.setSize(String.valueOf(file.getSize()));
+				doc.setFilePath(uploadPath);
+				doc.setEventType(entity);
+				documents.add(doc);
+			}
+		}
+
+		entity.setEventTypeDocuments(documents);
+
+		EventType saved = repositoryEventType.saveAndFlush(entity);
+		dtoResult.setTxtMessage("Saved successfully");
+		dtoResult.setResult(saved);
+		return dtoResult;
+	}
+
 }
