@@ -15,6 +15,7 @@ public class MapperEventType {
 		dto.setTxtEventTypeCode(entity.getTxtEventTypeCode());
 		dto.setTxtEventTypeName(entity.getTxtEventTypeName());
 		dto.setBlnIsMainEvent(entity.getBlnIsMainEvent());
+		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setParentEventTypeId(
 				entity.getParentEventType() != null ? entity.getParentEventType().getSerEventTypeId() : null);
 
