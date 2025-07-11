@@ -11,10 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class UtilFileStorage {
 
 	public static String saveFile(MultipartFile file, String category) throws IOException {
-		// Resolve home directory properly on Linux
-//		String userHome = System.getProperty("user.home"); // e.g., /home/username
-		String folder = "/home/talha/Desktop/diamondMedia/" + category;
-
+		//String folder = "/data/uploads/" + category;
+		String folder = "D:/Zarbotics/UploadedFiles/" +category;
 		Files.createDirectories(Paths.get(folder));
 
 		String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();

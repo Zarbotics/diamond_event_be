@@ -9,7 +9,7 @@ import com.zbs.de.model.EventDecorCategorySelection;
 
 @Repository("repositoryEventDecorCategorySelection")
 public interface RepositoryEventDecorCategorySelection extends JpaRepository<EventDecorCategorySelection, Integer> {
-	void deleteByEventMasterSerEventMasterId(Integer serEventMasterId);
+	void deleteByEventMaster_SerEventMasterId(Integer serEventMasterId);
 
-	List<EventDecorCategorySelection> findByEventMasterSerEventMasterId(Integer serEventMasterId);
+	List<EventDecorCategorySelection> findByEventMaster_SerEventMasterId(Integer serEventMasterId);
 }

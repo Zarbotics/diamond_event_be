@@ -12,6 +12,7 @@ public class MapperEventMenuFoodSelection {
 		}
 		DtoEventMenuFoodSelection dto = new DtoEventMenuFoodSelection();
 		dto.setSerEventMenuFoodId(entity.getSerEventMenuFoodId());
+		dto.setBlnIsActive(entity.getBlnIsActive());
 		if (UtilRandomKey.isNotNull(entity.getEventMaster())) {
 			dto.setSerEventMasterId(entity.getEventMaster().getSerEventMasterId());
 			dto.setTxtEventMasterCode(entity.getEventMaster().getTxtEventMasterCode());

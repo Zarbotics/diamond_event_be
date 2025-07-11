@@ -37,7 +37,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 	@Override
 	public DtoResult getById(Integer id) {
 		Optional<DecorCategoryPropertyMaster> optional = repositoryDecorCategoryPropertyMaster
-				.findByIdAndBlnIsDeletedFalse(id);
+				.findBySerPropertyIdAndBlnIsDeletedFalse(id);
 		return optional.map(value -> new DtoResult("Found", null, MapperDecorCategoryPropertyMaster.toDto(value), null))
 				.orElseGet(() -> new DtoResult("Not Found", null, null, null));
 	}
@@ -45,7 +45,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 	@Override
 	public DtoResult deleteById(Integer id) {
 		Optional<DecorCategoryPropertyMaster> optional = repositoryDecorCategoryPropertyMaster
-				.findByIdAndBlnIsDeletedFalse(id);
+				.findBySerPropertyIdAndBlnIsDeletedFalse(id);
 		if (optional.isPresent()) {
 			DecorCategoryPropertyMaster entity = optional.get();
 			entity.setBlnIsDeleted(true);

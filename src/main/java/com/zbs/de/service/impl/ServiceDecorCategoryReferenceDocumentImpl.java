@@ -40,7 +40,7 @@ public class ServiceDecorCategoryReferenceDocumentImpl implements ServiceDecorCa
 	@Override
 	public DtoResult getByCategoryId(Integer categoryId) {
 		List<DtoDecorCategoryReferenceDocument> list = repositoryDecorCategoryReferenceDocument
-				.findByDecorCategoryMasterSerDecorCategoryIdAndBlnIsDeletedFalse(categoryId).stream()
+				.findByDecorCategoryMaster_SerDecorCategoryIdAndBlnIsDeletedFalse(categoryId).stream()
 				.map(MapperDecorCategoryReferenceDocument::toDto).collect(Collectors.toList());
 		return new DtoResult("Fetched by Category ID", null, null, new ArrayList<>(list));
 	}
@@ -48,7 +48,7 @@ public class ServiceDecorCategoryReferenceDocumentImpl implements ServiceDecorCa
 	@Override
 	public DtoResult getById(Integer id) {
 		Optional<DecorCategoryReferenceDocument> optional = repositoryDecorCategoryReferenceDocument
-				.findByIdAndBlnIsDeletedFalse(id);
+				.findByDocumentIdAndBlnIsDeletedFalse(id);
 		return optional
 				.map(entity -> new DtoResult("Found", null, MapperDecorCategoryReferenceDocument.toDto(entity), null))
 				.orElseGet(() -> new DtoResult("Not Found", null, null, null));
@@ -57,7 +57,7 @@ public class ServiceDecorCategoryReferenceDocumentImpl implements ServiceDecorCa
 	@Override
 	public DtoResult deleteById(Integer id) {
 		Optional<DecorCategoryReferenceDocument> optional = repositoryDecorCategoryReferenceDocument
-				.findByIdAndBlnIsDeletedFalse(id);
+				.findByDocumentIdAndBlnIsDeletedFalse(id);
 		if (optional.isPresent()) {
 			DecorCategoryReferenceDocument entity = optional.get();
 			entity.setBlnIsDeleted(true);

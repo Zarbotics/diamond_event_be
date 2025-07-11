@@ -12,8 +12,8 @@ import com.zbs.de.model.DecorCategoryPropertyMaster;
 public interface RepositoryDecorCategoryPropertyMaster extends JpaRepository<DecorCategoryPropertyMaster, Integer> {
 	List<DecorCategoryPropertyMaster> findAllByBlnIsDeletedFalse();
 
-	Optional<DecorCategoryPropertyMaster> findByIdAndBlnIsDeletedFalse(Integer id);
+	Optional<DecorCategoryPropertyMaster> findBySerPropertyIdAndBlnIsDeletedFalse(Integer id);
 
-	List<DecorCategoryPropertyMaster> findByDecorCategorySerDecorCategoryIdAndBlnIsDeletedFalse(Integer categoryId);
+	List<DecorCategoryPropertyMaster> findByDecorCategoryMaster_SerDecorCategoryIdAndBlnIsDeletedFalse(Integer categoryId);
 
 }

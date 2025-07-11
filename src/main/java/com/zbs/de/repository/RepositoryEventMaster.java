@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.zbs.de.model.EventMaster;
+import com.zbs.de.model.dto.DtoEventMasterStats;
 
 @Repository("repositoryEventMaster")
 public interface RepositoryEventMaster extends JpaRepository<EventMaster, Integer> {
@@ -21,5 +22,9 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 			@Param("eventTypeId") Integer eventTypeId);
 
 	List<EventMaster> findByBlnIsDeletedFalse();
+
+	@Query("SELECT new com.zbs.de.model.dto.DtoEventMasterStats(e.eventType.txtEventTypeName, COUNT(e)) "
+			+ "FROM EventMaster e " + "WHERE e.blnIsDeleted = false " + "GROUP BY e.eventType.txtEventTypeName")
+	List<DtoEventMasterStats> countEventsGroupedByEventType();
 
 }

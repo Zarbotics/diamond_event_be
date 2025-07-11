@@ -55,7 +55,7 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_decor_category_id")
 	@JsonBackReference
-	private DecorCategoryMaster decorCategory;
+	private DecorCategoryMaster decorCategoryMaster;
 
 	@OneToMany(mappedBy = "decorCategoryProperty", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<DecorCategoryPropertyValue> propertyValues;
@@ -84,12 +84,12 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 		this.txtInputType = txtInputType;
 	}
 
-	public DecorCategoryMaster getDecorCategory() {
-		return decorCategory;
+	public DecorCategoryMaster getDecorCategoryMaster() {
+		return decorCategoryMaster;
 	}
 
-	public void setDecorCategory(DecorCategoryMaster decorCategory) {
-		this.decorCategory = decorCategory;
+	public void setDecorCategoryMaster(DecorCategoryMaster decorCategoryMaster) {
+		this.decorCategoryMaster = decorCategoryMaster;
 	}
 
 	public List<DecorCategoryPropertyValue> getPropertyValues() {

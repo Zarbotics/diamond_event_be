@@ -44,11 +44,11 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 	@Column(name = "bln_is_active")
 	private Boolean blnIsActive;
 
-	@OneToMany(mappedBy = "decorCategory", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "decorCategoryMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
 	private List<DecorCategoryPropertyMaster> categoryProperties;
 
-	@OneToMany(mappedBy = "decorCategory", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "decorCategoryMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<DecorCategoryReferenceDocument> referenceDocuments;
 
 	public Integer getSerDecorCategoryId() {

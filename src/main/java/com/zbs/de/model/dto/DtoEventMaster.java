@@ -16,6 +16,8 @@ public class DtoEventMaster {
 	private String txtBirthDayCelebrant;
 	private String txtAgeCategory;
 	private String txtChiefGuest;
+	
+	private Boolean blnIsActive;
 
 	private Integer serCustId;
 	private String txtCustCode;
@@ -277,6 +279,14 @@ public class DtoEventMaster {
 
 	public void setDtoEventDecorSelections(List<DtoEventDecorCategorySelection> dtoEventDecorSelections) {
 		this.dtoEventDecorSelections = dtoEventDecorSelections;
+	}
+
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
 	}
 
 }

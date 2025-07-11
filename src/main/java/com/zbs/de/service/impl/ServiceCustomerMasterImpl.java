@@ -3,6 +3,7 @@ package com.zbs.de.service.impl;
 import com.zbs.de.mapper.MapperCustomerMaster;
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.dto.DtoCustomerMaster;
+import com.zbs.de.model.dto.DtoDashboardCustomer;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryCustomerMaster;
 import com.zbs.de.service.ServiceCustomerMaster;
@@ -178,6 +179,26 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 		}
 
 		return String.format("CUST-%03d", nextNumber); // e.g., CUST-010
+	}
+
+	@Override
+	public DtoDashboardCustomer getDashboardStats() {
+		long total = repositoryCustomerMaster.countTotalCustomers();
+		long thisMonth = repositoryCustomerMaster.countCustomersThisMonth();
+		long lastMonth = repositoryCustomerMaster.countCustomersLastMonth();
+
+		double increaseRate = 0.0;
+		if (lastMonth > 0) {
+			increaseRate = ((double) (thisMonth - lastMonth) / lastMonth) * 100;
+		} else if (thisMonth > 0) {
+			increaseRate = 100.0;
+		}
+
+		DtoDashboardCustomer dto = new DtoDashboardCustomer();
+		dto.setTotalCustomers(total);
+		dto.setThisMonthCustomers(thisMonth);
+		dto.setMonthlyIncreaseRate(Math.round(increaseRate * 100.0) / 100.0); // rounded to 2 decimal places
+		return dto;
 	}
 
 }

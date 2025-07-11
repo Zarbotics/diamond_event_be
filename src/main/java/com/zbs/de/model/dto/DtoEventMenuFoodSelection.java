@@ -9,6 +9,7 @@ public class DtoEventMenuFoodSelection {
 	private Integer serEventMasterId;
 	private String txtEventMasterCode;
 	private String txtEventMasterName;
+	private Boolean blnIsActive;
 
 	public Integer getSerEventMenuFoodId() {
 		return serEventMenuFoodId;
@@ -72,6 +73,14 @@ public class DtoEventMenuFoodSelection {
 
 	public void setTxtEventMasterName(String txtEventMasterName) {
 		this.txtEventMasterName = txtEventMasterName;
+	}
+
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
 	}
 
 }

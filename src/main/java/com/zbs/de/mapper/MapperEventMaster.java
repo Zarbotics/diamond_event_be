@@ -32,6 +32,8 @@ public class MapperEventMaster {
 		dto.setTxtChiefGuest(entity.getTxtChiefGuest());
 		dto.setTxtNumberOfGuests(entity.getTxtNumberOfGuests());
 		dto.setTxtOtherEventType(entity.getTxtOtherEventType());
+		dto.setBlnIsActive(entity.getBlnIsActive());
+
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());

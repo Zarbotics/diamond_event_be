@@ -42,7 +42,7 @@ public class MenuFoodMaster extends BaseEntity implements Serializable {
 	@Column(name = "bln_is_main_course")
 	private Boolean blnIsMainCourse;
 
-	@Column(name = "blb_is_appetiser")
+	@Column(name = "bln_is_appetiser")
 	private Boolean blnIsAppetiser;
 
 	@Column(name = "bln_is_starter")

@@ -14,11 +14,11 @@ import com.zbs.de.model.DecorCategoryPropertyValue;
 public interface RepositoryDecorCategoryPropertyValue extends JpaRepository<DecorCategoryPropertyValue, Integer> {
 
 	@Query("SELECT v FROM DecorCategoryPropertyValue v WHERE v.blnIsDeleted = false")
-	List<DecorCategoryPropertyValue> findAll();
+	List<DecorCategoryPropertyValue> findAllNotDeleted();
 
 	@Query("SELECT v FROM DecorCategoryPropertyValue v WHERE v.decorCategoryProperty.serPropertyId = :propertyId AND v.blnIsDeleted = false")
 	List<DecorCategoryPropertyValue> findByPropertyIdAndNotDeleted(@Param("propertyId") Integer propertyId);
 
-	Optional<DecorCategoryPropertyValue> findByIdAndBlnIsDeletedFalse(Integer id);
+	Optional<DecorCategoryPropertyValue> findBySerPropertyValueIdAndBlnIsDeletedFalse(Integer id);
 
 }

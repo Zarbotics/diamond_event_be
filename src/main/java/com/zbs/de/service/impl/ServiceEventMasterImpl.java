@@ -8,10 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.zbs.de.mapper.MapperEventDecorCategorySelection;
 import com.zbs.de.mapper.MapperEventMaster;
 import com.zbs.de.mapper.MapperEventMenuFoodSelection;
 import com.zbs.de.mapper.MapperEventRunningOrder;
 import com.zbs.de.model.CustomerMaster;
+import com.zbs.de.model.EventDecorCategorySelection;
+import com.zbs.de.model.EventDecorPropertySelection;
+import com.zbs.de.model.EventDecorReferenceDocument;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventMenuFoodSelection;
 import com.zbs.de.model.EventRunningOrder;
@@ -20,7 +25,9 @@ import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.VenueMasterDetail;
+import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
 import com.zbs.de.model.dto.DtoEventMaster;
+import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMenuFoodSelection;
 import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
@@ -29,6 +36,7 @@ import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
+import com.zbs.de.service.ServiceEventDecorCategorySelection;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.service.ServiceEventMenuFoodSelection;
 import com.zbs.de.service.ServiceEventType;
@@ -64,6 +72,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceMenuFoodMaster serviceMenuFoodMaster;
+
+	@Autowired
+	private ServiceEventDecorCategorySelection serviceEventDecorCategorySelection;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
@@ -192,23 +203,27 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			// Set Decor Item Selections
 			// *************************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getDecorSelections())) {
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
+
+				// Deleting Existing Selections
+				serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
+
 				List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
-				for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDecorSelections()) {
+				for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
 					EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
 					decorSelection.setEventMaster(entity);
 
 					// Set property selections' back reference
 					if (decorSelection.getSelectedProperties() != null) {
-						for (EventDecorCategoryPropertySelection prop : decorSelection.getSelectedProperties()) {
+						for (EventDecorPropertySelection prop : decorSelection.getSelectedProperties()) {
 							prop.setEventDecorCategorySelection(decorSelection);
 						}
 					}
 
 					// Set reference image back reference
-					if (decorSelection.getReferenceImages() != null) {
-						for (EventDecorCategoryReferenceImage img : decorSelection.getReferenceImages()) {
+					if (decorSelection.getUserUploadedDocuments() != null) {
+						for (EventDecorReferenceDocument img : decorSelection.getUserUploadedDocuments()) {
 							img.setEventDecorCategorySelection(decorSelection);
 						}
 					}
@@ -353,16 +368,27 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			// Set Decore Item Selections
 			// **************************
-			if (entity.getDecorSelections() != null) {
-				entity.getDecorSelections().forEach(d -> d.setEventMaster(entity));
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
+				List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
-				// Also set the nested property selections' parent
-				entity.getDecorSelections().forEach(d -> {
-					if (d.getSelectedProperties() != null) {
-						d.getSelectedProperties().forEach(p -> p.setEventDecorCategorySelection(d));
+				for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
+					EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
+					decorSelection.setEventMaster(entity);
+
+					if (decorSelection.getSelectedProperties() != null) {
+						decorSelection.getSelectedProperties()
+								.forEach(p -> p.setEventDecorCategorySelection(decorSelection));
 					}
-				});
 
+					if (decorSelection.getUserUploadedDocuments() != null) {
+						decorSelection.getUserUploadedDocuments()
+								.forEach(img -> img.setEventDecorCategorySelection(decorSelection));
+					}
+
+					decorSelections.add(decorSelection);
+				}
+
+				entity.setDecorSelections(decorSelections);
 				entity.setNumInfoFilledStatus(70);
 			}
 
@@ -608,5 +634,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			return null;
 		}
 
+	}
+
+	@Override
+	public List<DtoEventMasterStats> getEventTypeStats() {
+		return repositoryEventMaster.countEventsGroupedByEventType();
 	}
 }

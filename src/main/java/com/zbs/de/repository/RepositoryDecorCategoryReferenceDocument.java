@@ -13,9 +13,9 @@ public interface RepositoryDecorCategoryReferenceDocument
 		extends JpaRepository<DecorCategoryReferenceDocument, Integer> {
 	List<DecorCategoryReferenceDocument> findAllByBlnIsDeletedFalse();
 
-	Optional<DecorCategoryReferenceDocument> findByIdAndBlnIsDeletedFalse(Integer id);
+	Optional<DecorCategoryReferenceDocument> findByDocumentIdAndBlnIsDeletedFalse(Integer id);
 
-	List<DecorCategoryReferenceDocument> findByDecorCategoryMasterSerDecorCategoryIdAndBlnIsDeletedFalse(
+	List<DecorCategoryReferenceDocument> findByDecorCategoryMaster_SerDecorCategoryIdAndBlnIsDeletedFalse(
 			Integer categoryId);
 
 }

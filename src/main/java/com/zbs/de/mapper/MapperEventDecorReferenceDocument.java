@@ -18,6 +18,7 @@ public class MapperEventDecorReferenceDocument {
 		entity.setSize(dto.getSize());
 		entity.setFilePath(dto.getTxtDocumentUrl());
 		entity.setBlnIsDeleted(false); // Default as fals
+		
 
 		return entity;
 	}

@@ -53,7 +53,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 	@Override
 	public DtoResult deleteById(Integer id) {
 		Optional<DecorCategoryPropertyValue> optional = repositoryDecorCategoryPropertyValue
-				.findByIdAndBlnIsDeletedFalse(id);
+				.findBySerPropertyValueIdAndBlnIsDeletedFalse(id);
 		if (optional.isPresent()) {
 			DecorCategoryPropertyValue entity = optional.get();
 			entity.setBlnIsDeleted(true);
