@@ -16,6 +16,8 @@ import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.util.ResponseMessage;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/eventMaster")
 @CrossOrigin(origins = "")
@@ -27,7 +29,7 @@ public class ControllerEventMaster {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
 
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage saveOrUpdate(@RequestBody DtoEventMaster dtoEventMaster) {
+	public ResponseMessage saveOrUpdate(@RequestBody DtoEventMaster dtoEventMaster, HttpServletRequest request) {
 		LOGGER.info("Saving Event Master: {}", dtoEventMaster);
 		DtoResult result = serviceEventMaster.saveAndUpdate(dtoEventMaster);
 		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
@@ -38,21 +40,33 @@ public class ControllerEventMaster {
 	}
 
 	@PostMapping(value = "/generateEventCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage generateEventCode() {
+	public ResponseMessage generateEventCode(HttpServletRequest request) {
 		String txtCode = serviceEventMaster.generateNextEventMasterCode();
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Event Types", txtCode);
 	}
-	
-	
+
 	@PostMapping(value = "/getByEventIdAndCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage saveOrUpdate(@RequestBody DtoSearch dtoSearch) {
+	public ResponseMessage saveOrUpdate(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Searching Event Master: {}", dtoSearch);
 		DtoResult result = serviceEventMaster.getByEventTypeIdAndCustId(dtoSearch);
 		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", result.getResult());
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResult());
 		}
 		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to Fetch",
 				dtoSearch);
+	}
+
+	@PostMapping(value = "/getAllData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllData(HttpServletRequest request) {
+		LOGGER.info("Searching Event Masters");
+		DtoResult result = serviceEventMaster.getAllEvents();
+		if (result.getResulList() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResulList());
+		}
+		return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+				result.getTxtMessage(), null);
 	}
 
 }

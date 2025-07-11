@@ -7,8 +7,10 @@ import com.zbs.de.model.dto.DtoSearch;
 public interface ServiceEventMaster {
 
 	DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster);
-	
+
 	DtoResult getByEventTypeIdAndCustId(DtoSearch dtoSearch);
 
 	String generateNextEventMasterCode();
+
+	DtoResult getAllEvents();
 }
