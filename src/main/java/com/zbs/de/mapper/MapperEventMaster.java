@@ -1,5 +1,9 @@
 package com.zbs.de.mapper;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.zbs.de.model.EventDecorCategorySelection;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventRunningOrder;
@@ -53,12 +57,7 @@ public class MapperEventMaster {
 			dto.setTxtEventTypeCode(entity.getEventType().getTxtEventTypeCode());
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
-		
-		if(UtilRandomKey.isNotNull(entity.getVenueMaster())) {
-			dto.setSerVenueMasterId(entity.getVenueMaster().getSerVenueMasterId());
-			dto.setTxtVenueCode(entity.getVenueMaster().getTxtVenueCode());
-			dto.setTxtVenueName(entity.getVenueMaster().getTxtVenueName());
-		}
+
 		
 		if(UtilRandomKey.isNotNull(entity.getVendorMaster())) {
 			dto.setSerVendorId(entity.getVendorMaster().getSerVendorId());
@@ -89,6 +88,14 @@ public class MapperEventMaster {
 		entity.setTxtChiefGuest(dto.getTxtChiefGuest());
 		entity.setTxtNNumberOfGuests(dto.getTxtNumberOfGuests());
 		entity.setTxtOtherEventType(dto.getTxtOtherEventType());
+		if (dto.getDtoEventDecorSelections() != null) {
+		    List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()
+		        .map(MapperEventDecorCategorySelection::toEntity)
+		        .collect(Collectors.toList());
+
+		    decorSelections.forEach(d -> d.setEventMaster(entity));
+		    entity.setDecorSelections(decorSelections);
+		}
 
 		return entity;
 	}

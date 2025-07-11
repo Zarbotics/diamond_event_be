@@ -13,16 +13,12 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import com.zbs.de.service.impl.ServiceDecorCategoryColorMappingImpl;
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zbs.de.DeApplication;
-import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.dto.DtoEventType;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
-import com.zbs.de.model.dto.DtoVenueMaster;
 import com.zbs.de.service.ServiceEventType;
 
 import org.slf4j.Logger;
@@ -33,20 +29,10 @@ import org.slf4j.LoggerFactory;
 @CrossOrigin(origins = "")
 public class ControllerEventType {
 
-	private final DeApplication deApplication;
-
-	private final ServiceDecorCategoryColorMappingImpl serviceDecorCategoryColorMappingImpl;
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
 
 	@Autowired
 	ServiceEventType serviceEventType;
-
-	ControllerEventType(ServiceDecorCategoryColorMappingImpl serviceDecorCategoryColorMappingImpl,
-			DeApplication deApplication) {
-		this.serviceDecorCategoryColorMappingImpl = serviceDecorCategoryColorMappingImpl;
-		this.deApplication = deApplication;
-	}
 
 	@PostMapping(value = "/getAllData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllData() {

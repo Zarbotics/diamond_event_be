@@ -3,19 +3,15 @@ package com.zbs.de.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.zbs.de.controller.ControllerCountryMaster;
-import com.zbs.de.mapper.MapperEventDecorItemSelection;
 import com.zbs.de.mapper.MapperEventMaster;
 import com.zbs.de.mapper.MapperEventMenuFoodSelection;
 import com.zbs.de.mapper.MapperEventRunningOrder;
 import com.zbs.de.model.CustomerMaster;
-import com.zbs.de.model.EventDecorItemSelection;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventMenuFoodSelection;
 import com.zbs.de.model.EventRunningOrder;
@@ -23,9 +19,10 @@ import com.zbs.de.model.EventType;
 import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.VenueMaster;
-import com.zbs.de.model.dto.DtoEventDecorItemSelection;
+import com.zbs.de.model.VenueMasterDetail;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMenuFoodSelection;
+import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
@@ -44,7 +41,6 @@ import com.zbs.de.util.UtilRandomKey;
 @Service("serviceEventMaster")
 public class ServiceEventMasterImpl implements ServiceEventMaster {
 
-	private final ControllerCountryMaster controllerCountryMaster;
 
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
@@ -65,19 +61,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private ServiceVendorMaster serviceVendorMaster;
 
 	@Autowired
-	private ServiceEventDecorItemSelectionImpl serviceEventDecorItemSelectionImpl;
-
-	@Autowired
 	private ServiceEventMenuFoodSelection serviceEventMenuFoodSelection;
 
 	@Autowired
 	private ServiceMenuFoodMaster serviceMenuFoodMaster;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
-
-	ServiceEventMasterImpl(ControllerCountryMaster controllerCountryMaster) {
-		this.controllerCountryMaster = controllerCountryMaster;
-	}
 
 	public DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster) {
 		// Validate required IDs
@@ -126,9 +115,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					dtoResult.setTxtMessage("Customer Not Foound For Id" + dtoEventMaster.getSerCustId());
 					return dtoResult;
 				}
-				if (UtilRandomKey.isNull(entity.getCustomerMaster())) {
-					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-				}
+				entity.setNumInfoFilledStatus(10);
 				entity.setCustomerMaster(customer);
 			}
 
@@ -139,10 +126,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				if (UtilRandomKey.isNull(eventType)) {
 					dtoResult.setTxtMessage("Event Type Not Foound For Id" + dtoEventMaster.getSerEventTypeId());
 					return dtoResult;
-				}
-
-				if (UtilRandomKey.isNull(entity.getEventType())) {
-					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 				}
 				entity.setEventType(eventType);
 			}
@@ -169,17 +152,57 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 				entity.setEventRunningOrder(runningOrder);
 
+				entity.setNumInfoFilledStatus(30);
+
+			}
+
+			// Setting Venue Master
+			// ********************
+			/*
+			 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+			 * VenueMaster venueMaster =
+			 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
+			 * (UtilRandomKey.isNull(venueMaster)) {
+			 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
+			 * dtoEventMaster.getSerVenueMasterId()); }
+			 * 
+			 * if (UtilRandomKey.isNull(entity.getVenueMaster())) {
+			 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
+			 * 
+			 * entity.setVenueMaster(venueMaster); }
+			 */
+
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
+					DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
+							dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
+					if (res.getTxtMessage().equalsIgnoreCase("Success")) {
+						VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
+						entity.setVenueMasterDetail(venueMasterDetail);
+					} else {
+						dtoResult.setTxtMessage("Venue Hall Is Not Active");
+						return dtoResult;
+					}
+				} else {
+					dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+					return dtoResult;
+				}
+				entity.setNumInfoFilledStatus(50);
+
 			}
 
 			// Set Decore Item Selections
 			// **************************
-			if (dtoEventMaster.getDtoEventDecorItemSelections() != null) {
-				serviceEventDecorItemSelectionImpl.deleteByEventMasterId(entity.getSerEventMasterId());
-				for (DtoEventDecorItemSelection decorDto : dtoEventMaster.getDtoEventDecorItemSelections()) {
-					decorDto.setSerEventMasterId(entity.getSerEventMasterId());
-					serviceEventDecorItemSelectionImpl.saveOrUpdate(decorDto);
-				}
-				entity.setNumInfoFilledStatus(4);
+			if (entity.getDecorSelections() != null) {
+				entity.getDecorSelections().forEach(d -> d.setEventMaster(entity));
+
+				// Also set the nested property selections' parent
+				entity.getDecorSelections().forEach(d -> {
+					if (d.getSelectedProperties() != null) {
+						d.getSelectedProperties().forEach(p -> p.setEventDecorCategorySelection(d));
+					}
+				});
+				entity.setNumInfoFilledStatus(70);
 			}
 
 			// Set Food Menu Selection
@@ -221,24 +244,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					dtoResult.setTxtMessage(result);
 					return dtoResult;
 				}
-				
-				entity.setNumInfoFilledStatus(6);
 
-			}
+				entity.setNumInfoFilledStatus(90);
 
-			// Setting Venue Master
-			// ********************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
-				VenueMaster venueMaster = serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId());
-				if (UtilRandomKey.isNull(venueMaster)) {
-					dtoResult.setTxtMessage("Venue Not Found For Id: " + dtoEventMaster.getSerVenueMasterId());
-				}
-
-				if (UtilRandomKey.isNull(entity.getVenueMaster())) {
-					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-				}
-
-				entity.setVenueMaster(venueMaster);
 			}
 
 			// Set Vendor
@@ -247,38 +255,13 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
 				if (UtilRandomKey.isNotNull(vendorMaster)) {
 
-					if (UtilRandomKey.isNotNull(entity.getVendorMaster())) {
-						entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-					}
 					entity.setVendorMaster(vendorMaster);
 				} else {
 					dtoResult.setTxtMessage(
 							"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
 					return dtoResult;
 				}
-			}
-
-			// Set Food Menu
-			// *************
-			if (dtoEventMaster.getFoodSelections() != null && !dtoEventMaster.getFoodSelections().isEmpty()) {
-				List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
-				for (DtoEventMenuFoodSelection foodDto : dtoEventMaster.getFoodSelections()) {
-					MenuFoodMaster menu = serviceMenuFoodMaster.getByPK(foodDto.getSerMenuFoodId());
-					if (menu != null) {
-						EventMenuFoodSelection selection = new EventMenuFoodSelection();
-						selection.setEventMaster(entity); // event already persisted
-						selection.setMenuFoodMaster(menu);
-						selection.setTxtFoodType(foodDto.getTxtFoodType());
-						foodSelections.add(selection);
-					}
-				}
-
-				// Clear previous and reassign
-				if (UtilRandomKey.isNull(entity.getFoodSelections())) {
-					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-				}
-				entity.getFoodSelections().clear();
-				entity.getFoodSelections().addAll(foodSelections);
+				entity.setNumInfoFilledStatus(100);
 			}
 
 		} else {
@@ -297,7 +280,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					return dtoResult;
 				}
 				entity.setCustomerMaster(customer);
-				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				entity.setNumInfoFilledStatus(10);
 
 			}
 
@@ -310,7 +293,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					return dtoResult;
 				}
 				entity.setEventType(eventType);
-				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 			}
 
 			// Set optional event running order
@@ -320,43 +302,53 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
 				runningOrder = repositoryEventRunningOrder.save(runningOrder);
 				entity.setEventRunningOrder(runningOrder);
-				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				entity.setNumInfoFilledStatus(30);
 			}
 
 			// Set Venue Master
 			// ****************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
-				VenueMaster venueMaster = serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId());
-				if (UtilRandomKey.isNull(venueMaster)) {
-					dtoResult.setTxtMessage("Venue Not Found For Id: " + dtoEventMaster.getSerVenueMasterId());
-					return dtoResult;
-				}
-				entity.setVenueMaster(venueMaster);
-				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-			}
-
-			// Set Vendor
-			// **********
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
-				VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
-				if (UtilRandomKey.isNotNull(vendorMaster)) {
-					entity.setVendorMaster(vendorMaster);
-					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+			/*
+			 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+			 * VenueMaster venueMaster =
+			 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
+			 * (UtilRandomKey.isNull(venueMaster)) {
+			 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
+			 * dtoEventMaster.getSerVenueMasterId()); return dtoResult; }
+			 * entity.setVenueMaster(venueMaster);
+			 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
+			 */
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
+					DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
+							dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
+					if (res.getTxtMessage().equalsIgnoreCase("Success")) {
+						VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
+						entity.setVenueMasterDetail(venueMasterDetail);
+					} else {
+						dtoResult.setTxtMessage("Venue Hall Is Not Active");
+						return dtoResult;
+					}
 				} else {
-					dtoResult.setTxtMessage(
-							"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
+					dtoResult.setTxtMessage("Venue Hall Is Not Selected");
 					return dtoResult;
 				}
+				entity.setNumInfoFilledStatus(50);
+
 			}
 
 			// Set Decore Item Selections
 			// **************************
-			if (dtoEventMaster.getDtoEventDecorItemSelections() != null) {
-				for (DtoEventDecorItemSelection decorDto : dtoEventMaster.getDtoEventDecorItemSelections()) {
-					decorDto.setSerEventMasterId(entity.getSerEventMasterId());
-					serviceEventDecorItemSelectionImpl.saveOrUpdate(decorDto);
-				}
-				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+			if (entity.getDecorSelections() != null) {
+				entity.getDecorSelections().forEach(d -> d.setEventMaster(entity));
+
+				// Also set the nested property selections' parent
+				entity.getDecorSelections().forEach(d -> {
+					if (d.getSelectedProperties() != null) {
+						d.getSelectedProperties().forEach(p -> p.setEventDecorCategorySelection(d));
+					}
+				});
+
+				entity.setNumInfoFilledStatus(70);
 			}
 
 			// Set Food Menu Selection
@@ -397,9 +389,23 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					dtoResult.setTxtMessage(result);
 					return dtoResult;
 				}
-				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				entity.setNumInfoFilledStatus(90);
 			}
 
+			// Set Vendor
+			// **********
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
+				VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
+				if (UtilRandomKey.isNotNull(vendorMaster)) {
+					entity.setVendorMaster(vendorMaster);
+					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				} else {
+					dtoResult.setTxtMessage(
+							"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
+					return dtoResult;
+				}
+			}
+			entity.setNumInfoFilledStatus(100);
 
 			// Generate event master code
 			String code = generateNextEventMasterCode();
@@ -445,17 +451,26 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			if (optionalEvent.isPresent()) {
 				DtoEventMaster dto = MapperEventMaster.toDto(optionalEvent.get());
-				List<EventDecorItemSelection> eventDecorItemSelections = serviceEventDecorItemSelectionImpl
-						.getByEventMasterId(dto.getSerEventMasterId());
-				List<DtoEventDecorItemSelection> dtoEventDecorItemSelections = new ArrayList<>();
-				if (UtilRandomKey.isNotNull(eventDecorItemSelections)) {
-					for (EventDecorItemSelection entity : eventDecorItemSelections) {
-						DtoEventDecorItemSelection dtoEventDecorItemSelection = MapperEventDecorItemSelection
-								.toDto(entity);
-						dtoEventDecorItemSelections.add(dtoEventDecorItemSelection);
+
+				// Fetching Event Venue Detail
+				// ***********************************
+				if(UtilRandomKey.isNotNull(optionalEvent.get().getVenueMasterDetail())){
+					DtoResult res = serviceVenueMaster.getVenueByVenueMasterDetailId(optionalEvent.get().getVenueMasterDetail().getSerVenueMasterDetailId());
+					if(UtilRandomKey.isNotNull(res) && res.getTxtMessage().equalsIgnoreCase("Success")) {
+						VenueMaster venueMaster = (VenueMaster) res.getResult();
+						DtoEventVenue dtoEventVenue = new DtoEventVenue();
+						dtoEventVenue.setSerVenueMasterId(venueMaster.getSerVenueMasterId());
+						dtoEventVenue.setTxtVenueCode(venueMaster.getTxtVenueCode());
+						dtoEventVenue.setTxtVenueName(venueMaster.getTxtVenueName());
+						dtoEventVenue.setSerVenueMasterDetailId(optionalEvent.get().getVenueMasterDetail().getSerVenueMasterDetailId());
+						dtoEventVenue.setTxtHallCode(optionalEvent.get().getVenueMasterDetail().getTxtHallCode());
+						dtoEventVenue.setTxtHallName(optionalEvent.get().getVenueMasterDetail().getTxtHallName());
 					}
 				}
-				dto.setDtoEventDecorItemSelections(dtoEventDecorItemSelections);
+
+				// Fetching Decor
+				// ***********************************
+				
 
 				// Fetching Event Menu Food Selection
 				// ***********************************

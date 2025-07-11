@@ -97,8 +97,8 @@ public class EventMaster extends BaseEntity implements Serializable {
 	private String txtOtherEventType;
 
 	@ManyToOne
-	@JoinColumn(name = "ser_venue_master_id")
-	private VenueMaster venueMaster;
+	@JoinColumn(name = "ser_venue_master_detail_id")
+	private VenueMasterDetail venueMasterDetail;
 
 	@ManyToOne
 	@JoinColumn(name = "ser_vendor_id")
@@ -106,6 +106,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
+
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -227,14 +230,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 		this.eventType = eventType;
 	}
 
-	public VenueMaster getVenueMaster() {
-		return venueMaster;
-	}
-
-	public void setVenueMaster(VenueMaster venueMaster) {
-		this.venueMaster = venueMaster;
-	}
-
 	public List<EventMenuFoodSelection> getFoodSelections() {
 		return foodSelections;
 	}
@@ -265,6 +260,26 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setTxtOtherEventType(String txtOtherEventType) {
 		this.txtOtherEventType = txtOtherEventType;
+	}
+
+	public List<EventDecorCategorySelection> getDecorSelections() {
+		return decorSelections;
+	}
+
+	public void setDecorSelections(List<EventDecorCategorySelection> decorSelections) {
+		this.decorSelections = decorSelections;
+	}
+
+	public void setTxtNumberOfGuests(String txtNumberOfGuests) {
+		this.txtNumberOfGuests = txtNumberOfGuests;
+	}
+
+	public VenueMasterDetail getVenueMasterDetail() {
+		return venueMasterDetail;
+	}
+
+	public void setVenueMasterDetail(VenueMasterDetail venueMasterDetail) {
+		this.venueMasterDetail = venueMasterDetail;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)

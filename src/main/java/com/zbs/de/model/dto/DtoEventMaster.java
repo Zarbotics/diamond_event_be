@@ -34,8 +34,9 @@ public class DtoEventMaster {
 	private String txtVendorName;
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
+	private DtoEventVenue dtoEventVenue;
 
-	private List<DtoEventDecorItemSelection> dtoEventDecorItemSelections;
+	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
 	private List<DtoEventMenuFoodSelection> foodSelections;
 
 	public Integer getSerEventMasterId() {
@@ -214,14 +215,6 @@ public class DtoEventMaster {
 		this.txtVenueName = txtVenueName;
 	}
 
-	public List<DtoEventDecorItemSelection> getDtoEventDecorItemSelections() {
-		return dtoEventDecorItemSelections;
-	}
-
-	public void setDtoEventDecorItemSelections(List<DtoEventDecorItemSelection> dtoEventDecorItemSelections) {
-		this.dtoEventDecorItemSelections = dtoEventDecorItemSelections;
-	}
-
 	public List<DtoEventMenuFoodSelection> getFoodSelections() {
 		return foodSelections;
 	}
@@ -268,6 +261,22 @@ public class DtoEventMaster {
 
 	public void setTxtOtherEventType(String txtOtherEventType) {
 		this.txtOtherEventType = txtOtherEventType;
+	}
+
+	public DtoEventVenue getDtoEventVenue() {
+		return dtoEventVenue;
+	}
+
+	public void setDtoEventVenue(DtoEventVenue dtoEventVenue) {
+		this.dtoEventVenue = dtoEventVenue;
+	}
+
+	public List<DtoEventDecorCategorySelection> getDtoEventDecorSelections() {
+		return dtoEventDecorSelections;
+	}
+
+	public void setDtoEventDecorSelections(List<DtoEventDecorCategorySelection> dtoEventDecorSelections) {
+		this.dtoEventDecorSelections = dtoEventDecorSelections;
 	}
 
 }

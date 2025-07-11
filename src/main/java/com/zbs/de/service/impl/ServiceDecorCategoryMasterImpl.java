@@ -9,14 +9,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.controller.ControllerEventType;
 import com.zbs.de.mapper.MapperDecorCategoryMaster;
 import com.zbs.de.model.DecorCategoryMaster;
+import com.zbs.de.model.DecorCategoryReferenceDocument;
 import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryDecorCategoryMaster;
 import com.zbs.de.service.ServiceDecorCategoryMaster;
+import com.zbs.de.util.UtilFileStorage;
 
 @Service("serviceDecorCategoryMasterImpl")
 public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaster {
@@ -26,7 +29,6 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
 
-	
 	@Override
 	public DtoResult saveOrUpdate(DtoDecorCategoryMaster dto) {
 		DecorCategoryMaster entity = MapperDecorCategoryMaster.toEntity(dto);
@@ -52,26 +54,67 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 
 	@Override
 	public DtoResult deleteById(Integer id) {
-		repositoryDecorCategoryMaster.deleteById(id);
-		return new DtoResult("Deleted", null, null, null);
+		DtoResult result = new DtoResult();
+		Optional<DecorCategoryMaster> optional = repositoryDecorCategoryMaster.findById(id);
+		if (optional.isPresent()) {
+			DecorCategoryMaster e = optional.get();
+			e.setBlnIsDeleted(true);
+			repositoryDecorCategoryMaster.save(e);
+			result.setTxtMessage("Deleted (soft) successfully");
+		} else {
+			result.setTxtMessage("No record found to delete");
+		}
+		return result;
 	}
-	
+
 	@Override
 	public DecorCategoryMaster getByPK(Integer id) {
 		try {
 			Optional<DecorCategoryMaster> optional = repositoryDecorCategoryMaster.findById(id);
 			if (optional.isPresent()) {
 				return optional.get();
-			}else {
+			} else {
 				return null;
 			}
-			
+
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(),e);
+			LOGGER.debug(e.getMessage(), e);
 			return null;
 		}
-		
 
+	}
+
+	@Override
+	public DtoResult saveWithDocuments(DtoDecorCategoryMaster dto, MultipartFile[] documents) {
+		try {
+			DecorCategoryMaster entity = MapperDecorCategoryMaster.toEntity(dto);
+			List<DecorCategoryReferenceDocument> docEntities = new ArrayList<>();
+
+			if (documents != null && documents.length > 0) {
+				for (MultipartFile file : documents) {
+					String uploadPath = UtilFileStorage.saveFile(file, "decorCategory");
+
+					DecorCategoryReferenceDocument document = new DecorCategoryReferenceDocument();
+					document.setDocumentName(file.getOriginalFilename());
+					document.setDocumentType(file.getContentType());
+					document.setOriginalName(file.getOriginalFilename());
+					document.setSize(String.valueOf(file.getSize()));
+					document.setFilePath(uploadPath);
+					document.setDecorCategoryMaster(entity);
+
+					docEntities.add(document);
+				}
+			}
+
+			entity.setReferenceDocuments(docEntities);
+			repositoryDecorCategoryMaster.save(entity);
+
+			return new DtoResult("Saved successfully", null, MapperDecorCategoryMaster.toDto(entity), null);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new DtoResult("Error while saving decor category with documents", null, null, null);
+		}
 	}
 
 }
