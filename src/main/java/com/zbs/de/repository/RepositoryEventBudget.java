@@ -11,6 +11,8 @@ import com.zbs.de.model.dto.DtoEventAnalytics;
 
 public interface RepositoryEventBudget extends JpaRepository<EventBudget, Integer> {
 
+	List<EventBudget> findByBlnIsDeleted(Boolean blnIsDeleted);
+
 	Optional<EventBudget> findByEventMaster_SerEventMasterId(Integer serEventMasterId);
 
 	@Query(value = """

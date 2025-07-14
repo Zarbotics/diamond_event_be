@@ -10,6 +10,8 @@ import com.zbs.de.util.ResponseMessage;
 public interface ServiceMenuFoodMaster {
 
 	List<DtoMenuFoodMaster> getAllData();
+	
+	List<MenuFoodMaster> getAllDataEntity();
 
 	ResponseMessage saveAndUpdate(DtoMenuFoodMaster dto);
 

@@ -94,11 +94,7 @@ public class CustomerMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_district")
 	private String txtDistrict;
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ser_country_id")
-	private CountryMaster countryMaster;
-
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_city_id")
 	private CityMaster cityMaster;
@@ -106,6 +102,11 @@ public class CustomerMaster extends BaseEntity implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_state_id")
 	private StateMaster stateMaster;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ser_country_id")
+	private CountryMaster countryMaster;
+
 
 	public Integer getSerCustId() {
 		return serCustId;

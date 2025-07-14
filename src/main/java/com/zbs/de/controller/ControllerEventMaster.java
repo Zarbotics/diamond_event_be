@@ -1,5 +1,6 @@
 package com.zbs.de.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,7 +12,11 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoResult;
@@ -36,6 +41,19 @@ public class ControllerEventMaster {
 	public ResponseMessage saveOrUpdate(@RequestBody DtoEventMaster dtoEventMaster, HttpServletRequest request) {
 		LOGGER.info("Saving Event Master: {}", dtoEventMaster);
 		DtoResult result = serviceEventMaster.saveAndUpdate(dtoEventMaster);
+		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
+				dtoEventMaster);
+	}
+
+	@PostMapping(value = "/saveWithDocs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseMessage saveWithDocs(@RequestPart("eventMaster") String eventMaster,
+			@RequestPart("files") List<MultipartFile> files) throws IOException {
+		LOGGER.info("Saving Event Master: {}", eventMaster);
+		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
+		DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dtoEventMaster, files);
 		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());
 		}

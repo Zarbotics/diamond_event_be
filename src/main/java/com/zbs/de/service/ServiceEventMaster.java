@@ -1,6 +1,9 @@
 package com.zbs.de.service;
 
+import java.io.IOException;
 import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterStats;
@@ -18,4 +21,6 @@ public interface ServiceEventMaster {
 	DtoResult getAllEvents();
 
 	List<DtoEventMasterStats> getEventTypeStats();
+	
+	DtoResult saveAndUpdateWithDocs(DtoEventMaster dtoEventMaster,  List<MultipartFile> files) throws IOException;
 }

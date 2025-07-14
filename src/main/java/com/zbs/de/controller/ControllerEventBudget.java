@@ -50,6 +50,18 @@ public class ControllerEventBudget {
 
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "Event budget not found", null);
 	}
+	
+	
+	@PostMapping(value = "/getAllData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getgetAllDataByEvent() {
+		LOGGER.info("Fetching All EventBudget.");
+		DtoResult dtoResult = serviceEventBudget.getAllData();
+		if (UtilRandomKey.isNotNull(dtoResult) && dtoResult.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched event budget", dtoResult.getResulList());
+		}
+
+		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "Event budget not found", null);
+	}
 
 	@PostMapping(value = "/monthlySales", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getMonthlySales() {

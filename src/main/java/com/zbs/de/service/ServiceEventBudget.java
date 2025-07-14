@@ -8,6 +8,8 @@ import com.zbs.de.model.dto.DtoResult;
 
 public interface ServiceEventBudget {
 	DtoResult saveOrUpdate(DtoEventBudget dtoEventBudget);
+	
+	DtoResult getAllData();
 
 	DtoEventBudget getByEventId(Integer serEventMasterId);
 

@@ -37,6 +37,12 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 		}
 		return dtos;
 	}
+	
+	@Override
+	public List<MenuFoodMaster> getAllDataEntity() {
+		List<MenuFoodMaster> list = repositoryMenuFoodMaster.findByBlnIsDeleted(false);
+		return list;
+	}
 
 	@Override
 	public ResponseMessage saveAndUpdate(DtoMenuFoodMaster dto) {

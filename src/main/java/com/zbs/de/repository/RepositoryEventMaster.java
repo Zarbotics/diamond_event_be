@@ -27,4 +27,15 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 			+ "FROM EventMaster e " + "WHERE e.blnIsDeleted = false " + "GROUP BY e.eventType.txtEventTypeName")
 	List<DtoEventMasterStats> countEventsGroupedByEventType();
 
+	@Query(value = """
+			SELECT
+			    EXTRACT(MONTH FROM created_date) AS month,
+			    COUNT(*) AS event_count
+			FROM event_master
+			WHERE EXTRACT(YEAR FROM created_date) = :year
+			GROUP BY EXTRACT(MONTH FROM created_date)
+			ORDER BY month
+			""", nativeQuery = true)
+	List<Object[]> getMonthlyEventCounts(@Param("year") int year);
+
 }

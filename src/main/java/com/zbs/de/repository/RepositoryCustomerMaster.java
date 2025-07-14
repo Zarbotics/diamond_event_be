@@ -32,4 +32,15 @@ public interface RepositoryCustomerMaster extends JpaRepository<CustomerMaster, 
 			+ "AND YEAR(c.created_date) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))", nativeQuery = true)
 	long countCustomersLastMonth();
 
+	@Query(value = """
+			SELECT
+			    EXTRACT(MONTH FROM created_date) AS month,
+			    COUNT(*) AS customer_count
+			FROM customer_master
+			WHERE EXTRACT(YEAR FROM created_date) = :year
+			GROUP BY EXTRACT(MONTH FROM created_date)
+			ORDER BY month
+			""", nativeQuery = true)
+	List<Object[]> getMonthlyCustomerCounts(@Param("year") int year);
+
 }
