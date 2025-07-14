@@ -52,6 +52,8 @@ import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
 
+import jakarta.transaction.Transactional;
+
 @Service("serviceEventMaster")
 public class ServiceEventMasterImpl implements ServiceEventMaster {
 
@@ -648,6 +650,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	}
 
 	@Override
+	@Transactional
 	public DtoResult saveAndUpdateWithDocs(DtoEventMaster dtoEventMaster, List<MultipartFile> files) throws IOException {
 		// Validate required IDs
 		DtoResult dtoResult = new DtoResult();
@@ -880,6 +883,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		} else {
 			// Create new
 			entity = MapperEventMaster.toEntity(dtoEventMaster);
+			
 			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 				entity.setNumInfoFilledStatus(0);
 			}
