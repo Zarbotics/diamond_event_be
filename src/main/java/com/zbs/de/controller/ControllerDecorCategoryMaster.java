@@ -87,11 +87,11 @@ public class ControllerDecorCategoryMaster {
 	
 	@PostMapping(value = "/getAllDecorMasterData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllDecorMasterData() {
-//		DtoResult result = serviceDecorCategoryMaster.getAll();
-//		if (result.getResulList() != null && !result.getResulList().isEmpty()) {
-//			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
-//					result.getResulList());
-//		}
+		DtoResult result = serviceDecorCategoryMaster.getAll();
+		if (result.getResulList() != null && !result.getResulList().isEmpty()) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
+					result.getResulList());
+		}
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "No data found", null);
 	}
 }
