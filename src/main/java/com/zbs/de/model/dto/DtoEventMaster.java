@@ -2,14 +2,13 @@ package com.zbs.de.model.dto;
 
 import java.util.List;
 
-import jakarta.persistence.Column;
-
 public class DtoEventMaster {
 	private Integer serEventMasterId;
 	private String txtEventMasterCode;
 	private String txtEventMasterName;
 	private String dteEventDate;
 	private Integer numNumberOfGuests;
+	private String txtNumberOfGuests;
 	private Integer numNumberOfTables;
 	private Integer numInfoFilledStatus;
 	private String txtBrideName;
@@ -17,6 +16,8 @@ public class DtoEventMaster {
 	private String txtBirthDayCelebrant;
 	private String txtAgeCategory;
 	private String txtChiefGuest;
+	
+	private Boolean blnIsActive;
 
 	private Integer serCustId;
 	private String txtCustCode;
@@ -25,7 +26,7 @@ public class DtoEventMaster {
 	private Integer serEventTypeId;
 	private String txtEventTypeCode;
 	private String txtEventTypeName;
-
+	private String txtOtherEventType;
 	private Integer serVenueMasterId;
 	private String txtVenueCode;
 	private String txtVenueName;
@@ -35,8 +36,9 @@ public class DtoEventMaster {
 	private String txtVendorName;
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
+	private DtoEventVenue dtoEventVenue;
 
-	private List<DtoEventDecorItemSelection> dtoEventDecorItemSelections;
+	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
 	private List<DtoEventMenuFoodSelection> foodSelections;
 
 	public Integer getSerEventMasterId() {
@@ -215,14 +217,6 @@ public class DtoEventMaster {
 		this.txtVenueName = txtVenueName;
 	}
 
-	public List<DtoEventDecorItemSelection> getDtoEventDecorItemSelections() {
-		return dtoEventDecorItemSelections;
-	}
-
-	public void setDtoEventDecorItemSelections(List<DtoEventDecorItemSelection> dtoEventDecorItemSelections) {
-		this.dtoEventDecorItemSelections = dtoEventDecorItemSelections;
-	}
-
 	public List<DtoEventMenuFoodSelection> getFoodSelections() {
 		return foodSelections;
 	}
@@ -253,6 +247,46 @@ public class DtoEventMaster {
 
 	public void setTxtVendorName(String txtVendorName) {
 		this.txtVendorName = txtVendorName;
+	}
+
+	public String getTxtNumberOfGuests() {
+		return txtNumberOfGuests;
+	}
+
+	public void setTxtNumberOfGuests(String txtNumberOfGuests) {
+		this.txtNumberOfGuests = txtNumberOfGuests;
+	}
+
+	public String getTxtOtherEventType() {
+		return txtOtherEventType;
+	}
+
+	public void setTxtOtherEventType(String txtOtherEventType) {
+		this.txtOtherEventType = txtOtherEventType;
+	}
+
+	public DtoEventVenue getDtoEventVenue() {
+		return dtoEventVenue;
+	}
+
+	public void setDtoEventVenue(DtoEventVenue dtoEventVenue) {
+		this.dtoEventVenue = dtoEventVenue;
+	}
+
+	public List<DtoEventDecorCategorySelection> getDtoEventDecorSelections() {
+		return dtoEventDecorSelections;
+	}
+
+	public void setDtoEventDecorSelections(List<DtoEventDecorCategorySelection> dtoEventDecorSelections) {
+		this.dtoEventDecorSelections = dtoEventDecorSelections;
+	}
+
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
 	}
 
 }

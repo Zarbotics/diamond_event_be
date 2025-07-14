@@ -7,6 +7,7 @@ import com.zbs.de.model.VenueMasterDetailDocument;
 import com.zbs.de.mapper.MapperVenueMaster;
 import com.zbs.de.model.dto.*;
 import com.zbs.de.repository.RepositoryVenueMaster;
+import com.zbs.de.repository.RepositoryVenueMasterDetail;
 import com.zbs.de.service.ServiceCityMaster;
 import com.zbs.de.service.ServiceVenueMaster;
 import com.zbs.de.util.ResponseMessage;
@@ -28,10 +29,14 @@ import org.slf4j.LoggerFactory;
 @Service("serviceVenueMaster")
 public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
 
 	@Autowired
 	private RepositoryVenueMaster repositoryVenueMaster;
+
+	@Autowired
+	private RepositoryVenueMasterDetail repositoryVenueMasterDetail;
 
 	@Autowired
 	private ServiceCityMaster serviceCityMaster;
@@ -204,6 +209,46 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 		} catch (Exception e) {
 			LOGGER.error("Error Fetching Venue Master by ID", e);
 			return null;
+		}
+	}
+
+	@Override
+	public DtoResult getVenueByVenueMasterDetailId(Integer venueMasterDetailId) {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			VenueMaster venueMaster = repositoryVenueMasterDetail.findVenueMasterByDetailId(venueMasterDetailId);
+			if (UtilRandomKey.isNull(venueMaster)) {
+				dtoResult.setTxtMessage("Invalid Venue Master Detail Id");
+				return dtoResult;
+			}
+
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(venueMaster);
+			return dtoResult;
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
+		}
+	}
+	
+	@Override
+	public DtoResult getVenueDetailByVenueMasterDetailId(Integer venueMasterDetailId) {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			VenueMasterDetail venueMasterDetail = repositoryVenueMasterDetail.findActiveVenueMasterDetailByDetailId(venueMasterDetailId);
+			if (UtilRandomKey.isNull(venueMasterDetail)) {
+				dtoResult.setTxtMessage("Invalid Venue Master Detail Id");
+				return dtoResult;
+			}
+
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(venueMasterDetail);
+			return dtoResult;
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
 		}
 	}
 

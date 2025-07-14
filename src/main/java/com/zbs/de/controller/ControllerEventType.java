@@ -1,7 +1,9 @@
 package com.zbs.de.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -11,9 +13,11 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.util.UtilRandomKey;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zbs.de.model.dto.DtoEventType;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceEventType;
 
@@ -57,6 +61,35 @@ public class ControllerEventType {
 	public ResponseMessage getAllEventsWithSubEvents() {
 		List<DtoEventType> list = serviceEventType.getAllEventTypesWithSubEvents();
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Event Types", list);
+	}
+
+	@PostMapping(value = "/saveEventType", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseMessage saveVenue(@RequestPart("eventTypeData") String eventTypeJson,
+			@RequestPart("files") List<MultipartFile> files) {
+
+		LOGGER.info("Save Event Type EventTypeMaster by Dto: " + eventTypeJson);
+
+		ResponseMessage responseMessage;
+
+		try {
+			DtoEventType dto = new ObjectMapper().readValue(eventTypeJson, DtoEventType.class);
+			DtoResult dtoResult = serviceEventType.saveEventTypeWithDocuments(dto, files);
+			if (UtilRandomKey.isNotNull(dtoResult.getResult())) {
+				responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully",
+						dtoResult.getResult());
+			} else {
+				responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, dtoResult.getTxtMessage(),
+						dtoResult.getResult());
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching StateMaster", e);
+			responseMessage = new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
+					"StateMaster not found", null);
+		}
+
+		LOGGER.debug("Save Venue: " + responseMessage);
+		return responseMessage;
 	}
 
 }

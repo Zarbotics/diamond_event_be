@@ -1,6 +1,7 @@
 package com.zbs.de.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -69,6 +70,16 @@ public class ControllerMenuFoodMaster {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully", res.getResult());
 		}
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, res.getMessage(), null);
+	}
+
+	@RequestMapping(value = "/getAllFoodsByType", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllFoodsByType(@RequestBody DtoSearch dtoSearch) {
+		LOGGER.info("Fetching AllMenuFoodMaster by Type : {}", dtoSearch.getSearchKeyword());
+		Map<String, List<DtoMenuFoodMaster>> result = serviceMenuFoodMaster.getAllFoodGroupedByType();
+		if (result != null) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully", result);
+		}
+		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "Unable To Fetch", null);
 	}
 
 }

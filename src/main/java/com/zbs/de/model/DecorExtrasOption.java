@@ -30,11 +30,11 @@ public class DecorExtrasOption extends BaseEntity implements Serializable {
 	@Column(name = "ser_extra_option_id")
 	private Integer serExtraOptionId;
 
+	@Column(name = "txt_option_code")
+	private String txtOptionCode;
+
 	@Column(name = "txt_option_name")
 	private String txtOptionName;
-
-	@Column(name = "bln_is_active")
-	private Boolean blnIsActive;
 
 	public Integer getSerExtraOptionId() {
 		return serExtraOptionId;
@@ -52,12 +52,12 @@ public class DecorExtrasOption extends BaseEntity implements Serializable {
 		this.txtOptionName = txtOptionName;
 	}
 
-	public Boolean getBlnIsActive() {
-		return blnIsActive;
+	public String getTxtOptionCode() {
+		return txtOptionCode;
 	}
 
-	public void setBlnIsActive(Boolean blnIsActive) {
-		this.blnIsActive = blnIsActive;
+	public void setTxtOptionCode(String txtOptionCode) {
+		this.txtOptionCode = txtOptionCode;
 	}
 
 }

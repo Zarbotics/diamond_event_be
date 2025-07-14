@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.util.UtilRandomKey;
 import com.zbs.de.DeApplication;
 import com.zbs.de.model.dto.DtoCustomerMaster;
+import com.zbs.de.model.dto.DtoDashboardCustomer;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceCustomerMaster;
@@ -32,6 +34,8 @@ import org.slf4j.LoggerFactory;
 @CrossOrigin(origins = "")
 public class ControllerCustomerMaster {
 
+	private final ControllerCityMaster controllerCityMaster;
+
 	private final DeApplication deApplication;
 
 	/** The Constant LOGGER. */
@@ -41,8 +45,9 @@ public class ControllerCustomerMaster {
 	@Autowired
 	ServiceCustomerMaster serviceCustomerMaster;
 
-	ControllerCustomerMaster(DeApplication deApplication) {
+	ControllerCustomerMaster(DeApplication deApplication, ControllerCityMaster controllerCityMaster) {
 		this.deApplication = deApplication;
+		this.controllerCityMaster = controllerCityMaster;
 	}
 
 	/**
@@ -105,7 +110,7 @@ public class ControllerCustomerMaster {
 	}
 
 	@RequestMapping(value = "/getByEmail", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
-	public ResponseMessage getByEmail(@RequestBody DtoSearch dtoSearch) {
+	public ResponseMessage getByEmail(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Fetching customer by ID" + dtoSearch);
 		ResponseMessage responseMessage = new ResponseMessage();
 		try {
@@ -127,4 +132,17 @@ public class ControllerCustomerMaster {
 		return responseMessage;
 	}
 
+	@RequestMapping(value = "/getDashboardStats", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
+	public ResponseMessage getDashboardStats(HttpServletRequest request) {
+		ResponseMessage responseMessage = new ResponseMessage();
+
+		DtoDashboardCustomer dto = serviceCustomerMaster.getDashboardStats();
+		if (UtilRandomKey.isNotNull(dto)) {
+			responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully", dto);
+		} else {
+			responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Could Not Fetch successfully",
+					null);
+		}
+		return responseMessage;
+	}
 }

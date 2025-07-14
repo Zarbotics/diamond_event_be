@@ -17,6 +17,8 @@ import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @DynamicInsert
 @Data
@@ -33,7 +35,7 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 	@Column(name = "ser_decor_category_id")
 	private Integer serDecorCategoryId;
 
-	@Column(name = "txt_decore_category_code")
+	@Column(name = "txt_decor_category_code")
 	private String txtDecorCategoryCode;
 
 	@Column(name = "txt_decor_category_name")
@@ -42,8 +44,12 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 	@Column(name = "bln_is_active")
 	private Boolean blnIsActive;
 
-	@OneToMany(mappedBy = "decorCategory", cascade = CascadeType.ALL)
-	private List<DecorCategoryColorMapping> colorMappings;
+	@OneToMany(mappedBy = "decorCategoryMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
+	private List<DecorCategoryPropertyMaster> categoryProperties;
+
+	@OneToMany(mappedBy = "decorCategoryMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<DecorCategoryReferenceDocument> referenceDocuments;
 
 	public Integer getSerDecorCategoryId() {
 		return serDecorCategoryId;
@@ -51,6 +57,14 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 
 	public void setSerDecorCategoryId(Integer serDecorCategoryId) {
 		this.serDecorCategoryId = serDecorCategoryId;
+	}
+
+	public String getTxtDecorCategoryCode() {
+		return txtDecorCategoryCode;
+	}
+
+	public void setTxtDecorCategoryCode(String txtDecorCategoryCode) {
+		this.txtDecorCategoryCode = txtDecorCategoryCode;
 	}
 
 	public String getTxtDecorCategoryName() {
@@ -69,20 +83,20 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 		this.blnIsActive = blnIsActive;
 	}
 
-	public List<DecorCategoryColorMapping> getColorMappings() {
-		return colorMappings;
+	public List<DecorCategoryPropertyMaster> getCategoryProperties() {
+		return categoryProperties;
 	}
 
-	public void setColorMappings(List<DecorCategoryColorMapping> colorMappings) {
-		this.colorMappings = colorMappings;
+	public void setCategoryProperties(List<DecorCategoryPropertyMaster> categoryProperties) {
+		this.categoryProperties = categoryProperties;
 	}
 
-	public String getTxtDecorCategoryCode() {
-		return txtDecorCategoryCode;
+	public List<DecorCategoryReferenceDocument> getReferenceDocuments() {
+		return referenceDocuments;
 	}
 
-	public void setTxtDecorCategoryCode(String txtDecorCategoryCode) {
-		this.txtDecorCategoryCode = txtDecorCategoryCode;
+	public void setReferenceDocuments(List<DecorCategoryReferenceDocument> referenceDocuments) {
+		this.referenceDocuments = referenceDocuments;
 	}
 
 }

@@ -15,6 +15,7 @@ public class MapperMenuFoodMaster {
 		dto.setBlnIsSaladAndCondiment(entity.getBlnIsSaladAndCondiment());
 		dto.setBlnIsDessert(entity.getBlnIsDessert());
 		dto.setBlnIsDrink(entity.getBlnIsDrink());
+		dto.setBlnIsActive(entity.getBlnIsActive());
 		return dto;
 	}
 

@@ -1,9 +1,13 @@
 package com.zbs.de.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +16,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.Getter;
@@ -48,6 +53,10 @@ public class EventType extends BaseEntity implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "parent_event_type")
 	private EventType parentEventType;
+
+	@OneToMany(mappedBy = "eventType", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
+	private List<EventTypeDocument> eventTypeDocuments;
 
 	public Integer getSerEventTypeId() {
 		return serEventTypeId;
@@ -87,6 +96,14 @@ public class EventType extends BaseEntity implements Serializable {
 
 	public void setBlnIsMainEvent(Boolean blnIsMainEvent) {
 		this.blnIsMainEvent = blnIsMainEvent;
+	}
+
+	public List<EventTypeDocument> getEventTypeDocuments() {
+		return eventTypeDocuments;
+	}
+
+	public void setEventTypeDocuments(List<EventTypeDocument> eventTypeDocuments) {
+		this.eventTypeDocuments = eventTypeDocuments;
 	}
 
 }

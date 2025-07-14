@@ -1,5 +1,9 @@
 package com.zbs.de.mapper;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.zbs.de.model.EventDecorCategorySelection;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventRunningOrder;
@@ -26,6 +30,10 @@ public class MapperEventMaster {
 		dto.setTxtBirthDayCelebrant(entity.getTxtBirthDayCelebrant());
 		dto.setTxtAgeCategory(entity.getTxtAgeCategory());
 		dto.setTxtChiefGuest(entity.getTxtChiefGuest());
+		dto.setTxtNumberOfGuests(entity.getTxtNumberOfGuests());
+		dto.setTxtOtherEventType(entity.getTxtOtherEventType());
+		dto.setBlnIsActive(entity.getBlnIsActive());
+
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -51,12 +59,7 @@ public class MapperEventMaster {
 			dto.setTxtEventTypeCode(entity.getEventType().getTxtEventTypeCode());
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
-		
-		if(UtilRandomKey.isNotNull(entity.getVenueMaster())) {
-			dto.setSerVenueMasterId(entity.getVenueMaster().getSerVenueMasterId());
-			dto.setTxtVenueCode(entity.getVenueMaster().getTxtVenueCode());
-			dto.setTxtVenueName(entity.getVenueMaster().getTxtVenueName());
-		}
+
 		
 		if(UtilRandomKey.isNotNull(entity.getVendorMaster())) {
 			dto.setSerVendorId(entity.getVendorMaster().getSerVendorId());
@@ -85,6 +88,16 @@ public class MapperEventMaster {
 		entity.setTxtBirthDayCelebrant(dto.getTxtBirthDayCelebrant());
 		entity.setTxtAgeCategory(dto.getTxtAgeCategory());
 		entity.setTxtChiefGuest(dto.getTxtChiefGuest());
+		entity.setTxtNNumberOfGuests(dto.getTxtNumberOfGuests());
+		entity.setTxtOtherEventType(dto.getTxtOtherEventType());
+		if (dto.getDtoEventDecorSelections() != null) {
+		    List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()
+		        .map(MapperEventDecorCategorySelection::toEntity)
+		        .collect(Collectors.toList());
+
+		    decorSelections.forEach(d -> d.setEventMaster(entity));
+		    entity.setDecorSelections(decorSelections);
+		}
 
 		return entity;
 	}

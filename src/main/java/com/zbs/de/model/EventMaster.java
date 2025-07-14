@@ -53,6 +53,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "num_number_of_guests")
 	private Integer numNumberOfGuests;
 
+	@Column(name = "txt_number_of_guests")
+	private String txtNumberOfGuests;
+
 	@Column(name = "num_number_of_tables")
 	private Integer numNumberOfTables;
 
@@ -90,9 +93,12 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@JoinColumn(name = "ser_event_type_id")
 	private EventType eventType;
 
+	@Column(name = "txt_other_event_type")
+	private String txtOtherEventType;
+
 	@ManyToOne
-	@JoinColumn(name = "ser_venue_master_id")
-	private VenueMaster venueMaster;
+	@JoinColumn(name = "ser_venue_master_detail_id")
+	private VenueMasterDetail venueMasterDetail;
 
 	@ManyToOne
 	@JoinColumn(name = "ser_vendor_id")
@@ -100,6 +106,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
+
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -221,14 +230,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 		this.eventType = eventType;
 	}
 
-	public VenueMaster getVenueMaster() {
-		return venueMaster;
-	}
-
-	public void setVenueMaster(VenueMaster venueMaster) {
-		this.venueMaster = venueMaster;
-	}
-
 	public List<EventMenuFoodSelection> getFoodSelections() {
 		return foodSelections;
 	}
@@ -243,6 +244,42 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setVendorMaster(VendorMaster vendorMaster) {
 		this.vendorMaster = vendorMaster;
+	}
+
+	public String getTxtNumberOfGuests() {
+		return txtNumberOfGuests;
+	}
+
+	public void setTxtNNumberOfGuests(String txtNumberOfGuests) {
+		this.txtNumberOfGuests = txtNumberOfGuests;
+	}
+
+	public String getTxtOtherEventType() {
+		return txtOtherEventType;
+	}
+
+	public void setTxtOtherEventType(String txtOtherEventType) {
+		this.txtOtherEventType = txtOtherEventType;
+	}
+
+	public List<EventDecorCategorySelection> getDecorSelections() {
+		return decorSelections;
+	}
+
+	public void setDecorSelections(List<EventDecorCategorySelection> decorSelections) {
+		this.decorSelections = decorSelections;
+	}
+
+	public void setTxtNumberOfGuests(String txtNumberOfGuests) {
+		this.txtNumberOfGuests = txtNumberOfGuests;
+	}
+
+	public VenueMasterDetail getVenueMasterDetail() {
+		return venueMasterDetail;
+	}
+
+	public void setVenueMasterDetail(VenueMasterDetail venueMasterDetail) {
+		this.venueMasterDetail = venueMasterDetail;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)

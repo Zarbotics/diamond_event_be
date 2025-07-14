@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.dto.DtoCustomerMaster;
+import com.zbs.de.model.dto.DtoDashboardCustomer;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.util.ResponseMessage;
 
@@ -14,5 +15,6 @@ public interface ServiceCustomerMaster {
 	DtoResult getByEmail(String txtEmail);
 	CustomerMaster getByPK(Integer id);
 	String generateCustomerCode();
+	DtoDashboardCustomer getDashboardStats();
 	
 }

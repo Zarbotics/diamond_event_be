@@ -13,11 +13,11 @@ import com.zbs.de.model.MenuFoodMaster;
 public interface RepositoryMenuFoodMaster extends JpaRepository<MenuFoodMaster, Integer> {
 	List<MenuFoodMaster> findByBlnIsDeleted(Boolean blnIsDeleted);
 
-	@Query("SELECT m FROM MenuFoodMaster m WHERE m.blnIsDeleted = false AND "
+	@Query("SELECT m FROM MenuFoodMaster m WHERE m.blnIsDeleted = false AND ("
 			+ "(:type = 'Dessert' AND m.blnIsDessert = true) OR " + "(:type = 'Drink' AND m.blnIsDrink = true) OR "
 			+ "(:type = 'Starter' AND m.blnIsStarter = true) OR "
 			+ "(:type = 'Appetiser' AND m.blnIsAppetiser = true) OR "
 			+ "(:type = 'SaladAndCondiment' AND m.blnIsSaladAndCondiment = true) OR "
-			+ "(:type = 'MainCourse' AND m.blnIsMainCourse = true)")
+			+ "(:type = 'MainCourse' AND m.blnIsMainCourse = true))")
 	List<MenuFoodMaster> findByFoodType(@Param("type") String type);
 }

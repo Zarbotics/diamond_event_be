@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.zbs.de.model.EventMenuFoodSelection;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryEventMenuFoodSelection;
 import com.zbs.de.service.ServiceEventMenuFoodSelection;
+import com.zbs.de.util.UtilRandomKey;
 
 @Service("serviceEventMenuFoodSelectionImpl")
 public class ServiceEventMenuFoodSelectionImpl implements ServiceEventMenuFoodSelection {
@@ -28,6 +30,52 @@ public class ServiceEventMenuFoodSelectionImpl implements ServiceEventMenuFoodSe
 		} catch (Exception e) {
 			LOGGER.debug(e.getMessage(), e);
 			return null;
+		}
+	}
+
+	@Override
+	public DtoResult deleteByEventMasterId(Integer serEventMasterId) {
+		DtoResult dtoResult = new DtoResult();
+
+		try {
+			List<EventMenuFoodSelection> eventMenuFoodSelections = repositoryEventMenuFoodSelection
+					.findByEventId(serEventMasterId);
+
+			if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+				for (EventMenuFoodSelection selection : eventMenuFoodSelections) {
+					selection.setBlnIsActive(true);
+					repositoryEventMenuFoodSelection.save(selection);
+				}
+			}
+			dtoResult.setTxtMessage("Deleted SuccessFully");
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+		}
+		return dtoResult;
+	}
+
+	public String saveAll(List<EventMenuFoodSelection> eventMenuFoodSelectionLst) {
+		try {
+			if (UtilRandomKey.isNotNull(eventMenuFoodSelectionLst)) {
+				for (EventMenuFoodSelection entity : eventMenuFoodSelectionLst) {
+					if (UtilRandomKey.isNull(entity.getEventMaster())) {
+						return "EventMenueFoodSelection Don't Have EventMaster Id.";
+					}
+
+					if (UtilRandomKey.isNull(entity.getMenuFoodMaster())) {
+						return "EventMenuFoodSelection Don't Have MenuFoodMaster Id";
+					}
+				}
+
+				repositoryEventMenuFoodSelection.saveAllAndFlush(eventMenuFoodSelectionLst);
+			}
+
+			return "Success";
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return e.getMessage();
 		}
 	}
 
