@@ -60,7 +60,7 @@ public class ControllerDecorCategoryMaster {
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
 	}
 
-	@PostMapping(value = "/saveOrUpdateWithFiles", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/saveOrUpdateWithFiles", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithFiles(@RequestPart("data") String jsonData,
 			@RequestPart(value = "documents", required = false) MultipartFile[] documents, HttpServletRequest request) {
 		try {
