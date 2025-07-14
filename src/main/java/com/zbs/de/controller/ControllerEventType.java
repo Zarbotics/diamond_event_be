@@ -83,9 +83,9 @@ public class ControllerEventType {
 			}
 
 		} catch (Exception e) {
-			LOGGER.error("Error fetching StateMaster", e);
+			LOGGER.error("Internal Server Error", e);
 			responseMessage = new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
-					"StateMaster not found", null);
+					"Internal Server Error", null);
 		}
 
 		LOGGER.debug("Save Venue: " + responseMessage);
