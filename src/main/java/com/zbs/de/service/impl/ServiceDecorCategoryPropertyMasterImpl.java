@@ -5,20 +5,31 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.zbs.de.mapper.MapperDecorCategoryPropertyMaster;
+import com.zbs.de.model.DecorCategoryMaster;
 import com.zbs.de.model.DecorCategoryPropertyMaster;
+import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryDecorCategoryPropertyMaster;
+import com.zbs.de.service.ServiceDecorCategoryMaster;
 import com.zbs.de.service.ServiceDecorCategoryPropertyMaster;
+import com.zbs.de.util.UtilRandomKey;
 
 @Service("serviceDecorCategoryPropertyMaster")
 public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCategoryPropertyMaster {
 	@Autowired
 	RepositoryDecorCategoryPropertyMaster repositoryDecorCategoryPropertyMaster;
+
+	@Autowired
+	ServiceDecorCategoryMaster serviceDecorCategoryMaster;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
 	@Override
 	public DtoResult saveOrUpdate(DtoDecorCategoryPropertyMaster dto) {
@@ -54,4 +65,59 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 		}
 		return new DtoResult("No record found to delete", null, null, null);
 	}
+
+	@Override
+	public DtoResult saveWithListProperties(DtoDecorCategoryMaster dto) {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			if (UtilRandomKey.isNotNull(dto) && UtilRandomKey.isNotNull(dto.getCategoryProperties())
+					&& UtilRandomKey.isNotNull(dto.getSerDecorCategoryId())) {
+				DecorCategoryMaster decorCategoryMaster = serviceDecorCategoryMaster
+						.getByPK(dto.getSerDecorCategoryId());
+				if (UtilRandomKey.isNull(decorCategoryMaster)) {
+					dtoResult.setTxtMessage("Invalid Category");
+					return dtoResult;
+				}
+				for (DtoDecorCategoryPropertyMaster property : dto.getCategoryProperties()) {
+					DecorCategoryPropertyMaster entity = new DecorCategoryPropertyMaster();
+					entity.setDecorCategoryMaster(decorCategoryMaster);
+					entity.setTxtPropertyName(property.getTxtPropertyName());
+					entity.setTxtInputType(property.getTxtInputType());
+					entity.setTxtRemarks(property.getTxtRemarks());
+					entity.setBlnIsActive(property.getBlnIsActive());
+					entity.setBlnIsApproved(true);
+					entity.setBlnIsRequired(property.getBlnIsRequired());
+					repositoryDecorCategoryPropertyMaster.save(entity);
+				}
+				dtoResult.setTxtMessage("Success");
+			} else {
+				dtoResult.setTxtMessage("Invalid Data");
+				return dtoResult;
+			}
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+		}
+
+		return dtoResult;
+	}
+
+	@Override
+	public DecorCategoryPropertyMaster getByPk(Integer id) {
+		try {
+			Optional<DecorCategoryPropertyMaster> optional = repositoryDecorCategoryPropertyMaster.findById(id);
+			if (optional.isPresent()) {
+				return optional.get();
+			} else {
+				return null;
+			}
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
+
+	}
+
 }

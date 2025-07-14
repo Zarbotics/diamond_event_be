@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
@@ -29,6 +30,12 @@ public class ControllerDecorCategoryPropertyMaster {
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), result.getResult());
 	}
 
+	@PostMapping(value = "/saveWithListProperties", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage saveWithListProperties(@RequestBody DtoDecorCategoryMaster dto) {
+		DtoResult result = serviceDecorCategoryPropertyMaster.saveWithListProperties(dto);
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), result.getResult());
+	}
+	
 	@PostMapping(value = "/getAllData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllData() {
 		DtoResult result = serviceDecorCategoryPropertyMaster.getAll();

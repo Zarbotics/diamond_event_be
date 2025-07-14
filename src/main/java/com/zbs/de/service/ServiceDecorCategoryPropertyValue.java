@@ -1,10 +1,14 @@
 package com.zbs.de.service;
 
+import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyValue;
 import com.zbs.de.model.dto.DtoResult;
 
 public interface ServiceDecorCategoryPropertyValue {
+	
 	DtoResult saveOrUpdate(DtoDecorCategoryPropertyValue dto);
+
+	DtoResult saveWithListValues(DtoDecorCategoryPropertyMaster dto);
 
 	DtoResult getAll();
 

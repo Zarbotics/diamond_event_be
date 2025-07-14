@@ -1,5 +1,7 @@
 package com.zbs.de.service;
 
+import com.zbs.de.model.DecorCategoryPropertyMaster;
+import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoResult;
 
@@ -9,6 +11,10 @@ public interface ServiceDecorCategoryPropertyMaster {
 	DtoResult getAll();
 
 	DtoResult getById(Integer id);
+	
+	DecorCategoryPropertyMaster getByPk(Integer id);
 
 	DtoResult deleteById(Integer id);
+	
+	DtoResult saveWithListProperties(DtoDecorCategoryMaster dto);
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyValue;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
@@ -26,6 +27,12 @@ public class ControllerDecorCategoryPropertyValue {
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage saveOrUpdate(@RequestBody DtoDecorCategoryPropertyValue dto) {
 		DtoResult result = serviceDecorCategoryPropertyValue.saveOrUpdate(dto);
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), result.getResult());
+	}
+	
+	@PostMapping(value = "/saveWithListValues", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage saveWithListValues(@RequestBody DtoDecorCategoryPropertyMaster dto) {
+		DtoResult result = serviceDecorCategoryPropertyValue.saveWithListValues(dto);
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), result.getResult());
 	}
 
