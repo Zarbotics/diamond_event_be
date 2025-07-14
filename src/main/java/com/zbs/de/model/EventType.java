@@ -54,7 +54,7 @@ public class EventType extends BaseEntity implements Serializable {
 	@JoinColumn(name = "parent_event_type")
 	private EventType parentEventType;
 
-	@OneToMany(mappedBy = "eventType", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "eventType", cascade = CascadeType.ALL)
 	@JsonManagedReference
 	private List<EventTypeDocument> eventTypeDocuments;
 
