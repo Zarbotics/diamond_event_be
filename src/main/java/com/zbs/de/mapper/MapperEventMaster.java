@@ -33,6 +33,7 @@ public class MapperEventMaster {
 		dto.setTxtNumberOfGuests(entity.getTxtNumberOfGuests());
 		dto.setTxtOtherEventType(entity.getTxtOtherEventType());
 		dto.setBlnIsActive(entity.getBlnIsActive());
+		dto.setTxtEventStatus(entity.getTxtEventStatus());
 
 
 		if (entity.getCustomerMaster() != null) {
@@ -90,6 +91,7 @@ public class MapperEventMaster {
 		entity.setTxtChiefGuest(dto.getTxtChiefGuest());
 		entity.setTxtNNumberOfGuests(dto.getTxtNumberOfGuests());
 		entity.setTxtOtherEventType(dto.getTxtOtherEventType());
+		entity.setTxtEventStatus(dto.getTxtEventStatus());
 		if (dto.getDtoEventDecorSelections() != null) {
 		    List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()
 		        .map(MapperEventDecorCategorySelection::toEntity)

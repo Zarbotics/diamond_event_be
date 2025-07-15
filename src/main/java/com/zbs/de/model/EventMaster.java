@@ -74,6 +74,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "txt_chief_guest")
 	private String txtChiefGuest;
 
+	@Column(name = "txt_event_status")
+	private String txtEventStatus;
+
 	/**
 	 * This variable is to show how many sections has been filled by the client
 	 * related Customer Journey
@@ -280,6 +283,14 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setVenueMasterDetail(VenueMasterDetail venueMasterDetail) {
 		this.venueMasterDetail = venueMasterDetail;
+	}
+
+	public String getTxtEventStatus() {
+		return txtEventStatus;
+	}
+
+	public void setTxtEventStatus(String txtEventStatus) {
+		this.txtEventStatus = txtEventStatus;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
