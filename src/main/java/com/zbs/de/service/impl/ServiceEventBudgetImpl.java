@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.zbs.de.controller.ControllerCityMaster;
 import com.zbs.de.mapper.MapperEventBudget;
 import com.zbs.de.model.EventBudget;
 import com.zbs.de.model.EventMaster;
@@ -19,11 +18,11 @@ import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryEventBudget;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.service.ServiceEventBudget;
+import com.zbs.de.util.UtilDateAndTime;
+import com.zbs.de.util.UtilRandomKey;
 
 @Service("serviceEventBudgetImpl")
 public class ServiceEventBudgetImpl implements ServiceEventBudget {
-
-	private final ControllerCityMaster controllerCityMaster;
 
 	@Autowired
 	private RepositoryEventBudget repositoryEventBudget;
@@ -32,10 +31,6 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 	private RepositoryEventMaster repositoryEventMaster;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
-
-	ServiceEventBudgetImpl(ControllerCityMaster controllerCityMaster) {
-		this.controllerCityMaster = controllerCityMaster;
-	}
 
 	@Override
 	public DtoResult saveOrUpdate(DtoEventBudget dtoEventBudget) {
@@ -56,15 +51,32 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 
 		Optional<EventBudget> optionalExisting = repositoryEventBudget
 				.findByEventMaster_SerEventMasterId(dtoEventBudget.getSerEventMasterId());
+		EventBudget eventBudget = new EventBudget();
+		if (UtilRandomKey.isNotNull(optionalExisting)) {
+			eventBudget = optionalExisting.get();
+			eventBudget.setEventMaster(eventMaster);
+			eventBudget.setNumTotalBudget(dtoEventBudget.getNumTotalBudget());
+			eventBudget.setNumTotalExpense(dtoEventBudget.getNumTotalExpense());
+			eventBudget.setTxtPaymentType(dtoEventBudget.getTxtPaymentType());
+			eventBudget.setTxtPaymentStatus(dtoEventBudget.getTxtPaymentStatus());
+			if (UtilRandomKey.isNotNull(dtoEventBudget.getDteDealDate())) {
+				eventBudget.setDteDealDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoEventBudget.getDteDealDate()));
+			}
+			eventBudget.setTxtDealClosedBy(dtoEventBudget.getTxtDealClosedBy());
+			eventBudget.setTxtRemarks(dtoEventBudget.getTxtRemarks());
 
-		EventBudget eventBudget = MapperEventBudget.toEntity(dtoEventBudget, eventMaster);
-
-		// Preserve ID if updating
-		optionalExisting.ifPresent(existing -> eventBudget.setSerEventBudgetId(existing.getSerEventBudgetId()));
+			if (dtoEventBudget.getNumTotalBudget() != null && dtoEventBudget.getNumTotalExpense() != null) {
+				eventBudget.setNumTotalProfit(
+						dtoEventBudget.getNumTotalBudget().subtract(dtoEventBudget.getNumTotalExpense()));
+			}
+		} else {
+			eventBudget = MapperEventBudget.toEntity(dtoEventBudget, eventMaster);
+		}
 
 		repositoryEventBudget.save(eventBudget);
 
-		result.setTxtMessage("Event budget saved successfully.");
+		result.setResult(null);
+		result.setTxtMessage("Success");
 		return result;
 	}
 

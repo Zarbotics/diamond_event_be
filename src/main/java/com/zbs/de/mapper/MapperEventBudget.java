@@ -16,7 +16,7 @@ public class MapperEventBudget {
 		entity.setTxtPaymentType(dto.getTxtPaymentType());
 		entity.setTxtPaymentStatus(dto.getTxtPaymentStatus());
 		if (UtilRandomKey.isNotNull(dto.getDteDealDate())) {
-			entity.setDteDealDate(UtilDateAndTime.ddmmyyyyhhmmssStringToDate(dto.getDteDealDate()));
+			entity.setDteDealDate(UtilDateAndTime.ddmmyyyyStringToDate(dto.getDteDealDate()));
 		}
 		entity.setTxtDealClosedBy(dto.getTxtDealClosedBy());
 		entity.setTxtRemarks(dto.getTxtRemarks());
