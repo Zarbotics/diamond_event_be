@@ -52,7 +52,7 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 		Optional<EventBudget> optionalExisting = repositoryEventBudget
 				.findByEventMaster_SerEventMasterId(dtoEventBudget.getSerEventMasterId());
 		EventBudget eventBudget = new EventBudget();
-		if (UtilRandomKey.isNotNull(optionalExisting)) {
+		if (UtilRandomKey.isNotNull(optionalExisting) && !optionalExisting.isEmpty()) {
 			eventBudget = optionalExisting.get();
 			eventBudget.setEventMaster(eventMaster);
 			eventBudget.setNumTotalBudget(dtoEventBudget.getNumTotalBudget());
