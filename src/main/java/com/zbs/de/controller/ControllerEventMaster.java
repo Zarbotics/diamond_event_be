@@ -50,11 +50,11 @@ public class ControllerEventMaster {
 
 	@PostMapping(value = "/saveWithDocs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithDocs(@RequestPart("eventMaster") String eventMaster,
-			@RequestPart("files") List<MultipartFile> files) throws IOException {
+			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
 		LOGGER.info("Saving Event Master: {}", eventMaster);
 		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
 		DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dtoEventMaster, files);
-		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+		if (result != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());
 		}
 		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",

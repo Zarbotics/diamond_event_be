@@ -30,7 +30,7 @@ public class ControllerEventBudget {
 		LOGGER.info("Saving EventBudget: {}", dtoEventBudget);
 		DtoResult result = serviceEventBudget.saveOrUpdate(dtoEventBudget);
 
-		if (UtilRandomKey.isNotNull(result.getResult())) {
+		if (UtilRandomKey.isNotNull(result) && result.getTxtMessage().equalsIgnoreCase("Success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Event budget saved successfully",
 					result.getResult());
 		}

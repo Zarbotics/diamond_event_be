@@ -651,396 +651,424 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Override
 	@Transactional
-	public DtoResult saveAndUpdateWithDocs(DtoEventMaster dtoEventMaster, List<MultipartFile> files) throws IOException {
+	public DtoResult saveAndUpdateWithDocs(DtoEventMaster dtoEventMaster, List<MultipartFile> files)
+			throws IOException {
 		// Validate required IDs
 		DtoResult dtoResult = new DtoResult();
-		if (dtoEventMaster.getSerCustId() == null || dtoEventMaster.getSerEventTypeId() == null) {
-			LOGGER.debug("Customer ID and Event Type ID are required");
-			dtoResult.setTxtMessage("Customer ID and Event Type ID are required");
-			return dtoResult;
-		}
-
-		// Fetch existing if exists
-		Optional<EventMaster> optionalExisting = repositoryEventMaster
-				.findByCustomerAndEventType(dtoEventMaster.getSerCustId(), dtoEventMaster.getSerEventTypeId());
-
-		List<MenuFoodMaster> dtoMenuFoodMasterLst = serviceMenuFoodMaster.getAllDataEntity();
-		if (UtilRandomKey.isNull(dtoMenuFoodMasterLst)) {
-			dtoResult.setTxtMessage("No Food Item Is Present In DB");
-			return dtoResult;
-		}
-
-		EventMaster entity;
-
-		Map<String, MultipartFile> fileMap = files.stream()
-				.collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
-
-		if (optionalExisting.isPresent()) {
-			// Update existing
-			entity = optionalExisting.get();
-
-			// Manually update values (keep ID)
-			entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
-			entity.setDteEventDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoEventMaster.getDteEventDate()));
-			entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
-			entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
-			entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
-			entity.setTxtGroomName(dtoEventMaster.getTxtGroomName());
-			entity.setTxtBirthDayCelebrant(dtoEventMaster.getTxtBirthDayCelebrant());
-			entity.setTxtAgeCategory(dtoEventMaster.getTxtAgeCategory());
-			entity.setTxtChiefGuest(dtoEventMaster.getTxtChiefGuest());
-			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
-				entity.setNumInfoFilledStatus(0);
+		try {
+			if (dtoEventMaster.getSerCustId() == null || dtoEventMaster.getSerEventTypeId() == null) {
+				LOGGER.debug("Customer ID and Event Type ID are required");
+				dtoResult.setTxtMessage("Customer ID and Event Type ID are required");
+				return dtoResult;
 			}
 
-			// Set customer
-			// ************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerCustId())) {
-				CustomerMaster customer = serviceCustomerMaster.getByPK(dtoEventMaster.getSerCustId());
-				if (UtilRandomKey.isNull(customer)) {
-					dtoResult.setTxtMessage("Customer Not Foound For Id" + dtoEventMaster.getSerCustId());
-					return dtoResult;
+			// Fetch existing if exists
+			Optional<EventMaster> optionalExisting = repositoryEventMaster
+					.findByCustomerAndEventType(dtoEventMaster.getSerCustId(), dtoEventMaster.getSerEventTypeId());
+
+			List<MenuFoodMaster> dtoMenuFoodMasterLst = serviceMenuFoodMaster.getAllDataEntity();
+			if (UtilRandomKey.isNull(dtoMenuFoodMasterLst)) {
+				dtoResult.setTxtMessage("No Food Item Is Present In DB");
+				return dtoResult;
+			}
+
+			EventMaster entity;
+			Map<String, MultipartFile> fileMap = null;
+			if (UtilRandomKey.isNotNull(files)) {
+				fileMap = files.stream().collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
+			}
+
+			if (optionalExisting.isPresent()) {
+				// Update existing
+				entity = optionalExisting.get();
+
+				// Manually update values (keep ID)
+				entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
+				entity.setDteEventDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoEventMaster.getDteEventDate()));
+				entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
+				entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
+				entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
+				entity.setTxtGroomName(dtoEventMaster.getTxtGroomName());
+				entity.setTxtBirthDayCelebrant(dtoEventMaster.getTxtBirthDayCelebrant());
+				entity.setTxtAgeCategory(dtoEventMaster.getTxtAgeCategory());
+				entity.setTxtChiefGuest(dtoEventMaster.getTxtChiefGuest());
+				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
+					entity.setNumInfoFilledStatus(0);
 				}
-				entity.setNumInfoFilledStatus(10);
-				entity.setCustomerMaster(customer);
-			}
 
-			// Set event type
-			// **************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerEventTypeId())) {
-				EventType eventType = serviceEventType.getByPK(dtoEventMaster.getSerEventTypeId());
-				if (UtilRandomKey.isNull(eventType)) {
-					dtoResult.setTxtMessage("Event Type Not Foound For Id" + dtoEventMaster.getSerEventTypeId());
-					return dtoResult;
-				}
-				entity.setEventType(eventType);
-			}
-
-			// Set optional event running order
-			// ********************************
-			if (dtoEventMaster.getDtoEventRunningOrder() != null) {
-				EventRunningOrder runningOrder = new EventRunningOrder();
-
-				if (UtilRandomKey.isNotNull(entity.getEventRunningOrder())) {
-
-					runningOrder = entity.getEventRunningOrder();
-					runningOrder.setTxtGuestArrival(dtoEventMaster.getDtoEventRunningOrder().getTxtGuestArrival());
-					runningOrder.setTxtBaratArrival(dtoEventMaster.getDtoEventRunningOrder().getTxtBaratArrival());
-					runningOrder.setTxtBrideEntrance(dtoEventMaster.getDtoEventRunningOrder().getTxtBrideEntrance());
-					runningOrder.setTxtNikah(dtoEventMaster.getDtoEventRunningOrder().getTxtNikah());
-					runningOrder.setTxtMeal(dtoEventMaster.getDtoEventRunningOrder().getTxtMeal());
-					runningOrder.setTxtEndOfNight(dtoEventMaster.getDtoEventRunningOrder().getTxtEndOfNight());
-					runningOrder = repositoryEventRunningOrder.save(runningOrder);
-				} else {
-					runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
-					runningOrder = repositoryEventRunningOrder.save(runningOrder);
-					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-				}
-				entity.setEventRunningOrder(runningOrder);
-
-				entity.setNumInfoFilledStatus(30);
-
-			}
-
-			// Setting Venue Master
-			// ********************
-			/*
-			 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
-			 * VenueMaster venueMaster =
-			 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
-			 * (UtilRandomKey.isNull(venueMaster)) {
-			 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
-			 * dtoEventMaster.getSerVenueMasterId()); }
-			 * 
-			 * if (UtilRandomKey.isNull(entity.getVenueMaster())) {
-			 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
-			 * 
-			 * entity.setVenueMaster(venueMaster); }
-			 */
-
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
-					DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-							dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
-					if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-						VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-						entity.setVenueMasterDetail(venueMasterDetail);
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Active");
+				// Set customer
+				// ************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerCustId())) {
+					CustomerMaster customer = serviceCustomerMaster.getByPK(dtoEventMaster.getSerCustId());
+					if (UtilRandomKey.isNull(customer)) {
+						dtoResult.setTxtMessage("Customer Not Foound For Id" + dtoEventMaster.getSerCustId());
 						return dtoResult;
 					}
-				} else {
-					dtoResult.setTxtMessage("Venue Hall Is Not Selected");
-					return dtoResult;
+					entity.setNumInfoFilledStatus(10);
+					entity.setCustomerMaster(customer);
 				}
-				entity.setNumInfoFilledStatus(50);
 
-			}
-
-			// Set Decor Item Selections
-			// *************************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
-
-				// Deleting Existing Selections
-				serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
-
-				List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
-
-				for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
-					EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
-					decorSelection.setEventMaster(entity);
-
-					// Set property selections' back reference
-					if (decorSelection.getSelectedProperties() != null) {
-						for (EventDecorPropertySelection prop : decorSelection.getSelectedProperties()) {
-							prop.setEventDecorCategorySelection(decorSelection);
-						}
+				// Set event type
+				// **************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerEventTypeId())) {
+					EventType eventType = serviceEventType.getByPK(dtoEventMaster.getSerEventTypeId());
+					if (UtilRandomKey.isNull(eventType)) {
+						dtoResult.setTxtMessage("Event Type Not Foound For Id" + dtoEventMaster.getSerEventTypeId());
+						return dtoResult;
 					}
+					entity.setEventType(eventType);
+				}
 
-					// Set reference image back reference
-					if (decorSelection.getUserUploadedDocuments() != null) {
-						List<EventDecorReferenceDocument> documents = new ArrayList<>();
-						for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-							MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-							if (file != null) {
-								String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-								EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-								doc.setDocumentName(file.getName());
-								doc.setOriginalName(file.getOriginalFilename());
-								doc.setDocumentType(file.getContentType());
-								doc.setSize(String.valueOf(file.getSize()));
-								doc.setFilePath(uploadPath);
-								doc.setEventDecorCategorySelection(decorSelection);
-								documents.add(doc);
+				// Set optional event running order
+				// ********************************
+				if (dtoEventMaster.getDtoEventRunningOrder() != null) {
+					EventRunningOrder runningOrder = new EventRunningOrder();
+
+					if (UtilRandomKey.isNotNull(entity.getEventRunningOrder())) {
+
+						runningOrder = entity.getEventRunningOrder();
+						runningOrder.setTxtGuestArrival(dtoEventMaster.getDtoEventRunningOrder().getTxtGuestArrival());
+						runningOrder.setTxtBaratArrival(dtoEventMaster.getDtoEventRunningOrder().getTxtBaratArrival());
+						runningOrder.setTxtBrideEntrance(dtoEventMaster.getDtoEventRunningOrder().getTxtBrideEntrance());
+						runningOrder.setTxtNikah(dtoEventMaster.getDtoEventRunningOrder().getTxtNikah());
+						runningOrder.setTxtMeal(dtoEventMaster.getDtoEventRunningOrder().getTxtMeal());
+						runningOrder.setTxtEndOfNight(dtoEventMaster.getDtoEventRunningOrder().getTxtEndOfNight());
+						runningOrder = repositoryEventRunningOrder.save(runningOrder);
+					} else {
+						runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
+						runningOrder = repositoryEventRunningOrder.save(runningOrder);
+						entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+					}
+					entity.setEventRunningOrder(runningOrder);
+
+					entity.setNumInfoFilledStatus(30);
+
+				}
+
+				// Setting Venue Master
+				// ********************
+				/*
+				 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+				 * VenueMaster venueMaster =
+				 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
+				 * (UtilRandomKey.isNull(venueMaster)) {
+				 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
+				 * dtoEventMaster.getSerVenueMasterId()); }
+				 * 
+				 * if (UtilRandomKey.isNull(entity.getVenueMaster())) {
+				 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
+				 * 
+				 * entity.setVenueMaster(venueMaster); }
+				 */
+
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
+					if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
+						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
+								dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
+						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
+							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
+							entity.setVenueMasterDetail(venueMasterDetail);
+						} else {
+							dtoResult.setTxtMessage("Venue Hall Is Not Active");
+							return dtoResult;
+						}
+					} else {
+						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+						return dtoResult;
+					}
+					entity.setNumInfoFilledStatus(50);
+
+				}
+
+				// Set Decor Item Selections
+				// *************************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
+
+					// Deleting Existing Selections
+					serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
+
+					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
+
+					for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
+						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
+						decorSelection.setEventMaster(entity);
+
+						// Set property selections' back reference
+						if (decorSelection.getSelectedProperties() != null) {
+							for (EventDecorPropertySelection prop : decorSelection.getSelectedProperties()) {
+								prop.setEventDecorCategorySelection(decorSelection);
 							}
 						}
-						decorSelection.setUserUploadedDocuments(documents);
+
+						// Set reference image back reference
+						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
+							List<EventDecorReferenceDocument> documents = new ArrayList<>();
+							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
+								MultipartFile file = fileMap.get(dtoImg.getOriginalName());
+								if (file != null) {
+									String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
+									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
+									doc.setDocumentName(file.getName());
+									doc.setOriginalName(file.getOriginalFilename());
+									doc.setDocumentType(file.getContentType());
+									doc.setSize(String.valueOf(file.getSize()));
+									doc.setFilePath(uploadPath);
+									doc.setEventDecorCategorySelection(decorSelection);
+									documents.add(doc);
+								}
+							}
+							decorSelection.setUserUploadedDocuments(documents);
+						}
+
+						decorSelections.add(decorSelection);
 					}
 
-					decorSelections.add(decorSelection);
+					entity.setDecorSelections(decorSelections);
+					entity.setNumInfoFilledStatus(70);
 				}
 
-				entity.setDecorSelections(decorSelections);
-				entity.setNumInfoFilledStatus(70);
-			}
-
-			// Set Food Menu Selection
-			// ***********************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())) {
-				serviceEventMenuFoodSelection.deleteByEventMasterId(entity.getSerEventMasterId());
-				List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
-				for (DtoEventMenuFoodSelection dto : dtoEventMaster.getFoodSelections()) {
-					EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
-					eventMenuFoodSelection.setEventMaster(entity);
-					eventMenuFoodSelection.setBlnIsActive(true);
-					eventMenuFoodSelection.setBlnIsApproved(true);
-					eventMenuFoodSelection.setBlnIsDeleted(false);
-					if (UtilRandomKey.isNotNull(dto.getSerMenuFoodId())) {
-						MenuFoodMaster menuFoodMaster = dtoMenuFoodMasterLst.stream()
-								.filter(food -> food.getSerMenuFoodId() != null
-										&& food.getSerMenuFoodId().intValue() == dto.getSerMenuFoodId().intValue())
-								.findFirst().orElse(null);
-						if (UtilRandomKey.isNotNull(menuFoodMaster)) {
-							eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
+				// Set Food Menu Selection
+				// ***********************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())) {
+					serviceEventMenuFoodSelection.deleteByEventMasterId(entity.getSerEventMasterId());
+					List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
+					for (DtoEventMenuFoodSelection dto : dtoEventMaster.getFoodSelections()) {
+						EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
+						eventMenuFoodSelection.setEventMaster(entity);
+						eventMenuFoodSelection.setBlnIsActive(true);
+						eventMenuFoodSelection.setBlnIsApproved(true);
+						eventMenuFoodSelection.setBlnIsDeleted(false);
+						if (UtilRandomKey.isNotNull(dto.getSerMenuFoodId())) {
+							MenuFoodMaster menuFoodMaster = dtoMenuFoodMasterLst.stream()
+									.filter(food -> food.getSerMenuFoodId() != null
+											&& food.getSerMenuFoodId().intValue() == dto.getSerMenuFoodId().intValue())
+									.findFirst().orElse(null);
+							if (UtilRandomKey.isNotNull(menuFoodMaster)) {
+								eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
+							} else {
+								dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
+										+ dto.getSerMenuFoodId() + " In DB.");
+								return dtoResult;
+							}
 						} else {
-							dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
-									+ dto.getSerMenuFoodId() + " In DB.");
+							dtoResult.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
 							return dtoResult;
 						}
-					} else {
-						dtoResult.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
+
+						eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
+					}
+
+					String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
+					if (!result.equalsIgnoreCase("Success")) {
+						dtoResult.setTxtMessage(result);
 						return dtoResult;
 					}
 
-					eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
+					entity.setNumInfoFilledStatus(90);
+
 				}
 
-				String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
-				if (!result.equalsIgnoreCase("Success")) {
-					dtoResult.setTxtMessage(result);
-					return dtoResult;
+				// Set Vendor
+				// **********
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
+					VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
+					if (UtilRandomKey.isNotNull(vendorMaster)) {
+
+						entity.setVendorMaster(vendorMaster);
+					} else {
+						dtoResult.setTxtMessage(
+								"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
+						return dtoResult;
+					}
+					entity.setNumInfoFilledStatus(100);
 				}
 
-				entity.setNumInfoFilledStatus(90);
+			} else {
+				// Create new
+				entity = MapperEventMaster.toEntity(dtoEventMaster);
+				entity.setEventRunningOrder(null);
+				entity.setEventType(null);
+				entity.setDecorSelections(null);
+				entity.setFoodSelections(null);
+				entity = repositoryEventMaster.save(entity);
 
-			}
+				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
+					entity.setNumInfoFilledStatus(0);
+				}
 
-			// Set Vendor
-			// **********
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
-				VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
-				if (UtilRandomKey.isNotNull(vendorMaster)) {
+				// Set customer
+				// ************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerCustId())) {
+					CustomerMaster customer = serviceCustomerMaster.getByPK(dtoEventMaster.getSerCustId());
+					if (UtilRandomKey.isNull(customer)) {
+						dtoResult.setTxtMessage("Customer Not Foound For Id" + dtoEventMaster.getSerCustId());
+						return dtoResult;
+					}
+					entity.setCustomerMaster(customer);
+					entity.setNumInfoFilledStatus(10);
 
-					entity.setVendorMaster(vendorMaster);
-				} else {
-					dtoResult.setTxtMessage(
-							"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
-					return dtoResult;
+				}
+
+				// Set event type
+				// **************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerEventTypeId())) {
+					EventType eventType = serviceEventType.getByPK(dtoEventMaster.getSerEventTypeId());
+					if (UtilRandomKey.isNull(eventType)) {
+						dtoResult.setTxtMessage("Event Type Not Foound For Id" + dtoEventMaster.getSerEventTypeId());
+						return dtoResult;
+					}
+					entity.setEventType(eventType);
+				}
+
+				// Set optional event running order
+				// ********************************
+				if (dtoEventMaster.getDtoEventRunningOrder() != null) {
+					EventRunningOrder runningOrder = new EventRunningOrder();
+					runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
+					runningOrder = repositoryEventRunningOrder.save(runningOrder);
+					entity.setEventRunningOrder(runningOrder);
+					entity.setNumInfoFilledStatus(30);
+				}
+
+				// Set Venue Master
+				// ****************
+				/*
+				 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+				 * VenueMaster venueMaster =
+				 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
+				 * (UtilRandomKey.isNull(venueMaster)) {
+				 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
+				 * dtoEventMaster.getSerVenueMasterId()); return dtoResult; }
+				 * entity.setVenueMaster(venueMaster);
+				 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
+				 */
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
+					if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
+						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
+								dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
+						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
+							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
+							entity.setVenueMasterDetail(venueMasterDetail);
+						} else {
+							dtoResult.setTxtMessage("Venue Hall Is Not Active");
+							return dtoResult;
+						}
+					} else {
+						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+						return dtoResult;
+					}
+					entity.setNumInfoFilledStatus(50);
+
+				}
+
+				// Set Decore Item Selections
+				// **************************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
+					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
+
+					for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
+						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
+						decorSelection.setEventMaster(entity);
+
+						if (decorSelection.getSelectedProperties() != null) {
+							decorSelection.getSelectedProperties()
+									.forEach(p -> p.setEventDecorCategorySelection(decorSelection));
+						}
+
+						// Set reference image back reference
+						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
+							List<EventDecorReferenceDocument> documents = new ArrayList<>();
+							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
+								MultipartFile file = fileMap.get(dtoImg.getOriginalName());
+								if (file != null) {
+									String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
+									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
+									doc.setDocumentName(file.getName());
+									doc.setOriginalName(file.getOriginalFilename());
+									doc.setDocumentType(file.getContentType());
+									doc.setSize(String.valueOf(file.getSize()));
+									doc.setFilePath(uploadPath);
+									doc.setEventDecorCategorySelection(decorSelection);
+									documents.add(doc);
+								}
+							}
+							decorSelection.setUserUploadedDocuments(documents);
+						}
+
+						decorSelections.add(decorSelection);
+					}
+
+					entity.setDecorSelections(decorSelections);
+					entity.setNumInfoFilledStatus(70);
+				}
+
+				// Set Food Menu Selection
+				// ***********************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())) {
+					List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
+					for (DtoEventMenuFoodSelection dto : dtoEventMaster.getFoodSelections()) {
+						EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
+						eventMenuFoodSelection.setEventMaster(entity);
+						eventMenuFoodSelection.setBlnIsActive(true);
+						eventMenuFoodSelection.setBlnIsApproved(true);
+						eventMenuFoodSelection.setBlnIsDeleted(false);
+						if (UtilRandomKey.isNotNull(dto.getSerMenuFoodId())) {
+							MenuFoodMaster menuFoodMaster = dtoMenuFoodMasterLst.stream()
+									.filter(food -> food.getSerMenuFoodId() != null
+											&& food.getSerMenuFoodId().intValue() == dto.getSerMenuFoodId().intValue())
+									.findFirst().orElse(null);
+							if (UtilRandomKey.isNotNull(menuFoodMaster)) {
+								eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
+							} else {
+								dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
+										+ dto.getSerMenuFoodId() + " In DB.");
+								return dtoResult;
+							}
+						} else {
+							dtoResult.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
+							return dtoResult;
+						}
+
+						eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
+					}
+
+					String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
+					if (!result.equalsIgnoreCase("Success")) {
+						dtoResult.setTxtMessage(result);
+						return dtoResult;
+					}
+					entity.setNumInfoFilledStatus(90);
+				}
+
+				// Set Vendor
+				// **********
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
+					VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
+					if (UtilRandomKey.isNotNull(vendorMaster)) {
+						entity.setVendorMaster(vendorMaster);
+						entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+					} else {
+						dtoResult.setTxtMessage(
+								"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
+						return dtoResult;
+					}
 				}
 				entity.setNumInfoFilledStatus(100);
+
+				// Generate event master code
+				String code = generateNextEventMasterCode();
+				entity.setTxtEventMasterCode(code);
 			}
 
-		} else {
-			// Create new
-			entity = MapperEventMaster.toEntity(dtoEventMaster);
-			
-			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
-				entity.setNumInfoFilledStatus(0);
-			}
+			entity = repositoryEventMaster.save(entity);
 
-			// Set customer
-			// ************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerCustId())) {
-				CustomerMaster customer = serviceCustomerMaster.getByPK(dtoEventMaster.getSerCustId());
-				if (UtilRandomKey.isNull(customer)) {
-					dtoResult.setTxtMessage("Customer Not Foound For Id" + dtoEventMaster.getSerCustId());
-					return dtoResult;
-				}
-				entity.setCustomerMaster(customer);
-				entity.setNumInfoFilledStatus(10);
-
-			}
-
-			// Set event type
-			// **************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerEventTypeId())) {
-				EventType eventType = serviceEventType.getByPK(dtoEventMaster.getSerEventTypeId());
-				if (UtilRandomKey.isNull(eventType)) {
-					dtoResult.setTxtMessage("Event Type Not Foound For Id" + dtoEventMaster.getSerEventTypeId());
-					return dtoResult;
-				}
-				entity.setEventType(eventType);
-			}
-
-			// Set optional event running order
-			// ********************************
-			if (dtoEventMaster.getDtoEventRunningOrder() != null) {
-				EventRunningOrder runningOrder = new EventRunningOrder();
-				runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
-				runningOrder = repositoryEventRunningOrder.save(runningOrder);
-				entity.setEventRunningOrder(runningOrder);
-				entity.setNumInfoFilledStatus(30);
-			}
-
-			// Set Venue Master
-			// ****************
-			/*
-			 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
-			 * VenueMaster venueMaster =
-			 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
-			 * (UtilRandomKey.isNull(venueMaster)) {
-			 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
-			 * dtoEventMaster.getSerVenueMasterId()); return dtoResult; }
-			 * entity.setVenueMaster(venueMaster);
-			 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
-			 */
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
-					DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-							dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
-					if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-						VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-						entity.setVenueMasterDetail(venueMasterDetail);
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Active");
-						return dtoResult;
-					}
-				} else {
-					dtoResult.setTxtMessage("Venue Hall Is Not Selected");
-					return dtoResult;
-				}
-				entity.setNumInfoFilledStatus(50);
-
-			}
-
-			// Set Decore Item Selections
-			// **************************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
-				List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
-
-				for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
-					EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
-					decorSelection.setEventMaster(entity);
-
-					if (decorSelection.getSelectedProperties() != null) {
-						decorSelection.getSelectedProperties()
-								.forEach(p -> p.setEventDecorCategorySelection(decorSelection));
-					}
-
-					if (decorSelection.getUserUploadedDocuments() != null) {
-						decorSelection.getUserUploadedDocuments()
-								.forEach(img -> img.setEventDecorCategorySelection(decorSelection));
-					}
-
-					decorSelections.add(decorSelection);
-				}
-
-				entity.setDecorSelections(decorSelections);
-				entity.setNumInfoFilledStatus(70);
-			}
-
-			// Set Food Menu Selection
-			// ***********************
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())) {
-				List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
-				for (DtoEventMenuFoodSelection dto : dtoEventMaster.getFoodSelections()) {
-					EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
-					eventMenuFoodSelection.setEventMaster(entity);
-					eventMenuFoodSelection.setBlnIsActive(true);
-					eventMenuFoodSelection.setBlnIsApproved(true);
-					eventMenuFoodSelection.setBlnIsDeleted(false);
-					if (UtilRandomKey.isNotNull(dto.getSerMenuFoodId())) {
-						MenuFoodMaster menuFoodMaster = dtoMenuFoodMasterLst.stream()
-								.filter(food -> food.getSerMenuFoodId() != null
-										&& food.getSerMenuFoodId().intValue() == dto.getSerMenuFoodId().intValue())
-								.findFirst().orElse(null);
-						if (UtilRandomKey.isNotNull(menuFoodMaster)) {
-							eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
-						} else {
-							dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
-									+ dto.getSerMenuFoodId() + " In DB.");
-							return dtoResult;
-						}
-					} else {
-						dtoResult.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
-						return dtoResult;
-					}
-
-					eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
-				}
-
-				String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
-				if (!result.equalsIgnoreCase("Success")) {
-					dtoResult.setTxtMessage(result);
-					return dtoResult;
-				}
-				entity.setNumInfoFilledStatus(90);
-			}
-
-			// Set Vendor
-			// **********
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
-				VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
-				if (UtilRandomKey.isNotNull(vendorMaster)) {
-					entity.setVendorMaster(vendorMaster);
-					entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-				} else {
-					dtoResult.setTxtMessage(
-							"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
-					return dtoResult;
-				}
-			}
-			entity.setNumInfoFilledStatus(100);
-
-			// Generate event master code
-			String code = generateNextEventMasterCode();
-			entity.setTxtEventMasterCode(code);
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(null);
+			return dtoResult;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(),e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
 		}
-
-		entity = repositoryEventMaster.save(entity);
-
-		dtoResult.setTxtMessage("Success");
-		dtoResult.setResult(entity);
-		return dtoResult;
 	}
 }
