@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.zbs.de.mapper.MapperDecorCategoryPropertyMaster;
@@ -25,13 +26,14 @@ import com.zbs.de.util.UtilRandomKey;
 @Service("serviceDecorCategoryPropertyMaster")
 public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCategoryPropertyMaster {
 	@Autowired
-	RepositoryDecorCategoryPropertyMaster repositoryDecorCategoryPropertyMaster;
+	private RepositoryDecorCategoryPropertyMaster repositoryDecorCategoryPropertyMaster;
 
 	@Autowired
-	ServiceDecorCategoryMaster serviceDecorCategoryMaster;
+	@Lazy
+	private ServiceDecorCategoryMaster serviceDecorCategoryMaster;
 
 	@Autowired
-	ServiceDecorCategoryPropertyValue serviceDecorCategoryPropertyValue;
+	private ServiceDecorCategoryPropertyValue serviceDecorCategoryPropertyValue;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
