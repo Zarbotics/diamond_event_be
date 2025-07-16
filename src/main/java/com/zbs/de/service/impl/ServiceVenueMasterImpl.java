@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -28,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 @Service("serviceVenueMaster")
 public class ServiceVenueMasterImpl implements ServiceVenueMaster {
-
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
 
@@ -153,48 +153,171 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 		}
 	}
 
-	public VenueMaster saveVenueWithDetails(DtoVenueMaster dto, List<MultipartFile> files) throws IOException {
-		VenueMaster venue = new VenueMaster();
-		venue.setTxtVenueName(dto.getTxtVenueName());
-		venue.setTxtVenueCode(dto.getTxtVenueCode());
-		venue.setTxtAddress(dto.getTxtAddress());
-		venue.setCityMaster(serviceCityMaster.getByPK(dto.getSerCityId()));
+//	public DtoResult saveVenueWithDetails(DtoVenueMaster dto, List<MultipartFile> files) throws IOException {
+//
+//		DtoResult dtoResult = new DtoResult();
+//		
+//		try {
+//			
+//			VenueMaster venue;
+//			if (UtilRandomKey.isNotNull(dto) && dto.getSerVenueMasterId() != null) {
+//				Optional<VenueMaster> optional = repositoryVenueMaster
+//						.findBySerVenueMasterIdAndBlnIsDeletedFalse(dto.getSerVenueMasterId());
+//				if (optional != null && !optional.isEmpty()) {
+//					venue = optional.get();
+//				}else {
+//					dtoResult.setTxtMessage("No Venue Found Agains Venue Id: " + dto.getSerVenueMasterId());
+//					return dtoResult;
+//				}
+//			} else {
+//				venue = new VenueMaster();
+//			}
+//
+//			venue.setTxtVenueName(dto.getTxtVenueName());
+//			venue.setTxtVenueCode(dto.getTxtVenueCode());
+//			venue.setTxtAddress(dto.getTxtAddress());
+//			venue.setCityMaster(serviceCityMaster.getByPK(dto.getSerCityId()));
+//
+//			List<VenueMasterDetail> details = new ArrayList<>();
+//			Map<String, MultipartFile> fileMap = files.stream()
+//					.collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
+//
+//			for (DtoVenueMasterDetail detailDto : dto.getVenueMasterDetails()) {
+//				VenueMasterDetail detail = new VenueMasterDetail();
+//				detail.setTxtHallName(detailDto.getTxtHallName());
+//				detail.setTxtHallCode(detailDto.getTxtHallCode());
+//				detail.setNumCapacity(detailDto.getNumCapacity());
+//				detail.setNumPrice(detailDto.getNumPrice());
+//				detail.setVenueMaster(venue);
+//
+//				List<VenueMasterDetailDocument> documents = new ArrayList<>();
+//				for (DtoVenueMasterDetailDocument docDto : detailDto.getDocuments()) {
+//					MultipartFile file = fileMap.get(docDto.getOriginalName());
+//					if (file != null) {
+//						String uploadPath = UtilFileStorage.saveFile(file, "venues");
+//						VenueMasterDetailDocument doc = new VenueMasterDetailDocument();
+//						doc.setDocumentName(file.getName());
+//						doc.setOriginalName(file.getOriginalFilename());
+//						doc.setDocumentType(file.getContentType());
+//						doc.setSize(String.valueOf(file.getSize()));
+//						doc.setFilePath(uploadPath);
+//						doc.setVenueMasterDetail(detail);
+//						documents.add(doc);
+//					}
+//				}
+//				detail.setVenueMasterDetailDocument(documents);
+//				details.add(detail);
+//			}
+//			venue.setVenueMasterDetails(details);
+//
+//			venue = repositoryVenueMaster.save(venue);
+//
+//			dtoResult.setTxtMessage("Success");
+//			return dtoResult;
+//
+//			
+//		} catch (Exception e) {
+//			LOGGER.debug(e.getMessage(),e);
+//			dtoResult.setTxtMessage(e.getMessage());
+//			return dtoResult;
+//		}
+//	
+//	}
 
-		List<VenueMasterDetail> details = new ArrayList<>();
-		Map<String, MultipartFile> fileMap = files.stream()
-				.collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
+	public DtoResult saveVenueWithDetails(DtoVenueMaster dto, List<MultipartFile> files) throws IOException {
+		DtoResult dtoResult = new DtoResult();
 
-		for (DtoVenueMasterDetail detailDto : dto.getVenueMasterDetails()) {
-			VenueMasterDetail detail = new VenueMasterDetail();
-			detail.setTxtHallName(detailDto.getTxtHallName());
-			detail.setTxtHallCode(detailDto.getTxtHallCode());
-			detail.setNumCapacity(detailDto.getNumCapacity());
-			detail.setNumPrice(detailDto.getNumPrice());
-			detail.setVenueMaster(venue);
-
-			List<VenueMasterDetailDocument> documents = new ArrayList<>();
-			for (DtoVenueMasterDetailDocument docDto : detailDto.getDocuments()) {
-				MultipartFile file = fileMap.get(docDto.getOriginalName());
-				if (file != null) {
-					String uploadPath = UtilFileStorage.saveFile(file, "venues");
-					VenueMasterDetailDocument doc = new VenueMasterDetailDocument();
-					doc.setDocumentName(file.getName());
-					doc.setOriginalName(file.getOriginalFilename());
-					doc.setDocumentType(file.getContentType());
-					doc.setSize(String.valueOf(file.getSize()));
-					doc.setFilePath(uploadPath);
-					doc.setVenueMasterDetail(detail);
-					documents.add(doc);
+		try {
+			VenueMaster venue;
+			if (UtilRandomKey.isNotNull(dto) && dto.getSerVenueMasterId() != null) {
+				Optional<VenueMaster> optional = repositoryVenueMaster
+						.findBySerVenueMasterIdAndBlnIsDeletedFalse(dto.getSerVenueMasterId());
+				if (optional != null && !optional.isEmpty()) {
+					venue = optional.get();
+				} else {
+					dtoResult.setTxtMessage("No Venue Found Against Venue Id: " + dto.getSerVenueMasterId());
+					return dtoResult;
 				}
+			} else {
+				venue = new VenueMaster();
 			}
-			detail.setVenueMasterDetailDocument(documents);
-			details.add(detail);
+
+			venue.setTxtVenueName(dto.getTxtVenueName());
+			venue.setTxtVenueCode(dto.getTxtVenueCode());
+			venue.setTxtAddress(dto.getTxtAddress());
+			venue.setCityMaster(serviceCityMaster.getByPK(dto.getSerCityId()));
+
+			Map<String, MultipartFile> fileMap = null;
+			if (UtilRandomKey.isNotNull(files) && !files.isEmpty()) {
+				fileMap = files.stream().collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
+			}
+
+			List<VenueMasterDetail> existingDetails = venue.getVenueMasterDetails();
+			if (existingDetails == null) {
+				existingDetails = new ArrayList<>();
+			}
+
+			Map<Integer, VenueMasterDetail> existingDetailsMap = existingDetails.stream()
+					.collect(Collectors.toMap(VenueMasterDetail::getSerVenueMasterDetailId, Function.identity()));
+
+			existingDetails.clear();
+
+			for (DtoVenueMasterDetail detailDto : dto.getVenueMasterDetails()) {
+				VenueMasterDetail detail;
+
+				if (detailDto.getSerVenueMasterDetailId() != null) {
+					detail = existingDetailsMap.get(detailDto.getSerVenueMasterDetailId());
+					if (detail == null) {
+						throw new RuntimeException("Detail not found");
+					}
+				} else {
+					detail = new VenueMasterDetail();
+					detail.setVenueMaster(venue);
+				}
+
+				detail.setTxtHallName(detailDto.getTxtHallName());
+				detail.setTxtHallCode(detailDto.getTxtHallCode());
+				detail.setNumCapacity(detailDto.getNumCapacity());
+				detail.setNumPrice(detailDto.getNumPrice());
+
+				if (fileMap != null && !fileMap.isEmpty()) {
+					List<VenueMasterDetailDocument> documents = new ArrayList<>();
+					for (DtoVenueMasterDetailDocument docDto : detailDto.getDocuments()) {
+						MultipartFile file = fileMap.get(docDto.getOriginalName());
+						if (file != null) {
+							String uploadPath = UtilFileStorage.saveFile(file, "venues");
+							VenueMasterDetailDocument doc = new VenueMasterDetailDocument();
+							doc.setDocumentName(file.getName());
+							doc.setOriginalName(file.getOriginalFilename());
+							doc.setDocumentType(file.getContentType());
+							doc.setSize(String.valueOf(file.getSize()));
+							doc.setFilePath(uploadPath);
+							doc.setVenueMasterDetail(detail);
+							documents.add(doc);
+						}
+					}
+					// Handle documents with orphanRemoval similarly if needed
+					if (detail.getVenueMasterDetailDocument() != null) {
+						detail.getVenueMasterDetailDocument().clear();
+						detail.getVenueMasterDetailDocument().addAll(documents);
+					} else {
+						detail.setVenueMasterDetailDocument(documents);
+					}
+				}
+
+				existingDetails.add(detail);
+			}
+
+			venue = repositoryVenueMaster.save(venue);
+
+			dtoResult.setTxtMessage("Success");
+			return dtoResult;
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
 		}
-
-		venue.setVenueMasterDetails(details);
-		venue = repositoryVenueMaster.save(venue);
-
-		return venue;
 	}
 
 	@Override
@@ -231,12 +354,13 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 			return dtoResult;
 		}
 	}
-	
+
 	@Override
 	public DtoResult getVenueDetailByVenueMasterDetailId(Integer venueMasterDetailId) {
 		DtoResult dtoResult = new DtoResult();
 		try {
-			VenueMasterDetail venueMasterDetail = repositoryVenueMasterDetail.findActiveVenueMasterDetailByDetailId(venueMasterDetailId);
+			VenueMasterDetail venueMasterDetail = repositoryVenueMasterDetail
+					.findActiveVenueMasterDetailByDetailId(venueMasterDetailId);
 			if (UtilRandomKey.isNull(venueMasterDetail)) {
 				dtoResult.setTxtMessage("Invalid Venue Master Detail Id");
 				return dtoResult;

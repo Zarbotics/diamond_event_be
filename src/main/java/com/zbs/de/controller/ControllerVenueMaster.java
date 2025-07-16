@@ -1,12 +1,10 @@
 package com.zbs.de.controller;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,10 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.zbs.de.util.ResponseMessage;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.Part;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zbs.de.model.VenueMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.model.dto.DtoVenueMaster;
 import com.zbs.de.service.ServiceVenueMaster;
@@ -40,22 +37,22 @@ public class ControllerVenueMaster {
 	private ServiceVenueMaster serviceVenueMaster;
 
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage saveOrUpdate(@RequestBody DtoVenueMaster dto) {
+	public ResponseMessage saveOrUpdate(@RequestBody DtoVenueMaster dto, HttpServletRequest request) {
 		return serviceVenueMaster.saveOrUpdate(dto);
 	}
 
-	@PostMapping(value = "/getAll", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAll() {
+	@PostMapping(value = "/getAll",produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAll(HttpServletRequest request) {
 		return serviceVenueMaster.getAllVenues();
 	}
 
 	@PostMapping(value = "/getByCityId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getByCityId(@RequestBody DtoSearch dtoSearch) {
+	public ResponseMessage getByCityId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		return serviceVenueMaster.getVenuesByCityId(dtoSearch.getId());
 	}
 
 	@PostMapping(value = "/getAllGroupedByCity", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAllGroupedByCity() {
+	public ResponseMessage getAllGroupedByCity(HttpServletRequest request) {
 		return serviceVenueMaster.getAllVenuesGroupedByCity();
 	}
 
@@ -69,9 +66,14 @@ public class ControllerVenueMaster {
 
 		try {
 			DtoVenueMaster dto = new ObjectMapper().readValue(venueJson, DtoVenueMaster.class);
-			VenueMaster venueMaster = serviceVenueMaster.saveVenueWithDetails(dto, files);
-			responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully",
-					venueMaster);
+			DtoResult dtoResult = serviceVenueMaster.saveVenueWithDetails(dto, files);
+			if (dtoResult != null && dtoResult.getTxtMessage().equalsIgnoreCase("Success")) {
+				responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully", null);
+			} else {
+				responseMessage = new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+						HttpStatus.INTERNAL_SERVER_ERROR, dtoResult.getTxtMessage(), null);
+			}
+
 		} catch (Exception e) {
 			LOGGER.error("Error fetching StateMaster", e);
 			responseMessage = new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
