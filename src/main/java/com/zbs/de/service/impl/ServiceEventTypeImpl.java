@@ -233,5 +233,20 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 		dtoResult.setResult(saved);
 		return dtoResult;
 	}
+	
+	@Override
+	public DtoResult deleteById(Integer id) {
+		DtoResult result = new DtoResult();
+		Optional<EventType> optional = repositoryEventType.findById(id);
+		if (optional.isPresent()) {
+			EventType e = optional.get();
+			e.setBlnIsDeleted(true);
+			repositoryEventType.save(e);
+			result.setTxtMessage("Deleted (soft) successfully");
+		} else {
+			result.setTxtMessage("No record found to delete");
+		}
+		return result;
+	}
 
 }

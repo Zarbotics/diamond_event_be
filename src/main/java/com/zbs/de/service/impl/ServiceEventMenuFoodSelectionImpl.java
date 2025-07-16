@@ -78,5 +78,4 @@ public class ServiceEventMenuFoodSelectionImpl implements ServiceEventMenuFoodSe
 			return e.getMessage();
 		}
 	}
-
 }

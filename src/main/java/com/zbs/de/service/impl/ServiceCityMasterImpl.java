@@ -2,8 +2,8 @@ package com.zbs.de.service.impl;
 
 import com.zbs.de.mapper.MapperCityMaster;
 import com.zbs.de.model.CityMaster;
-import com.zbs.de.model.StateMaster;
 import com.zbs.de.model.dto.DtoCityMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryCityMaster;
 import com.zbs.de.repository.RepositoryStateMaster;
 import com.zbs.de.service.ServiceCityMaster;
@@ -104,5 +104,20 @@ public class ServiceCityMasterImpl implements ServiceCityMaster {
 			LOGGER.error("Error fetching city by ID", e);
 			return null;
 		}
+	}
+
+	@Override
+	public DtoResult deleteById(Integer id) {
+		DtoResult result = new DtoResult();
+		Optional<CityMaster> optional = repositoryCityMaster.findById(id);
+		if (optional.isPresent()) {
+			CityMaster e = optional.get();
+			e.setBlnIsDeleted(true);
+			repositoryCityMaster.save(e);
+			result.setTxtMessage("Success");
+		} else {
+			result.setTxtMessage("No record found to delete");
+		}
+		return result;
 	}
 }

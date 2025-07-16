@@ -91,5 +91,20 @@ public class ControllerEventType {
 		LOGGER.debug("Save Venue: " + responseMessage);
 		return responseMessage;
 	}
+	
+	@PostMapping(value = "/deleteById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage deleteById(@RequestBody DtoSearch dtoSearch) {
+		LOGGER.info("Deleting EventType by ID: " + dtoSearch);
+		try {
+			DtoResult result = serviceEventType.deleteById(dtoSearch.getId());
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
+		} catch (Exception e) {
+			LOGGER.error("Error Deleting EventType", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+
+	}
+
 
 }

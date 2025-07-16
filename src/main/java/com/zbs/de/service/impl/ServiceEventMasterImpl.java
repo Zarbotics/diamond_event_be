@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.zbs.de.mapper.MapperEventDecorCategorySelection;
 import com.zbs.de.mapper.MapperEventMaster;
 import com.zbs.de.mapper.MapperEventMenuFoodSelection;
@@ -29,6 +28,7 @@ import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.VenueMasterDetail;
+import com.zbs.de.model.dto.DtoEventBudget;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
 import com.zbs.de.model.dto.DtoEventDecorReferenceDocument;
 import com.zbs.de.model.dto.DtoEventMaster;
@@ -41,6 +41,7 @@ import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
+import com.zbs.de.service.ServiceEventBudget;
 import com.zbs.de.service.ServiceEventDecorCategorySelection;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.service.ServiceEventMenuFoodSelection;
@@ -56,7 +57,6 @@ import jakarta.transaction.Transactional;
 
 @Service("serviceEventMaster")
 public class ServiceEventMasterImpl implements ServiceEventMaster {
-
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
 
@@ -83,6 +83,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceEventDecorCategorySelection serviceEventDecorCategorySelection;
+	
+	@Autowired
+	private ServiceEventBudget serviceEventBudget;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
@@ -1070,5 +1073,25 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			dtoResult.setTxtMessage(e.getMessage());
 			return dtoResult;
 		}
+	}
+	
+	@Override
+	public DtoResult deleteById(Integer id) {
+		DtoResult result = new DtoResult();
+		Optional<EventMaster> optional = repositoryEventMaster.findById(id);
+		if (optional.isPresent()) {
+			EventMaster e = optional.get();
+			DtoEventBudget eventBudget = serviceEventBudget.getByEventId(e.getSerEventMasterId());
+			if(eventBudget != null) {
+				result.setTxtMessage("Can Not Delete Event Master As It Exists In Event Busget");
+				return result;
+			}
+			e.setBlnIsDeleted(true);
+			repositoryEventMaster.save(e);
+			result.setTxtMessage("Deleted (soft) successfully");
+		} else {
+			result.setTxtMessage("No record found to delete");
+		}
+		return result;
 	}
 }

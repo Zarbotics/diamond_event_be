@@ -17,4 +17,7 @@ public interface ServiceDecorCategoryPropertyMaster {
 	DtoResult deleteById(Integer id);
 	
 	DtoResult saveWithListProperties(DtoDecorCategoryMaster dto);
+	
+	DtoResult deleteByCategoryId(Integer id);
+	
 }

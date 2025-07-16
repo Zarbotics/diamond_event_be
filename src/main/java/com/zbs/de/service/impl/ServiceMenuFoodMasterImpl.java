@@ -6,6 +6,7 @@ import com.zbs.de.service.ServiceMenuFoodMaster;
 import com.zbs.de.mapper.MapperMenuFoodMaster;
 import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryMenuFoodMaster;
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
@@ -145,6 +146,21 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 			LOGGER.error("Error fetching grouped food items", e);
 			return null;
 		}
+	}
+	
+	@Override
+	public DtoResult deleteById(Integer id) {
+		DtoResult result = new DtoResult();
+		Optional<MenuFoodMaster> optional = repositoryMenuFoodMaster.findById(id);
+		if (optional.isPresent()) {
+			MenuFoodMaster e = optional.get();
+			e.setBlnIsDeleted(true);
+			repositoryMenuFoodMaster.save(e);
+			result.setTxtMessage("Deleted (soft) successfully");
+		} else {
+			result.setTxtMessage("No record found to delete");
+		}
+		return result;
 	}
 
 }

@@ -100,5 +100,20 @@ public class ControllerEventMaster {
 		}
 		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to Calculate", null);
 	}
+	
+	@PostMapping(value = "/deleteById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage deleteById(@RequestBody DtoSearch dtoSearch) {
+		LOGGER.info("Deleting EventMaster by ID: " + dtoSearch);
+		try {
+			DtoResult result = serviceEventMaster.deleteById(dtoSearch.getId());
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
+		} catch (Exception e) {
+			LOGGER.error("Error Deleting EventMaster", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+
+	}
+
 
 }

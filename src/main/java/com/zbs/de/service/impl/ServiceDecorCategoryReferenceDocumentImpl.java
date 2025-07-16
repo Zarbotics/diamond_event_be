@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.zbs.de.controller.ControllerEventType;
 import com.zbs.de.mapper.MapperDecorCategoryReferenceDocument;
 import com.zbs.de.model.DecorCategoryReferenceDocument;
 import com.zbs.de.model.dto.DtoDecorCategoryReferenceDocument;
@@ -21,6 +24,8 @@ public class ServiceDecorCategoryReferenceDocumentImpl implements ServiceDecorCa
 
 	@Autowired
 	RepositoryDecorCategoryReferenceDocument repositoryDecorCategoryReferenceDocument;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
 
 	@Override
 	public DtoResult saveOrUpdate(DtoDecorCategoryReferenceDocument dto) {
@@ -84,6 +89,28 @@ public class ServiceDecorCategoryReferenceDocumentImpl implements ServiceDecorCa
 			return new DtoResult("Success", null, null, null);
 		}
 		return new DtoResult("No Data Found", null, null, null);
+	}
+
+	@Override
+	public DtoResult deleteByCategoryId(Integer id) {
+
+		try {
+			List<DecorCategoryReferenceDocument> documentLst = repositoryDecorCategoryReferenceDocument
+					.findByDecorCategoryMaster_SerDecorCategoryIdAndBlnIsDeletedFalse(id);
+			if (UtilRandomKey.isNotNull(documentLst) && !documentLst.isEmpty()) {
+				for (DecorCategoryReferenceDocument document : documentLst) {
+					document.setBlnIsDeleted(true);
+					repositoryDecorCategoryReferenceDocument.save(document);
+					return new DtoResult("Deleted (soft) successfully", null, null, null);
+				}
+
+			}
+			return new DtoResult("No record found to delete", null, null, null);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new DtoResult(e.getMessage(), null, null, null);
+		}
+
 	}
 
 }

@@ -18,4 +18,6 @@ public interface ServiceEventBudget {
 	List<DtoEventAnalytics> getMonthlyProfitByEventType();
 
 	DtoEventAnalytics getOverallSummary();
+	
+	DtoResult deleteById(Integer id);
 }
