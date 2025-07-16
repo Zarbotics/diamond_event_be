@@ -53,14 +53,14 @@ public class ServiceCityMasterImpl implements ServiceCityMaster {
 	public ResponseMessage saveAndUpdate(DtoCityMaster dto) {
 		ResponseMessage res = new ResponseMessage();
 		try {
-			StateMaster stateMaster = repositoryStateMaster.findById(dto.getSerStateId()).orElse(null);
-			if (stateMaster == null) {
-				res.setMessage("Invalid State ID");
-				return res;
-			}
+//			StateMaster stateMaster = repositoryStateMaster.findById(dto.getSerStateId()).orElse(null);
+//			if (stateMaster == null) {
+//				res.setMessage("Invalid State ID");
+//				return res;
+//			}
 			CityMaster entity = MapperCityMaster.toEntity(dto);
-			entity.setStateMaster(stateMaster);
-			entity.setBlnIsActive(true);
+//			entity.setStateMaster(stateMaster);
+			entity.setBlnIsActive(dto.getBlnIsActive());
 			entity.setBlnIsDeleted(false);
 			entity.setBlnIsApproved(true);
 			CityMaster saved = repositoryCityMaster.saveAndFlush(entity);
@@ -90,8 +90,7 @@ public class ServiceCityMasterImpl implements ServiceCityMaster {
 		}
 		return res;
 	}
-	
-	
+
 	@Override
 	public CityMaster getByPK(Integer serCityId) {
 		try {
