@@ -31,7 +31,7 @@ public class CityMaster extends BaseEntity implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "ser_city_id")
-	private int serCityId;
+	private Integer serCityId;
 
 	@Column(name = "txt_city_code")
 	private String txtCityCode;
@@ -45,11 +45,11 @@ public class CityMaster extends BaseEntity implements Serializable {
 	@JsonBackReference
 	private StateMaster stateMaster;
 
-	public int getSerCityId() {
+	public Integer getSerCityId() {
 		return serCityId;
 	}
 
-	public void setSerCityId(int serCityId) {
+	public void setSerCityId(Integer serCityId) {
 		this.serCityId = serCityId;
 	}
 
