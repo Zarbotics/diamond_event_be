@@ -1,6 +1,7 @@
 package com.zbs.de.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,8 @@ import com.zbs.de.model.VenueMaster;
 public interface RepositoryVenueMaster extends JpaRepository<VenueMaster, Integer> {
 
 	List<VenueMaster> findByBlnIsDeletedFalse();
+	
+	Optional<VenueMaster> findBySerVenueMasterIdAndBlnIsDeletedFalse(Integer id);
 
 	List<VenueMaster> findByCityMasterAndBlnIsDeletedFalse(CityMaster cityMaster);
 }

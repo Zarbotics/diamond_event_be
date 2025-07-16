@@ -19,7 +19,7 @@ public interface ServiceVenueMaster {
 
 	ResponseMessage getVenuesByCityId(Integer cityId);
 
-	VenueMaster saveVenueWithDetails(DtoVenueMaster dto, List<MultipartFile> files) throws IOException;
+	DtoResult saveVenueWithDetails(DtoVenueMaster dto, List<MultipartFile> files) throws IOException;
 
 	VenueMaster getByPK(Integer serVenueMasterId);
 

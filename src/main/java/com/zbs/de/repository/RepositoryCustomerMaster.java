@@ -22,14 +22,20 @@ public interface RepositoryCustomerMaster extends JpaRepository<CustomerMaster, 
 	@Query("SELECT COUNT(c) FROM CustomerMaster c WHERE c.blnIsDeleted = false")
 	long countTotalCustomers();
 
-	@Query("SELECT COUNT(c) FROM CustomerMaster c " + "WHERE c.blnIsDeleted = false "
-			+ "AND FUNCTION('MONTH', c.createdDate) = FUNCTION('MONTH', CURRENT_DATE) "
-			+ "AND FUNCTION('YEAR', c.createdDate) = FUNCTION('YEAR', CURRENT_DATE)")
+	@Query(value = """
+			    SELECT COUNT(*) FROM customer_master
+			    WHERE bln_is_deleted = false
+			    AND EXTRACT(MONTH FROM created_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+			    AND EXTRACT(YEAR FROM created_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+			""", nativeQuery = true)
 	long countCustomersThisMonth();
 
-	@Query(value = "SELECT COUNT(*) FROM customer_master c " + "WHERE c.bln_is_deleted = false "
-			+ "AND MONTH(c.created_date) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) "
-			+ "AND YEAR(c.created_date) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))", nativeQuery = true)
+	@Query(value = """
+			    SELECT COUNT(*) FROM customer_master c
+			    WHERE c.bln_is_deleted = false
+			    AND EXTRACT(MONTH FROM c.created_date) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')
+			    AND EXTRACT(YEAR FROM c.created_date) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month')
+			""", nativeQuery = true)
 	long countCustomersLastMonth();
 
 	@Query(value = """
