@@ -17,4 +17,6 @@ public interface ServiceDecorCategoryPropertyValue {
 	DtoResult getById(Integer id);
 
 	DtoResult deleteById(Integer id);
+	
+	DtoResult deleteByPropertyId(Integer serPropertyId);
 }

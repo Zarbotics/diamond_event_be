@@ -6,6 +6,7 @@ import com.zbs.de.service.ServiceStateMaster;
 import com.zbs.de.mapper.MapperStateMaster;
 import com.zbs.de.model.CountryMaster;
 import com.zbs.de.model.StateMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoStateMaster;
 import com.zbs.de.repository.RepositoryCountryMaster;
 import com.zbs.de.repository.RepositoryStateMaster;
@@ -86,5 +87,20 @@ public class ServiceStateMasterImpl implements ServiceStateMaster {
 			res.setMessage("Error: " + e.getMessage());
 		}
 		return res;
+	}
+	
+	@Override
+	public DtoResult deleteById(Integer id) {
+		DtoResult result = new DtoResult();
+		Optional<StateMaster> optional = repositoryState.findById(id);
+		if (optional.isPresent()) {
+			StateMaster e = optional.get();
+			e.setBlnIsDeleted(true);
+			repositoryState.save(e);
+			result.setTxtMessage("Deleted (soft) successfully");
+		} else {
+			result.setTxtMessage("No record found to delete");
+		}
+		return result;
 	}
 }

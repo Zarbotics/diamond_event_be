@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceMenuFoodMaster;
 
@@ -80,6 +82,20 @@ public class ControllerMenuFoodMaster {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully", result);
 		}
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "Unable To Fetch", null);
+	}
+
+	@PostMapping(value = "/deleteById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage deleteById(@RequestBody DtoSearch dtoSearch) {
+		LOGGER.info("Deleting MenuFoodMaster by ID: " + dtoSearch);
+		try {
+			DtoResult result = serviceMenuFoodMaster.deleteById(dtoSearch.getId());
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
+		} catch (Exception e) {
+			LOGGER.error("Error Deleting MenuFoodMaster", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+
 	}
 
 }

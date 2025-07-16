@@ -3,6 +3,7 @@ package com.zbs.de.service.impl;
 import com.zbs.de.mapper.MapperCountryMaster;
 import com.zbs.de.model.CountryMaster;
 import com.zbs.de.model.dto.DtoCountryMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryCountryMaster;
 import com.zbs.de.service.ServiceCountryMaster;
 import com.zbs.de.util.ResponseMessage;
@@ -74,5 +75,20 @@ public class ServiceCountryMasterImpl implements ServiceCountryMaster {
 			res.setMessage("Error: " + e.getMessage());
 		}
 		return res;
+	}
+
+	@Override
+	public DtoResult deleteById(Integer id) {
+		DtoResult result = new DtoResult();
+		Optional<CountryMaster> optional = repository.findById(id);
+		if (optional.isPresent()) {
+			CountryMaster e = optional.get();
+			e.setBlnIsDeleted(true);
+			repository.save(e);
+			result.setTxtMessage("Deleted (soft) successfully");
+		} else {
+			result.setTxtMessage("No record found to delete");
+		}
+		return result;
 	}
 }

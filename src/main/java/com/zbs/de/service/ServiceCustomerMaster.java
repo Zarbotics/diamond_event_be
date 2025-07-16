@@ -16,5 +16,6 @@ public interface ServiceCustomerMaster {
 	CustomerMaster getByPK(Integer id);
 	String generateCustomerCode();
 	DtoDashboardCustomer getDashboardStats();
+	DtoResult deleteById(Integer id);
 	
 }

@@ -201,4 +201,19 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 		return dto;
 	}
 
+	
+	@Override
+	public DtoResult deleteById(Integer id) {
+		DtoResult result = new DtoResult();
+		Optional<CustomerMaster> optional = repositoryCustomerMaster.findById(id);
+		if (optional.isPresent()) {
+			CustomerMaster e = optional.get();
+			e.setBlnIsDeleted(true);
+			repositoryCustomerMaster.save(e);
+			result.setTxtMessage("Deleted (soft) successfully");
+		} else {
+			result.setTxtMessage("No record found to delete");
+		}
+		return result;
+	}
 }

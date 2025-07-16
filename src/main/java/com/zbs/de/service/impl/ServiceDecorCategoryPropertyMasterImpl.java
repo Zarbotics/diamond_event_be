@@ -19,6 +19,7 @@ import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryDecorCategoryPropertyMaster;
 import com.zbs.de.service.ServiceDecorCategoryMaster;
 import com.zbs.de.service.ServiceDecorCategoryPropertyMaster;
+import com.zbs.de.service.ServiceDecorCategoryPropertyValue;
 import com.zbs.de.util.UtilRandomKey;
 
 @Service("serviceDecorCategoryPropertyMaster")
@@ -28,6 +29,9 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 
 	@Autowired
 	ServiceDecorCategoryMaster serviceDecorCategoryMaster;
+
+	@Autowired
+	ServiceDecorCategoryPropertyValue serviceDecorCategoryPropertyValue;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
@@ -116,6 +120,33 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 		} catch (Exception e) {
 			LOGGER.debug(e.getMessage(), e);
 			return null;
+		}
+
+	}
+
+	@Override
+	public DtoResult deleteByCategoryId(Integer id) {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			List<DecorCategoryPropertyMaster> propertiesLst = repositoryDecorCategoryPropertyMaster
+					.findByDecorCategoryMaster_SerDecorCategoryIdAndBlnIsDeletedFalse(id);
+			if (UtilRandomKey.isNotNull(propertiesLst) && !propertiesLst.isEmpty()) {
+				for (DecorCategoryPropertyMaster property : propertiesLst) {
+					serviceDecorCategoryPropertyValue.deleteByPropertyId(property.getSerPropertyId());
+					property.setBlnIsDeleted(true);
+					repositoryDecorCategoryPropertyMaster.save(property);
+				}
+			} else {
+				dtoResult.setTxtMessage("No Property Found Against This Category");
+				return dtoResult;
+			}
+
+			dtoResult.setTxtMessage("Success");
+			return dtoResult;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
 		}
 
 	}

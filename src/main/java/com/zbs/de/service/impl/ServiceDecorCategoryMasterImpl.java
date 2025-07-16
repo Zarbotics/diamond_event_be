@@ -19,6 +19,8 @@ import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryDecorCategoryMaster;
 import com.zbs.de.service.ServiceDecorCategoryMaster;
+import com.zbs.de.service.ServiceDecorCategoryPropertyMaster;
+import com.zbs.de.service.ServiceDecorCategoryReferenceDocument;
 import com.zbs.de.util.UtilFileStorage;
 
 @Service("serviceDecorCategoryMasterImpl")
@@ -26,6 +28,12 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 
 	@Autowired
 	private RepositoryDecorCategoryMaster repositoryDecorCategoryMaster;
+
+	@Autowired
+	private ServiceDecorCategoryPropertyMaster serviceDecorCategoryPropertyMaster;
+
+	@Autowired
+	private ServiceDecorCategoryReferenceDocument serviceDecorCategoryReferenceDocument;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
 
@@ -42,7 +50,7 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 				.map(MapperDecorCategoryMaster::toMasterDto).collect(Collectors.toList());
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
-	
+
 	@Override
 	public DtoResult getAllMasterData() {
 		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.findAll().stream()
@@ -66,6 +74,8 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 		if (optional.isPresent()) {
 			DecorCategoryMaster e = optional.get();
 			e.setBlnIsDeleted(true);
+			serviceDecorCategoryPropertyMaster.deleteByCategoryId(id);
+			serviceDecorCategoryReferenceDocument.deleteByCategoryId(id);
 			repositoryDecorCategoryMaster.save(e);
 			result.setTxtMessage("Deleted (soft) successfully");
 		} else {

@@ -18,4 +18,6 @@ public interface ServiceDecorCategoryReferenceDocument {
 	DtoResult deleteById(Integer id);
 	
 	DtoResult saveAll(List<DecorCategoryReferenceDocument> decorCategoryReferenceDocuments);
+	
+	DtoResult deleteByCategoryId(Integer id);
 }

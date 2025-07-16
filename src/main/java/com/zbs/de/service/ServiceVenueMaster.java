@@ -24,6 +24,8 @@ public interface ServiceVenueMaster {
 	VenueMaster getByPK(Integer serVenueMasterId);
 
 	DtoResult getVenueByVenueMasterDetailId(Integer venueMasterDetailId);
-	
+
 	DtoResult getVenueDetailByVenueMasterDetailId(Integer venueMasterDetailId);
+
+	DtoResult deleteById(Integer id);
 }

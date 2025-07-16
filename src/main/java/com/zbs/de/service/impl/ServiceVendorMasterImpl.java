@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import com.zbs.de.service.ServiceVendorMaster;
 import com.zbs.de.mapper.MapperVendorMaster;
 import com.zbs.de.model.VendorMaster;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoVendorMaster;
 import com.zbs.de.repository.RepositoryVendorMaster;
 import com.zbs.de.util.ResponseMessage;
@@ -84,5 +85,20 @@ public class ServiceVendorMasterImpl implements ServiceVendorMaster {
 			LOGGER.error("Error fetching vendor by id", e);
 			return null;
 		}
+	}
+
+	@Override
+	public DtoResult deleteById(Integer id) {
+		DtoResult result = new DtoResult();
+		Optional<VendorMaster> optional = repositoryVendorMaster.findById(id);
+		if (optional.isPresent()) {
+			VendorMaster e = optional.get();
+			e.setBlnIsDeleted(true);
+			repositoryVendorMaster.save(e);
+			result.setTxtMessage("Deleted (soft) successfully");
+		} else {
+			result.setTxtMessage("No record found to delete");
+		}
+		return result;
 	}
 }

@@ -23,4 +23,6 @@ public interface ServiceEventType {
 	List<DtoEventType> getAllEventTypesWithSubEvents();
 	
 	DtoResult saveEventTypeWithDocuments(DtoEventType dto, List<MultipartFile> files)throws IOException;
+	
+	DtoResult deleteById(Integer id);
 }

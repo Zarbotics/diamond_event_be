@@ -3,6 +3,7 @@ package com.zbs.de.controller;
 import com.zbs.de.model.dto.DtoEventAnalytics;
 import com.zbs.de.model.dto.DtoEventBudget;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceEventBudget;
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
@@ -89,4 +90,19 @@ public class ControllerEventBudget {
 
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "No data found", null);
 	}
+	
+	@PostMapping(value = "/deleteById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage deleteById(@RequestBody DtoSearch dtoSearch) {
+		LOGGER.info("Deleting EventBudget by ID: " + dtoSearch);
+		try {
+			DtoResult result = serviceEventBudget.deleteById(dtoSearch.getId());
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
+		} catch (Exception e) {
+			LOGGER.error("Error Deleting EventBudget", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+
+	}
+
 }
