@@ -14,8 +14,9 @@ public class CorsGlobalConfig {
 //			@Override
 //			public void addCorsMappings(CorsRegistry registry) {
 //				registry.addMapping("/**")
-//						.allowedOrigins("http://localhost:5173", "https://localhost:5173", "http://87.106.101.41","https://frosty-jang.87-106-101-41.plesk.page:8081",
-//								"https://87.106.101.41", "https://frosty-jang.87-106-101-41.plesk.page")
+//						.allowedOrigins("http://localhost:5173", "https://localhost:5173", "http://87.106.101.41",
+//								"https://frosty-jang.87-106-101-41.plesk.page:8081", "https://87.106.101.41",
+//								"https://frosty-jang.87-106-101-41.plesk.page")
 //						.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*")
 //						.allowCredentials(true);
 //			}
@@ -27,9 +28,10 @@ public class CorsGlobalConfig {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/").allowedOrigins("*").allowedMethods("*").allowedHeaders("*")
-						.allowCredentials(true);
+				registry.addMapping("/**").allowedOrigins("*").allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+						.allowedHeaders("*").allowCredentials(true);
 			}
 		};
 	}
+
 }
