@@ -308,6 +308,7 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 				existingDetails.add(detail);
 			}
 
+			venue.setVenueMasterDetails(existingDetails); // re-attach to ensure persistence
 			venue = repositoryVenueMaster.save(venue);
 
 			dtoResult.setTxtMessage("Success");
