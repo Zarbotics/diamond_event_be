@@ -45,7 +45,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 			response.setCharacterEncoding("UTF-8");
 
 			new ObjectMapper().writeValue(response.getWriter(),
-					new JwtResponse(token, user.getSerUserId().intValue(), user.getTxtName(), user.getTxtEmail()));
+					new JwtResponse(token, user.getSerUserId().intValue(), user.getTxtName(), user.getTxtEmail(), user.getTxtRole()));
 		} else {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			response.getWriter().write("User not found in DB");
@@ -58,12 +58,14 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 		public Integer userId;
 		public String name;
 		public String email;
+		public String role;
 
-		public JwtResponse(String token, Integer userId, String name, String email) {
+		public JwtResponse(String token, Integer userId, String name, String email, String role) {
 			this.token = token;
 			this.userId = userId;
 			this.name = name;
 			this.email = email;
+			this.role = role;
 		}
 	}
 }
