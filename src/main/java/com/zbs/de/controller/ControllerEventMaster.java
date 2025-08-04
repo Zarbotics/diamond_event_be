@@ -68,12 +68,24 @@ public class ControllerEventMaster {
 	}
 
 	@PostMapping(value = "/getByEventIdAndCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage saveOrUpdate(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+	public ResponseMessage getByEventIdAndCustomerId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Searching Event Master: {}", dtoSearch);
 		DtoResult result = serviceEventMaster.getByEventTypeIdAndCustId(dtoSearch);
 		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
 					result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to Fetch",
+				dtoSearch);
+	}
+	
+	@PostMapping(value = "/getByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getByCustomerId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		LOGGER.info("Searching Event Master: {}", dtoSearch);
+		DtoResult result = serviceEventMaster.getByCustId(dtoSearch);
+		if (result.getResulList() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResulList());
 		}
 		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to Fetch",
 				dtoSearch);

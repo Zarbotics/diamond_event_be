@@ -21,6 +21,9 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 	Optional<EventMaster> findByCustomerAndEventType(@Param("custId") Integer custId,
 			@Param("eventTypeId") Integer eventTypeId);
 
+	@Query("SELECT e FROM EventMaster e WHERE e.customerMaster.serCustId = :custId AND e.blnIsDeleted = false")
+	List<EventMaster> findByCustomerId(@Param("custId") Integer custId);
+
 	List<EventMaster> findByBlnIsDeletedFalse();
 
 	@Query("SELECT new com.zbs.de.model.dto.DtoEventMasterStats(e.eventType.txtEventTypeName, COUNT(e)) "

@@ -62,8 +62,20 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "txt_bride_name")
 	private String txtBrideName;
 
+	@Column(name = "txt_bride_first_name")
+	private String txtBrideFirstName;
+
+	@Column(name = "txt_bride_last_name")
+	private String txtBrideLastName;
+
 	@Column(name = "txt_groom_name")
 	private String txtGroomName;
+
+	@Column(name = "txt_groom_first_name")
+	private String txtGroomFirstName;
+
+	@Column(name = "txt_groom_last_name")
+	private String txtGroomLastName;
 
 	@Column(name = "txt_birthday_celebrant")
 	private String txtBirthDayCelebrant;
@@ -76,6 +88,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_event_status")
 	private String txtEventStatus;
+
+	@Column(name = "bln_is_couple")
+	private Boolean blnIsCouple;
 
 	/**
 	 * This variable is to show how many sections has been filled by the client
@@ -99,9 +114,15 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "txt_other_event_type")
 	private String txtOtherEventType;
 
+	//This is when you need to specify which hall you selected
 	@ManyToOne
 	@JoinColumn(name = "ser_venue_master_detail_id")
 	private VenueMasterDetail venueMasterDetail;
+
+	//This is when you only need venue
+	@ManyToOne
+	@JoinColumn(name = "serVenueMasterId")
+	private VenueMaster venueMaster;
 
 	@ManyToOne
 	@JoinColumn(name = "ser_vendor_id")
@@ -291,6 +312,54 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setTxtEventStatus(String txtEventStatus) {
 		this.txtEventStatus = txtEventStatus;
+	}
+
+	public String getTxtBrideFirstName() {
+		return txtBrideFirstName;
+	}
+
+	public void setTxtBrideFirstName(String txtBrideFirstName) {
+		this.txtBrideFirstName = txtBrideFirstName;
+	}
+
+	public String getTxtBrideLastName() {
+		return txtBrideLastName;
+	}
+
+	public void setTxtBrideLastName(String txtBrideLastName) {
+		this.txtBrideLastName = txtBrideLastName;
+	}
+
+	public String getTxtGroomFirstName() {
+		return txtGroomFirstName;
+	}
+
+	public void setTxtGroomFirstName(String txtGroomFirstName) {
+		this.txtGroomFirstName = txtGroomFirstName;
+	}
+
+	public String getTxtGroomLastName() {
+		return txtGroomLastName;
+	}
+
+	public void setTxtGroomLastName(String txtGroomLastName) {
+		this.txtGroomLastName = txtGroomLastName;
+	}
+
+	public Boolean getBlnIsCouple() {
+		return blnIsCouple;
+	}
+
+	public void setBlnIsCouple(Boolean blnIsCouple) {
+		this.blnIsCouple = blnIsCouple;
+	}
+
+	public VenueMaster getVenueMaster() {
+		return venueMaster;
+	}
+
+	public void setVenueMaster(VenueMaster venueMaster) {
+		this.venueMaster = venueMaster;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)

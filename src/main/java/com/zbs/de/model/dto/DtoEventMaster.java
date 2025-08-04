@@ -12,13 +12,20 @@ public class DtoEventMaster {
 	private Integer numNumberOfTables;
 	private Integer numInfoFilledStatus;
 	private String txtBrideName;
+	private String txtBrideFirstName;
+	private String txtBrideLastName;
+
 	private String txtGroomName;
+	private String txtGroomFirstName;
+	private String txtGroomLastName;
+
 	private String txtBirthDayCelebrant;
 	private String txtAgeCategory;
 	private String txtChiefGuest;
 	private String txtEventStatus;
 
 	private Boolean blnIsActive;
+	private Boolean blnIsCouple;
 
 	private Integer serCustId;
 	private String txtCustCode;
@@ -296,6 +303,46 @@ public class DtoEventMaster {
 
 	public void setTxtEventStatus(String txtEventStatus) {
 		this.txtEventStatus = txtEventStatus;
+	}
+
+	public String getTxtBrideFirstName() {
+		return txtBrideFirstName;
+	}
+
+	public void setTxtBrideFirstName(String txtBrideFirstName) {
+		this.txtBrideFirstName = txtBrideFirstName;
+	}
+
+	public String getTxtBrideLastName() {
+		return txtBrideLastName;
+	}
+
+	public void setTxtBrideLastName(String txtBrideLastName) {
+		this.txtBrideLastName = txtBrideLastName;
+	}
+
+	public String getTxtGroomFirstName() {
+		return txtGroomFirstName;
+	}
+
+	public void setTxtGroomFirstName(String txtGroomFirstName) {
+		this.txtGroomFirstName = txtGroomFirstName;
+	}
+
+	public String getTxtGroomLastName() {
+		return txtGroomLastName;
+	}
+
+	public void setTxtGroomLastName(String txtGroomLastName) {
+		this.txtGroomLastName = txtGroomLastName;
+	}
+
+	public Boolean getBlnIsCouple() {
+		return blnIsCouple;
+	}
+
+	public void setBlnIsCouple(Boolean blnIsCouple) {
+		this.blnIsCouple = blnIsCouple;
 	}
 
 }

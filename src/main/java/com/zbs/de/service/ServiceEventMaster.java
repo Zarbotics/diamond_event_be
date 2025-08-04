@@ -15,6 +15,8 @@ public interface ServiceEventMaster {
 	DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster);
 
 	DtoResult getByEventTypeIdAndCustId(DtoSearch dtoSearch);
+	
+	DtoResult getByCustId(DtoSearch dtoSearch);
 
 	String generateNextEventMasterCode();
 
