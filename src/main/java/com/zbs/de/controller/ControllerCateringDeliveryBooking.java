@@ -40,7 +40,14 @@ public class ControllerCateringDeliveryBooking {
 	public ResponseEntity<ResponseMessage> getAll(@RequestBody DtoCateringDeliveryBooking dto,
 			HttpServletRequest request) {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
-				service.getAll().getResult()));
+				service.getAll().getResulList()));
+	}
+	
+	@PostMapping(value = "/getByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseMessage> getByCustomerId(@RequestBody DtoSearch dto,
+			HttpServletRequest request) {
+		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
+				service.getByCustId(dto).getResulList()));
 	}
 
 	@PostMapping(value = "/deleteById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -54,7 +61,7 @@ public class ControllerCateringDeliveryBooking {
 	public ResponseEntity<ResponseMessage> search(@RequestBody DtoSearch dtoSearch) {
 		String keyword = dtoSearch.getSearchKeyword();
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Search results",
-				service.search(keyword).getResult()));
+				service.search(keyword).getResulList()));
 	}
 
 	@PostMapping(value = "/generateCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

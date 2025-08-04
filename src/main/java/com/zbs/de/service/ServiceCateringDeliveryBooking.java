@@ -2,6 +2,7 @@ package com.zbs.de.service;
 
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.DtoSearch;
 
 public interface ServiceCateringDeliveryBooking {
 	DtoResult saveOrUpdate(DtoCateringDeliveryBooking dto);
@@ -15,4 +16,6 @@ public interface ServiceCateringDeliveryBooking {
 	DtoResult search(String keyword);
 
 	String generateAutoCode();
+	
+	DtoResult getByCustId(DtoSearch dtoSearch);
 }

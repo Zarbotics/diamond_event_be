@@ -27,7 +27,6 @@ import com.zbs.de.model.EventType;
 import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.VenueMaster;
-import com.zbs.de.model.VenueMasterDetail;
 import com.zbs.de.model.dto.DtoEventBudget;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
 import com.zbs.de.model.dto.DtoEventDecorReferenceDocument;
@@ -83,7 +82,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceEventDecorCategorySelection serviceEventDecorCategorySelection;
-	
+
 	@Autowired
 	private ServiceEventBudget serviceEventBudget;
 
@@ -120,7 +119,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 			entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
 			entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
+			entity.setTxtBrideFirstName(dtoEventMaster.getTxtBrideFirstName());
+			entity.setTxtBrideLastName(dtoEventMaster.getTxtBrideLastName());
 			entity.setTxtGroomName(dtoEventMaster.getTxtGroomName());
+			entity.setTxtGroomFirstName(dtoEventMaster.getTxtGroomFirstName());
+			entity.setTxtGroomLastName(dtoEventMaster.getTxtGroomLastName());
 			entity.setTxtBirthDayCelebrant(dtoEventMaster.getTxtBirthDayCelebrant());
 			entity.setTxtAgeCategory(dtoEventMaster.getTxtAgeCategory());
 			entity.setTxtChiefGuest(dtoEventMaster.getTxtChiefGuest());
@@ -165,6 +168,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					runningOrder.setTxtNikah(dtoEventMaster.getDtoEventRunningOrder().getTxtNikah());
 					runningOrder.setTxtMeal(dtoEventMaster.getDtoEventRunningOrder().getTxtMeal());
 					runningOrder.setTxtEndOfNight(dtoEventMaster.getDtoEventRunningOrder().getTxtEndOfNight());
+
+					runningOrder.setTxtBrideGuestArrival(
+							dtoEventMaster.getDtoEventRunningOrder().getTxtBrideGuestArrival());
+					runningOrder.setTxtGroomGuestArrival(
+							dtoEventMaster.getDtoEventRunningOrder().getTxtGroomGuestArrival());
+					runningOrder.setTxtGroomEntrance(dtoEventMaster.getDtoEventRunningOrder().getTxtGroomEntrance());
+					runningOrder
+							.setTxtCouplesEntrance(dtoEventMaster.getDtoEventRunningOrder().getTxtCouplesEntrance());
+					runningOrder.setTxtDua(dtoEventMaster.getDtoEventRunningOrder().getTxtDua());
+					runningOrder.setTxtDance(dtoEventMaster.getDtoEventRunningOrder().getTxtDance());
+					runningOrder.setTxtCakeCutting(dtoEventMaster.getDtoEventRunningOrder().getTxtCakeCutting());
+					runningOrder.setTxtRingExchange(dtoEventMaster.getDtoEventRunningOrder().getTxtRingExchange());
+					runningOrder.setTxtRams(dtoEventMaster.getDtoEventRunningOrder().getTxtRams());
+					runningOrder.setTxtSpeeches(dtoEventMaster.getDtoEventRunningOrder().getTxtSpeeches());
 					runningOrder = repositoryEventRunningOrder.save(runningOrder);
 				} else {
 					runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
@@ -179,38 +196,38 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			// Setting Venue Master
 			// ********************
-			/*
-			 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
-			 * VenueMaster venueMaster =
-			 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
-			 * (UtilRandomKey.isNull(venueMaster)) {
-			 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
-			 * dtoEventMaster.getSerVenueMasterId()); }
-			 * 
-			 * if (UtilRandomKey.isNull(entity.getVenueMaster())) {
-			 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
-			 * 
-			 * entity.setVenueMaster(venueMaster); }
-			 */
 
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
-					DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-							dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
-					if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-						VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-						entity.setVenueMasterDetail(venueMasterDetail);
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Active");
-						return dtoResult;
-					}
-				} else {
-					dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+			// This is for which you only need to specify which venu is selected
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+				VenueMaster venueMaster = serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId());
+				if (UtilRandomKey.isNull(venueMaster)) {
+					dtoResult.setTxtMessage("Venue Not Found For Id: " + dtoEventMaster.getSerVenueMasterId());
 					return dtoResult;
 				}
-				entity.setNumInfoFilledStatus(50);
 
+				entity.setVenueMaster(venueMaster);
+				entity.setNumInfoFilledStatus(50);
 			}
+
+//			//This is For when you need to save which hall of the venu was selected				
+//			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
+//				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
+//					DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
+//							dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
+//					if (res.getTxtMessage().equalsIgnoreCase("Success")) {
+//						VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
+//						entity.setVenueMasterDetail(venueMasterDetail);
+//					} else {
+//						dtoResult.setTxtMessage("Venue Hall Is Not Active");
+//						return dtoResult;
+//					}
+//				} else {
+//					dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+//					return dtoResult;
+//				}
+//				entity.setNumInfoFilledStatus(50);
+//
+//			}
 
 			// Set Decor Item Selections
 			// *************************
@@ -348,34 +365,37 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			// Set Venue Master
 			// ****************
-			/*
-			 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
-			 * VenueMaster venueMaster =
-			 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
-			 * (UtilRandomKey.isNull(venueMaster)) {
-			 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
-			 * dtoEventMaster.getSerVenueMasterId()); return dtoResult; }
-			 * entity.setVenueMaster(venueMaster);
-			 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
-			 */
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
-					DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-							dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
-					if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-						VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-						entity.setVenueMasterDetail(venueMasterDetail);
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Active");
-						return dtoResult;
-					}
-				} else {
-					dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+
+			// This is for which you only need to specify which venu is selected
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+				VenueMaster venueMaster = serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId());
+				if (UtilRandomKey.isNull(venueMaster)) {
+					dtoResult.setTxtMessage("Venue Not Found For Id: " + dtoEventMaster.getSerVenueMasterId());
 					return dtoResult;
 				}
+				entity.setVenueMaster(venueMaster);
 				entity.setNumInfoFilledStatus(50);
-
 			}
+
+//			//This is For when you need to save which hall of the venu was selected				
+//			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
+//				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
+//					DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
+//							dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
+//					if (res.getTxtMessage().equalsIgnoreCase("Success")) {
+//						VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
+//						entity.setVenueMasterDetail(venueMasterDetail);
+//					} else {
+//						dtoResult.setTxtMessage("Venue Hall Is Not Active");
+//						return dtoResult;
+//					}
+//				} else {
+//					dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+//					return dtoResult;
+//				}
+//				entity.setNumInfoFilledStatus(50);
+//
+//			}
 
 			// Set Decore Item Selections
 			// **************************
@@ -554,6 +574,74 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	}
 
 	@Override
+	public DtoResult getByCustId(DtoSearch dtoSearch) {
+		DtoResult dtoResult = new DtoResult();
+
+		try {
+			if (dtoSearch == null || dtoSearch.getId() == null) {
+				dtoResult.setTxtMessage("Customer ID Is Required");
+				return dtoResult;
+			}
+
+			List<EventMaster> eventMasterLst = repositoryEventMaster.findByCustomerId(dtoSearch.getId());
+			List<DtoEventMaster> dtoEventMasterLst = new ArrayList<>();
+			if (eventMasterLst != null && !eventMasterLst.isEmpty()) {
+
+				for (EventMaster eventMaster : eventMasterLst) {
+					DtoEventMaster dto = MapperEventMaster.toDto(eventMaster);
+
+					// Fetching Event Venue Detail
+					// ***********************************
+					if (UtilRandomKey.isNotNull(eventMaster.getVenueMasterDetail())) {
+						DtoResult res = serviceVenueMaster.getVenueByVenueMasterDetailId(
+								eventMaster.getVenueMasterDetail().getSerVenueMasterDetailId());
+						if (UtilRandomKey.isNotNull(res) && res.getTxtMessage().equalsIgnoreCase("Success")) {
+							VenueMaster venueMaster = (VenueMaster) res.getResult();
+							DtoEventVenue dtoEventVenue = new DtoEventVenue();
+							dtoEventVenue.setSerVenueMasterId(venueMaster.getSerVenueMasterId());
+							dtoEventVenue.setTxtVenueCode(venueMaster.getTxtVenueCode());
+							dtoEventVenue.setTxtVenueName(venueMaster.getTxtVenueName());
+							dtoEventVenue.setSerVenueMasterDetailId(
+									eventMaster.getVenueMasterDetail().getSerVenueMasterDetailId());
+							dtoEventVenue.setTxtHallCode(eventMaster.getVenueMasterDetail().getTxtHallCode());
+							dtoEventVenue.setTxtHallName(eventMaster.getVenueMasterDetail().getTxtHallName());
+						}
+					}
+
+					// Fetching Decor
+					// ***********************************
+
+					// Fetching Event Menu Food Selection
+					// ***********************************
+
+					List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
+							.getByEventMasterId(dto.getSerEventMasterId());
+					List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+					if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+						for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
+							DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
+									.toDto(entity);
+							dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+						}
+					}
+					dto.setFoodSelections(dtoEventMenuFoodSelections);
+					dtoEventMasterLst.add(dto);
+				}
+
+				dtoResult.setResulList(new ArrayList<>(dtoEventMasterLst));
+				dtoResult.setTxtMessage("Success");
+			} else {
+				dtoResult.setTxtMessage("No record found");
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
+		}
+
+		return dtoResult;
+	}
+
+	@Override
 	public DtoResult getAllEvents() {
 		DtoResult dtoResult = new DtoResult();
 
@@ -691,7 +779,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
 				entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
+				entity.setTxtBrideFirstName(dtoEventMaster.getTxtBrideFirstName());
+				entity.setTxtBrideLastName(dtoEventMaster.getTxtBrideLastName());
 				entity.setTxtGroomName(dtoEventMaster.getTxtGroomName());
+				entity.setTxtGroomFirstName(dtoEventMaster.getTxtGroomFirstName());
+				entity.setTxtGroomLastName(dtoEventMaster.getTxtGroomLastName());
 				entity.setTxtBirthDayCelebrant(dtoEventMaster.getTxtBirthDayCelebrant());
 				entity.setTxtAgeCategory(dtoEventMaster.getTxtAgeCategory());
 				entity.setTxtChiefGuest(dtoEventMaster.getTxtChiefGuest());
@@ -732,10 +824,25 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						runningOrder = entity.getEventRunningOrder();
 						runningOrder.setTxtGuestArrival(dtoEventMaster.getDtoEventRunningOrder().getTxtGuestArrival());
 						runningOrder.setTxtBaratArrival(dtoEventMaster.getDtoEventRunningOrder().getTxtBaratArrival());
-						runningOrder.setTxtBrideEntrance(dtoEventMaster.getDtoEventRunningOrder().getTxtBrideEntrance());
+						runningOrder
+								.setTxtBrideEntrance(dtoEventMaster.getDtoEventRunningOrder().getTxtBrideEntrance());
 						runningOrder.setTxtNikah(dtoEventMaster.getDtoEventRunningOrder().getTxtNikah());
 						runningOrder.setTxtMeal(dtoEventMaster.getDtoEventRunningOrder().getTxtMeal());
 						runningOrder.setTxtEndOfNight(dtoEventMaster.getDtoEventRunningOrder().getTxtEndOfNight());
+						runningOrder.setTxtBrideGuestArrival(
+								dtoEventMaster.getDtoEventRunningOrder().getTxtBrideGuestArrival());
+						runningOrder.setTxtGroomGuestArrival(
+								dtoEventMaster.getDtoEventRunningOrder().getTxtGroomGuestArrival());
+						runningOrder
+								.setTxtGroomEntrance(dtoEventMaster.getDtoEventRunningOrder().getTxtGroomEntrance());
+						runningOrder.setTxtCouplesEntrance(
+								dtoEventMaster.getDtoEventRunningOrder().getTxtCouplesEntrance());
+						runningOrder.setTxtDua(dtoEventMaster.getDtoEventRunningOrder().getTxtDua());
+						runningOrder.setTxtDance(dtoEventMaster.getDtoEventRunningOrder().getTxtDance());
+						runningOrder.setTxtCakeCutting(dtoEventMaster.getDtoEventRunningOrder().getTxtCakeCutting());
+						runningOrder.setTxtRingExchange(dtoEventMaster.getDtoEventRunningOrder().getTxtRingExchange());
+						runningOrder.setTxtRams(dtoEventMaster.getDtoEventRunningOrder().getTxtRams());
+						runningOrder.setTxtSpeeches(dtoEventMaster.getDtoEventRunningOrder().getTxtSpeeches());
 						runningOrder = repositoryEventRunningOrder.save(runningOrder);
 					} else {
 						runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
@@ -750,38 +857,37 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Setting Venue Master
 				// ********************
-				/*
-				 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
-				 * VenueMaster venueMaster =
-				 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
-				 * (UtilRandomKey.isNull(venueMaster)) {
-				 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
-				 * dtoEventMaster.getSerVenueMasterId()); }
-				 * 
-				 * if (UtilRandomKey.isNull(entity.getVenueMaster())) {
-				 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
-				 * 
-				 * entity.setVenueMaster(venueMaster); }
-				 */
 
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
-					if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
-						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-								dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
-						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-							entity.setVenueMasterDetail(venueMasterDetail);
-						} else {
-							dtoResult.setTxtMessage("Venue Hall Is Not Active");
-							return dtoResult;
-						}
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+				// This is for which you only need to specify which venu is selected
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+					VenueMaster venueMaster = serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId());
+					if (UtilRandomKey.isNull(venueMaster)) {
+						dtoResult.setTxtMessage("Venue Not Found For Id: " + dtoEventMaster.getSerVenueMasterId());
 						return dtoResult;
 					}
+					entity.setVenueMaster(venueMaster);
 					entity.setNumInfoFilledStatus(50);
-
 				}
+
+//				//This is For when you need to save which hall of the venu was selected				
+//				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
+//					if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
+//						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
+//								dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
+//						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
+//							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
+//							entity.setVenueMasterDetail(venueMasterDetail);
+//						} else {
+//							dtoResult.setTxtMessage("Venue Hall Is Not Active");
+//							return dtoResult;
+//						}
+//					} else {
+//						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+//						return dtoResult;
+//					}
+//					entity.setNumInfoFilledStatus(50);
+//
+//				}
 
 				// Set Decor Item Selections
 				// *************************
@@ -935,34 +1041,37 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Set Venue Master
 				// ****************
-				/*
-				 * if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
-				 * VenueMaster venueMaster =
-				 * serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId()); if
-				 * (UtilRandomKey.isNull(venueMaster)) {
-				 * dtoResult.setTxtMessage("Venue Not Found For Id: " +
-				 * dtoEventMaster.getSerVenueMasterId()); return dtoResult; }
-				 * entity.setVenueMaster(venueMaster);
-				 * entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1); }
-				 */
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
-					if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
-						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-								dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
-						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-							entity.setVenueMasterDetail(venueMasterDetail);
-						} else {
-							dtoResult.setTxtMessage("Venue Hall Is Not Active");
-							return dtoResult;
-						}
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+
+				// This is for which you only need to specify which venu is selected
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVenueMasterId())) {
+					VenueMaster venueMaster = serviceVenueMaster.getByPK(dtoEventMaster.getSerVenueMasterId());
+					if (UtilRandomKey.isNull(venueMaster)) {
+						dtoResult.setTxtMessage("Venue Not Found For Id: " + dtoEventMaster.getSerVenueMasterId());
 						return dtoResult;
 					}
+					entity.setVenueMaster(venueMaster);
 					entity.setNumInfoFilledStatus(50);
-
 				}
+
+//				//This is For when you need to save which hall of the venu was selected				
+//				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
+//					if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
+//						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
+//								dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
+//						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
+//							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
+//							entity.setVenueMasterDetail(venueMasterDetail);
+//						} else {
+//							dtoResult.setTxtMessage("Venue Hall Is Not Active");
+//							return dtoResult;
+//						}
+//					} else {
+//						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
+//						return dtoResult;
+//					}
+//					entity.setNumInfoFilledStatus(50);
+//
+//				}
 
 				// Set Decore Item Selections
 				// **************************
@@ -1069,12 +1178,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			dtoResult.setResult(null);
 			return dtoResult;
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(),e);
+			LOGGER.debug(e.getMessage(), e);
 			dtoResult.setTxtMessage(e.getMessage());
 			return dtoResult;
 		}
 	}
-	
+
 	@Override
 	public DtoResult deleteById(Integer id) {
 		DtoResult result = new DtoResult();
@@ -1082,7 +1191,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		if (optional.isPresent()) {
 			EventMaster e = optional.get();
 			DtoEventBudget eventBudget = serviceEventBudget.getByEventId(e.getSerEventMasterId());
-			if(eventBudget != null) {
+			if (eventBudget != null) {
 				result.setTxtMessage("Can Not Delete Event Master As It Exists In Event Busget");
 				return result;
 			}

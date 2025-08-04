@@ -26,7 +26,11 @@ public class MapperEventMaster {
 		dto.setNumNumberOfTables(entity.getNumNumberOfTables());
 		dto.setNumInfoFilledStatus(entity.getNumInfoFilledStatus());
 		dto.setTxtBrideName(entity.getTxtBrideName());
+		dto.setTxtBrideFirstName(entity.getTxtBrideFirstName());
+		dto.setTxtBrideLastName(entity.getTxtBrideLastName());
 		dto.setTxtGroomName(entity.getTxtGroomName());
+		dto.setTxtGroomFirstName(entity.getTxtGroomFirstName());
+		dto.setTxtGroomLastName(entity.getTxtGroomLastName());
 		dto.setTxtBirthDayCelebrant(entity.getTxtBirthDayCelebrant());
 		dto.setTxtAgeCategory(entity.getTxtAgeCategory());
 		dto.setTxtChiefGuest(entity.getTxtChiefGuest());
@@ -34,7 +38,7 @@ public class MapperEventMaster {
 		dto.setTxtOtherEventType(entity.getTxtOtherEventType());
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setTxtEventStatus(entity.getTxtEventStatus());
-
+		dto.setBlnIsCouple(entity.getBlnIsCouple());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -45,7 +49,8 @@ public class MapperEventMaster {
 		if (entity.getEventRunningOrder() != null) {
 			DtoEventRunningOrder dtoEventRunningOrder = new DtoEventRunningOrder();
 			dtoEventRunningOrder.setSerEventRunningOrderId(entity.getEventRunningOrder().getSerEventRunningOrderId());
-			dtoEventRunningOrder.setTxtEventRunningOrderCode(entity.getEventRunningOrder().getTxtEventRunningOrderCode());
+			dtoEventRunningOrder
+					.setTxtEventRunningOrderCode(entity.getEventRunningOrder().getTxtEventRunningOrderCode());
 			dtoEventRunningOrder.setTxtBaratArrival(entity.getEventRunningOrder().getTxtBaratArrival());
 			dtoEventRunningOrder.setTxtBrideEntrance(entity.getEventRunningOrder().getTxtBrideEntrance());
 			dtoEventRunningOrder.setTxtEndOfNight(entity.getEventRunningOrder().getTxtEndOfNight());
@@ -61,11 +66,16 @@ public class MapperEventMaster {
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
 
-		
-		if(UtilRandomKey.isNotNull(entity.getVendorMaster())) {
+		if (UtilRandomKey.isNotNull(entity.getVendorMaster())) {
 			dto.setSerVendorId(entity.getVendorMaster().getSerVendorId());
 			dto.setTxtVendorCode(entity.getVendorMaster().getTxtVendorCode());
 			dto.setTxtVendorName(entity.getVendorMaster().getTxtVendorName());
+		}
+
+		if (UtilRandomKey.isNotNull(entity.getVenueMaster())) {
+			dto.setSerVenueMasterId(entity.getVenueMaster().getSerVenueMasterId());
+			dto.setTxtVendorCode(entity.getVenueMaster().getTxtVenueCode());
+			dto.setTxtVenueName(entity.getVenueMaster().getTxtVenueName());
 		}
 
 		return dto;
@@ -85,20 +95,24 @@ public class MapperEventMaster {
 		entity.setNumNumberOfTables(dto.getNumNumberOfTables());
 		entity.setNumInfoFilledStatus(dto.getNumInfoFilledStatus());
 		entity.setTxtBrideName(dto.getTxtBrideName());
+		entity.setTxtBrideFirstName(dto.getTxtBrideFirstName());
+		entity.setTxtBrideLastName(dto.getTxtBrideLastName());
 		entity.setTxtGroomName(dto.getTxtGroomName());
+		entity.setTxtGroomFirstName(dto.getTxtGroomFirstName());
+		entity.setTxtGroomLastName(dto.getTxtGroomLastName());
 		entity.setTxtBirthDayCelebrant(dto.getTxtBirthDayCelebrant());
 		entity.setTxtAgeCategory(dto.getTxtAgeCategory());
 		entity.setTxtChiefGuest(dto.getTxtChiefGuest());
 		entity.setTxtNNumberOfGuests(dto.getTxtNumberOfGuests());
 		entity.setTxtOtherEventType(dto.getTxtOtherEventType());
 		entity.setTxtEventStatus(dto.getTxtEventStatus());
+		entity.setBlnIsCouple(dto.getBlnIsCouple());
 		if (dto.getDtoEventDecorSelections() != null) {
-		    List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()
-		        .map(MapperEventDecorCategorySelection::toEntity)
-		        .collect(Collectors.toList());
+			List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()
+					.map(MapperEventDecorCategorySelection::toEntity).collect(Collectors.toList());
 
-		    decorSelections.forEach(d -> d.setEventMaster(entity));
-		    entity.setDecorSelections(decorSelections);
+			decorSelections.forEach(d -> d.setEventMaster(entity));
+			entity.setDecorSelections(decorSelections);
 		}
 
 		return entity;

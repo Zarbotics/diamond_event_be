@@ -2,7 +2,6 @@ package com.zbs.de.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.Attributes.Name;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
 import com.zbs.de.model.dto.DtoCateringDeliveryItemDetail;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.repository.RepositoryCateringDeliveryBooking;
 import com.zbs.de.repository.RepositoryCateringDeliveryItemDetail;
 import com.zbs.de.repository.RepositoryCustomerMaster;
@@ -161,7 +161,18 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 		List<CateringDeliveryBooking> bookings = repositoryCateringDeliveryBooking.findByBlnIsDeletedFalse();
 		List<DtoCateringDeliveryBooking> list = bookings.stream().map(MapperCateringDeliveryBooking::toDto)
 				.collect(Collectors.toList());
-		result.setResult(list);
+		result.setResulList(new ArrayList<>(list));
+		result.setTxtMessage("Fetched successfully");
+		return result;
+	}
+
+	@Override
+	public DtoResult getByCustId(DtoSearch dtoSearch) {
+		DtoResult result = new DtoResult();
+		List<CateringDeliveryBooking> bookings = repositoryCateringDeliveryBooking.findByCustomerId(dtoSearch.getId());
+		List<DtoCateringDeliveryBooking> list = bookings.stream().map(MapperCateringDeliveryBooking::toDto)
+				.collect(Collectors.toList());
+		result.setResulList(new ArrayList<>(list));
 		result.setTxtMessage("Fetched successfully");
 		return result;
 	}
@@ -174,7 +185,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 				.filter(e -> e.getTxtDeliveryLocation() != null
 						&& e.getTxtDeliveryLocation().toLowerCase().contains(keyword.toLowerCase()))
 				.map(MapperCateringDeliveryBooking::toDto).collect(Collectors.toList());
-		result.setResult(filtered);
+		result.setResulList(new ArrayList<>(filtered));
 		result.setTxtMessage("Filtered");
 		return result;
 	}
