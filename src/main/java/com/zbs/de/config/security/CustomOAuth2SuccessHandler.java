@@ -74,7 +74,9 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 			RefreshToken refreshToken = serviceRefreshToken.createRefreshToken(user);
 
 			// Construct redirect URL with query params
-			String baseRedirectUrl = "http://localhost:5173";
+//			String baseRedirectUrl = "http://localhost:5173"; //Local Testing URL
+			String baseRedirectUrl = "https://frosty-jang.87-106-101-41.plesk.page";
+			
 			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/client-journey";
 
 			String redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrl, redirectPath,
