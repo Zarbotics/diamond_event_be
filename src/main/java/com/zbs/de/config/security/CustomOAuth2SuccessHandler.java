@@ -75,7 +75,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
 			// Construct redirect URL with query params
 			String baseRedirectUrl = "http://localhost:5173";
-			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/registered-events";
+			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/client-journey";
 
 			String redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrl, redirectPath,
 					accessToken, refreshToken.getToken());
