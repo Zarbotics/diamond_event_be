@@ -9,6 +9,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -35,9 +36,16 @@ public class DecorCategoryPropertyValue extends BaseEntity implements Serializab
 	@Column(name = "txt_property_value")
 	private String txtPropertyValue;
 
+	@Column(name = "bln_is_document")
+	private Boolean blnIsDocument;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_property_id")
 	private DecorCategoryPropertyMaster decorCategoryProperty;
+
+	@OneToOne
+	@JoinColumn(name = "ser_document_id")
+	private DecorCategoryPropertyValueDocument decorCategoryPropertyValueDocument;
 
 	public Integer getSerPropertyValueId() {
 		return serPropertyValueId;
@@ -61,6 +69,23 @@ public class DecorCategoryPropertyValue extends BaseEntity implements Serializab
 
 	public void setDecorCategoryProperty(DecorCategoryPropertyMaster decorCategoryProperty) {
 		this.decorCategoryProperty = decorCategoryProperty;
+	}
+
+	public DecorCategoryPropertyValueDocument getDecorCategoryPropertyValueDocument() {
+		return decorCategoryPropertyValueDocument;
+	}
+
+	public void setDecorCategoryPropertyValueDocument(
+			DecorCategoryPropertyValueDocument decorCategoryPropertyValueDocument) {
+		this.decorCategoryPropertyValueDocument = decorCategoryPropertyValueDocument;
+	}
+
+	public Boolean getBlnIsDocument() {
+		return blnIsDocument;
+	}
+
+	public void setBlnIsDocument(Boolean blnIsDocument) {
+		this.blnIsDocument = blnIsDocument;
 	}
 
 }

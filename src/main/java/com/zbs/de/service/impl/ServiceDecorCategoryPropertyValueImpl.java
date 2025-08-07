@@ -2,6 +2,7 @@ package com.zbs.de.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -10,17 +11,26 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.controller.ControllerEventType;
+import com.zbs.de.mapper.MapperDecorCategoryMaster;
 import com.zbs.de.mapper.MapperDecorCategoryPropertyValue;
+import com.zbs.de.model.DecorCategoryMaster;
 import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryPropertyValue;
+import com.zbs.de.model.DecorCategoryPropertyValueDocument;
+import com.zbs.de.model.DecorCategoryReferenceDocument;
+import com.zbs.de.model.EventTypeDocument;
+import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyValue;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryDecorCategoryPropertyValue;
 import com.zbs.de.service.ServiceDecorCategoryPropertyMaster;
 import com.zbs.de.service.ServiceDecorCategoryPropertyValue;
+import com.zbs.de.service.ServiceDecorCategoryPropertyValueDocument;
+import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
 
 @Service("serviceDecorCategoryPropertyValue")
@@ -32,6 +42,9 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 	@Autowired
 	@Lazy
 	ServiceDecorCategoryPropertyMaster serviceDecorCategoryPropertyMaster;
+	
+	@Autowired
+	ServiceDecorCategoryPropertyValueDocument serviceDecorCategoryPropertyValueDocument;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
 
@@ -74,6 +87,62 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 		}
 
 		return dtoResult;
+	}
+	
+	@Override
+	public DtoResult saveListValuesWithDocuments(DtoDecorCategoryPropertyMaster dto, List<MultipartFile> files) {
+			DtoResult dtoResult = new DtoResult();
+			try {
+				if (UtilRandomKey.isNotNull(dto) && UtilRandomKey.isNotNull(dto.getPropertyValues())
+						&& UtilRandomKey.isNotNull(dto.getSerPropertyId())) {
+					DecorCategoryPropertyMaster decorCategoryPropertyMaster = serviceDecorCategoryPropertyMaster
+							.getByPk(dto.getSerPropertyId());
+					if (UtilRandomKey.isNull(decorCategoryPropertyMaster)) {
+						dtoResult.setTxtMessage("Invalid Property");
+						return dtoResult;
+					}
+					
+					Map<String, MultipartFile> fileMap = files.stream()
+							.collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
+					
+					
+					for (DtoDecorCategoryPropertyValue value : dto.getPropertyValues()) {
+						DecorCategoryPropertyValue entity = new DecorCategoryPropertyValue();
+						entity.setDecorCategoryProperty(decorCategoryPropertyMaster);
+						entity.setTxtPropertyValue(value.getTxtPropertyValue());
+						entity.setBlnIsActive(value.getBlnIsActive());
+						entity.setBlnIsApproved(true);
+						
+						//*******Saving Document********
+						MultipartFile file = fileMap.get(value.getDocument().getOriginalName());
+						if (file != null) {
+							String uploadPath = UtilFileStorage.saveFile(file, "propertyValue");
+							DecorCategoryPropertyValueDocument doc = new DecorCategoryPropertyValueDocument();
+							doc.setDocumentName(file.getName());
+							doc.setOriginalName(file.getOriginalFilename());
+							doc.setDocumentType(file.getContentType());
+							doc.setSize(String.valueOf(file.getSize()));
+							doc.setFilePath(uploadPath);
+							doc=serviceDecorCategoryPropertyValueDocument.save(doc);
+							entity.setDecorCategoryPropertyValueDocument(doc);
+							entity.setBlnIsDocument(Boolean.TRUE);
+						}
+						
+
+						repositoryDecorCategoryPropertyValue.save(entity);
+					}
+					dtoResult.setTxtMessage("Success");
+				} else {
+					dtoResult.setTxtMessage("Invalid Data");
+					return dtoResult;
+				}
+
+			} catch (Exception e) {
+				LOGGER.debug(e.getMessage(), e);
+				dtoResult.setTxtMessage(e.getMessage());
+			}
+			return dtoResult;
+
 	}
 
 	@Override

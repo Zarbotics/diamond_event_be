@@ -30,13 +30,22 @@ public interface RepositoryCustomerMaster extends JpaRepository<CustomerMaster, 
 			""", nativeQuery = true)
 	long countCustomersThisMonth();
 
+//	@Query(value = """
+//			    SELECT COUNT(*) FROM customer_master c
+//			    WHERE c.bln_is_deleted = false
+//			    AND EXTRACT(MONTH FROM c.created_date) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')
+//			    AND EXTRACT(YEAR FROM c.created_date) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month')
+//			""", nativeQuery = true)
+//	long countCustomersLastMonth();
+	
+	
 	@Query(value = """
-			    SELECT COUNT(*) FROM customer_master c
-			    WHERE c.bln_is_deleted = false
-			    AND EXTRACT(MONTH FROM c.created_date) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')
-			    AND EXTRACT(YEAR FROM c.created_date) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month')
-			""", nativeQuery = true)
-	long countCustomersLastMonth();
+		    SELECT COUNT(*) FROM customer_master c
+		    WHERE c.bln_is_deleted = false
+		    AND EXTRACT(MONTH FROM c.created_date) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')
+		    AND EXTRACT(YEAR FROM c.created_date) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month')
+		""", nativeQuery = true)
+		long countCustomersLastMonth();
 
 	@Query(value = """
 			SELECT
