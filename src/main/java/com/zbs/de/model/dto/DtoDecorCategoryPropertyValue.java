@@ -6,6 +6,8 @@ public class DtoDecorCategoryPropertyValue {
 	private Integer serPropertyId;
 	private String txtPropertyName;
 	private Boolean blnIsActive;
+	private Boolean blnIsDocument;
+	private DtoDecorCategoryPropertyValueDocument document;
 
 	public Integer getSerPropertyValueId() {
 		return serPropertyValueId;
@@ -45,6 +47,22 @@ public class DtoDecorCategoryPropertyValue {
 
 	public void setBlnIsActive(Boolean blnIsActive) {
 		this.blnIsActive = blnIsActive;
+	}
+
+	public DtoDecorCategoryPropertyValueDocument getDocument() {
+		return document;
+	}
+
+	public void setDocument(DtoDecorCategoryPropertyValueDocument document) {
+		this.document = document;
+	}
+
+	public Boolean getBlnIsDocument() {
+		return blnIsDocument;
+	}
+
+	public void setBlnIsDocument(Boolean blnIsDocument) {
+		this.blnIsDocument = blnIsDocument;
 	}
 
 }
