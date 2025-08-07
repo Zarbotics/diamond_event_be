@@ -704,6 +704,39 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						}
 					}
 					dto.setFoodSelections(dtoEventMenuFoodSelections);
+					
+					
+					
+					// Fetching Event Extras Selection
+					// ***********************************
+
+					List<EventDecorExtrasSelection> eventDecorExtrasSelection = serviceEventDecorExtrasSelection
+							.getByEventMasterId(dto.getSerEventMasterId());
+					List<DtoEventDecorExtrasSelection> dtoEventDecorExtrasSelections = new ArrayList<>();
+					if (UtilRandomKey.isNotNull(eventDecorExtrasSelection)) {
+						for (EventDecorExtrasSelection entity : eventDecorExtrasSelection) {
+							DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection =new DtoEventDecorExtrasSelection();
+							dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
+							dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
+							dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+							if(entity.getDecorExtrasMaster() != null) {
+								dtoEventDecorExtrasSelection.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+								dtoEventDecorExtrasSelection.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+								dtoEventDecorExtrasSelection.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());								
+							}
+							
+							if(entity.getDecorExtrasOption()!= null) {
+								dtoEventDecorExtrasSelection.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+								dtoEventDecorExtrasSelection.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+								dtoEventDecorExtrasSelection.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+							}
+							
+							dtoEventDecorExtrasSelections.add(dtoEventDecorExtrasSelection);
+						}
+					}
+					dto.setExtrasSelections(dtoEventDecorExtrasSelections);
+					
+					
 					dtoEventMasterLst.add(dto);
 
 				}

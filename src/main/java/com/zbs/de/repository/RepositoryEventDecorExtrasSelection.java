@@ -1,5 +1,7 @@
 package com.zbs.de.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,4 +15,8 @@ public interface RepositoryEventDecorExtrasSelection extends JpaRepository<Event
 	@Modifying
 	@Query("DELETE FROM EventDecorExtrasSelection e WHERE e.eventMaster.serEventMasterId = :eventId")
 	void deleteByEventMasterId(@Param("eventId") Integer eventId);
+	
+	
+	@Query("SELECT e FROM EventDecorExtrasSelection e WHERE e.eventMaster.serEventMasterId = :eventId AND e.blnIsDeleted = false")
+	List<EventDecorExtrasSelection> findByEventId(@Param("eventId") Integer eventId);
 }

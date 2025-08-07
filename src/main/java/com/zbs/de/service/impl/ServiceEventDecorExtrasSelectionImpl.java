@@ -1,11 +1,14 @@
 package com.zbs.de.service.impl;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.zbs.de.model.EventDecorExtrasSelection;
+import com.zbs.de.model.EventMenuFoodSelection;
 import com.zbs.de.repository.RepositoryEventDecorExtrasSelection;
 import com.zbs.de.service.ServiceEventDecorExtrasSelection;
 
@@ -39,6 +42,19 @@ public class ServiceEventDecorExtrasSelectionImpl implements ServiceEventDecorEx
 			return null;
 		}
 
+	}
+	
+
+	@Override
+	public List<EventDecorExtrasSelection> getByEventMasterId(Integer serEventMasterId) {
+		try {
+			List<EventDecorExtrasSelection> eventDecorExtrasSelection = repositoryEventDecorExtrasSelection
+					.findByEventId(serEventMasterId);
+			return eventDecorExtrasSelection;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
 	}
 
 }
