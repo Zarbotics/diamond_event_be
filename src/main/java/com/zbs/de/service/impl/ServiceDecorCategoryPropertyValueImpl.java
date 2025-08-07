@@ -14,15 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.controller.ControllerEventType;
-import com.zbs.de.mapper.MapperDecorCategoryMaster;
 import com.zbs.de.mapper.MapperDecorCategoryPropertyValue;
-import com.zbs.de.model.DecorCategoryMaster;
 import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.DecorCategoryPropertyValueDocument;
-import com.zbs.de.model.DecorCategoryReferenceDocument;
-import com.zbs.de.model.EventTypeDocument;
-import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyValue;
 import com.zbs.de.model.dto.DtoResult;
@@ -114,19 +109,22 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 						entity.setBlnIsApproved(true);
 						
 						//*******Saving Document********
-						MultipartFile file = fileMap.get(value.getDocument().getOriginalName());
-						if (file != null) {
-							String uploadPath = UtilFileStorage.saveFile(file, "propertyValue");
-							DecorCategoryPropertyValueDocument doc = new DecorCategoryPropertyValueDocument();
-							doc.setDocumentName(file.getName());
-							doc.setOriginalName(file.getOriginalFilename());
-							doc.setDocumentType(file.getContentType());
-							doc.setSize(String.valueOf(file.getSize()));
-							doc.setFilePath(uploadPath);
-							doc=serviceDecorCategoryPropertyValueDocument.save(doc);
-							entity.setDecorCategoryPropertyValueDocument(doc);
-							entity.setBlnIsDocument(Boolean.TRUE);
+						if(value.getDocument() != null && value.getDocument().getOriginalName() != null) {
+							MultipartFile file = fileMap.get(value.getDocument().getOriginalName());
+							if (file != null) {
+								String uploadPath = UtilFileStorage.saveFile(file, "propertyValue");
+								DecorCategoryPropertyValueDocument doc = new DecorCategoryPropertyValueDocument();
+								doc.setDocumentName(file.getName());
+								doc.setOriginalName(file.getOriginalFilename());
+								doc.setDocumentType(file.getContentType());
+								doc.setSize(String.valueOf(file.getSize()));
+								doc.setFilePath(uploadPath);
+								doc=serviceDecorCategoryPropertyValueDocument.save(doc);
+								entity.setDecorCategoryPropertyValueDocument(doc);
+								entity.setBlnIsDocument(Boolean.TRUE);
+							}
 						}
+						
 						
 
 						repositoryDecorCategoryPropertyValue.save(entity);
