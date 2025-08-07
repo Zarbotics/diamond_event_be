@@ -18,6 +18,7 @@ import com.zbs.de.mapper.MapperEventMenuFoodSelection;
 import com.zbs.de.mapper.MapperEventRunningOrder;
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.EventDecorCategorySelection;
+import com.zbs.de.model.EventDecorExtrasSelection;
 import com.zbs.de.model.EventDecorPropertySelection;
 import com.zbs.de.model.EventDecorReferenceDocument;
 import com.zbs.de.model.EventMaster;
@@ -29,6 +30,7 @@ import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.dto.DtoEventBudget;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
+import com.zbs.de.model.dto.DtoEventDecorExtrasSelection;
 import com.zbs.de.model.dto.DtoEventDecorReferenceDocument;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterStats;
@@ -40,8 +42,11 @@ import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
+import com.zbs.de.service.ServiceDecorExtrasMaster;
+import com.zbs.de.service.ServiceDecorExtrasOption;
 import com.zbs.de.service.ServiceEventBudget;
 import com.zbs.de.service.ServiceEventDecorCategorySelection;
+import com.zbs.de.service.ServiceEventDecorExtrasSelection;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.service.ServiceEventMenuFoodSelection;
 import com.zbs.de.service.ServiceEventType;
@@ -85,6 +90,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceEventBudget serviceEventBudget;
+	
+	@Autowired
+	private ServiceEventDecorExtrasSelection serviceEventDecorExtrasSelection;
+	
+	@Autowired
+	private ServiceDecorExtrasMaster serviceDecorExtrasMaster;
+	
+	@Autowired
+	private ServiceDecorExtrasOption serviceDecorExtrasOption;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
@@ -690,6 +704,39 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						}
 					}
 					dto.setFoodSelections(dtoEventMenuFoodSelections);
+					
+					
+					
+					// Fetching Event Extras Selection
+					// ***********************************
+
+					List<EventDecorExtrasSelection> eventDecorExtrasSelection = serviceEventDecorExtrasSelection
+							.getByEventMasterId(dto.getSerEventMasterId());
+					List<DtoEventDecorExtrasSelection> dtoEventDecorExtrasSelections = new ArrayList<>();
+					if (UtilRandomKey.isNotNull(eventDecorExtrasSelection)) {
+						for (EventDecorExtrasSelection entity : eventDecorExtrasSelection) {
+							DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection =new DtoEventDecorExtrasSelection();
+							dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
+							dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
+							dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+							if(entity.getDecorExtrasMaster() != null) {
+								dtoEventDecorExtrasSelection.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+								dtoEventDecorExtrasSelection.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+								dtoEventDecorExtrasSelection.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());								
+							}
+							
+							if(entity.getDecorExtrasOption()!= null) {
+								dtoEventDecorExtrasSelection.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+								dtoEventDecorExtrasSelection.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+								dtoEventDecorExtrasSelection.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+							}
+							
+							dtoEventDecorExtrasSelections.add(dtoEventDecorExtrasSelection);
+						}
+					}
+					dto.setExtrasSelections(dtoEventDecorExtrasSelections);
+					
+					
 					dtoEventMasterLst.add(dto);
 
 				}
@@ -1170,6 +1217,32 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				// Generate event master code
 				String code = generateNextEventMasterCode();
 				entity.setTxtEventMasterCode(code);
+			}
+			
+			
+			
+			//****** Setting Event Decor Extras ******
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getExtrasSelections())) {
+				serviceEventDecorExtrasSelection.deleteByEventMasterId(entity.getSerEventMasterId());
+
+				List<EventDecorExtrasSelection> newSelections = new ArrayList<>();
+				for (DtoEventDecorExtrasSelection dto : dtoEventMaster.getExtrasSelections()) {
+					EventDecorExtrasSelection selection = new EventDecorExtrasSelection();
+					selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
+					selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
+					selection.setEventMaster(entity);
+					if(dto.getSerExtrasId()!= null) {
+						selection.setDecorExtrasMaster(serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
+					}
+					if(dto.getSerExtraOptionId() != null) {
+						selection.setDecorExtrasOption(serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
+					}
+					
+					selection = serviceEventDecorExtrasSelection.save(selection);
+					newSelections.add(selection);
+				}
+				entity.setExtrasSelections(newSelections);
+				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 			}
 
 			entity = repositoryEventMaster.save(entity);

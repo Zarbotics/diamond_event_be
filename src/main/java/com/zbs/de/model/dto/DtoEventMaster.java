@@ -49,6 +49,8 @@ public class DtoEventMaster {
 	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
 	private List<DtoEventMenuFoodSelection> foodSelections;
 
+	private List<DtoEventDecorExtrasSelection> extrasSelections;
+
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
 	}
@@ -343,6 +345,14 @@ public class DtoEventMaster {
 
 	public void setBlnIsCouple(Boolean blnIsCouple) {
 		this.blnIsCouple = blnIsCouple;
+	}
+
+	public List<DtoEventDecorExtrasSelection> getExtrasSelections() {
+		return extrasSelections;
+	}
+
+	public void setExtrasSelections(List<DtoEventDecorExtrasSelection> extrasSelections) {
+		this.extrasSelections = extrasSelections;
 	}
 
 }

@@ -9,7 +9,7 @@ import com.zbs.de.model.dto.DtoDecorCategoryPropertyValue;
 import com.zbs.de.model.dto.DtoResult;
 
 public interface ServiceDecorCategoryPropertyValue {
-	
+
 	DtoResult saveOrUpdate(DtoDecorCategoryPropertyValue dto);
 
 	DtoResult saveWithListValues(DtoDecorCategoryPropertyMaster dto);
@@ -21,8 +21,8 @@ public interface ServiceDecorCategoryPropertyValue {
 	DtoResult getById(Integer id);
 
 	DtoResult deleteById(Integer id);
-	
+
 	DtoResult deleteByPropertyId(Integer serPropertyId);
-	
-	 DtoResult saveListValuesWithDocuments(DtoDecorCategoryPropertyMaster dto, List<MultipartFile> files);
+
+	DtoResult saveListValuesWithDocuments(DtoDecorCategoryPropertyMaster dto, List<MultipartFile> files);
 }
