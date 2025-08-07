@@ -2,11 +2,14 @@ package com.zbs.de.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
-
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -36,6 +39,17 @@ public class DecorExtrasOption extends BaseEntity implements Serializable {
 	@Column(name = "txt_option_name")
 	private String txtOptionName;
 
+	@Column(name = "bln_is_document")
+	private Boolean blnIsDocument;
+
+	@OneToOne
+	@JoinColumn(name = "ser_document_id")
+	private DecorExtrasOptionDocument document;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ser_extras_id")
+	private DecorExtrasMaster decorExtrasMaster;
+
 	public Integer getSerExtraOptionId() {
 		return serExtraOptionId;
 	}
@@ -58,6 +72,30 @@ public class DecorExtrasOption extends BaseEntity implements Serializable {
 
 	public void setTxtOptionCode(String txtOptionCode) {
 		this.txtOptionCode = txtOptionCode;
+	}
+
+	public DecorExtrasOptionDocument getDocument() {
+		return document;
+	}
+
+	public void setDocument(DecorExtrasOptionDocument document) {
+		this.document = document;
+	}
+
+	public Boolean getBlnIsDocument() {
+		return blnIsDocument;
+	}
+
+	public void setBlnIsDocument(Boolean blnIsDocument) {
+		this.blnIsDocument = blnIsDocument;
+	}
+
+	public DecorExtrasMaster getDecorExtrasMaster() {
+		return decorExtrasMaster;
+	}
+
+	public void setDecorExtrasMaster(DecorExtrasMaster decorExtrasMaster) {
+		this.decorExtrasMaster = decorExtrasMaster;
 	}
 
 }

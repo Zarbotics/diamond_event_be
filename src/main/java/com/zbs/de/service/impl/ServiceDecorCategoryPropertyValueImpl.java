@@ -37,7 +37,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 	@Autowired
 	@Lazy
 	ServiceDecorCategoryPropertyMaster serviceDecorCategoryPropertyMaster;
-	
+
 	@Autowired
 	ServiceDecorCategoryPropertyValueDocument serviceDecorCategoryPropertyValueDocument;
 
@@ -83,63 +83,60 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 
 		return dtoResult;
 	}
-	
+
 	@Override
 	public DtoResult saveListValuesWithDocuments(DtoDecorCategoryPropertyMaster dto, List<MultipartFile> files) {
-			DtoResult dtoResult = new DtoResult();
-			try {
-				if (UtilRandomKey.isNotNull(dto) && UtilRandomKey.isNotNull(dto.getPropertyValues())
-						&& UtilRandomKey.isNotNull(dto.getSerPropertyId())) {
-					DecorCategoryPropertyMaster decorCategoryPropertyMaster = serviceDecorCategoryPropertyMaster
-							.getByPk(dto.getSerPropertyId());
-					if (UtilRandomKey.isNull(decorCategoryPropertyMaster)) {
-						dtoResult.setTxtMessage("Invalid Property");
-						return dtoResult;
-					}
-					
-					Map<String, MultipartFile> fileMap = files.stream()
-							.collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
-					
-					
-					for (DtoDecorCategoryPropertyValue value : dto.getPropertyValues()) {
-						DecorCategoryPropertyValue entity = new DecorCategoryPropertyValue();
-						entity.setDecorCategoryProperty(decorCategoryPropertyMaster);
-						entity.setTxtPropertyValue(value.getTxtPropertyValue());
-						entity.setBlnIsActive(value.getBlnIsActive());
-						entity.setBlnIsApproved(true);
-						
-						//*******Saving Document********
-						if(value.getDocument() != null && value.getDocument().getOriginalName() != null) {
-							MultipartFile file = fileMap.get(value.getDocument().getOriginalName());
-							if (file != null) {
-								String uploadPath = UtilFileStorage.saveFile(file, "propertyValue");
-								DecorCategoryPropertyValueDocument doc = new DecorCategoryPropertyValueDocument();
-								doc.setDocumentName(file.getName());
-								doc.setOriginalName(file.getOriginalFilename());
-								doc.setDocumentType(file.getContentType());
-								doc.setSize(String.valueOf(file.getSize()));
-								doc.setFilePath(uploadPath);
-								doc=serviceDecorCategoryPropertyValueDocument.save(doc);
-								entity.setDecorCategoryPropertyValueDocument(doc);
-								entity.setBlnIsDocument(Boolean.TRUE);
-							}
-						}
-						
-						
-
-						repositoryDecorCategoryPropertyValue.save(entity);
-					}
-					dtoResult.setTxtMessage("Success");
-				} else {
-					dtoResult.setTxtMessage("Invalid Data");
+		DtoResult dtoResult = new DtoResult();
+		try {
+			if (UtilRandomKey.isNotNull(dto) && UtilRandomKey.isNotNull(dto.getPropertyValues())
+					&& UtilRandomKey.isNotNull(dto.getSerPropertyId())) {
+				DecorCategoryPropertyMaster decorCategoryPropertyMaster = serviceDecorCategoryPropertyMaster
+						.getByPk(dto.getSerPropertyId());
+				if (UtilRandomKey.isNull(decorCategoryPropertyMaster)) {
+					dtoResult.setTxtMessage("Invalid Property");
 					return dtoResult;
 				}
 
-			} catch (Exception e) {
-				LOGGER.debug(e.getMessage(), e);
-				dtoResult.setTxtMessage(e.getMessage());
+				Map<String, MultipartFile> fileMap = files.stream()
+						.collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
+
+				for (DtoDecorCategoryPropertyValue value : dto.getPropertyValues()) {
+					DecorCategoryPropertyValue entity = new DecorCategoryPropertyValue();
+					entity.setDecorCategoryProperty(decorCategoryPropertyMaster);
+					entity.setTxtPropertyValue(value.getTxtPropertyValue());
+					entity.setBlnIsActive(value.getBlnIsActive());
+					entity.setBlnIsApproved(true);
+
+					// *******Saving Document********
+					if (value.getDocument() != null && value.getDocument().getOriginalName() != null) {
+						MultipartFile file = fileMap.get(value.getDocument().getOriginalName());
+						if (file != null) {
+							String uploadPath = UtilFileStorage.saveFile(file, "propertyValue");
+							DecorCategoryPropertyValueDocument doc = new DecorCategoryPropertyValueDocument();
+							doc.setDocumentName(file.getName());
+							doc.setOriginalName(file.getOriginalFilename());
+							doc.setDocumentType(file.getContentType());
+							doc.setSize(String.valueOf(file.getSize()));
+							doc.setFilePath(uploadPath);
+							doc = serviceDecorCategoryPropertyValueDocument.save(doc);
+							entity.setDecorCategoryPropertyValueDocument(doc);
+							entity.setBlnIsDocument(Boolean.TRUE);
+						}
+					}
+
+					repositoryDecorCategoryPropertyValue.save(entity);
+				}
+				dtoResult.setTxtMessage("Success");
+			} else {
+				dtoResult.setTxtMessage("Invalid Data");
+				return dtoResult;
 			}
-			return dtoResult;
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+		}
+		return dtoResult;
 
 	}
 

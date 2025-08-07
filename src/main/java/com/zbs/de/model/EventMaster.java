@@ -114,12 +114,12 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "txt_other_event_type")
 	private String txtOtherEventType;
 
-	//This is when you need to specify which hall you selected
+	// This is when you need to specify which hall you selected
 	@ManyToOne
 	@JoinColumn(name = "ser_venue_master_detail_id")
 	private VenueMasterDetail venueMasterDetail;
 
-	//This is when you only need venue
+	// This is when you only need venue
 	@ManyToOne
 	@JoinColumn(name = "serVenueMasterId")
 	private VenueMaster venueMaster;
@@ -133,6 +133,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
+
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<EventDecorExtrasSelection> extrasSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -360,6 +363,14 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setVenueMaster(VenueMaster venueMaster) {
 		this.venueMaster = venueMaster;
+	}
+
+	public List<EventDecorExtrasSelection> getExtrasSelections() {
+		return extrasSelections;
+	}
+
+	public void setExtrasSelections(List<EventDecorExtrasSelection> extrasSelections) {
+		this.extrasSelections = extrasSelections;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
