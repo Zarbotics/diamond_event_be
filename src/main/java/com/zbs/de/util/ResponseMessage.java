@@ -1,6 +1,7 @@
 package com.zbs.de.util;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.zbs.de.model.UserMaster;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseMessage {
@@ -9,6 +10,7 @@ public class ResponseMessage {
 	private org.springframework.http.HttpStatus status;
 	private String message;
 	private Object result;
+	private Boolean success;
 
 	public ResponseMessage() {
 	}
@@ -35,6 +37,17 @@ public class ResponseMessage {
 		this.status = status;
 		this.message = message;
 		this.result = result;
+	}
+
+	public ResponseMessage(boolean b, String string) {
+		this.success= b;
+		this.message = string;
+	}
+
+	public ResponseMessage(boolean b, String string, UserMaster user) {
+		this.success= b;
+		this.message = string;
+		this.result= user;
 	}
 
 	public int getCode() {
@@ -69,4 +82,13 @@ public class ResponseMessage {
 		this.result = result;
 	}
 
+	public Boolean getSuccess() {
+		return success;
+	}
+
+	public void setSuccess(Boolean success) {
+		this.success = success;
+	}
+
+	
 }
