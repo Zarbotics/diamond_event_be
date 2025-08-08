@@ -86,8 +86,17 @@ public class AuthController {
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) throws ServletException {
-		request.logout(); // this clears the Spring session
-		return ResponseEntity.ok("Logged out");
+	public ResponseEntity<?> logout(@RequestBody Map<String, String> body, HttpServletRequest request)
+			throws ServletException {
+		String refreshToken = body.get("refreshToken");
+		if (refreshToken != null) {
+			refreshTokenService.findByToken(refreshToken).ifPresent(token -> {
+				refreshTokenService.deleteByUserId(token.getUser().getSerUserId().longValue());
+			});
+		}
+
+		request.logout(); // ends SSO session if still in memory (mostly useful in UI-based login)
+
+		return ResponseEntity.ok("Logged out successfully");
 	}
 }
