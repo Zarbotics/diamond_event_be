@@ -3,11 +3,13 @@ package com.zbs.de.service.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.zbs.de.model.DecorExtrasOption;
 import com.zbs.de.repository.RepositoryDecorExtrasOption;
 import com.zbs.de.service.ServiceDecorExtrasOption;
 
+@Service("serviceDecorExtrasOption")
 public class ServiceDecorExtrasOptionImpl implements ServiceDecorExtrasOption {
 
 	@Autowired
