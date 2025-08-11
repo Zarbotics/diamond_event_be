@@ -5,6 +5,7 @@ import com.zbs.de.model.UserMaster;
 import com.zbs.de.repository.RepositoryRefreshToken;
 import com.zbs.de.repository.RepositoryUserMaster;
 import com.zbs.de.service.ServiceRefreshToken;
+import com.zbs.de.util.UtilDateAndTime;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,14 +32,31 @@ public class ServiceRefreshTokenImpl implements ServiceRefreshToken {
 	public Optional<RefreshToken> findByToken(String token) {
 		return refreshTokenRepository.findByToken(token);
 	}
-
+//
+//	@Override
+//	public RefreshToken createRefreshToken(UserMaster user) {
+//		RefreshToken refreshToken = new RefreshToken();
+//		refreshToken.setUser(user);
+//		refreshToken.setExpiryDate(java.util.Date.from(Instant.now().plusMillis(refreshTokenDurationMs)));
+//		refreshToken.setToken(UUID.randomUUID().toString());
+//		return refreshTokenRepository.save(refreshToken);
+//	}
+	
 	@Override
 	public RefreshToken createRefreshToken(UserMaster user) {
-		RefreshToken refreshToken = new RefreshToken();
-		refreshToken.setUser(user);
-		refreshToken.setExpiryDate(java.util.Date.from(Instant.now().plusMillis(refreshTokenDurationMs)));
-		refreshToken.setToken(UUID.randomUUID().toString());
-		return refreshTokenRepository.save(refreshToken);
+		Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser_SerUserId(user.getSerUserId());
+		if (existingToken.isPresent()) {
+			RefreshToken token = existingToken.get();
+			token.setToken(UUID.randomUUID().toString());
+			token.setExpiryDate(UtilDateAndTime.getCurrentDate());
+			return refreshTokenRepository.save(token);
+		}
+
+		RefreshToken newToken = new RefreshToken();
+		newToken.setUser(user);
+		newToken.setToken(UUID.randomUUID().toString());
+		newToken.setExpiryDate(UtilDateAndTime.getCurrentDate());
+		return refreshTokenRepository.save(newToken);
 	}
 
 	@Override
