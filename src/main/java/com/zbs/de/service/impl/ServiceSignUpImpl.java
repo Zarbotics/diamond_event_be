@@ -6,7 +6,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.zbs.de.model.UserMaster;
 import com.zbs.de.model.dto.DtoSignupRequest;
 import com.zbs.de.repository.RepositoryUserMaster;
-import com.zbs.de.service.ServiceEmailVerificationToken;
 import com.zbs.de.service.ServiceSignUp;
 import com.zbs.de.util.UtilDateAndTime;
 
@@ -14,9 +13,6 @@ public class ServiceSignUpImpl implements ServiceSignUp {
 
 	@Autowired
 	private RepositoryUserMaster userRepo;
-
-	@Autowired
-	private ServiceEmailVerificationToken emailService;
 
 	public void signup(DtoSignupRequest request) {
 		if (userRepo.findByTxtEmail(request.getEmail()).isPresent()) {
@@ -38,7 +34,6 @@ public class ServiceSignUpImpl implements ServiceSignUp {
 
 		UserMaster savedUser = userRepo.save(user);
 
-		emailService.sendVerificationEmail(savedUser);
 	}
 
 }

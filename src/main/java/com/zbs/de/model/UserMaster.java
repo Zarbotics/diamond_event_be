@@ -37,6 +37,15 @@ public class UserMaster extends BaseEntity implements Serializable {
 	@Column(name = "bln_email_verified")
 	private Boolean blnEmailVerified;
 
+	@Column(name = "txt_first_name")
+	private String txtFirstName;
+
+	@Column(name = "txt_last_name")
+	private String txtLastName;
+
+	@Column(name = "txt_password")
+	private String txtPassword;
+
 	@Column(name = "txt_role")
 	private String txtRole;
 
@@ -96,4 +105,29 @@ public class UserMaster extends BaseEntity implements Serializable {
 		this.txtRole = txtRole;
 	}
 
+	public String getTxtFirstName() {
+		return txtFirstName;
+	}
+
+	public void setTxtFirstName(String txtFirstName) {
+		this.txtFirstName = txtFirstName;
+	}
+
+	public String getTxtLastName() {
+		return txtLastName;
+	}
+
+	public void setTxtLastName(String txtLastName) {
+		this.txtLastName = txtLastName;
+	}
+
+	public String getTxtPassword() {
+		return txtPassword;
+	}
+
+	public void setTxtPassword(String txtPassword) {
+		this.txtPassword = txtPassword;
+	}
+
+	
 }
