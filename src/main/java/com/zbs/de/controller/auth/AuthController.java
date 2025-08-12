@@ -158,6 +158,7 @@ public class AuthController {
 
 		}
 		newUser.setTxtFirstName(req.getFirstName());
+		newUser.setTxtRole("ROLE_ADMIN");
 		newUser.setTxtLastName(req.getLastName());
 		newUser.setBlnEmailVerified(false); // Require email verification before login
 		newUser.setBlnIsActive(true);
