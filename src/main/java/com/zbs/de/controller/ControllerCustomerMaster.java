@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
-import com.zbs.de.DeApplication;
 import com.zbs.de.model.dto.DtoCustomerMaster;
 import com.zbs.de.model.dto.DtoDashboardCustomer;
 import com.zbs.de.model.dto.DtoResult;
@@ -35,21 +34,12 @@ import org.slf4j.LoggerFactory;
 @CrossOrigin(origins = "")
 public class ControllerCustomerMaster {
 
-	private final ControllerCityMaster controllerCityMaster;
-
-	private final DeApplication deApplication;
-
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerCustomerMaster.class);
 
 	/** The service main acct. */
 	@Autowired
 	ServiceCustomerMaster serviceCustomerMaster;
-
-	ControllerCustomerMaster(DeApplication deApplication, ControllerCityMaster controllerCityMaster) {
-		this.deApplication = deApplication;
-		this.controllerCityMaster = controllerCityMaster;
-	}
 
 	/**
 	 * Gets the all data.
@@ -146,7 +136,7 @@ public class ControllerCustomerMaster {
 		}
 		return responseMessage;
 	}
-	
+
 	@PostMapping(value = "/deleteById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage deleteById(@RequestBody DtoSearch dtoSearch) {
 		LOGGER.info("Deleting CustomerMaster by ID: " + dtoSearch);

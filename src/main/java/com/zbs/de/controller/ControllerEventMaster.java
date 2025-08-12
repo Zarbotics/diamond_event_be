@@ -54,8 +54,8 @@ public class ControllerEventMaster {
 		LOGGER.info("Saving Event Master: {}", eventMaster);
 		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
 		DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dtoEventMaster, files);
-		if (result != null && result.getTxtMessage().equalsIgnoreCase("success")) {
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());
+		if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), result.getResult());
 		}
 		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
 				dtoEventMaster);

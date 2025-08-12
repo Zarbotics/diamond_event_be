@@ -40,6 +40,7 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 	@Override
 	public DtoResult saveOrUpdate(DtoDecorCategoryMaster dto) {
 		DecorCategoryMaster entity = MapperDecorCategoryMaster.toEntity(dto);
+		entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 		repositoryDecorCategoryMaster.save(entity);
 		return new DtoResult("Saved Successfully", null, MapperDecorCategoryMaster.toDto(entity), null);
 	}

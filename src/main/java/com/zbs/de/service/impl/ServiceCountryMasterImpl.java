@@ -51,6 +51,7 @@ public class ServiceCountryMasterImpl implements ServiceCountryMaster {
 			entity.setBlnIsDeleted(false);
 			entity.setBlnIsActive(true);
 			entity.setBlnIsApproved(true);
+			entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 			entity = repository.saveAndFlush(entity);
 			res.setMessage("Saved Successfully");
 			res.setResult(entity);

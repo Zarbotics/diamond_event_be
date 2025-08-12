@@ -16,6 +16,7 @@ public class ServiceDecorCategoryPropertyValueDocumentImpl implements ServiceDec
 	@Override
 	public DecorCategoryPropertyValueDocument save(DecorCategoryPropertyValueDocument document) {
 		if (document != null) {
+			document.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 			return repositoryDecorCategoryPropertyValueDocument.save(document);
 		}
 		return null;

@@ -63,6 +63,7 @@ public class ServiceCityMasterImpl implements ServiceCityMaster {
 			entity.setBlnIsActive(dto.getBlnIsActive());
 			entity.setBlnIsDeleted(false);
 			entity.setBlnIsApproved(true);
+			entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 			CityMaster saved = repositoryCityMaster.saveAndFlush(entity);
 			res.setMessage("Saved Successfully");
 			res.setResult(saved);

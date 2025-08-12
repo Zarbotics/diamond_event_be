@@ -67,6 +67,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 					entity.setDecorCategoryProperty(decorCategoryPropertyMaster);
 					entity.setTxtPropertyValue(value.getTxtPropertyValue());
 					entity.setBlnIsActive(value.getBlnIsActive());
+					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 					entity.setBlnIsApproved(true);
 					repositoryDecorCategoryPropertyValue.save(entity);
 				}
@@ -106,6 +107,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 					entity.setTxtPropertyValue(value.getTxtPropertyValue());
 					entity.setBlnIsActive(value.getBlnIsActive());
 					entity.setBlnIsApproved(true);
+					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 
 					// *******Saving Document********
 					if (value.getDocument() != null && value.getDocument().getOriginalName() != null) {
@@ -169,6 +171,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 		if (optional.isPresent()) {
 			DecorCategoryPropertyValue entity = optional.get();
 			entity.setBlnIsDeleted(true);
+			entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			repositoryDecorCategoryPropertyValue.save(entity);
 			return new DtoResult("Deleted (soft) successfully", null, null, null);
 		}
@@ -184,6 +187,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 			if (UtilRandomKey.isNotNull(decorCategoryPropertyValues) && !decorCategoryPropertyValues.isEmpty()) {
 				for (DecorCategoryPropertyValue value : decorCategoryPropertyValues) {
 					value.setBlnIsDeleted(false);
+					value.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 					repositoryDecorCategoryPropertyValue.save(value);
 				}
 			} else {

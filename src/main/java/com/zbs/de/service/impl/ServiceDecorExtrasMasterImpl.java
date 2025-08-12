@@ -87,8 +87,14 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 				decorExtrasOption.setSerExtraOptionId(value.getSerExtraOptionId());
 				decorExtrasOption.setTxtOptionCode(value.getTxtOptionCode());
 				decorExtrasOption.setTxtOptionName(value.getTxtOptionName());
-				decorExtrasMaster.setBlnIsActive(Boolean.valueOf(true));
+				decorExtrasOption.setBlnIsActive(Boolean.valueOf(true));
 				decorExtrasOption.setDecorExtrasMaster(decorExtrasMaster);
+				if (value.getSerExtraOptionId() != null) {
+					decorExtrasOption.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+				} else {
+					decorExtrasOption.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+
+				}
 				decorExtrasOption.setBlnIsApproved(true);
 
 				// *******Saving Document********
@@ -168,10 +174,12 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 				if (entity.getDecorExtrasOptions() != null && !entity.getDecorExtrasOptions().isEmpty()) {
 					for (DecorExtrasOption option : entity.getDecorExtrasOptions()) {
 						option.setBlnIsDeleted(true);
+						option.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 						repositoryDecorExtrasOption.save(option);
 					}
 				}
 				entity.setBlnIsDeleted(true);
+				entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 				repositoryDecorExtrasMaster.save(entity);
 				dtoResult.setTxtMessage("Deleted successfully");
 			} else {
@@ -192,6 +200,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 			if (optional.isPresent()) {
 				DecorExtrasOption entity = optional.get();
 				entity.setBlnIsDeleted(true);
+				entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 				repositoryDecorExtrasOption.save(entity);
 				dtoResult.setTxtMessage("Deleted successfully");
 			} else {

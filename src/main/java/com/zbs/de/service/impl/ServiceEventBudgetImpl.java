@@ -59,6 +59,7 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 			eventBudget.setNumTotalExpense(dtoEventBudget.getNumTotalExpense());
 			eventBudget.setTxtPaymentType(dtoEventBudget.getTxtPaymentType());
 			eventBudget.setTxtPaymentStatus(dtoEventBudget.getTxtPaymentStatus());
+			eventBudget.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			if (UtilRandomKey.isNotNull(dtoEventBudget.getDteDealDate())) {
 				eventBudget.setDteDealDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoEventBudget.getDteDealDate()));
 			}
@@ -71,6 +72,8 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 			}
 		} else {
 			eventBudget = MapperEventBudget.toEntity(dtoEventBudget, eventMaster);
+			eventBudget.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+
 		}
 
 		repositoryEventBudget.save(eventBudget);
@@ -135,7 +138,7 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 
 		return dtoResult;
 	}
-	
+
 	@Override
 	public DtoResult deleteById(Integer id) {
 		DtoResult result = new DtoResult();
@@ -143,6 +146,7 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 		if (optional.isPresent()) {
 			EventBudget e = optional.get();
 			e.setBlnIsDeleted(true);
+			e.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			repositoryEventBudget.save(e);
 			result.setTxtMessage("Deleted (soft) successfully");
 		} else {

@@ -40,6 +40,11 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 	@Override
 	public DtoResult saveOrUpdate(DtoDecorCategoryPropertyMaster dto) {
 		DecorCategoryPropertyMaster entity = MapperDecorCategoryPropertyMaster.toEntity(dto);
+		if (dto.getSerDecorCategoryId() != null) {
+			entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+		} else {
+			entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+		}
 		repositoryDecorCategoryPropertyMaster.save(entity);
 		return new DtoResult("Saved Successfully", null, MapperDecorCategoryPropertyMaster.toDto(entity), null);
 	}
@@ -66,6 +71,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 		if (optional.isPresent()) {
 			DecorCategoryPropertyMaster entity = optional.get();
 			entity.setBlnIsDeleted(true);
+			entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			repositoryDecorCategoryPropertyMaster.save(entity);
 			return new DtoResult("Deleted (soft) successfully", null, null, null);
 		}
@@ -92,6 +98,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 					entity.setTxtRemarks(property.getTxtRemarks());
 					entity.setBlnIsActive(property.getBlnIsActive());
 					entity.setBlnIsApproved(true);
+					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 					entity.setBlnIsRequired(property.getBlnIsRequired());
 					repositoryDecorCategoryPropertyMaster.save(entity);
 				}
@@ -136,6 +143,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 				for (DecorCategoryPropertyMaster property : propertiesLst) {
 					serviceDecorCategoryPropertyValue.deleteByPropertyId(property.getSerPropertyId());
 					property.setBlnIsDeleted(true);
+					property.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 					repositoryDecorCategoryPropertyMaster.save(property);
 				}
 			} else {
