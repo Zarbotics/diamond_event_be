@@ -73,31 +73,31 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
 			RefreshToken refreshToken = serviceRefreshToken.createRefreshToken(user);
 
-//			// ****************** For Production Start *********************
-//			// Construct redirect URL with query params
-//			String baseRedirectUrl = "https://frosty-jang.87-106-101-41.plesk.page";
-//			
-//			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/client-journey";
-//
-//			String redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrl, redirectPath,
-//					accessToken, refreshToken.getToken());
-//			// **************** For Production Ends ***************
+			// ****************** For Production Start *********************
+			// Construct redirect URL with query params
+			String baseRedirectUrl = "https://frosty-jang.87-106-101-41.plesk.page";
+			
+			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/client-journey";
+
+			String redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrl, redirectPath,
+					accessToken, refreshToken.getToken());
+			// **************** For Production Ends ***************
 
 			// ****************** For Local Start *********************
 
-			String baseRedirectUrlCJ = "http://localhost:5173"; // For Client Journey CJ
-			String baseRedirectUrlAP = "http://localhost:3000"; // For Admin Portal PA
-
-			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/client-journey";
-
-			String redirectUrl = null;
-			if ("ROLE_ADMIN".equals(user.getTxtRole())) {
-				redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrlAP, redirectPath,
-						accessToken, refreshToken.getToken());
-			} else {
-				redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrlCJ, redirectPath,
-						accessToken, refreshToken.getToken());
-			}
+//			String baseRedirectUrlCJ = "http://localhost:5173"; // For Client Journey CJ
+//			String baseRedirectUrlAP = "http://localhost:3000"; // For Admin Portal PA
+//
+//			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/client-journey";
+//
+//			String redirectUrl = null;
+//			if ("ROLE_ADMIN".equals(user.getTxtRole())) {
+//				redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrlAP, redirectPath,
+//						accessToken, refreshToken.getToken());
+//			} else {
+//				redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrlCJ, redirectPath,
+//						accessToken, refreshToken.getToken());
+//			}
 
 			// ****************** For Local Ends *********************
 			response.sendRedirect(redirectUrl);
