@@ -1,9 +1,12 @@
 package com.zbs.de.controller.auth;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,18 +14,20 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import com.zbs.de.model.EmailVerificationToken;
 import com.zbs.de.model.RefreshToken;
 import com.zbs.de.model.UserMaster;
 import com.zbs.de.model.dto.DtoLoginRequest;
 import com.zbs.de.model.dto.DtoSignupRequest;
 import com.zbs.de.repository.RepositoryUserMaster;
+import com.zbs.de.service.ServiceEmailSender;
+import com.zbs.de.service.ServiceEmailVerification;
 import com.zbs.de.service.ServiceRefreshToken;
 import com.zbs.de.util.JwtTokenUtil;
 import com.zbs.de.util.ResponseMessage;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/auth")
@@ -36,6 +41,15 @@ public class AuthController {
 
 	@Autowired
 	private JwtTokenUtil jwtTokenUtil;
+
+	@Autowired
+	private ServiceEmailVerification serviceEmailVerification;
+
+	@Autowired
+	private ServiceEmailSender serviceEmailSender;
+
+	@Value("${app.frontend-email-verification-url}")
+	private String frontEndVerificationPageUrl;
 
 	@PostMapping("/refresh-token")
 	public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> body) {
@@ -166,9 +180,59 @@ public class AuthController {
 
 		repositoryUserMaster.save(newUser);
 
+		// *********** Email Verification Token Generation **********
+		EmailVerificationToken token = serviceEmailVerification.createToken(newUser);
+		String confirmationLink = null;
+		if (token != null) {
+			confirmationLink = frontEndVerificationPageUrl + "?token=" + token.getToken();
+		}
+
+		String expiryTime = "24 hours"; // or read from your token expiration setting
+
+		String emailContent = """
+				    Dear %s,
+
+				    Welcome to Diamond Events! 🎉
+
+				    Thank you for creating your account with us.
+				    To complete your registration and start exploring our services, please verify your email address.
+
+				    ✅ Click the link below to verify your email:
+				    %s
+
+				    📅 This link will expire in %s for security purposes.
+				    If the link expires before you verify, you will need to request a new verification email.
+
+				    ❓ If you did not sign up for a Diamond Events account, or if you have any questions,
+				    please contact our support team immediately at support@diamondevents.com.
+
+				    We look forward to making your events unforgettable!
+
+				    Best regards,
+				    Diamond Events Team
+				""".formatted(newUser.getTxtFirstName(), confirmationLink, expiryTime);
+
+		// Send confirmation email
+		serviceEmailSender.sendEmail(newUser.getTxtEmail(), "Confirm Your Diamond Events Account", emailContent);
+
 		// TODO: Send verification email (implement later)
 
 		return ResponseEntity.ok(Map.of("message", "Signup successful. Please verify your email before logging in.",
 				"email", newUser.getTxtEmail()));
+	}
+
+	@GetMapping("/confirm")
+	public ResponseEntity<Map<String, Object>> confirmEmail(@RequestParam String token) {
+		Map<String, Object> response = new HashMap<>();
+		boolean isVerified = serviceEmailVerification.verifyToken(token);
+		if (isVerified) {
+			response.put("status", "success");
+			response.put("message", "Email verified successfully!");
+			return ResponseEntity.status(HttpStatus.OK).body(response);
+		} else {
+			response.put("status", "error");
+			response.put("message", "Invalid or expired token.");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+		}
 	}
 }

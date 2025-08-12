@@ -26,6 +26,7 @@ import com.zbs.de.model.EventMenuFoodSelection;
 import com.zbs.de.model.EventRunningOrder;
 import com.zbs.de.model.EventType;
 import com.zbs.de.model.MenuFoodMaster;
+import com.zbs.de.model.UserMaster;
 import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.dto.DtoEventBudget;
@@ -44,6 +45,7 @@ import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
 import com.zbs.de.service.ServiceDecorExtrasMaster;
 import com.zbs.de.service.ServiceDecorExtrasOption;
+import com.zbs.de.service.ServiceEmailSender;
 import com.zbs.de.service.ServiceEventBudget;
 import com.zbs.de.service.ServiceEventDecorCategorySelection;
 import com.zbs.de.service.ServiceEventDecorExtrasSelection;
@@ -90,15 +92,18 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceEventBudget serviceEventBudget;
-	
+
 	@Autowired
 	private ServiceEventDecorExtrasSelection serviceEventDecorExtrasSelection;
-	
+
 	@Autowired
 	private ServiceDecorExtrasMaster serviceDecorExtrasMaster;
-	
+
 	@Autowired
 	private ServiceDecorExtrasOption serviceDecorExtrasOption;
+
+	@Autowired
+	private ServiceEmailSender serviceEmailSender;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
@@ -141,6 +146,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			entity.setTxtBirthDayCelebrant(dtoEventMaster.getTxtBirthDayCelebrant());
 			entity.setTxtAgeCategory(dtoEventMaster.getTxtAgeCategory());
 			entity.setTxtChiefGuest(dtoEventMaster.getTxtChiefGuest());
+			entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+			entity.setCreatedDate(UtilDateAndTime.getCurrentDate());
 			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 				entity.setNumInfoFilledStatus(0);
 			}
@@ -339,6 +346,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		} else {
 			// Create new
 			entity = MapperEventMaster.toEntity(dtoEventMaster);
+			entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 				entity.setNumInfoFilledStatus(0);
 			}
@@ -704,9 +712,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						}
 					}
 					dto.setFoodSelections(dtoEventMenuFoodSelections);
-					
-					
-					
+
 					// Fetching Event Extras Selection
 					// ***********************************
 
@@ -715,28 +721,33 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					List<DtoEventDecorExtrasSelection> dtoEventDecorExtrasSelections = new ArrayList<>();
 					if (UtilRandomKey.isNotNull(eventDecorExtrasSelection)) {
 						for (EventDecorExtrasSelection entity : eventDecorExtrasSelection) {
-							DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection =new DtoEventDecorExtrasSelection();
+							DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection = new DtoEventDecorExtrasSelection();
 							dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
 							dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
 							dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
-							if(entity.getDecorExtrasMaster() != null) {
-								dtoEventDecorExtrasSelection.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
-								dtoEventDecorExtrasSelection.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
-								dtoEventDecorExtrasSelection.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());								
+							if (entity.getDecorExtrasMaster() != null) {
+								dtoEventDecorExtrasSelection
+										.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+								dtoEventDecorExtrasSelection
+										.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+								dtoEventDecorExtrasSelection
+										.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
 							}
-							
-							if(entity.getDecorExtrasOption()!= null) {
-								dtoEventDecorExtrasSelection.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
-								dtoEventDecorExtrasSelection.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
-								dtoEventDecorExtrasSelection.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+
+							if (entity.getDecorExtrasOption() != null) {
+								dtoEventDecorExtrasSelection
+										.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+								dtoEventDecorExtrasSelection
+										.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+								dtoEventDecorExtrasSelection
+										.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
 							}
-							
+
 							dtoEventDecorExtrasSelections.add(dtoEventDecorExtrasSelection);
 						}
 					}
 					dto.setExtrasSelections(dtoEventDecorExtrasSelections);
-					
-					
+
 					dtoEventMasterLst.add(dto);
 
 				}
@@ -834,6 +845,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtBirthDayCelebrant(dtoEventMaster.getTxtBirthDayCelebrant());
 				entity.setTxtAgeCategory(dtoEventMaster.getTxtAgeCategory());
 				entity.setTxtChiefGuest(dtoEventMaster.getTxtChiefGuest());
+				entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 					entity.setNumInfoFilledStatus(0);
 				}
@@ -1047,6 +1059,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setDecorSelections(null);
 				entity.setFoodSelections(null);
 				entity = repositoryEventMaster.save(entity);
+				entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 
 				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 					entity.setNumInfoFilledStatus(0);
@@ -1218,10 +1231,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				String code = generateNextEventMasterCode();
 				entity.setTxtEventMasterCode(code);
 			}
-			
-			
-			
-			//****** Setting Event Decor Extras ******
+
+			// ****** Setting Event Decor Extras ******
 			if (UtilRandomKey.isNotNull(dtoEventMaster.getExtrasSelections())) {
 				serviceEventDecorExtrasSelection.deleteByEventMasterId(entity.getSerEventMasterId());
 
@@ -1231,13 +1242,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
 					selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
 					selection.setEventMaster(entity);
-					if(dto.getSerExtrasId()!= null) {
-						selection.setDecorExtrasMaster(serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
+					if (dto.getSerExtrasId() != null) {
+						selection.setDecorExtrasMaster(
+								serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
 					}
-					if(dto.getSerExtraOptionId() != null) {
-						selection.setDecorExtrasOption(serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
+					if (dto.getSerExtraOptionId() != null) {
+						selection.setDecorExtrasOption(
+								serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
 					}
-					
+
 					selection = serviceEventDecorExtrasSelection.save(selection);
 					newSelections.add(selection);
 				}
@@ -1247,12 +1260,27 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			entity = repositoryEventMaster.save(entity);
 
-			dtoResult.setTxtMessage("Success");
+			if (this.isEventRegistrationCompleted(entity)) {
+				UserMaster userMaster = ServiceCurrentUser.getCurrentUser();
+				if (userMaster != null) {
+					serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
+							entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
+							entity.getDteEventDate());
+					dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
+							+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");
+				} else {
+					dtoResult.setTxtMessage("Success");
+
+				}
+			} else {
+				dtoResult.setTxtMessage("Success");
+			}
+
 			dtoResult.setResult(null);
 			return dtoResult;
 		} catch (Exception e) {
 			LOGGER.debug(e.getMessage(), e);
-			dtoResult.setTxtMessage(e.getMessage());
+			dtoResult.setTxtMessage("Failure");
 			return dtoResult;
 		}
 	}
@@ -1269,11 +1297,26 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				return result;
 			}
 			e.setBlnIsDeleted(true);
+			e.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			repositoryEventMaster.save(e);
 			result.setTxtMessage("Deleted (soft) successfully");
 		} else {
 			result.setTxtMessage("No record found to delete");
 		}
 		return result;
+	}
+
+	private Boolean isEventRegistrationCompleted(EventMaster eventMaster) {
+		if (eventMaster != null && eventMaster.getTxtEventMasterCode() != null && eventMaster.getDteEventDate() != null
+				&& eventMaster.getCustomerMaster() != null && eventMaster.getEventRunningOrder() != null
+				&& eventMaster.getEventType() != null
+				&& eventMaster.getVendorMaster() != null
+				&& (eventMaster.getVenueMaster() != null || eventMaster.getVenueMasterDetail() != null)
+				&& (eventMaster.getFoodSelections() != null && !eventMaster.getFoodSelections().isEmpty())
+				&& (eventMaster.getDecorSelections() != null && !eventMaster.getDecorSelections().isEmpty())) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

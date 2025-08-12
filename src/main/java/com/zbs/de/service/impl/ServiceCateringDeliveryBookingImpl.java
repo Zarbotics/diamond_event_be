@@ -76,9 +76,12 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			if (dto.getSerDeliveryBookingId() != null) {
 				entity = repositoryCateringDeliveryBooking.findById(dto.getSerDeliveryBookingId()).orElseThrow(
 						() -> new RuntimeException("Booking not found with ID: " + dto.getSerDeliveryBookingId()));
+				
+				entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			} else {
 				entity = new CateringDeliveryBooking();
 				entity.setTxtDeliveryBookingCode(generateAutoCode());
+				entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 			}
 
 			// Set master fields

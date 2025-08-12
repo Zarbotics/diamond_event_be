@@ -43,6 +43,8 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 		ResponseMessage res = new ResponseMessage();
 		try {
 			LOGGER.info("Save or update CustomerMaster");
+			
+			
 
 			String email = dtoCustomerMaster.getTxtEmail();
 			if (email == null || email.trim().isEmpty()) {
@@ -82,6 +84,8 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster.setTxtFirstName(dtoCustomerMaster.getTxtFirstName());
 				customerMaster.setTxtLastName(dtoCustomerMaster.getTxtLastName());
 				customerMaster.setUpdatedDate(UtilDateAndTime.getCurrentDate());
+				customerMaster.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+				
 				LOGGER.info("Updating existing customer with email: " + email);
 			} else {
 				// Create new
@@ -91,6 +95,7 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster.setBlnIsActive(true);
 				customerMaster.setBlnIsDeleted(false);
 				customerMaster.setBlnIsApproved(true);
+				customerMaster.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 				LOGGER.info("Creating new customer with email: " + email);
 			}
 
