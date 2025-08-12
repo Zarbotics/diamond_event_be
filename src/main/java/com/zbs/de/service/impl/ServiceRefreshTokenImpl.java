@@ -11,14 +11,14 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service("serviceRefreshTokenImpl")
 public class ServiceRefreshTokenImpl implements ServiceRefreshToken {
-	@Value("${app.jwt.refresh-expiration-ms:604800000}") // default 7 days
-	private Long refreshTokenDurationMs;
+	@Value("${app.jwt.refresh-expiration}")
+	private long refreshTokenDurationMs;
 
 	private final RepositoryRefreshToken refreshTokenRepository;
 	private final RepositoryUserMaster userRepository;
@@ -41,21 +41,22 @@ public class ServiceRefreshTokenImpl implements ServiceRefreshToken {
 //		refreshToken.setToken(UUID.randomUUID().toString());
 //		return refreshTokenRepository.save(refreshToken);
 //	}
-	
+
 	@Override
 	public RefreshToken createRefreshToken(UserMaster user) {
 		Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser_SerUserId(user.getSerUserId());
+	    Date expiryDate = new Date(System.currentTimeMillis() + refreshTokenDurationMs);
 		if (existingToken.isPresent()) {
 			RefreshToken token = existingToken.get();
 			token.setToken(UUID.randomUUID().toString());
-			token.setExpiryDate(UtilDateAndTime.getCurrentDate());
+			token.setExpiryDate(expiryDate);
 			return refreshTokenRepository.save(token);
 		}
 
 		RefreshToken newToken = new RefreshToken();
 		newToken.setUser(user);
 		newToken.setToken(UUID.randomUUID().toString());
-		newToken.setExpiryDate(UtilDateAndTime.getCurrentDate());
+		newToken.setExpiryDate(expiryDate);
 		return refreshTokenRepository.save(newToken);
 	}
 
