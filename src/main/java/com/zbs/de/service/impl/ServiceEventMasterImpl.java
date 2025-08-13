@@ -1276,7 +1276,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				dtoResult.setTxtMessage("Success");
 			}
 
-			dtoResult.setResult(null);
+			dtoResult.setResult(entity);
 			return dtoResult;
 		} catch (Exception e) {
 			LOGGER.debug(e.getMessage(), e);
