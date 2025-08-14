@@ -43,6 +43,12 @@ public class DtoEventMaster {
 	private String txtVendorCode;
 	private String txtVendorName;
 
+	private String txtEventRemarks;
+	private String txtDecoreRemarks;
+	private String txtCateringRemarks;
+	private String txtExternalSupplierRemarks;
+	private String txtEventExtrasRemarks;
+
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
 
@@ -353,6 +359,46 @@ public class DtoEventMaster {
 
 	public void setExtrasSelections(List<DtoEventDecorExtrasSelection> extrasSelections) {
 		this.extrasSelections = extrasSelections;
+	}
+
+	public String getTxtEventRemarks() {
+		return txtEventRemarks;
+	}
+
+	public void setTxtEventRemarks(String txtEventRemarks) {
+		this.txtEventRemarks = txtEventRemarks;
+	}
+
+	public String getTxtDecoreRemarks() {
+		return txtDecoreRemarks;
+	}
+
+	public void setTxtDecoreRemarks(String txtDecoreRemarks) {
+		this.txtDecoreRemarks = txtDecoreRemarks;
+	}
+
+	public String getTxtCateringRemarks() {
+		return txtCateringRemarks;
+	}
+
+	public void setTxtCateringRemarks(String txtCateringRemarks) {
+		this.txtCateringRemarks = txtCateringRemarks;
+	}
+
+	public String getTxtExternalSupplierRemarks() {
+		return txtExternalSupplierRemarks;
+	}
+
+	public void setTxtExternalSupplierRemarks(String txtExternalSupplierRemarks) {
+		this.txtExternalSupplierRemarks = txtExternalSupplierRemarks;
+	}
+
+	public String getTxtEventExtrasRemarks() {
+		return txtEventExtrasRemarks;
+	}
+
+	public void setTxtEventExtrasRemarks(String txtEventExtrasRemarks) {
+		this.txtEventExtrasRemarks = txtEventExtrasRemarks;
 	}
 
 }

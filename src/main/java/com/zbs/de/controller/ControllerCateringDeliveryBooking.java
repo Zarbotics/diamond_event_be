@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/cateringDelivery")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "")
 public class ControllerCateringDeliveryBooking {
 
 	@Autowired

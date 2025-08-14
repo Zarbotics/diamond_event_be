@@ -148,6 +148,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			entity.setTxtChiefGuest(dtoEventMaster.getTxtChiefGuest());
 			entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 			entity.setCreatedDate(UtilDateAndTime.getCurrentDate());
+			entity.setTxtCateringRemarks(dtoEventMaster.getTxtCateringRemarks());
+			entity.setTxtDecoreRemarks(dtoEventMaster.getTxtDecoreRemarks());
+			entity.setTxtEventExtrasRemarks(dtoEventMaster.getTxtEventExtrasRemarks());
+			entity.setTxtEventRemarks(dtoEventMaster.getTxtEventRemarks());
+			entity.setTxtExternalSupplierRemarks(dtoEventMaster.getTxtExternalSupplierRemarks());
+			
 			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 				entity.setNumInfoFilledStatus(0);
 			}
@@ -846,6 +852,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtAgeCategory(dtoEventMaster.getTxtAgeCategory());
 				entity.setTxtChiefGuest(dtoEventMaster.getTxtChiefGuest());
 				entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+				entity.setTxtCateringRemarks(dtoEventMaster.getTxtCateringRemarks());
+				entity.setTxtDecoreRemarks(dtoEventMaster.getTxtDecoreRemarks());
+				entity.setTxtEventExtrasRemarks(dtoEventMaster.getTxtEventExtrasRemarks());
+				entity.setTxtEventRemarks(dtoEventMaster.getTxtEventRemarks());
+				entity.setTxtExternalSupplierRemarks(dtoEventMaster.getTxtExternalSupplierRemarks());
 				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 					entity.setNumInfoFilledStatus(0);
 				}
