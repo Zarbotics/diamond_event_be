@@ -47,14 +47,14 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 
 	@Override
 	public DtoResult getAll() {
-		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.findAll().stream()
+		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.findByBlnIsDeletedFalse().stream()
 				.map(MapperDecorCategoryMaster::toMasterDto).collect(Collectors.toList());
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
 
 	@Override
 	public DtoResult getAllMasterData() {
-		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.findAll().stream()
+		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.findByBlnIsDeletedFalse().stream()
 				.map(MapperDecorCategoryMaster::toDto).collect(Collectors.toList());
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}

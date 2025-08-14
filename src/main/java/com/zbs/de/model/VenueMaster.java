@@ -48,6 +48,15 @@ public class VenueMaster extends BaseEntity implements Serializable {
 	@Column(name = "txt_address")
 	private String txtAddress;
 
+	@Column(name = "txt_phone_number")
+	private String txtPhoneNumber;
+
+	@Column(name = "txt_email_address")
+	private String txtEmailAddress;
+
+	@Column(name = "txt_web_link")
+	private String txtWebLink;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_city_master_id", nullable = false)
 	private CityMaster cityMaster;
@@ -102,6 +111,30 @@ public class VenueMaster extends BaseEntity implements Serializable {
 
 	public void setVenueMasterDetails(List<VenueMasterDetail> venueMasterDetails) {
 		this.venueMasterDetails = venueMasterDetails;
+	}
+
+	public String getTxtPhoneNumber() {
+		return txtPhoneNumber;
+	}
+
+	public void setTxtPhoneNumber(String txtPhoneNumber) {
+		this.txtPhoneNumber = txtPhoneNumber;
+	}
+
+	public String getTxtEmailAddress() {
+		return txtEmailAddress;
+	}
+
+	public void setTxtEmailAddress(String txtEmailAddress) {
+		this.txtEmailAddress = txtEmailAddress;
+	}
+
+	public String getTxtWebLink() {
+		return txtWebLink;
+	}
+
+	public void setTxtWebLink(String txtWebLink) {
+		this.txtWebLink = txtWebLink;
 	}
 
 }
