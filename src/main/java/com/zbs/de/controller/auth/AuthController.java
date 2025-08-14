@@ -121,7 +121,9 @@ public class AuthController {
 	public ResponseEntity<?> loginWithEmailPassword(@RequestBody DtoLoginRequest req) throws Exception {
 		Optional<UserMaster> userOpt = repositoryUserMaster.findByTxtEmail(req.getEmail());
 		if (userOpt.isEmpty()) {
-			throw new Exception("No account found with this email.");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseMessage(
+					HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED, "No account found with this email."));
+
 		}
 
 		UserMaster user = userOpt.get();
@@ -129,12 +131,16 @@ public class AuthController {
 		// check password (BCrypt)
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		if (!encoder.matches(req.getPassword(), user.getTxtPassword())) {
-			throw new Exception("Invalid email or password.");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseMessage(
+					HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED, "Invalid email or password.", null));
+
 		}
 
 		// check email verified
 		if (!Boolean.TRUE.equals(user.getBlnEmailVerified())) {
-			throw new Exception("Please verify your email before logging in.");
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseMessage(HttpStatus.FORBIDDEN.value(),
+					HttpStatus.FORBIDDEN, "Please verify your email before logging in.", null));
+
 		}
 
 		// Generate tokens using your JwtTokenUtil and RefreshTokenService
@@ -142,9 +148,12 @@ public class AuthController {
 				user.getTxtRole());
 		RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-		return ResponseEntity.ok(Map.of("accessToken", accessToken, "refreshToken", refreshToken.getToken(), "userId",
-				user.getSerUserId(), "email", user.getTxtEmail(), "name", user.getTxtName(), "role",
-				user.getTxtRole()));
+		Map<String, Object> data = Map.of("accessToken", accessToken, "refreshToken", refreshToken.getToken(), "userId",
+				user.getSerUserId(), "email", user.getTxtEmail(), "name", user.getTxtName(), "role", user.getTxtRole());
+
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Success", data));
+
 	}
 
 	@PostMapping("/signup")
