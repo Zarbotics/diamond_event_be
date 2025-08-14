@@ -92,6 +92,21 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "bln_is_couple")
 	private Boolean blnIsCouple;
 
+	@Column(name = "txt_event_remarks")
+	private String txtEventRemarks;
+
+	@Column(name = "txt_decore_remarks")
+	private String txtDecoreRemarks;
+
+	@Column(name = "txt_catering_remarks")
+	private String txtCateringRemarks;
+
+	@Column(name = "txt_external_supplier_remarks")
+	private String txtExternalSupplierRemarks;
+
+	@Column(name = "txt_event_extras_remarks")
+	private String txtEventExtrasRemarks;
+
 	/**
 	 * This variable is to show how many sections has been filled by the client
 	 * related Customer Journey
@@ -371,6 +386,46 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setExtrasSelections(List<EventDecorExtrasSelection> extrasSelections) {
 		this.extrasSelections = extrasSelections;
+	}
+
+	public String getTxtEventRemarks() {
+		return txtEventRemarks;
+	}
+
+	public void setTxtEventRemarks(String txtEventRemarks) {
+		this.txtEventRemarks = txtEventRemarks;
+	}
+
+	public String getTxtDecoreRemarks() {
+		return txtDecoreRemarks;
+	}
+
+	public void setTxtDecoreRemarks(String txtDecoreRemarks) {
+		this.txtDecoreRemarks = txtDecoreRemarks;
+	}
+
+	public String getTxtCateringRemarks() {
+		return txtCateringRemarks;
+	}
+
+	public void setTxtCateringRemarks(String txtCateringRemarks) {
+		this.txtCateringRemarks = txtCateringRemarks;
+	}
+
+	public String getTxtExternalSupplierRemarks() {
+		return txtExternalSupplierRemarks;
+	}
+
+	public void setTxtExternalSupplierRemarks(String txtExternalSupplierRemarks) {
+		this.txtExternalSupplierRemarks = txtExternalSupplierRemarks;
+	}
+
+	public String getTxtEventExtrasRemarks() {
+		return txtEventExtrasRemarks;
+	}
+
+	public void setTxtEventExtrasRemarks(String txtEventExtrasRemarks) {
+		this.txtEventExtrasRemarks = txtEventExtrasRemarks;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
