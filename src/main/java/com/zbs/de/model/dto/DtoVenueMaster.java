@@ -7,6 +7,9 @@ public class DtoVenueMaster {
 	private String txtVenueCode;
 	private String txtVenueName;
 	private String txtAddress;
+	private String txtPhoneNumber;
+	private String txtEmailAddress;
+	private String txtWebLink;
 	private Integer serCityId;
 	private String txtCityName;
 	private String txtCityCode;
@@ -83,6 +86,30 @@ public class DtoVenueMaster {
 
 	public void setVenueMasterDetails(List<DtoVenueMasterDetail> venueMasterDetails) {
 		this.venueMasterDetails = venueMasterDetails;
+	}
+
+	public String getTxtPhoneNumber() {
+		return txtPhoneNumber;
+	}
+
+	public void setTxtPhoneNumber(String txtPhoneNumber) {
+		this.txtPhoneNumber = txtPhoneNumber;
+	}
+
+	public String getTxtEmailAddress() {
+		return txtEmailAddress;
+	}
+
+	public void setTxtEmailAddress(String txtEmailAddress) {
+		this.txtEmailAddress = txtEmailAddress;
+	}
+
+	public String getTxtWebLink() {
+		return txtWebLink;
+	}
+
+	public void setTxtWebLink(String txtWebLink) {
+		this.txtWebLink = txtWebLink;
 	}
 
 }

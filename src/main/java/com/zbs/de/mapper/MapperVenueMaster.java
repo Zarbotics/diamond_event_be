@@ -19,6 +19,9 @@ public class MapperVenueMaster {
 		dto.setTxtVenueCode(entity.getTxtVenueCode());
 		dto.setTxtVenueName(entity.getTxtVenueName());
 		dto.setTxtAddress(entity.getTxtAddress());
+		dto.setTxtPhoneNumber(entity.getTxtPhoneNumber());
+		dto.setTxtEmailAddress(entity.getTxtEmailAddress());
+		dto.setTxtWebLink(entity.getTxtWebLink());
 		if (entity.getCityMaster() != null) {
 			dto.setSerCityId(entity.getCityMaster().getSerCityId());
 			dto.setTxtCityName(entity.getCityMaster().getTxtCityName());
@@ -78,6 +81,9 @@ public class MapperVenueMaster {
 		venue.setTxtVenueName(dto.getTxtVenueName());
 		venue.setTxtAddress(dto.getTxtAddress());
 		venue.setBlnIsActive(dto.getBlnIsActive());
+		venue.setTxtEmailAddress(dto.getTxtEmailAddress());
+		venue.setTxtPhoneNumber(dto.getTxtPhoneNumber());
+		venue.setTxtWebLink(dto.getTxtWebLink());
 		return venue;
 	}
 
