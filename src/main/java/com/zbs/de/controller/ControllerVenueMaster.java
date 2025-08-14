@@ -58,7 +58,7 @@ public class ControllerVenueMaster {
 
 	@PostMapping(value = "/saveVenue", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveVenue(@RequestPart("venueData") String venueJson,
-			@RequestPart("files") List<MultipartFile> files) {
+			@RequestPart(value = "files" , required = false) List<MultipartFile> files) {
 
 		LOGGER.info("Save Venue VenueMaster by Dto: " + venueJson);
 

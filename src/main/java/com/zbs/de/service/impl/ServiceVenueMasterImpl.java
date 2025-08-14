@@ -245,70 +245,76 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 			venue.setTxtVenueName(dto.getTxtVenueName());
 			venue.setTxtVenueCode(dto.getTxtVenueCode());
 			venue.setTxtAddress(dto.getTxtAddress());
+			venue.setTxtEmailAddress(dto.getTxtEmailAddress());
+			venue.setTxtPhoneNumber(dto.getTxtPhoneNumber());
+			venue.setTxtWebLink(dto.getTxtWebLink());
 			venue.setCityMaster(serviceCityMaster.getByPK(dto.getSerCityId()));
 
-			Map<String, MultipartFile> fileMap = null;
-			if (UtilRandomKey.isNotNull(files) && !files.isEmpty()) {
-				fileMap = files.stream().collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
-			}
+			if (dto.getVenueMasterDetails() != null && !dto.getVenueMasterDetails().isEmpty()) {
 
-			List<VenueMasterDetail> existingDetails = venue.getVenueMasterDetails();
-			if (existingDetails == null) {
-				existingDetails = new ArrayList<>();
-			}
-
-			Map<Integer, VenueMasterDetail> existingDetailsMap = existingDetails.stream()
-					.collect(Collectors.toMap(VenueMasterDetail::getSerVenueMasterDetailId, Function.identity()));
-
-			existingDetails.clear();
-
-			for (DtoVenueMasterDetail detailDto : dto.getVenueMasterDetails()) {
-				VenueMasterDetail detail;
-
-				if (detailDto.getSerVenueMasterDetailId() != null) {
-					detail = existingDetailsMap.get(detailDto.getSerVenueMasterDetailId());
-					if (detail == null) {
-						throw new RuntimeException("Detail not found");
-					}
-				} else {
-					detail = new VenueMasterDetail();
-					detail.setVenueMaster(venue);
+				Map<String, MultipartFile> fileMap = null;
+				if (UtilRandomKey.isNotNull(files) && !files.isEmpty()) {
+					fileMap = files.stream().collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
 				}
 
-				detail.setTxtHallName(detailDto.getTxtHallName());
-				detail.setTxtHallCode(detailDto.getTxtHallCode());
-				detail.setNumCapacity(detailDto.getNumCapacity());
-				detail.setNumPrice(detailDto.getNumPrice());
+				List<VenueMasterDetail> existingDetails = venue.getVenueMasterDetails();
+				if (existingDetails == null) {
+					existingDetails = new ArrayList<>();
+				}
 
-				if (fileMap != null && !fileMap.isEmpty()) {
-					List<VenueMasterDetailDocument> documents = new ArrayList<>();
-					for (DtoVenueMasterDetailDocument docDto : detailDto.getDocuments()) {
-						MultipartFile file = fileMap.get(docDto.getOriginalName());
-						if (file != null) {
-							String uploadPath = UtilFileStorage.saveFile(file, "venues");
-							VenueMasterDetailDocument doc = new VenueMasterDetailDocument();
-							doc.setDocumentName(file.getName());
-							doc.setOriginalName(file.getOriginalFilename());
-							doc.setDocumentType(file.getContentType());
-							doc.setSize(String.valueOf(file.getSize()));
-							doc.setFilePath(uploadPath);
-							doc.setVenueMasterDetail(detail);
-							documents.add(doc);
+				Map<Integer, VenueMasterDetail> existingDetailsMap = existingDetails.stream()
+						.collect(Collectors.toMap(VenueMasterDetail::getSerVenueMasterDetailId, Function.identity()));
+
+				existingDetails.clear();
+
+				for (DtoVenueMasterDetail detailDto : dto.getVenueMasterDetails()) {
+					VenueMasterDetail detail;
+
+					if (detailDto.getSerVenueMasterDetailId() != null) {
+						detail = existingDetailsMap.get(detailDto.getSerVenueMasterDetailId());
+						if (detail == null) {
+							throw new RuntimeException("Detail not found");
+						}
+					} else {
+						detail = new VenueMasterDetail();
+						detail.setVenueMaster(venue);
+					}
+
+					detail.setTxtHallName(detailDto.getTxtHallName());
+					detail.setTxtHallCode(detailDto.getTxtHallCode());
+					detail.setNumCapacity(detailDto.getNumCapacity());
+					detail.setNumPrice(detailDto.getNumPrice());
+
+					if (fileMap != null && !fileMap.isEmpty()) {
+						List<VenueMasterDetailDocument> documents = new ArrayList<>();
+						for (DtoVenueMasterDetailDocument docDto : detailDto.getDocuments()) {
+							MultipartFile file = fileMap.get(docDto.getOriginalName());
+							if (file != null) {
+								String uploadPath = UtilFileStorage.saveFile(file, "venues");
+								VenueMasterDetailDocument doc = new VenueMasterDetailDocument();
+								doc.setDocumentName(file.getName());
+								doc.setOriginalName(file.getOriginalFilename());
+								doc.setDocumentType(file.getContentType());
+								doc.setSize(String.valueOf(file.getSize()));
+								doc.setFilePath(uploadPath);
+								doc.setVenueMasterDetail(detail);
+								documents.add(doc);
+							}
+						}
+						// Handle documents with orphanRemoval similarly if needed
+						if (detail.getVenueMasterDetailDocument() != null) {
+							detail.getVenueMasterDetailDocument().clear();
+							detail.getVenueMasterDetailDocument().addAll(documents);
+						} else {
+							detail.setVenueMasterDetailDocument(documents);
 						}
 					}
-					// Handle documents with orphanRemoval similarly if needed
-					if (detail.getVenueMasterDetailDocument() != null) {
-						detail.getVenueMasterDetailDocument().clear();
-						detail.getVenueMasterDetailDocument().addAll(documents);
-					} else {
-						detail.setVenueMasterDetailDocument(documents);
-					}
+
+					existingDetails.add(detail);
 				}
 
-				existingDetails.add(detail);
+				venue.setVenueMasterDetails(existingDetails); // re-attach to ensure persistence
 			}
-
-			venue.setVenueMasterDetails(existingDetails); // re-attach to ensure persistence
 			venue = repositoryVenueMaster.save(venue);
 
 			dtoResult.setTxtMessage("Success");
