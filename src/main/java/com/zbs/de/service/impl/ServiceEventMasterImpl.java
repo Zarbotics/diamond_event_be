@@ -1008,7 +1008,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Set Food Menu Selection
 				// ***********************
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())) {
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections()) && !dtoEventMaster.getFoodSelections().isEmpty()) {
 					serviceEventMenuFoodSelection.deleteByEventMasterId(entity.getSerEventMasterId());
 					List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
 					for (DtoEventMenuFoodSelection dto : dtoEventMaster.getFoodSelections()) {
