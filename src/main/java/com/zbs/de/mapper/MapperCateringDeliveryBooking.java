@@ -1,5 +1,8 @@
 package com.zbs.de.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryItemDetail;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
@@ -36,8 +39,35 @@ public class MapperCateringDeliveryBooking {
 			dto.setTxtEventTypeCode(entity.getEventType().getTxtEventTypeCode());
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
+		if(entity.getCateringDeliveryItemDetails() != null && !entity.getCateringDeliveryItemDetails().isEmpty()) {
+			List<DtoCateringDeliveryItemDetail> details = new ArrayList<>();
+			for(CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
+				DtoCateringDeliveryItemDetail detailDto = toDtoCateringDeliveryItemDetail(detail);
+				details.add(detailDto);
+			}
+			
+			dto.setCateringDeliveryItemDetails(details);
+		}
 
 		return dto;
+	}
+	
+	public static DtoCateringDeliveryItemDetail toDtoCateringDeliveryItemDetail(CateringDeliveryItemDetail entity) {
+		if(entity != null) {
+			DtoCateringDeliveryItemDetail dto =new DtoCateringDeliveryItemDetail();
+			dto.setNumQuantity(entity.getNumQuantity());
+			dto.setSerCateringDeliveryDetailId(entity.getSerCateringDeliveryDetailId());
+			dto.setTxtCateringDeliveryDetailCode(entity.getTxtCateringDeliveryDetailCode());
+			dto.setTxtNotes(entity.getTxtCateringDeliveryDetailCode());
+			if(entity.getMenueFoodMaster() != null) {
+				dto.setSerMenuFoodId(entity.getMenueFoodMaster().getSerMenuFoodId());
+				dto.setTxtMenuFoodCode(entity.getMenueFoodMaster().getTxtMenuFoodCode());
+				dto.setTxtMenuFoodName(entity.getMenueFoodMaster().getTxtMenuFoodName());
+			}
+			return dto;
+		}
+		return null;
+		
 	}
 
 	public static CateringDeliveryBooking toEntity(DtoCateringDeliveryBooking dto) {

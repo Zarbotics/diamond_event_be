@@ -66,10 +66,10 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 			// Fetch Event Type
 			var eventType = repositoryEventType.findById(dto.getSerEventTypeId()).orElse(null);
-			if (eventType == null) {
-				result.setTxtMessage("Event Type not found with ID: " + dto.getSerEventTypeId());
-				return result;
-			}
+//			if (eventType == null) {
+//				result.setTxtMessage("Event Type not found with ID: " + dto.getSerEventTypeId());
+//				return result;
+//			}
 
 			CateringDeliveryBooking entity;
 
@@ -86,7 +86,9 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 			// Set master fields
 			entity.setCustomerMaster(customer);
-			entity.setEventType(eventType);
+			if(eventType != null) {
+				entity.setEventType(eventType);
+			}
 
 			// Map other fields using Mapper
 			CateringDeliveryBooking mapped = MapperCateringDeliveryBooking.toEntity(dto);
@@ -122,7 +124,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 			repositoryCateringDeliveryBooking.save(entity);
 
-			result.setTxtMessage("Saved successfully");
+			result.setTxtMessage("Success");
 			result.setResult(MapperCateringDeliveryBooking.toDto(entity));
 
 		} catch (RuntimeException e) {

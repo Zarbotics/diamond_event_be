@@ -1,6 +1,7 @@
 package com.zbs.de.controller;
 
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceCateringDeliveryBooking;
 import com.zbs.de.util.ResponseMessage;
@@ -24,8 +25,16 @@ public class ControllerCateringDeliveryBooking {
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> saveOrUpdate(@RequestBody DtoCateringDeliveryBooking dto,
 			HttpServletRequest request) {
-		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully",
-				service.saveOrUpdate(dto).getResult()));
+		
+		DtoResult result = service.saveOrUpdate(dto);
+		if(result != null && result.getTxtMessage().equalsIgnoreCase("Success") && result.getResult() != null) {
+			return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully",
+					result.getResult()));
+		}else {
+			return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+					result.getResult()));
+		}
+
 	}
 
 	@PostMapping(value = "/getById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
