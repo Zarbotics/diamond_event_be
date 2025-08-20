@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyValue;
 import com.zbs.de.model.dto.DtoResult;
@@ -16,6 +17,8 @@ public interface ServiceDecorCategoryPropertyValue {
 
 	DtoResult getAll();
 
+	List<DecorCategoryPropertyValue> getAllPropertyValueMaster();
+	
 	DtoResult getByPropertyId(Integer propertyId);
 
 	DtoResult getById(Integer id);

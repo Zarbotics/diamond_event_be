@@ -17,6 +17,8 @@ import com.zbs.de.mapper.MapperEventMaster;
 import com.zbs.de.mapper.MapperEventMenuFoodSelection;
 import com.zbs.de.mapper.MapperEventRunningOrder;
 import com.zbs.de.model.CustomerMaster;
+import com.zbs.de.model.DecorCategoryPropertyMaster;
+import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.EventDecorCategorySelection;
 import com.zbs.de.model.EventDecorExtrasSelection;
 import com.zbs.de.model.EventDecorPropertySelection;
@@ -32,6 +34,7 @@ import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.dto.DtoEventBudget;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
 import com.zbs.de.model.dto.DtoEventDecorExtrasSelection;
+import com.zbs.de.model.dto.DtoEventDecorPropertySelection;
 import com.zbs.de.model.dto.DtoEventDecorReferenceDocument;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterStats;
@@ -45,6 +48,8 @@ import com.zbs.de.repository.RepositoryEventDecorPropertySelection;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
+import com.zbs.de.service.ServiceDecorCategoryPropertyMaster;
+import com.zbs.de.service.ServiceDecorCategoryPropertyValue;
 import com.zbs.de.service.ServiceDecorExtrasMaster;
 import com.zbs.de.service.ServiceDecorExtrasOption;
 import com.zbs.de.service.ServiceEmailSender;
@@ -109,6 +114,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	
 	@Autowired
 	private RepositoryEventDecorPropertySelection repositoryEventDecorPropertySelection;
+	
+	@Autowired
+	private ServiceDecorCategoryPropertyMaster serviceDecorCategoryPropertyMaster;
+	
+	@Autowired
+	private ServiceDecorCategoryPropertyValue serviceDecorCategoryPropertyValue;
 
 	@Autowired
 	private ServiceEmailSender serviceEmailSender;
@@ -711,6 +722,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 					// Fetching Decor
 					// ***********************************
+					List<DtoEventDecorCategorySelection> eventDecorCategorySelections = serviceEventDecorCategorySelection.getSelectionsWithChosenValues(dto.getSerEventMasterId());
+					dto.setDtoEventDecorSelections(eventDecorCategorySelections);
 
 					// Fetching Event Menu Food Selection
 					// ***********************************
@@ -834,6 +847,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				dtoResult.setTxtMessage("No Food Item Is Present In DB");
 				return dtoResult;
 			}
+			
+			List<DecorCategoryPropertyMaster> decorCategoryPropertyMasterLst = serviceDecorCategoryPropertyMaster.getAllPropertiesMaster();
+			List<DecorCategoryPropertyValue> decorCategoryPropertyValueLst = serviceDecorCategoryPropertyValue.getAllPropertyValueMaster();
+			
 
 			EventMaster entity;
 			Map<String, MultipartFile> fileMap = null;
@@ -985,12 +1002,44 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						decorSelection = repositoryEventDecorCategorySelection.save(decorSelection);
 
 						// Set property selections' back reference
+//						if (decorSelection.getSelectedProperties() != null) {
+//							for (EventDecorPropertySelection prop : decorSelection.getSelectedProperties()) {
+//								prop.setEventDecorCategorySelection(decorSelection);
+//								
+//							}
+//						}
 						if (decorSelection.getSelectedProperties() != null) {
-							for (EventDecorPropertySelection prop : decorSelection.getSelectedProperties()) {
-								prop.setEventDecorCategorySelection(decorSelection);
-								
+							decorSelection.getSelectedProperties().clear();
+							List<EventDecorPropertySelection> newSelectedProperties = new  ArrayList<>();
+							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
+									EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
+									eventDecorPropertySelection.setBlnIsActive(true);
+									eventDecorPropertySelection.setBlnIsDeleted(false);
+									eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
+									eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
+									
+									DecorCategoryPropertyMaster matchedMaster =
+									        decorCategoryPropertyMasterLst.stream()
+									                .filter(pm -> pm.getSerPropertyId().intValue() == property.getSerEventDecorPropertyId().intValue())
+									                .findFirst()
+									                .orElse(null);
+									
+									DecorCategoryPropertyValue matchedValue =
+									        decorCategoryPropertyValueLst.stream()
+									                .filter(pv -> pv.getSerPropertyValueId().intValue()== property.getSerPropertyValueId().intValue())
+									                .findFirst()
+									                .orElse(null);
+									
+									eventDecorPropertySelection.setProperty(matchedMaster);
+									eventDecorPropertySelection.setSelectedValue(matchedValue);
+									newSelectedProperties.add(eventDecorPropertySelection);
 							}
+							
+							decorSelection.getSelectedProperties().addAll(newSelectedProperties);
 						}
+						
+						
+						
 
 						// Set reference image back reference
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
@@ -1170,10 +1219,42 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
 						decorSelection.setEventMaster(entity);
 
+//						if (decorSelection.getSelectedProperties() != null) {
+//							decorSelection.getSelectedProperties()
+//									.forEach(p -> p.setEventDecorCategorySelection(decorSelection));
+//						}
+						
+						
 						if (decorSelection.getSelectedProperties() != null) {
-							decorSelection.getSelectedProperties()
-									.forEach(p -> p.setEventDecorCategorySelection(decorSelection));
+							decorSelection.getSelectedProperties().clear();
+							List<EventDecorPropertySelection> newSelectedProperties = new  ArrayList<>();
+							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
+									EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
+									eventDecorPropertySelection.setBlnIsActive(true);
+									eventDecorPropertySelection.setBlnIsDeleted(false);
+									eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
+									eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
+									
+									DecorCategoryPropertyMaster matchedMaster =
+									        decorCategoryPropertyMasterLst.stream()
+									                .filter(pm -> pm.getSerPropertyId().intValue() == property.getSerEventDecorPropertyId().intValue())
+									                .findFirst()
+									                .orElse(null);
+									
+									DecorCategoryPropertyValue matchedValue =
+									        decorCategoryPropertyValueLst.stream()
+									                .filter(pv -> pv.getSerPropertyValueId().intValue()== property.getSerPropertyValueId().intValue())
+									                .findFirst()
+									                .orElse(null);
+									
+									eventDecorPropertySelection.setProperty(matchedMaster);
+									eventDecorPropertySelection.setSelectedValue(matchedValue);
+									newSelectedProperties.add(eventDecorPropertySelection);
+							}
+							
+							decorSelection.getSelectedProperties().addAll(newSelectedProperties);
 						}
+						
 
 						// Set reference image back reference
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
@@ -1379,7 +1460,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Fetching Decor
 				// ***********************************
-
+				List<DtoEventDecorCategorySelection> eventDecorCategorySelections = serviceEventDecorCategorySelection.getSelectionsWithChosenValues(dto.getSerEventMasterId());
+				dto.setDtoEventDecorSelections(eventDecorCategorySelections);
+				
 				// Fetching Event Menu Food Selection
 				// ***********************************
 
