@@ -34,7 +34,11 @@ public class ServiceEventDecorCategorySelectionImpl implements ServiceEventDecor
 	@Transactional(readOnly = true)
 	public List<DtoEventDecorCategorySelection> getSelectionsWithChosenValues(Integer eventMasterId) {
 		List<EventDecorCategorySelection> entities = repositoryEventDecorCategorySelection
-				.findByEventMasterWithSelectedValues(eventMasterId);
+				.findByEventMasterWithProperties(eventMasterId);
+
+		// Ensure documents are initialized (Hibernate will run batch queries instead of
+		// N+1 if @BatchSize is used)
+		entities.forEach(edcs -> edcs.getUserUploadedDocuments().size());
 
 		return entities.stream().map(edcs -> {
 			DtoEventDecorCategorySelection dto = new DtoEventDecorCategorySelection();
@@ -81,7 +85,7 @@ public class ServiceEventDecorCategorySelectionImpl implements ServiceEventDecor
 					docDto.setTxtDocumentUrl(doc.getFilePath());
 					docDto.setSerEventDecorCategorySelectionId(edcs.getSerEventDecorCategorySelectionId());
 					docDto.setTxtEventDecorCategorySelectionCode(edcs.getTxtEventDecorCategorySelectionCode());
-					docDto.setDocumentFile(null); // can load bytes if needed
+					docDto.setDocumentFile(null); // skip loading bytes
 					return docDto;
 				}).toList());
 			}

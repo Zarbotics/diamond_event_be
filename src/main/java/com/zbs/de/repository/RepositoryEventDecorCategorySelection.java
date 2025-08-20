@@ -14,23 +14,21 @@ public interface RepositoryEventDecorCategorySelection extends JpaRepository<Eve
 	void deleteByEventMaster_SerEventMasterId(Integer serEventMasterId);
 
 	List<EventDecorCategorySelection> findByEventMaster_SerEventMasterId(Integer serEventMasterId);
-	
-	 @Query("""
-		        SELECT DISTINCT edcs
-		        FROM EventDecorCategorySelection edcs
-		        LEFT JOIN FETCH edcs.decorCategory dc
-		        LEFT JOIN FETCH edcs.selectedProperties props
-		        LEFT JOIN FETCH props.property propMaster
-		        LEFT JOIN FETCH props.selectedValue selectedVal
-		        LEFT JOIN FETCH edcs.userUploadedDocuments docs
-		        WHERE edcs.eventMaster.id = :eventMasterId
-		          AND (edcs.blnIsDeleted = false OR edcs.blnIsDeleted IS NULL)
-		          AND (dc.blnIsDeleted = false OR dc.blnIsDeleted IS NULL)
-		          AND (props.blnIsDeleted = false OR props.blnIsDeleted IS NULL)
-		          AND (propMaster.blnIsDeleted = false OR propMaster.blnIsDeleted IS NULL)
-		          AND (selectedVal.blnIsDeleted = false OR selectedVal.blnIsDeleted IS NULL)
-		          AND (docs.blnIsDeleted = false OR docs.blnIsDeleted IS NULL)
-		        """)
-		    List<EventDecorCategorySelection> findByEventMasterWithSelectedValues(@Param("eventMasterId") Integer eventMasterId);
+
+	@Query("""
+			    SELECT DISTINCT edcs
+			    FROM EventDecorCategorySelection edcs
+			    LEFT JOIN FETCH edcs.decorCategory dc
+			    LEFT JOIN FETCH edcs.selectedProperties props
+			    LEFT JOIN FETCH props.property propMaster
+			    LEFT JOIN FETCH props.selectedValue selectedVal
+			    WHERE edcs.eventMaster.id = :eventMasterId
+			      AND (edcs.blnIsDeleted = false OR edcs.blnIsDeleted IS NULL)
+			      AND (dc.blnIsDeleted = false OR dc.blnIsDeleted IS NULL)
+			      AND (props.blnIsDeleted = false OR props.blnIsDeleted IS NULL)
+			      AND (propMaster.blnIsDeleted = false OR propMaster.blnIsDeleted IS NULL)
+			      AND (selectedVal.blnIsDeleted = false OR selectedVal.blnIsDeleted IS NULL)
+			""")
+	List<EventDecorCategorySelection> findByEventMasterWithProperties(@Param("eventMasterId") Integer eventMasterId);
 
 }
