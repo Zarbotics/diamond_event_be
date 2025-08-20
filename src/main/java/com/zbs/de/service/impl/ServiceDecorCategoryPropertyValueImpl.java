@@ -148,6 +148,13 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 				.map(MapperDecorCategoryPropertyValue::toDto).collect(Collectors.toList());
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
+	
+	
+	@Override
+	public List<DecorCategoryPropertyValue> getAllPropertyValueMaster() {
+		List<DecorCategoryPropertyValue> list = repositoryDecorCategoryPropertyValue.findAllNotDeleted();
+		return list;
+	}
 
 	@Override
 	public DtoResult getByPropertyId(Integer propertyId) {

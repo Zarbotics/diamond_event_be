@@ -55,6 +55,12 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 				.stream().map(MapperDecorCategoryPropertyMaster::toDto).collect(Collectors.toList());
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
+	
+	
+	@Override
+	public List<DecorCategoryPropertyMaster> getAllPropertiesMaster() {
+		return repositoryDecorCategoryPropertyMaster.findAllByBlnIsDeletedFalse();
+	}
 
 	@Override
 	public DtoResult getById(Integer id) {
