@@ -21,7 +21,7 @@ public class MapperEventMaster {
 		dto.setSerEventMasterId(entity.getSerEventMasterId());
 		dto.setTxtEventMasterCode(entity.getTxtEventMasterCode());
 		dto.setTxtEventMasterName(entity.getTxtEventMasterName());
-		dto.setDteEventDate(UtilDateAndTime.dateToStringddmmyyyy(entity.getDteEventDate()));
+		dto.setDteEventDate(UtilDateAndTime.mmddyyyyDateToString(entity.getDteEventDate()));
 		dto.setNumNumberOfGuests(entity.getNumNumberOfGuests());
 		dto.setNumNumberOfTables(entity.getNumNumberOfTables());
 		dto.setNumInfoFilledStatus(entity.getNumInfoFilledStatus());
@@ -96,7 +96,7 @@ public class MapperEventMaster {
 		entity.setSerEventMasterId(dto.getSerEventMasterId());
 		entity.setTxtEventMasterCode(dto.getTxtEventMasterCode());
 		entity.setTxtEventMasterName(dto.getTxtEventMasterName());
-		entity.setDteEventDate(UtilDateAndTime.ddmmyyyyStringToDate(dto.getDteEventDate()));
+		entity.setDteEventDate(UtilDateAndTime.ddMMyyyyDashedStringToDate(dto.getDteEventDate()));
 		entity.setNumNumberOfGuests(dto.getNumNumberOfGuests());
 		entity.setNumNumberOfTables(dto.getNumNumberOfTables());
 		entity.setNumInfoFilledStatus(dto.getNumInfoFilledStatus());
