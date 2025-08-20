@@ -1024,6 +1024,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 									.findFirst().orElse(null);
 							if (UtilRandomKey.isNotNull(menuFoodMaster)) {
 								eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
+								eventMenuFoodSelection.setTxtFoodType(getFoodName(menuFoodMaster));
 							} else {
 								dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
 										+ dto.getSerMenuFoodId() + " In DB.");
@@ -1202,6 +1203,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 									.findFirst().orElse(null);
 							if (UtilRandomKey.isNotNull(menuFoodMaster)) {
 								eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
+								eventMenuFoodSelection.setTxtFoodType(getFoodName(menuFoodMaster));
 							} else {
 								dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
 										+ dto.getSerMenuFoodId() + " In DB.");
@@ -1424,5 +1426,25 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			return null;
 		}
 
+	}
+	
+	
+	private String getFoodName(MenuFoodMaster food) {
+		if(food.getBlnIsAppetiser() != null && food.getBlnIsAppetiser()) {
+			return "Appetizers";
+		}else if(food.getBlnIsDessert() != null && food.getBlnIsDessert()) {
+			return "Desserts";
+		}else if(food.getBlnIsStarter() != null && food.getBlnIsStarter()) {
+			return "Starters & Main course";
+		}else if(food.getBlnIsSaladAndCondiment() != null && food.getBlnIsSaladAndCondiment()) {
+			return "Salad & Condiments";
+		}else if(food.getBlnIsDrink() != null && food.getBlnIsDrink()) {
+			return "Reception Drinks";
+		}else if(food.getBlnIsAppetiser() != null && food.getBlnIsAppetiser()) {
+			
+		}else if(food.getBlnIsMainCourse() != null && food.getBlnIsMainCourse()) {
+			return "Mains";
+		}
+		return null;
 	}
 }
