@@ -964,7 +964,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
 
 					// Deleting Existing Selections
-					serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
+//					serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
+					entity.getDecorSelections().clear();
 
 					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
@@ -973,11 +974,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						decorSelection.setEventMaster(entity);
 
 						// Set property selections' back reference
-						if (decorSelection.getSelectedProperties() != null) {
-							for (EventDecorPropertySelection prop : decorSelection.getSelectedProperties()) {
-								prop.setEventDecorCategorySelection(decorSelection);
-							}
-						}
+//						if (decorSelection.getSelectedProperties() != null) {
+//							for (EventDecorPropertySelection prop : decorSelection.getSelectedProperties()) {
+//								prop.setEventDecorCategorySelection(decorSelection);
+//							}
+//						}
 
 						// Set reference image back reference
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
@@ -1002,14 +1003,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						decorSelections.add(decorSelection);
 					}
 
-					entity.setDecorSelections(decorSelections);
+					entity.getDecorSelections().addAll(decorSelections);
 					entity.setNumInfoFilledStatus(70);
 				}
 
 				// Set Food Menu Selection
 				// ***********************
 				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections()) && !dtoEventMaster.getFoodSelections().isEmpty()) {
-					serviceEventMenuFoodSelection.deleteByEventMasterId(entity.getSerEventMasterId());
+//					serviceEventMenuFoodSelection.deleteByEventMasterId(entity.getSerEventMasterId());
+					entity.getFoodSelections().clear();
 					List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
 					for (DtoEventMenuFoodSelection dto : dtoEventMaster.getFoodSelections()) {
 						EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
@@ -1017,6 +1019,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						eventMenuFoodSelection.setBlnIsActive(true);
 						eventMenuFoodSelection.setBlnIsApproved(true);
 						eventMenuFoodSelection.setBlnIsDeleted(false);
+						eventMenuFoodSelection.setEventMaster(entity);
 						if (UtilRandomKey.isNotNull(dto.getSerMenuFoodId())) {
 							MenuFoodMaster menuFoodMaster = dtoMenuFoodMasterLst.stream()
 									.filter(food -> food.getSerMenuFoodId() != null
@@ -1036,14 +1039,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						}
 
 						eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
+
 					}
 
-					String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
-					if (!result.equalsIgnoreCase("Success")) {
-						dtoResult.setTxtMessage(result);
-						return dtoResult;
-					}
-
+//					String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
+//					if (!result.equalsIgnoreCase("Success")) {
+//						dtoResult.setTxtMessage(result);
+//						return dtoResult;
+//					}
+					entity.getFoodSelections().addAll(eventMenuFoodSelectionLst);
 					entity.setNumInfoFilledStatus(90);
 
 				}
