@@ -41,4 +41,12 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 			""", nativeQuery = true)
 	List<Object[]> getMonthlyEventCounts(@Param("year") int year);
 
+	@Query("""
+			    SELECT em
+			    FROM EventMaster em
+			    WHERE em.serEventMasterId = :id
+			      AND (em.blnIsDeleted = false OR em.blnIsDeleted IS NULL)
+			""")
+	Optional<EventMaster> findByIdAndBlnIsDeletedFalse(@Param("id") Integer id);
+
 }
