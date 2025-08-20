@@ -43,7 +43,8 @@ public class ServiceEventMenuFoodSelectionImpl implements ServiceEventMenuFoodSe
 
 			if (UtilRandomKey.isNotNull(eventMenuFoodSelections) && !eventMenuFoodSelections.isEmpty()) {
 				for (EventMenuFoodSelection selection : eventMenuFoodSelections) {
-					selection.setBlnIsActive(true);
+					selection.setBlnIsActive(false);
+					selection.setBlnIsDeleted(true);
 					selection.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 
 					repositoryEventMenuFoodSelection.save(selection);
