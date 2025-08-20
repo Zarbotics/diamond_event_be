@@ -839,8 +839,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 			// Fetch existing if exists
-			Optional<EventMaster> optionalExisting = repositoryEventMaster
-					.findByCustomerAndEventType(dtoEventMaster.getSerCustId(), dtoEventMaster.getSerEventTypeId());
+			Optional<EventMaster> optionalExisting = null;
+			if(dtoEventMaster.getSerEventMasterId() != null) {
+				optionalExisting = repositoryEventMaster
+						.findByIdAndBlnIsDeletedFalse(dtoEventMaster.getSerEventMasterId());
+			}
+
 
 			List<MenuFoodMaster> dtoMenuFoodMasterLst = serviceMenuFoodMaster.getAllDataEntity();
 			if (UtilRandomKey.isNull(dtoMenuFoodMasterLst)) {
@@ -858,7 +862,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				fileMap = files.stream().collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
 			}
 
-			if (optionalExisting.isPresent()) {
+			if (optionalExisting != null && optionalExisting.isPresent()) {
 				// Update existing
 				entity = optionalExisting.get();
 
