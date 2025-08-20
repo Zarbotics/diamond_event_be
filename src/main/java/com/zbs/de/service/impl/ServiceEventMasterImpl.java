@@ -40,6 +40,8 @@ import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
+import com.zbs.de.repository.RepositoryEventDecorCategorySelection;
+import com.zbs.de.repository.RepositoryEventDecorPropertySelection;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
@@ -101,6 +103,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceDecorExtrasOption serviceDecorExtrasOption;
+	
+	@Autowired
+	private RepositoryEventDecorCategorySelection repositoryEventDecorCategorySelection;
+	
+	@Autowired
+	private RepositoryEventDecorPropertySelection repositoryEventDecorPropertySelection;
 
 	@Autowired
 	private ServiceEmailSender serviceEmailSender;
@@ -964,21 +972,25 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
 
 					// Deleting Existing Selections
-//					serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
-					entity.getDecorSelections().clear();
+					if(entity.getDecorSelections() != null && !entity.getDecorSelections().isEmpty()) {
+						serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
+					}
+//					entity.getDecorSelections().clear();
 
 					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
 					for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
 						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
 						decorSelection.setEventMaster(entity);
+						decorSelection = repositoryEventDecorCategorySelection.save(decorSelection);
 
 						// Set property selections' back reference
-//						if (decorSelection.getSelectedProperties() != null) {
-//							for (EventDecorPropertySelection prop : decorSelection.getSelectedProperties()) {
-//								prop.setEventDecorCategorySelection(decorSelection);
-//							}
-//						}
+						if (decorSelection.getSelectedProperties() != null) {
+							for (EventDecorPropertySelection prop : decorSelection.getSelectedProperties()) {
+								prop.setEventDecorCategorySelection(decorSelection);
+								
+							}
+						}
 
 						// Set reference image back reference
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
@@ -1002,8 +1014,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 						decorSelections.add(decorSelection);
 					}
-
-					entity.getDecorSelections().addAll(decorSelections);
+				
+					entity.setDecorSelections(decorSelections);
 					entity.setNumInfoFilledStatus(70);
 				}
 
