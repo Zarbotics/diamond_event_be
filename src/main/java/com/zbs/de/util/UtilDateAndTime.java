@@ -2033,4 +2033,20 @@ public class UtilDateAndTime {
 		}
 		return null;
 	}
+	
+	public static Date ddMMyyyyDashedStringToDate(String dateStr) {
+		if (dateStr == null || dateStr.trim().isEmpty()) {
+			return null; // safeguard against null or empty input
+		}
+
+		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
+		try {
+			return formatter.parse(dateStr);
+		} catch (ParseException e) {
+			e.printStackTrace(); // log the error
+		} catch (Exception e) {
+			e.printStackTrace(); // catch-all for unexpected errors
+		}
+		return null; // return null if parsing fails
+	}
 }

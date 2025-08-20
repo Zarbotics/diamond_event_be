@@ -868,7 +868,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
-				entity.setDteEventDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoEventMaster.getDteEventDate()));
+				entity.setDteEventDate(UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate()));
 				entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
 				entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
