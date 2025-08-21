@@ -75,9 +75,9 @@ import jakarta.transaction.Transactional;
 @Service("serviceEventMaster")
 public class ServiceEventMasterImpl implements ServiceEventMaster {
 
-    private final ControllerCateringDeliveryBooking controllerCateringDeliveryBooking;
+	private final ControllerCateringDeliveryBooking controllerCateringDeliveryBooking;
 
-    private final AuthController authController;
+	private final AuthController authController;
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
 
@@ -116,16 +116,16 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceDecorExtrasOption serviceDecorExtrasOption;
-	
+
 	@Autowired
 	private RepositoryEventDecorCategorySelection repositoryEventDecorCategorySelection;
-	
+
 	@Autowired
 	private RepositoryEventDecorPropertySelection repositoryEventDecorPropertySelection;
-	
+
 	@Autowired
 	private ServiceDecorCategoryPropertyMaster serviceDecorCategoryPropertyMaster;
-	
+
 	@Autowired
 	private ServiceDecorCategoryPropertyValue serviceDecorCategoryPropertyValue;
 
@@ -134,10 +134,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
-    ServiceEventMasterImpl(AuthController authController, ControllerCateringDeliveryBooking controllerCateringDeliveryBooking) {
-        this.authController = authController;
-        this.controllerCateringDeliveryBooking = controllerCateringDeliveryBooking;
-    }
+	ServiceEventMasterImpl(AuthController authController,
+			ControllerCateringDeliveryBooking controllerCateringDeliveryBooking) {
+		this.authController = authController;
+		this.controllerCateringDeliveryBooking = controllerCateringDeliveryBooking;
+	}
 
 	public DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster) {
 		// Validate required IDs
@@ -185,7 +186,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			entity.setTxtEventExtrasRemarks(dtoEventMaster.getTxtEventExtrasRemarks());
 			entity.setTxtEventRemarks(dtoEventMaster.getTxtEventRemarks());
 			entity.setTxtExternalSupplierRemarks(dtoEventMaster.getTxtExternalSupplierRemarks());
-			
+
 			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 				entity.setNumInfoFilledStatus(0);
 			}
@@ -735,7 +736,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 					// Fetching Decor
 					// ***********************************
-					List<DtoEventDecorCategorySelection> eventDecorCategorySelections = serviceEventDecorCategorySelection.getSelectionsWithChosenValues(dto.getSerEventMasterId());
+					List<DtoEventDecorCategorySelection> eventDecorCategorySelections = serviceEventDecorCategorySelection
+							.getSelectionsWithChosenValues(dto.getSerEventMasterId());
 					dto.setDtoEventDecorSelections(eventDecorCategorySelections);
 
 					// Fetching Event Menu Food Selection
@@ -853,32 +855,31 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			// Fetch existing if exists
 			Optional<EventMaster> optionalExisting = null;
-			if(dtoEventMaster.getSerEventMasterId() != null) {
+			if (dtoEventMaster.getSerEventMasterId() != null) {
 				optionalExisting = repositoryEventMaster
 						.findByIdAndBlnIsDeletedFalse(dtoEventMaster.getSerEventMasterId());
 			}
-
 
 			List<MenuFoodMaster> dtoMenuFoodMasterLst = serviceMenuFoodMaster.getAllDataEntity();
 			if (UtilRandomKey.isNull(dtoMenuFoodMasterLst)) {
 				dtoResult.setTxtMessage("No Food Item Is Present In DB");
 				return dtoResult;
 			}
-			
-			List<DecorCategoryPropertyMaster> decorCategoryPropertyMasterLst = serviceDecorCategoryPropertyMaster.getAllPropertiesMaster();
-			List<DecorCategoryPropertyValue> decorCategoryPropertyValueLst = serviceDecorCategoryPropertyValue.getAllPropertyValueMaster();
+
+			List<DecorCategoryPropertyMaster> decorCategoryPropertyMasterLst = serviceDecorCategoryPropertyMaster
+					.getAllPropertiesMaster();
+			List<DecorCategoryPropertyValue> decorCategoryPropertyValueLst = serviceDecorCategoryPropertyValue
+					.getAllPropertyValueMaster();
 			List<DecorExtrasMaster> decorExtrasMasterLst = serviceDecorExtrasMaster.getAllDecorExtrasMaster();
 			List<DecorExtrasOption> decorExtrasOptions = null;
-			if(decorExtrasMasterLst != null && !decorExtrasMasterLst.isEmpty()) {
+			if (decorExtrasMasterLst != null && !decorExtrasMasterLst.isEmpty()) {
 				decorExtrasOptions = new ArrayList<>();
-				for(DecorExtrasMaster extrasMaster : decorExtrasMasterLst) {
-					if(extrasMaster.getDecorExtrasOptions() != null) {
+				for (DecorExtrasMaster extrasMaster : decorExtrasMasterLst) {
+					if (extrasMaster.getDecorExtrasOptions() != null) {
 						decorExtrasOptions.addAll(extrasMaster.getDecorExtrasOptions());
 					}
 				}
 			}
-			
-			
 
 			EventMaster entity;
 			Map<String, MultipartFile> fileMap = null;
@@ -1020,7 +1021,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //					if(entity.getDecorSelections() != null && !entity.getDecorSelections().isEmpty()) {
 //						serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
 //					}
-					entity.getDecorSelections().clear();
+					if (entity.getDecorSelections() != null) {
+						entity.getDecorSelections().clear();
+					}
 
 					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
@@ -1036,42 +1039,41 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //								
 //							}
 //						}
-						if (dto.getSelectedProperties() != null  && !dto.getSelectedProperties().isEmpty()) {
-							decorSelection.getSelectedProperties().clear();
-							List<EventDecorPropertySelection> newSelectedProperties = new  ArrayList<>();
-							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
-									EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
-									eventDecorPropertySelection.setBlnIsActive(true);
-									eventDecorPropertySelection.setBlnIsDeleted(false);
-									eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
-									eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
-									
-									DecorCategoryPropertyMaster matchedMaster =
-									        decorCategoryPropertyMasterLst.stream()
-									                .filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId().intValue())
-									                .findFirst()
-									                .orElse(null);
-									
-									DecorCategoryPropertyValue matchedValue =
-									        decorCategoryPropertyValueLst.stream()
-									                .filter(pv -> pv.getSerPropertyValueId().intValue()== property.getSerPropertyValueId().intValue())
-									                .findFirst()
-									                .orElse(null);
-									
-									eventDecorPropertySelection.setProperty(matchedMaster);
-									eventDecorPropertySelection.setSelectedValue(matchedValue);
-									newSelectedProperties.add(eventDecorPropertySelection);
+						if (dto.getSelectedProperties() != null && !dto.getSelectedProperties().isEmpty()) {
+							if (decorSelection.getSelectedProperties() != null) {
+								decorSelection.getSelectedProperties().clear();
 							}
-							
+
+							List<EventDecorPropertySelection> newSelectedProperties = new ArrayList<>();
+							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
+								EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
+								eventDecorPropertySelection.setBlnIsActive(true);
+								eventDecorPropertySelection.setBlnIsDeleted(false);
+								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
+								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
+
+								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
+										.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId()
+												.intValue())
+										.findFirst().orElse(null);
+
+								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
+												.getSerPropertyValueId().intValue())
+										.findFirst().orElse(null);
+
+								eventDecorPropertySelection.setProperty(matchedMaster);
+								eventDecorPropertySelection.setSelectedValue(matchedValue);
+								newSelectedProperties.add(eventDecorPropertySelection);
+							}
+
 							decorSelection.getSelectedProperties().addAll(newSelectedProperties);
 						}
-						
-						
-						
 
 						// Set reference image back reference
-						decorSelection.getUserUploadedDocuments().clear();
+
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
+							decorSelection.getUserUploadedDocuments().clear();
 							List<EventDecorReferenceDocument> documents = new ArrayList<>();
 							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
 								MultipartFile file = fileMap.get(dtoImg.getOriginalName());
@@ -1093,7 +1095,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 						decorSelections.add(decorSelection);
 					}
-				
+
 //					entity.setDecorSelections(decorSelections);
 					entity.getDecorSelections().addAll(decorSelections);
 					entity.setNumInfoFilledStatus(70);
@@ -1101,9 +1103,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Set Food Menu Selection
 				// ***********************
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections()) && !dtoEventMaster.getFoodSelections().isEmpty()) {
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())
+						&& !dtoEventMaster.getFoodSelections().isEmpty()) {
 //					serviceEventMenuFoodSelection.deleteByEventMasterId(entity.getSerEventMasterId());
-					entity.getFoodSelections().clear();
+					if (entity.getFoodSelections() != null) {
+						entity.getFoodSelections().clear();
+					}
 					List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
 					for (DtoEventMenuFoodSelection dto : dtoEventMaster.getFoodSelections()) {
 						EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
@@ -1254,42 +1259,42 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //							decorSelection.getSelectedProperties()
 //									.forEach(p -> p.setEventDecorCategorySelection(decorSelection));
 //						}
-						
-						
-						if (dto.getSelectedProperties() != null  && !dto.getSelectedProperties().isEmpty()) {
-							decorSelection.getSelectedProperties().clear();
-							List<EventDecorPropertySelection> newSelectedProperties = new  ArrayList<>();
-							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
-									EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
-									eventDecorPropertySelection.setBlnIsActive(true);
-									eventDecorPropertySelection.setBlnIsDeleted(false);
-									eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
-									eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
-									
-									DecorCategoryPropertyMaster matchedMaster =
-									        decorCategoryPropertyMasterLst.stream()
-									                .filter(pm -> pm.getSerPropertyId().intValue() == property.getSerEventDecorPropertyId().intValue())
-									                .findFirst()
-									                .orElse(null);
-									
-									DecorCategoryPropertyValue matchedValue =
-									        decorCategoryPropertyValueLst.stream()
-									                .filter(pv -> pv.getSerPropertyValueId().intValue()== property.getSerPropertyValueId().intValue())
-									                .findFirst()
-									                .orElse(null);
-									
-									eventDecorPropertySelection.setProperty(matchedMaster);
-									eventDecorPropertySelection.setSelectedValue(matchedValue);
-									newSelectedProperties.add(eventDecorPropertySelection);
+
+						if (dto.getSelectedProperties() != null && !dto.getSelectedProperties().isEmpty()) {
+							if (decorSelection.getSelectedProperties() != null) {
+								decorSelection.getSelectedProperties().clear();
 							}
-							
+
+							List<EventDecorPropertySelection> newSelectedProperties = new ArrayList<>();
+							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
+								EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
+								eventDecorPropertySelection.setBlnIsActive(true);
+								eventDecorPropertySelection.setBlnIsDeleted(false);
+								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
+								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
+
+								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
+										.filter(pm -> pm.getSerPropertyId().intValue() == property
+												.getSerEventDecorPropertyId().intValue())
+										.findFirst().orElse(null);
+
+								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
+												.getSerPropertyValueId().intValue())
+										.findFirst().orElse(null);
+
+								eventDecorPropertySelection.setProperty(matchedMaster);
+								eventDecorPropertySelection.setSelectedValue(matchedValue);
+								newSelectedProperties.add(eventDecorPropertySelection);
+							}
+
 							decorSelection.getSelectedProperties().addAll(newSelectedProperties);
 						}
-						
 
 						// Set reference image back reference
-						decorSelection.getUserUploadedDocuments().clear();
+
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
+							decorSelection.getUserUploadedDocuments().clear();
 							List<EventDecorReferenceDocument> documents = new ArrayList<>();
 							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
 								MultipartFile file = fileMap.get(dtoImg.getOriginalName());
@@ -1376,11 +1381,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 			// ****** Setting Event Decor Extras ******
-			if(entity.getExtrasSelections() != null) {
+			if (entity.getExtrasSelections() != null) {
 				entity.getExtrasSelections().clear();
 			}
 
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getExtrasSelections()) && !dtoEventMaster.getExtrasSelections().isEmpty()) {
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getExtrasSelections())
+					&& !dtoEventMaster.getExtrasSelections().isEmpty()) {
 //				serviceEventDecorExtrasSelection.deleteByEventMasterId(entity.getSerEventMasterId());
 
 				List<EventDecorExtrasSelection> newSelections = new ArrayList<>();
@@ -1498,9 +1504,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Fetching Decor
 				// ***********************************
-				List<DtoEventDecorCategorySelection> eventDecorCategorySelections = serviceEventDecorCategorySelection.getSelectionsWithChosenValues(dto.getSerEventMasterId());
+				List<DtoEventDecorCategorySelection> eventDecorCategorySelections = serviceEventDecorCategorySelection
+						.getSelectionsWithChosenValues(dto.getSerEventMasterId());
 				dto.setDtoEventDecorSelections(eventDecorCategorySelections);
-				
+
 				// Fetching Event Menu Food Selection
 				// ***********************************
 
@@ -1564,22 +1571,21 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		}
 
 	}
-	
-	
+
 	private String getFoodName(MenuFoodMaster food) {
-		if(food.getBlnIsAppetiser() != null && food.getBlnIsAppetiser()) {
+		if (food.getBlnIsAppetiser() != null && food.getBlnIsAppetiser()) {
 			return "Appetizers";
-		}else if(food.getBlnIsDessert() != null && food.getBlnIsDessert()) {
+		} else if (food.getBlnIsDessert() != null && food.getBlnIsDessert()) {
 			return "Desserts";
-		}else if(food.getBlnIsStarter() != null && food.getBlnIsStarter()) {
+		} else if (food.getBlnIsStarter() != null && food.getBlnIsStarter()) {
 			return "Starters & Main course";
-		}else if(food.getBlnIsSaladAndCondiment() != null && food.getBlnIsSaladAndCondiment()) {
+		} else if (food.getBlnIsSaladAndCondiment() != null && food.getBlnIsSaladAndCondiment()) {
 			return "Salad & Condiments";
-		}else if(food.getBlnIsDrink() != null && food.getBlnIsDrink()) {
+		} else if (food.getBlnIsDrink() != null && food.getBlnIsDrink()) {
 			return "Reception Drinks";
-		}else if(food.getBlnIsAppetiser() != null && food.getBlnIsAppetiser()) {
-			
-		}else if(food.getBlnIsMainCourse() != null && food.getBlnIsMainCourse()) {
+		} else if (food.getBlnIsAppetiser() != null && food.getBlnIsAppetiser()) {
+
+		} else if (food.getBlnIsMainCourse() != null && food.getBlnIsMainCourse()) {
 			return "Mains";
 		}
 		return null;
