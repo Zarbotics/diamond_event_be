@@ -17,6 +17,8 @@ public interface RepositoryEventDecorExtrasSelection extends JpaRepository<Event
 	void deleteByEventMasterId(@Param("eventId") Integer eventId);
 	
 	
-	@Query("SELECT e FROM EventDecorExtrasSelection e WHERE e.eventMaster.serEventMasterId = :eventId AND e.blnIsDeleted = false")
+	@Query("SELECT e FROM EventDecorExtrasSelection e WHERE e.eventMaster.serEventMasterId = :eventId AND (e.blnIsDeleted = false OR e.blnIsDeleted is null)")
 	List<EventDecorExtrasSelection> findByEventId(@Param("eventId") Integer eventId);
+	
+	List<EventDecorExtrasSelection> findByEventMaster_SerEventMasterId(Integer serEventMasterId);
 }

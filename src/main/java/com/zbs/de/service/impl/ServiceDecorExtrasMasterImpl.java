@@ -144,6 +144,19 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 		}
 		return dtoResult;
 	}
+	
+	
+
+	@Override
+	public List<DecorExtrasMaster> getAllDecorExtrasMaster() {
+		try {
+			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllWithOptionsWhereNotDeleted();
+			return extras;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
+	}
 
 	@Override
 	public DtoResult getById(Integer id) {
