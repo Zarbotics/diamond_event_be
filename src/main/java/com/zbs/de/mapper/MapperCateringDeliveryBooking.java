@@ -22,7 +22,7 @@ public class MapperCateringDeliveryBooking {
 		dto.setBlnBookingStatus(entity.getBlnBookingStatus());
 		dto.setBlnRequestMeeting(entity.getBlnRequestMeeting());
 		if (UtilRandomKey.isNotNull(entity.getDteDeliveryDate())) {
-			dto.setDteDeliveryDate(UtilDateAndTime.dateToStringddmmyyyy(entity.getDteDeliveryDate()));
+			dto.setDteDeliveryDate(UtilDateAndTime.mmddyyyyDateToString(entity.getDteDeliveryDate()));
 		}
 		dto.setTxtDeliveryLocation(entity.getTxtDeliveryLocation());
 		dto.setTxtDeliveryTime(entity.getTxtDeliveryTime());
@@ -81,7 +81,7 @@ public class MapperCateringDeliveryBooking {
 		entity.setBlnBookingStatus(dto.getBlnBookingStatus());
 		entity.setBlnRequestMeeting(dto.getBlnRequestMeeting());
 		if (UtilRandomKey.isNotNull(dto.getDteDeliveryDate())) {
-			entity.setDteDeliveryDate(UtilDateAndTime.ddmmyyyyStringToDate(dto.getDteDeliveryDate()));
+			entity.setDteDeliveryDate(UtilDateAndTime.ddMMyyyyDashedStringToDate(dto.getDteDeliveryDate()));
 		}
 		entity.setTxtDeliveryLocation(dto.getTxtDeliveryLocation());
 		entity.setTxtDeliveryTime(dto.getTxtDeliveryTime());
