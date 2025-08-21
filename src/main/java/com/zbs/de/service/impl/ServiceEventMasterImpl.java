@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.zbs.de.controller.ControllerCateringDeliveryBooking;
+import com.zbs.de.controller.auth.AuthController;
 import com.zbs.de.mapper.MapperEventDecorCategorySelection;
 import com.zbs.de.mapper.MapperEventMaster;
 import com.zbs.de.mapper.MapperEventMenuFoodSelection;
@@ -19,6 +21,8 @@ import com.zbs.de.mapper.MapperEventRunningOrder;
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryPropertyValue;
+import com.zbs.de.model.DecorExtrasMaster;
+import com.zbs.de.model.DecorExtrasOption;
 import com.zbs.de.model.EventDecorCategorySelection;
 import com.zbs.de.model.EventDecorExtrasSelection;
 import com.zbs.de.model.EventDecorPropertySelection;
@@ -70,6 +74,10 @@ import jakarta.transaction.Transactional;
 
 @Service("serviceEventMaster")
 public class ServiceEventMasterImpl implements ServiceEventMaster {
+
+    private final ControllerCateringDeliveryBooking controllerCateringDeliveryBooking;
+
+    private final AuthController authController;
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
 
@@ -125,6 +133,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private ServiceEmailSender serviceEmailSender;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
+
+    ServiceEventMasterImpl(AuthController authController, ControllerCateringDeliveryBooking controllerCateringDeliveryBooking) {
+        this.authController = authController;
+        this.controllerCateringDeliveryBooking = controllerCateringDeliveryBooking;
+    }
 
 	public DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster) {
 		// Validate required IDs
@@ -854,6 +867,17 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			
 			List<DecorCategoryPropertyMaster> decorCategoryPropertyMasterLst = serviceDecorCategoryPropertyMaster.getAllPropertiesMaster();
 			List<DecorCategoryPropertyValue> decorCategoryPropertyValueLst = serviceDecorCategoryPropertyValue.getAllPropertyValueMaster();
+			List<DecorExtrasMaster> decorExtrasMasterLst = serviceDecorExtrasMaster.getAllDecorExtrasMaster();
+			List<DecorExtrasOption> decorExtrasOptions = null;
+			if(decorExtrasMasterLst != null && !decorExtrasMasterLst.isEmpty()) {
+				decorExtrasOptions = new ArrayList<>();
+				for(DecorExtrasMaster extrasMaster : decorExtrasMasterLst) {
+					if(extrasMaster.getDecorExtrasOptions() != null) {
+						decorExtrasOptions.addAll(extrasMaster.getDecorExtrasOptions());
+					}
+				}
+			}
+			
 			
 
 			EventMaster entity;
@@ -993,17 +1017,17 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
 
 					// Deleting Existing Selections
-					if(entity.getDecorSelections() != null && !entity.getDecorSelections().isEmpty()) {
-						serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
-					}
-//					entity.getDecorSelections().clear();
+//					if(entity.getDecorSelections() != null && !entity.getDecorSelections().isEmpty()) {
+//						serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
+//					}
+					entity.getDecorSelections().clear();
 
 					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
 					for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
 						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
 						decorSelection.setEventMaster(entity);
-						decorSelection = repositoryEventDecorCategorySelection.save(decorSelection);
+//						decorSelection = repositoryEventDecorCategorySelection.save(decorSelection);
 
 						// Set property selections' back reference
 //						if (decorSelection.getSelectedProperties() != null) {
@@ -1046,6 +1070,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						
 
 						// Set reference image back reference
+						decorSelection.getUserUploadedDocuments().clear();
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
 							List<EventDecorReferenceDocument> documents = new ArrayList<>();
 							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
@@ -1062,13 +1087,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 									documents.add(doc);
 								}
 							}
-							decorSelection.setUserUploadedDocuments(documents);
+//							decorSelection.setUserUploadedDocuments(documents);
+							decorSelection.getUserUploadedDocuments().addAll(documents);
 						}
 
 						decorSelections.add(decorSelection);
 					}
 				
-					entity.setDecorSelections(decorSelections);
+//					entity.setDecorSelections(decorSelections);
+					entity.getDecorSelections().addAll(decorSelections);
 					entity.setNumInfoFilledStatus(70);
 				}
 
@@ -1261,6 +1288,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						
 
 						// Set reference image back reference
+						decorSelection.getUserUploadedDocuments().clear();
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
 							List<EventDecorReferenceDocument> documents = new ArrayList<>();
 							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
@@ -1277,7 +1305,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 									documents.add(doc);
 								}
 							}
-							decorSelection.setUserUploadedDocuments(documents);
+//							decorSelection.setUserUploadedDocuments(documents);
+							decorSelection.getUserUploadedDocuments().addAll(documents);
 						}
 
 						decorSelections.add(decorSelection);
@@ -1347,8 +1376,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 			// ****** Setting Event Decor Extras ******
+			entity.getExtrasSelections().clear();
 			if (UtilRandomKey.isNotNull(dtoEventMaster.getExtrasSelections()) && !dtoEventMaster.getExtrasSelections().isEmpty()) {
-				serviceEventDecorExtrasSelection.deleteByEventMasterId(entity.getSerEventMasterId());
+//				serviceEventDecorExtrasSelection.deleteByEventMasterId(entity.getSerEventMasterId());
 
 				List<EventDecorExtrasSelection> newSelections = new ArrayList<>();
 				for (DtoEventDecorExtrasSelection dto : dtoEventMaster.getExtrasSelections()) {
@@ -1365,11 +1395,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
 					}
 
-					selection = serviceEventDecorExtrasSelection.save(selection);
+//					selection = serviceEventDecorExtrasSelection.save(selection);
 					newSelections.add(selection);
 				}
-				entity.setExtrasSelections(newSelections);
+//				entity.setExtrasSelections(newSelections);
 				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
+				entity.getExtrasSelections().addAll(newSelections);
 			}
 
 			entity = repositoryEventMaster.save(entity);

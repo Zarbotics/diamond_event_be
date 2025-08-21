@@ -9,21 +9,34 @@ import org.springframework.stereotype.Service;
 
 import com.zbs.de.model.EventDecorExtrasSelection;
 import com.zbs.de.model.EventMenuFoodSelection;
+import com.zbs.de.repository.RepositoryDecorExtrasOption;
 import com.zbs.de.repository.RepositoryEventDecorExtrasSelection;
 import com.zbs.de.service.ServiceEventDecorExtrasSelection;
 
 @Service("serviceEventDecorExtrasSelectionImpl")
 public class ServiceEventDecorExtrasSelectionImpl implements ServiceEventDecorExtrasSelection {
 
+    private final RepositoryDecorExtrasOption repositoryDecorExtrasOption;
+
 	@Autowired
 	RepositoryEventDecorExtrasSelection repositoryEventDecorExtrasSelection;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
+    ServiceEventDecorExtrasSelectionImpl(RepositoryDecorExtrasOption repositoryDecorExtrasOption) {
+        this.repositoryDecorExtrasOption = repositoryDecorExtrasOption;
+    }
+
 	@Override
 	public String deleteByEventMasterId(Integer id) {
 		try {
-			repositoryEventDecorExtrasSelection.deleteByEventMasterId(id);
+			List<EventDecorExtrasSelection>  eventDecorExtrasSelectionLst= repositoryEventDecorExtrasSelection.findByEventMaster_SerEventMasterId(id);
+			
+			for(EventDecorExtrasSelection selection : eventDecorExtrasSelectionLst) {
+				selection.setBlnIsDeleted(true);
+				selection.setBlnIsApproved(false);
+				repositoryEventDecorExtrasSelection.save(selection);
+			}
 			return "Success";
 		} catch (Exception e) {
 			LOGGER.debug(e.getMessage(), e);
