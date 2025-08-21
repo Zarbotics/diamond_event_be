@@ -1376,7 +1376,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 			// ****** Setting Event Decor Extras ******
-			entity.getExtrasSelections().clear();
+			if(entity.getExtrasSelections() != null) {
+				entity.getExtrasSelections().clear();
+			}
+
 			if (UtilRandomKey.isNotNull(dtoEventMaster.getExtrasSelections()) && !dtoEventMaster.getExtrasSelections().isEmpty()) {
 //				serviceEventDecorExtrasSelection.deleteByEventMasterId(entity.getSerEventMasterId());
 
