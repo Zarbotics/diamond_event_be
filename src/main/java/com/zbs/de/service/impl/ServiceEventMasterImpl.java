@@ -1012,7 +1012,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //								
 //							}
 //						}
-						if (decorSelection.getSelectedProperties() != null) {
+						if (dto.getSelectedProperties() != null  && !dto.getSelectedProperties().isEmpty()) {
 							decorSelection.getSelectedProperties().clear();
 							List<EventDecorPropertySelection> newSelectedProperties = new  ArrayList<>();
 							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
@@ -1229,7 +1229,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //						}
 						
 						
-						if (decorSelection.getSelectedProperties() != null) {
+						if (dto.getSelectedProperties() != null  && !dto.getSelectedProperties().isEmpty()) {
 							decorSelection.getSelectedProperties().clear();
 							List<EventDecorPropertySelection> newSelectedProperties = new  ArrayList<>();
 							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
