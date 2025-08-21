@@ -63,6 +63,18 @@ public class MapperEventMaster {
 			dtoEventRunningOrder.setTxtGuestArrival(entity.getEventRunningOrder().getTxtGuestArrival());
 			dtoEventRunningOrder.setTxtMeal(entity.getEventRunningOrder().getTxtMeal());
 			dtoEventRunningOrder.setTxtNikah(entity.getEventRunningOrder().getTxtNikah());
+			dtoEventRunningOrder.setTxtBrideGuestArrival(entity.getEventRunningOrder().getTxtBrideGuestArrival());
+			dtoEventRunningOrder.setTxtGroomGuestArrival(entity.getEventRunningOrder().getTxtGroomGuestArrival());
+			dtoEventRunningOrder.setTxtGroomEntrance(entity.getEventRunningOrder().getTxtGroomEntrance());
+			dtoEventRunningOrder.setTxtCouplesEntrance(entity.getEventRunningOrder().getTxtCouplesEntrance());
+			dtoEventRunningOrder.setTxtDua(entity.getEventRunningOrder().getTxtDua());
+			dtoEventRunningOrder.setTxtDance(entity.getEventRunningOrder().getTxtDance());
+			dtoEventRunningOrder.setTxtCakeCutting(entity.getEventRunningOrder().getTxtCakeCutting());
+			dtoEventRunningOrder.setTxtRingExchange(entity.getEventRunningOrder().getTxtRingExchange());
+			dtoEventRunningOrder.setTxtRams(entity.getEventRunningOrder().getTxtRams());
+			dtoEventRunningOrder.setTxtSpeeches(entity.getEventRunningOrder().getTxtSpeeches());
+			dtoEventRunningOrder.setBlnIsActive(entity.getEventRunningOrder().getBlnIsActive());
+
 			dto.setDtoEventRunningOrder(dtoEventRunningOrder);
 		}
 

@@ -1424,7 +1424,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private Boolean isEventRegistrationCompleted(EventMaster eventMaster) {
 		if (eventMaster != null && eventMaster.getTxtEventMasterCode() != null && eventMaster.getDteEventDate() != null
 				&& eventMaster.getCustomerMaster() != null && eventMaster.getEventRunningOrder() != null
-				&& eventMaster.getEventType() != null && eventMaster.getVendorMaster() != null
+				&& eventMaster.getEventType() != null
 				&& (eventMaster.getVenueMaster() != null || eventMaster.getVenueMasterDetail() != null)
 				&& (eventMaster.getFoodSelections() != null && !eventMaster.getFoodSelections().isEmpty())
 				&& (eventMaster.getDecorSelections() != null && !eventMaster.getDecorSelections().isEmpty())) {
