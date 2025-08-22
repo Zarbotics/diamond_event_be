@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import com.zbs.de.controller.ControllerCateringDeliveryBooking;
-import com.zbs.de.controller.auth.AuthController;
 import com.zbs.de.mapper.MapperEventDecorCategorySelection;
 import com.zbs.de.mapper.MapperEventMaster;
 import com.zbs.de.mapper.MapperEventMenuFoodSelection;
@@ -47,8 +45,6 @@ import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
-import com.zbs.de.repository.RepositoryEventDecorCategorySelection;
-import com.zbs.de.repository.RepositoryEventDecorPropertySelection;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
@@ -75,9 +71,6 @@ import jakarta.transaction.Transactional;
 @Service("serviceEventMaster")
 public class ServiceEventMasterImpl implements ServiceEventMaster {
 
-	private final ControllerCateringDeliveryBooking controllerCateringDeliveryBooking;
-
-	private final AuthController authController;
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
 
@@ -118,12 +111,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private ServiceDecorExtrasOption serviceDecorExtrasOption;
 
 	@Autowired
-	private RepositoryEventDecorCategorySelection repositoryEventDecorCategorySelection;
-
-	@Autowired
-	private RepositoryEventDecorPropertySelection repositoryEventDecorPropertySelection;
-
-	@Autowired
 	private ServiceDecorCategoryPropertyMaster serviceDecorCategoryPropertyMaster;
 
 	@Autowired
@@ -133,12 +120,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private ServiceEmailSender serviceEmailSender;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
-
-	ServiceEventMasterImpl(AuthController authController,
-			ControllerCateringDeliveryBooking controllerCateringDeliveryBooking) {
-		this.authController = authController;
-		this.controllerCateringDeliveryBooking = controllerCateringDeliveryBooking;
-	}
 
 	public DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster) {
 		// Validate required IDs
@@ -911,6 +892,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtEventExtrasRemarks(dtoEventMaster.getTxtEventExtrasRemarks());
 				entity.setTxtEventRemarks(dtoEventMaster.getTxtEventRemarks());
 				entity.setTxtExternalSupplierRemarks(dtoEventMaster.getTxtExternalSupplierRemarks());
+				entity.setTxtVenueRemarks(dtoEventMaster.getTxtVenueRemarks());
 				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 					entity.setNumInfoFilledStatus(0);
 				}

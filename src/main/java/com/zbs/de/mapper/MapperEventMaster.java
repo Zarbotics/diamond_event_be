@@ -45,7 +45,8 @@ public class MapperEventMaster {
 		dto.setTxtEventExtrasRemarks(entity.getTxtEventExtrasRemarks());
 		dto.setTxtEventRemarks(entity.getTxtEventRemarks());
 		dto.setTxtExternalSupplierRemarks(entity.getTxtExternalSupplierRemarks());
-		
+		dto.setTxtVenueRemarks(entity.getTxtVenueRemarks());
+
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
 			dto.setTxtCustCode(entity.getCustomerMaster().getTxtCustCode());
@@ -125,14 +126,14 @@ public class MapperEventMaster {
 		entity.setTxtOtherEventType(dto.getTxtOtherEventType());
 		entity.setTxtEventStatus(dto.getTxtEventStatus());
 		entity.setBlnIsCouple(dto.getBlnIsCouple());
-		
 
 		entity.setTxtCateringRemarks(dto.getTxtCateringRemarks());
 		entity.setTxtDecoreRemarks(dto.getTxtDecoreRemarks());
 		entity.setTxtEventExtrasRemarks(dto.getTxtEventExtrasRemarks());
 		entity.setTxtEventRemarks(dto.getTxtEventRemarks());
 		entity.setTxtExternalSupplierRemarks(dto.getTxtExternalSupplierRemarks());
-		
+		entity.setTxtVenueRemarks(dto.getTxtVenueRemarks());
+
 		if (dto.getDtoEventDecorSelections() != null) {
 			List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()
 					.map(MapperEventDecorCategorySelection::toEntity).collect(Collectors.toList());
