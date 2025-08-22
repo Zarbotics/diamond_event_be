@@ -48,6 +48,7 @@ public class DtoEventMaster {
 	private String txtCateringRemarks;
 	private String txtExternalSupplierRemarks;
 	private String txtEventExtrasRemarks;
+	private String txtVenueRemarks;
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
@@ -399,6 +400,14 @@ public class DtoEventMaster {
 
 	public void setTxtEventExtrasRemarks(String txtEventExtrasRemarks) {
 		this.txtEventExtrasRemarks = txtEventExtrasRemarks;
+	}
+
+	public String getTxtVenueRemarks() {
+		return txtVenueRemarks;
+	}
+
+	public void setTxtVenueRemarks(String txtVenueRemarks) {
+		this.txtVenueRemarks = txtVenueRemarks;
 	}
 
 }
