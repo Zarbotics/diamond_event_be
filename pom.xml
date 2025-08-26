@@ -112,6 +112,19 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports</artifactId>
+			<version>6.21.0</version> <!-- or latest -->
+		</dependency>
+		<!-- fonts for PDF (optional but recommended) -->
+		<dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports-fonts</artifactId>
+			<version>6.21.0</version>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>
