@@ -64,7 +64,12 @@ public class MapperCustomerMaster {
 		entity.setTxtAddress1(dto.getTxtAddress1());
 		entity.setTxtAddress2(dto.getTxtAddress2());
 		entity.setAddress3(dto.getAddress3());
-		entity.setTxtCustName(dto.getTxtCustName());
+
+		if (dto.getTxtCustName() != null) {
+			entity.setTxtCustName(dto.getTxtCustName());
+		} else {
+			entity.setTxtCustName(dto.getTxtFirstName() + " " + dto.getTxtLastName());
+		}
 		entity.setTxt_phone_number_1(dto.getTxt_phone_number_1());
 		entity.setTxt_phone_number_2(dto.getTxt_phone_number_2());
 		entity.setTxtEmail(dto.getTxtEmail());

@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface ServiceNotificationMaster {
 	DtoNotificationMaster createNotification(Long userId, String title, String message, String targetUrl, String type);
+	
+	void sendNotification(Long userId, DtoNotificationMaster notification);
 
 	Page<DtoNotificationMaster> getUserNotifications(Long userId, Pageable pageable);
 

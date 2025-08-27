@@ -50,6 +50,7 @@ public class ServiceNotificationMasterImpl implements ServiceNotificationMaster 
 	/**
 	 * Push a notification to a specific user via SSE.
 	 */
+	@Override
 	public void sendNotification(Long userId, DtoNotificationMaster notification) {
 		SseEmitter emitter = clients.get(userId);
 		if (emitter != null) {
@@ -119,7 +120,7 @@ public class ServiceNotificationMasterImpl implements ServiceNotificationMaster 
 	}
 
 	// Send heartbeat every 15 seconds to keep connection alive
-	@Scheduled(fixedRate = 30000) // 15 seconds
+	@Scheduled(fixedRate = 60000) // 15 seconds
 	public void sendHeartbeats() {
 		clients.forEach((userId, emitter) -> {
 			try {
