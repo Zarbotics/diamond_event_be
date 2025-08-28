@@ -97,15 +97,38 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 					return dtoResult;
 				}
 				for (DtoDecorCategoryPropertyMaster property : dto.getCategoryProperties()) {
-					DecorCategoryPropertyMaster entity = new DecorCategoryPropertyMaster();
-					entity.setDecorCategoryMaster(decorCategoryMaster);
-					entity.setTxtPropertyName(property.getTxtPropertyName());
-					entity.setTxtInputType(property.getTxtInputType());
-					entity.setTxtRemarks(property.getTxtRemarks());
-					entity.setBlnIsActive(property.getBlnIsActive());
-					entity.setBlnIsApproved(true);
-					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
-					entity.setBlnIsRequired(property.getBlnIsRequired());
+
+					Optional<DecorCategoryPropertyMaster> optional = null;
+					DecorCategoryPropertyMaster entity = null;
+					if (property.getSerPropertyId() != null) {
+						optional = this.repositoryDecorCategoryPropertyMaster
+								.findBySerPropertyIdAndBlnIsDeletedFalse(property.getSerPropertyId());
+						if (optional == null || optional.isEmpty()) {
+							return new DtoResult("Invalid Propety ID" + property.getSerPropertyId(), null, null, null);
+						}
+					}
+
+					if (optional == null || optional.isEmpty()) {
+						entity = new DecorCategoryPropertyMaster();
+						entity.setDecorCategoryMaster(decorCategoryMaster);
+						entity.setTxtPropertyName(property.getTxtPropertyName());
+						entity.setTxtInputType(property.getTxtInputType());
+						entity.setTxtRemarks(property.getTxtRemarks());
+						entity.setBlnIsActive(property.getBlnIsActive());
+						entity.setBlnIsApproved(true);
+						entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+						entity.setBlnIsRequired(property.getBlnIsRequired());
+					} else {
+						entity = optional.get();
+						entity.setDecorCategoryMaster(decorCategoryMaster);
+						entity.setTxtPropertyName(property.getTxtPropertyName());
+						entity.setTxtInputType(property.getTxtInputType());
+						entity.setTxtRemarks(property.getTxtRemarks());
+						entity.setBlnIsActive(property.getBlnIsActive());
+						entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+						entity.setBlnIsRequired(property.getBlnIsRequired());
+					}
+
 					repositoryDecorCategoryPropertyMaster.save(entity);
 				}
 				dtoResult.setTxtMessage("Success");
