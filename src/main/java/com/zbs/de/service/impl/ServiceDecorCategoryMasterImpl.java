@@ -110,7 +110,7 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 			DecorCategoryMaster entity = null;
 			if (dto.getSerDecorCategoryId() != null) {
 				decOptional = this.repositoryDecorCategoryMaster
-						.findByIdAndBlnIsDeletedFalse(dto.getSerDecorCategoryId());
+						.findBySerDecorCategoryIdAndBlnIsDeletedFalse(dto.getSerDecorCategoryId());
 				if (decOptional == null || decOptional.isEmpty()) {
 					return new DtoResult("No Category Found For the Given Category Id In DB", null, null, null);
 				}

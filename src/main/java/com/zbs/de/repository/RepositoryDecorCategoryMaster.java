@@ -13,6 +13,6 @@ public interface RepositoryDecorCategoryMaster extends JpaRepository<DecorCatego
 
 	List<DecorCategoryMaster> findByBlnIsDeletedFalse();
 
-	Optional<DecorCategoryMaster> findByIdAndBlnIsDeletedFalse(int serDecorCategoryId);
+	Optional<DecorCategoryMaster> findBySerDecorCategoryIdAndBlnIsDeletedFalse(int serDecorCategoryId);
 
 }
