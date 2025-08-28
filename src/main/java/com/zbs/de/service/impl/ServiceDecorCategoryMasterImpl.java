@@ -130,7 +130,7 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 			}
 			List<DecorCategoryReferenceDocument> docEntities = new ArrayList<>();
 
-			if (documents != null && documents.length > 0) {
+			if (documents != null && documents.length > 0 && dto.getReferenceDocuments() != null && !dto.getReferenceDocuments().isEmpty()) {
 				for (MultipartFile file : documents) {
 					String uploadPath = UtilFileStorage.saveFile(file, "decorCategory");
 
