@@ -144,9 +144,10 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 
 					docEntities.add(document);
 				}
+				entity.setReferenceDocuments(docEntities);
 			}
 
-			entity.setReferenceDocuments(docEntities);
+
 			repositoryDecorCategoryMaster.save(entity);
 
 			return new DtoResult("Saved successfully", null, MapperDecorCategoryMaster.toDto(entity), null);
