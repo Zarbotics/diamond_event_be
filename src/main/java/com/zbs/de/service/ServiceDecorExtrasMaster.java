@@ -25,5 +25,7 @@ public interface ServiceDecorExtrasMaster {
 	DtoResult deleteExtrasOptionById(Integer id);
 	
 	List<DecorExtrasMaster> getAllDecorExtrasMaster();
+	
+	 DtoResult saveAndUpdate(DtoDecorExtrasMaster dto);
 
 }

@@ -47,6 +47,20 @@ public class ControllerDecorExtrasMaster {
 		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
 				decorExtrasMaster);
 	}
+	
+	
+
+	@PostMapping(value = "/saveAndUpdate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseMessage saveWithDocs(@RequestBody DtoDecorExtrasMaster dtoDecorExtrasMaster) {
+		LOGGER.info("Saving Event Master: {}", dtoDecorExtrasMaster);
+		DtoResult result = serviceDecorExtrasMaster.saveAndUpdate(dtoDecorExtrasMaster);
+		if (result != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
+				dtoDecorExtrasMaster);
+	}
+	
 
 	@PostMapping(value = "/getAllData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllData(HttpServletRequest request) {
