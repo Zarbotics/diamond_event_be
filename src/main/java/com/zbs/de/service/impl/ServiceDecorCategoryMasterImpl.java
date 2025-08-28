@@ -105,7 +105,29 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 	@Override
 	public DtoResult saveWithDocuments(DtoDecorCategoryMaster dto, MultipartFile[] documents) {
 		try {
-			DecorCategoryMaster entity = MapperDecorCategoryMaster.toEntity(dto);
+//			DecorCategoryMaster entity = MapperDecorCategoryMaster.toEntity(dto);
+			Optional<DecorCategoryMaster> decOptional = null;
+			DecorCategoryMaster entity = null;
+			if (dto.getSerDecorCategoryId() != null) {
+				decOptional = this.repositoryDecorCategoryMaster
+						.findByIdAndBlnIsDeletedFalse(dto.getSerDecorCategoryId());
+				if (decOptional == null || decOptional.isEmpty()) {
+					return new DtoResult("No Category Found For the Given Category Id In DB", null, null, null);
+				}
+			}
+
+			if (decOptional == null || decOptional.isEmpty()) {
+				entity = MapperDecorCategoryMaster.toEntity(dto);
+				entity.setBlnIsActive(true);
+				entity.setBlnIsApproved(true);
+				entity.setBlnIsDeleted(false);
+
+			} else {
+				entity = decOptional.get();
+				entity.setTxtDecorCategoryCode(dto.getTxtDecorCategoryCode());
+				entity.setTxtDecorCategoryName(dto.getTxtDecorCategoryName());
+				entity.setBlnIsActive(dto.getBlnIsActive());
+			}
 			List<DecorCategoryReferenceDocument> docEntities = new ArrayList<>();
 
 			if (documents != null && documents.length > 0) {
