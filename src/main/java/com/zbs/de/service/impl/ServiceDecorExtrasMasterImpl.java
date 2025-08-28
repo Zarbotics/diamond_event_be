@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.zbs.de.controller.ControllerEventType;
 import com.zbs.de.mapper.MapperDecorExtrasMaster;
+import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.DecorExtrasMaster;
 import com.zbs.de.model.DecorExtrasOption;
 import com.zbs.de.model.DecorExtrasOptionDocument;
@@ -53,6 +54,8 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 					return dtoResult;
 				}
 
+				List<DecorExtrasOption> existingValues = decorExtrasMaster.getDecorExtrasOptions();
+				decorExtrasMaster.setDecorExtrasOptions(existingValues);
 				decorExtrasMaster.setTxtExtrasCode(dto.getTxtExtrasCode());
 				decorExtrasMaster.setTxtExtrasName(dto.getTxtExtrasName());
 				decorExtrasMaster.setBlnIsActive(dto.getBlnIsActive());
