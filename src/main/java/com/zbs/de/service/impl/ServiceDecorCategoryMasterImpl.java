@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.zbs.de.controller.ControllerEventType;
 import com.zbs.de.mapper.MapperDecorCategoryMaster;
 import com.zbs.de.model.DecorCategoryMaster;
+import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryReferenceDocument;
 import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoResult;
@@ -124,6 +125,8 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 
 			} else {
 				entity = decOptional.get();
+				List<DecorCategoryPropertyMaster> existingValues = entity.getCategoryProperties();
+				entity.setCategoryProperties(existingValues);
 				entity.setTxtDecorCategoryCode(dto.getTxtDecorCategoryCode());
 				entity.setTxtDecorCategoryName(dto.getTxtDecorCategoryName());
 				entity.setBlnIsActive(dto.getBlnIsActive());

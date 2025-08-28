@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.zbs.de.mapper.MapperDecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryMaster;
 import com.zbs.de.model.DecorCategoryPropertyMaster;
+import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoResult;
@@ -120,6 +121,8 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 						entity.setBlnIsRequired(property.getBlnIsRequired());
 					} else {
 						entity = optional.get();
+						List<DecorCategoryPropertyValue> existingValues = entity.getPropertyValues();
+						entity.setPropertyValues(existingValues);
 						entity.setDecorCategoryMaster(decorCategoryMaster);
 						entity.setTxtPropertyName(property.getTxtPropertyName());
 						entity.setTxtInputType(property.getTxtInputType());
