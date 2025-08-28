@@ -50,6 +50,9 @@ public class DtoEventMaster {
 	private String txtEventExtrasRemarks;
 	private String txtVenueRemarks;
 
+	private String dteCreatedDate;
+	private String dteUpdateDate;
+
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
 
@@ -408,6 +411,22 @@ public class DtoEventMaster {
 
 	public void setTxtVenueRemarks(String txtVenueRemarks) {
 		this.txtVenueRemarks = txtVenueRemarks;
+	}
+
+	public String getDteCreatedDate() {
+		return dteCreatedDate;
+	}
+
+	public void setDteCreatedDate(String dteCreatedDate) {
+		this.dteCreatedDate = dteCreatedDate;
+	}
+
+	public String getDteUpdateDate() {
+		return dteUpdateDate;
+	}
+
+	public void setDteUpdateDate(String dteUpdateDate) {
+		this.dteUpdateDate = dteUpdateDate;
 	}
 
 }
