@@ -1153,7 +1153,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 
 			} else {
-				// Create new
+				
+				//******************************************
+				//*************** Create New ***************
+				//******************************************
+				
 				blnIsNewEvent = true;
 				entity = MapperEventMaster.toEntity(dtoEventMaster);
 				entity.setEventRunningOrder(null);
