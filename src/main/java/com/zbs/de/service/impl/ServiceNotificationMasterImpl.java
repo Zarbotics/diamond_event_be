@@ -65,20 +65,22 @@ public class ServiceNotificationMasterImpl implements ServiceNotificationMaster 
 	@Override
 	public DtoNotificationMaster createNotification(Long userId, String title, String message, String targetUrl,
 			String type) {
-		UserMaster user = userRepo.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found"));
+		NotificationMaster notification = null;
+		List<UserMaster> userMasterLst = userRepo.getAdminUsersForEmail();
+		if (userMasterLst != null && !userMasterLst.isEmpty()) {
+			for (UserMaster user : userMasterLst) {
+				notification = new NotificationMaster();
+				notification.setTxtTitle(title);
+				notification.setTxtMessage(message);
+				notification.setTxtTargetUrl(targetUrl);
+				notification.setTxtType(type);
+				notification.setBlnIsRead(false);
+				notification.setUserMaster(user);
+				notification = notificationRepo.save(notification);
+				sendNotification(user.getSerUserId(), MapperNotificationMaster.toDto(notification));
+			}
 
-		NotificationMaster notification = new NotificationMaster();
-		notification.setUserMaster(user);
-		notification.setTxtTitle(title);
-		notification.setTxtMessage(message);
-		notification.setTxtTargetUrl(targetUrl);
-		notification.setTxtType(type);
-		notification.setBlnIsRead(false);
-
-		notification = notificationRepo.save(notification);
-
-		// Send the notification in real-time via SSE
-		sendNotification(userId, MapperNotificationMaster.toDto(notification));
+		}
 
 		return MapperNotificationMaster.toDto(notification);
 	}
