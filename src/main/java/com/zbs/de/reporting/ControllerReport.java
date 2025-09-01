@@ -25,5 +25,13 @@ public class ControllerReport {
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_report.pdf")
 				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
 	}
+	
+	@GetMapping("/eventClientSide/{eventId}")
+	public ResponseEntity<byte[]> getEventReportClientSide(@PathVariable Integer eventId) throws Exception {
+		byte[] pdfBytes = reportService.generateEventReportClientSide(eventId);
+
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_summary_client_side.pdf")
+				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
+	}
 
 }

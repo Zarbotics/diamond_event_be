@@ -26,6 +26,7 @@ public class ServiceReportImpl implements ServiceReport {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
 
+	@Override
 	public byte[] generateEventReport(Integer eventId) throws Exception {
 
 		try {
@@ -35,6 +36,30 @@ public class ServiceReportImpl implements ServiceReport {
 
 			// Load the compiled report
 			InputStream reportStream = getClass().getResourceAsStream("/reports/event/event_master_summary.jasper");
+			JasperReport jasperReport = (JasperReport) JRLoader.loadObject(reportStream);
+
+			// Fill report with data
+			JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, dataSource.getConnection());
+
+			// Export to PDF (can also do XLSX/HTML)
+			return JasperExportManager.exportReportToPdf(jasperPrint);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
+
+	}
+	
+	@Override
+	public byte[] generateEventReportClientSide(Integer eventId) throws Exception {
+
+		try {
+			// Parameters for report
+			Map<String, Object> params = new HashMap<>();
+			params.put("EVENT_ID", eventId);
+
+			// Load the compiled report
+			InputStream reportStream = getClass().getResourceAsStream("/reports/event/event_master_summary_client.jasper");
 			JasperReport jasperReport = (JasperReport) JRLoader.loadObject(reportStream);
 
 			// Fill report with data
