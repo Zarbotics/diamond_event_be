@@ -117,7 +117,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceDecorCategoryPropertyValue serviceDecorCategoryPropertyValue;
-	
+
 	@Autowired
 	private ServiceNotificationMaster serviceNotificationMaster;
 
@@ -1402,8 +1402,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 			entity = repositoryEventMaster.save(entity);
-			
-			
+
 			// ***** Sending Notification Of New Customer Registration *****
 			if (blnIsNewEvent) {
 				this.sendNewEventRegistrationNotification(
@@ -1419,6 +1418,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
 							entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
 							entity.getDteEventDate());
+
+					// ***** Send Email To All Admin Users ********
+					serviceEmailSender.sendEventRegistrationEmailToAdminUsers(userMaster.getTxtName(), entity.getTxtEventMasterCode(),
+							entity.getEventType().getTxtEventTypeName(), entity.getDteEventDate());
+
 					dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
 							+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");
 				} else {
@@ -1589,17 +1593,14 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		}
 		return null;
 	}
-	
-	
-	private void sendNewEventRegistrationNotification(String eventTypeName, String txtEventCode, String Date, Integer Id ) {
+
+	private void sendNewEventRegistrationNotification(String eventTypeName, String txtEventCode, String Date,
+			Integer Id) {
 		// Inside ServiceEventMasterImpl, after saving event
 		DtoNotificationMaster notif = serviceNotificationMaster.createNotification(
-		    ServiceCurrentUser.getCurrentUserId().longValue(),
-		    "Event Registered",
-		    "A New '" + eventTypeName + "' Event With Code '"+txtEventCode +"'  Is Registered for " + Date,
-		    "/eventMaster/getByEventId" + Id,
-		    "EVENT_REGISTERED"
-		);
+				ServiceCurrentUser.getCurrentUserId().longValue(), "Event Registered",
+				"A New '" + eventTypeName + "' Event With Code '" + txtEventCode + "'  Is Registered for " + Date,
+				"/eventMaster/getByEventId" + Id, "EVENT_REGISTERED");
 
 		serviceNotificationMaster.sendNotification(ServiceCurrentUser.getCurrentUserId().longValue(), notif);
 	}

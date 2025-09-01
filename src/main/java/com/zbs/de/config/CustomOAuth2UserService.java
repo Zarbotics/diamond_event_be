@@ -108,6 +108,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 			newUser.setBlnIsActive(true);
 			newUser.setBlnIsDeleted(false);
 			newUser.setBlnIsApproved(false);
+			newUser.setBlnReceiveEmail(false);
 			newUser.setCreatedDate(UtilDateAndTime.getCurrentDate());
 			newUser.setTxtRole("ROLE_USER");
 
