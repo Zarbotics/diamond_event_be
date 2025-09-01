@@ -79,6 +79,15 @@
 	<field name="txt_catering_remarks" class="java.lang.String" />
 	<field name="txt_event_extras_remarks" class="java.lang.String" />
 	<field name="txt_venue_remarks" class="java.lang.String" />
+	<background>
+		<band height="802">
+			<rectangle>
+				<reportElement x="0" y="0" width="595" height="802" backcolor="#EEEDE4"
+					uuid="d4e5f6a7-b8c9-4d0e-9f10-111213141516" />
+			</rectangle>
+		</band>
+	</background>
+
 	<title>
 		<band height="802">
 			<image>
@@ -113,29 +122,6 @@
 		</band>
 	</title>
 
-	<pageHeader>
-		<band height="802">
-			<rectangle>
-				<reportElement x="0" y="0" width="555" height="802" backcolor="#F0F0F0" />
-			</rectangle>
-			<image>
-				<reportElement x="0" y="0" width="120" height="60"
-					uuid="5a6e2471-8948-44bf-ba1a-01968b495dc7" />
-				<imageExpression><![CDATA["C:/Users/T15/Documents/Jasper_Reports/de_logo.png"]]></imageExpression>
-			</image>
-			<staticText>
-				<reportElement style="Title" x="150" y="10" width="300" height="30"
-					uuid="52809529-f288-48fc-81d7-c58e7ce0ca1d" />
-				<text><![CDATA[Event Summary]]></text>
-			</staticText>
-			<textField>
-				<reportElement x="360" y="12" width="195" height="18"
-					uuid="440df09f-2d67-4961-92cd-f45529fae711" />
-				<textElement textAlignment="Right" />
-				<textFieldExpression><![CDATA["Date: " + new java.text.SimpleDateFormat("dd-MM-yyyy").format($F{dte_event_date})]]></textFieldExpression>
-			</textField>
-		</band>
-	</pageHeader>
 	<detail>
 		<band height="620" splitType="Stretch">
 			<staticText>
