@@ -31,7 +31,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						// Allow OPTIONS preflight requests
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-						.requestMatchers("/", "/auth/login**", "/auth/logout**", "/auth/signup**", "/auth/confirm**","/deimg/**","/deimg**",
+						.requestMatchers("/", "/auth/login**", "/auth/logout**", "/auth/signup**", "/auth/confirm**","/deimg/**","/deimg**","/report/**",
 								"/auth/refresh-token**", "/login**", "/error", "/public/**")
 						.permitAll().anyRequest().authenticated())
 				.oauth2Login(

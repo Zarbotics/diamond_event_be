@@ -8,6 +8,9 @@ public class DtoDecorExtrasOption {
 	private Boolean blnIsDocument;
 	private Boolean blnIsActive;
 	private DtoDecorExtrasOptionDocument document;
+	private Integer serExtrasId;
+	private String txtExtrasCode;
+	private String txtExtrasName;
 
 	public Integer getSerExtraOptionId() {
 		return serExtraOptionId;
@@ -55,6 +58,30 @@ public class DtoDecorExtrasOption {
 
 	public void setDocument(DtoDecorExtrasOptionDocument document) {
 		this.document = document;
+	}
+
+	public Integer getSerExtrasId() {
+		return serExtrasId;
+	}
+
+	public void setSerExtrasId(Integer serExtrasId) {
+		this.serExtrasId = serExtrasId;
+	}
+
+	public String getTxtExtrasCode() {
+		return txtExtrasCode;
+	}
+
+	public void setTxtExtrasCode(String txtExtrasCode) {
+		this.txtExtrasCode = txtExtrasCode;
+	}
+
+	public String getTxtExtrasName() {
+		return txtExtrasName;
+	}
+
+	public void setTxtExtrasName(String txtExtrasName) {
+		this.txtExtrasName = txtExtrasName;
 	}
 
 }

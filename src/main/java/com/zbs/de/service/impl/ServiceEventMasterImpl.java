@@ -43,6 +43,7 @@ import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMenuFoodSelection;
 import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
+import com.zbs.de.model.dto.DtoNotificationMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.repository.RepositoryEventMaster;
@@ -60,6 +61,7 @@ import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.service.ServiceEventMenuFoodSelection;
 import com.zbs.de.service.ServiceEventType;
 import com.zbs.de.service.ServiceMenuFoodMaster;
+import com.zbs.de.service.ServiceNotificationMaster;
 import com.zbs.de.service.ServiceVendorMaster;
 import com.zbs.de.service.ServiceVenueMaster;
 import com.zbs.de.util.UtilDateAndTime;
@@ -115,6 +117,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceDecorCategoryPropertyValue serviceDecorCategoryPropertyValue;
+
+	@Autowired
+	private ServiceNotificationMaster serviceNotificationMaster;
 
 	@Autowired
 	private ServiceEmailSender serviceEmailSender;
@@ -834,6 +839,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				return dtoResult;
 			}
 
+			Boolean blnIsNewEvent = false;
 			// Fetch existing if exists
 			Optional<EventMaster> optionalExisting = null;
 			if (dtoEventMaster.getSerEventMasterId() != null) {
@@ -1148,6 +1154,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			} else {
 				// Create new
+				blnIsNewEvent = true;
 				entity = MapperEventMaster.toEntity(dtoEventMaster);
 				entity.setEventRunningOrder(null);
 				entity.setEventType(null);
@@ -1396,12 +1403,26 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			entity = repositoryEventMaster.save(entity);
 
+			// ***** Sending Notification Of New Customer Registration *****
+			if (blnIsNewEvent) {
+				this.sendNewEventRegistrationNotification(
+						entity.getEventType() != null ? entity.getEventType().getTxtEventTypeName() : "",
+						entity.getTxtEventMasterCode() != null ? entity.getTxtEventMasterCode() : "",
+						dtoEventMaster.getDteEventDate() != null ? dtoEventMaster.getDteEventDate() : "",
+						entity.getSerEventMasterId());
+			}
+
 			if (this.isEventRegistrationCompleted(entity)) {
 				UserMaster userMaster = ServiceCurrentUser.getCurrentUser();
 				if (userMaster != null) {
 					serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
 							entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
 							entity.getDteEventDate());
+
+					// ***** Send Email To All Admin Users ********
+					serviceEmailSender.sendEventRegistrationEmailToAdminUsers(userMaster.getTxtName(), entity.getTxtEventMasterCode(),
+							entity.getEventType().getTxtEventTypeName(), entity.getDteEventDate());
+
 					dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
 							+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");
 				} else {
@@ -1571,5 +1592,16 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			return "Mains";
 		}
 		return null;
+	}
+
+	private void sendNewEventRegistrationNotification(String eventTypeName, String txtEventCode, String Date,
+			Integer Id) {
+		// Inside ServiceEventMasterImpl, after saving event
+		DtoNotificationMaster notif = serviceNotificationMaster.createNotification(
+				ServiceCurrentUser.getCurrentUserId().longValue(), "Event Registered",
+				"A New '" + eventTypeName + "' Event With Code '" + txtEventCode + "'  Is Registered for " + Date,
+				"/eventMaster/getByEventId" + Id, "EVENT_REGISTERED");
+
+		serviceNotificationMaster.sendNotification(ServiceCurrentUser.getCurrentUserId().longValue(), notif);
 	}
 }

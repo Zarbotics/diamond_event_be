@@ -149,7 +149,7 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
 
-	@OneToMany(mappedBy = "eventMaster")
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
 	@OneToMany(mappedBy = "eventMaster")

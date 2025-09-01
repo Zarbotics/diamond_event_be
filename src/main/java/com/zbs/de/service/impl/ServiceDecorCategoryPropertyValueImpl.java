@@ -102,12 +102,34 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 						.collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
 
 				for (DtoDecorCategoryPropertyValue value : dto.getPropertyValues()) {
-					DecorCategoryPropertyValue entity = new DecorCategoryPropertyValue();
-					entity.setDecorCategoryProperty(decorCategoryPropertyMaster);
-					entity.setTxtPropertyValue(value.getTxtPropertyValue());
-					entity.setBlnIsActive(value.getBlnIsActive());
-					entity.setBlnIsApproved(true);
-					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+
+					Optional<DecorCategoryPropertyValue> optional = null;
+					DecorCategoryPropertyValue entity = null;
+					if (value.getSerPropertyValueId() != null) {
+						optional = this.repositoryDecorCategoryPropertyValue
+								.findBySerPropertyValueIdAndBlnIsDeletedFalse(value.getSerPropertyValueId());
+						if (optional == null || optional.isEmpty()) {
+							return new DtoResult("In Valid Value Id: " + value.getSerPropertyValueId(), null, null,
+									null);
+						}
+					}
+
+					if (optional == null || optional.isEmpty()) {
+						entity = new DecorCategoryPropertyValue();
+						entity.setDecorCategoryProperty(decorCategoryPropertyMaster);
+						entity.setTxtPropertyValue(value.getTxtPropertyValue());
+						entity.setBlnIsActive(true);
+						entity.setBlnIsApproved(true);
+						entity.setBlnIsDeleted(false);
+						entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+
+					} else {
+						entity = optional.get();
+						entity.setDecorCategoryProperty(decorCategoryPropertyMaster);
+						entity.setTxtPropertyValue(value.getTxtPropertyValue());
+						entity.setBlnIsActive(value.getBlnIsActive());
+						entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+					}
 
 					// *******Saving Document********
 					if (value.getDocument() != null && value.getDocument().getOriginalName() != null) {

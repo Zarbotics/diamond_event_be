@@ -4,9 +4,12 @@ import com.zbs.de.mapper.MapperCustomerMaster;
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.dto.DtoCustomerMaster;
 import com.zbs.de.model.dto.DtoDashboardCustomer;
+import com.zbs.de.model.dto.DtoNotificationMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryCustomerMaster;
 import com.zbs.de.service.ServiceCustomerMaster;
+import com.zbs.de.service.ServiceEmailSender;
+import com.zbs.de.service.ServiceNotificationMaster;
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilDateAndTime;
 
@@ -22,10 +25,17 @@ import org.springframework.stereotype.Service;
 @Service("serviceCustomerMaster")
 public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
 	@Autowired
 	RepositoryCustomerMaster repositoryCustomerMaster;
 
+	@Autowired
+	ServiceNotificationMaster serviceNotificationMaster;
+	
+	@Autowired
+	private ServiceEmailSender serviceEmailSender;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
+	
 	public List<DtoCustomerMaster> getAllData() {
 		List<CustomerMaster> list = repositoryCustomerMaster.findByBlnIsDeleted(false);
 		List<DtoCustomerMaster> dtolist = new ArrayList<>();
@@ -43,8 +53,8 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 		ResponseMessage res = new ResponseMessage();
 		try {
 			LOGGER.info("Save or update CustomerMaster");
-			
-			
+
+			Boolean blnIsNewCustomer = false;
 
 			String email = dtoCustomerMaster.getTxtEmail();
 			if (email == null || email.trim().isEmpty()) {
@@ -67,7 +77,12 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster.setTxtAddress1(dtoCustomerMaster.getTxtAddress1());
 				customerMaster.setTxtAddress2(dtoCustomerMaster.getTxtAddress2());
 				customerMaster.setAddress3(dtoCustomerMaster.getAddress3());
-				customerMaster.setTxtCustName(dtoCustomerMaster.getTxtCustName());
+				if (dtoCustomerMaster.getTxtCustName() != null) {
+					customerMaster.setTxtCustName(dtoCustomerMaster.getTxtCustName());
+				} else {
+					customerMaster.setTxtCustName(
+							dtoCustomerMaster.getTxtFirstName() + " " + dtoCustomerMaster.getTxtLastName());
+				}
 				customerMaster.setTxt_phone_number_1(dtoCustomerMaster.getTxt_phone_number_1());
 				customerMaster.setTxt_phone_number_2(dtoCustomerMaster.getTxt_phone_number_2());
 				customerMaster.setTxtEmail(dtoCustomerMaster.getTxtEmail());
@@ -85,10 +100,11 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster.setTxtLastName(dtoCustomerMaster.getTxtLastName());
 				customerMaster.setUpdatedDate(UtilDateAndTime.getCurrentDate());
 				customerMaster.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
-				
+
 				LOGGER.info("Updating existing customer with email: " + email);
 			} else {
 				// Create new
+				blnIsNewCustomer = true;
 				customerMaster = MapperCustomerMaster.toEntity(dtoCustomerMaster);
 				customerMaster.setTxtCustCode(this.generateCustomerCode());
 				customerMaster.setCreatedDate(UtilDateAndTime.getCurrentDate());
@@ -97,9 +113,22 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster.setBlnIsApproved(true);
 				customerMaster.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 				LOGGER.info("Creating new customer with email: " + email);
+
 			}
 
 			customerMaster = repositoryCustomerMaster.saveAndFlush(customerMaster);
+			// ***** Sending Notification AND EmailTOAdmin Of New Customer Registration
+			// *****
+			if (blnIsNewCustomer) {
+				sendNewCustomerNotification(customerMaster.getTxtCustName(),
+						customerMaster.getTxtEmail() != null ? customerMaster.getTxtEmail() : "",
+						customerMaster.getSerCustId());
+				// ***** Send Email To All Admin Users ********
+				serviceEmailSender.sendNewCustomerRegistrationEmailToAdminUsers(customerMaster.getTxtCustName(),
+						customerMaster.getTxtCustCode(), customerMaster.getTxtEmail(),
+						customerMaster.getTxt_phone_number_1());
+
+			}
 			res.setMessage("Saved Successfully");
 			res.setResult(customerMaster);
 			return res;
@@ -206,7 +235,6 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 		return dto;
 	}
 
-	
 	@Override
 	public DtoResult deleteById(Integer id) {
 		DtoResult result = new DtoResult();
@@ -220,5 +248,15 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 			result.setTxtMessage("No record found to delete");
 		}
 		return result;
+	}
+
+	private void sendNewCustomerNotification(String txtName, String txtEmail, Integer id) {
+		// Inside ServiceEventMasterImpl, after saving event
+		DtoNotificationMaster notif = serviceNotificationMaster.createNotification(
+				ServiceCurrentUser.getCurrentUserId().longValue(), "New Customer Registered",
+				"A New Customer With Name'" + txtName + "' Against Email '" + txtEmail + "' Is Registered.",
+				"/customerMaster/getById" + id, "CUSTOMER_REGISTERED");
+
+		serviceNotificationMaster.sendNotification(ServiceCurrentUser.getCurrentUserId().longValue(), notif);
 	}
 }

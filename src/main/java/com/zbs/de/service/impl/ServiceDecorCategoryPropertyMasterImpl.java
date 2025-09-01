@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.zbs.de.mapper.MapperDecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryMaster;
 import com.zbs.de.model.DecorCategoryPropertyMaster;
+import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
 import com.zbs.de.model.dto.DtoResult;
@@ -39,14 +40,62 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 
 	@Override
 	public DtoResult saveOrUpdate(DtoDecorCategoryPropertyMaster dto) {
-		DecorCategoryPropertyMaster entity = MapperDecorCategoryPropertyMaster.toEntity(dto);
-		if (dto.getSerDecorCategoryId() != null) {
-			entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
-		} else {
-			entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+		DtoResult dtoResult = new DtoResult();
+		try {
+			if (UtilRandomKey.isNotNull(dto) && UtilRandomKey.isNotNull(dto.getSerDecorCategoryId())) {
+				DecorCategoryMaster decorCategoryMaster = serviceDecorCategoryMaster
+						.getByPK(dto.getSerDecorCategoryId());
+				if (UtilRandomKey.isNull(decorCategoryMaster)) {
+					dtoResult.setTxtMessage("Invalid Category Id:" + dto.getSerDecorCategoryId());
+					return dtoResult;
+				}
+
+				Optional<DecorCategoryPropertyMaster> optional = null;
+				DecorCategoryPropertyMaster entity = null;
+				if (dto.getSerPropertyId() != null) {
+					optional = this.repositoryDecorCategoryPropertyMaster
+							.findBySerPropertyIdAndBlnIsDeletedFalse(dto.getSerPropertyId());
+					if (optional == null || optional.isEmpty()) {
+						return new DtoResult("Invalid Propety ID" + dto.getSerPropertyId(), null, null, null);
+					}
+				}
+
+				if (optional == null || optional.isEmpty()) {
+					entity = new DecorCategoryPropertyMaster();
+					entity.setDecorCategoryMaster(decorCategoryMaster);
+					entity.setTxtPropertyName(dto.getTxtPropertyName());
+					entity.setTxtInputType(dto.getTxtInputType());
+					entity.setTxtRemarks(dto.getTxtRemarks());
+					entity.setBlnIsActive(dto.getBlnIsActive());
+					entity.setBlnIsApproved(true);
+					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+					entity.setBlnIsRequired(dto.getBlnIsRequired());
+				} else {
+					entity = optional.get();
+					List<DecorCategoryPropertyValue> existingValues = entity.getPropertyValues();
+					entity.setPropertyValues(existingValues);
+					entity.setDecorCategoryMaster(decorCategoryMaster);
+					entity.setTxtPropertyName(dto.getTxtPropertyName());
+					entity.setTxtInputType(dto.getTxtInputType());
+					entity.setTxtRemarks(dto.getTxtRemarks());
+					entity.setBlnIsActive(dto.getBlnIsActive());
+					entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+					entity.setBlnIsRequired(dto.getBlnIsRequired());
+				}
+
+				repositoryDecorCategoryPropertyMaster.save(entity);
+				dtoResult.setTxtMessage("Success");
+			} else {
+				dtoResult.setTxtMessage("Invalid Data");
+				return dtoResult;
+			}
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
 		}
-		repositoryDecorCategoryPropertyMaster.save(entity);
-		return new DtoResult("Saved Successfully", null, MapperDecorCategoryPropertyMaster.toDto(entity), null);
+
+		return dtoResult;
 	}
 
 	@Override
@@ -55,8 +104,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 				.stream().map(MapperDecorCategoryPropertyMaster::toDto).collect(Collectors.toList());
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
-	
-	
+
 	@Override
 	public List<DecorCategoryPropertyMaster> getAllPropertiesMaster() {
 		return repositoryDecorCategoryPropertyMaster.findAllByBlnIsDeletedFalse();
@@ -97,15 +145,40 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 					return dtoResult;
 				}
 				for (DtoDecorCategoryPropertyMaster property : dto.getCategoryProperties()) {
-					DecorCategoryPropertyMaster entity = new DecorCategoryPropertyMaster();
-					entity.setDecorCategoryMaster(decorCategoryMaster);
-					entity.setTxtPropertyName(property.getTxtPropertyName());
-					entity.setTxtInputType(property.getTxtInputType());
-					entity.setTxtRemarks(property.getTxtRemarks());
-					entity.setBlnIsActive(property.getBlnIsActive());
-					entity.setBlnIsApproved(true);
-					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
-					entity.setBlnIsRequired(property.getBlnIsRequired());
+
+					Optional<DecorCategoryPropertyMaster> optional = null;
+					DecorCategoryPropertyMaster entity = null;
+					if (property.getSerPropertyId() != null) {
+						optional = this.repositoryDecorCategoryPropertyMaster
+								.findBySerPropertyIdAndBlnIsDeletedFalse(property.getSerPropertyId());
+						if (optional == null || optional.isEmpty()) {
+							return new DtoResult("Invalid Propety ID" + property.getSerPropertyId(), null, null, null);
+						}
+					}
+
+					if (optional == null || optional.isEmpty()) {
+						entity = new DecorCategoryPropertyMaster();
+						entity.setDecorCategoryMaster(decorCategoryMaster);
+						entity.setTxtPropertyName(property.getTxtPropertyName());
+						entity.setTxtInputType(property.getTxtInputType());
+						entity.setTxtRemarks(property.getTxtRemarks());
+						entity.setBlnIsActive(property.getBlnIsActive());
+						entity.setBlnIsApproved(true);
+						entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+						entity.setBlnIsRequired(property.getBlnIsRequired());
+					} else {
+						entity = optional.get();
+						List<DecorCategoryPropertyValue> existingValues = entity.getPropertyValues();
+						entity.setPropertyValues(existingValues);
+						entity.setDecorCategoryMaster(decorCategoryMaster);
+						entity.setTxtPropertyName(property.getTxtPropertyName());
+						entity.setTxtInputType(property.getTxtInputType());
+						entity.setTxtRemarks(property.getTxtRemarks());
+						entity.setBlnIsActive(property.getBlnIsActive());
+						entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+						entity.setBlnIsRequired(property.getBlnIsRequired());
+					}
+
 					repositoryDecorCategoryPropertyMaster.save(entity);
 				}
 				dtoResult.setTxtMessage("Success");

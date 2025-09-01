@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.zbs.de.controller.ControllerEventType;
 import com.zbs.de.mapper.MapperDecorExtrasMaster;
+import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.DecorExtrasMaster;
 import com.zbs.de.model.DecorExtrasOption;
 import com.zbs.de.model.DecorExtrasOptionDocument;
@@ -40,6 +40,46 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 	private ServiceDecorExtrasOptionDocument serviceDecorExtrasOptionDocument;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
+
+	
+	@Override
+	public DtoResult saveAndUpdate(DtoDecorExtrasMaster dto) {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			DecorExtrasMaster decorExtrasMaster = null;
+			if (UtilRandomKey.isNotNull(dto) && UtilRandomKey.isNotNull(dto.getSerExtrasId())) {
+				decorExtrasMaster = this.getByPk(dto.getSerExtrasId());
+				if (UtilRandomKey.isNull(decorExtrasMaster)) {
+					dtoResult.setTxtMessage("Invalid Extras ID: " + dto.getSerExtrasId());
+					return dtoResult;
+				}
+
+				List<DecorExtrasOption> existingValues = decorExtrasMaster.getDecorExtrasOptions();
+				decorExtrasMaster.setDecorExtrasOptions(existingValues);
+				decorExtrasMaster.setTxtExtrasCode(dto.getTxtExtrasCode());
+				decorExtrasMaster.setTxtExtrasName(dto.getTxtExtrasName());
+				decorExtrasMaster.setBlnIsActive(dto.getBlnIsActive());
+				decorExtrasMaster.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+			} else {
+				decorExtrasMaster = MapperDecorExtrasMaster.toEntity(dto);
+				decorExtrasMaster.setBlnIsActive(Boolean.TRUE);
+				decorExtrasMaster.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+				decorExtrasMaster.setBlnIsApproved(Boolean.TRUE);
+				decorExtrasMaster.setBlnIsDeleted(Boolean.FALSE);
+				decorExtrasMaster.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+			}
+
+			repositoryDecorExtrasMaster.save(decorExtrasMaster);
+
+			dtoResult.setTxtMessage("Success");
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+		}
+		return dtoResult;
+
+	}
 
 	@Override
 	public DecorExtrasMaster getByPk(Integer id) {

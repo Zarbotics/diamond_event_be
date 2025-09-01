@@ -4,9 +4,12 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -19,6 +22,7 @@ import com.zbs.de.repository.RepositoryEmailVerificationToken;
 import com.zbs.de.repository.RepositoryUserMaster;
 import com.zbs.de.service.ServiceEmailSender;
 import com.zbs.de.service.ServiceEmailVerification;
+import com.zbs.de.service.ServiceUserMaster;
 import com.zbs.de.util.UtilDateAndTime;
 
 @Service("serviceEmailSender")
@@ -32,6 +36,12 @@ public class ServiceEmailSenderImpl implements ServiceEmailSender, ServiceEmailV
 
 	@Autowired
 	private RepositoryUserMaster userRepository;
+	
+	@Autowired
+	private ServiceUserMaster serviceUserMaster;	
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEmailSenderImpl.class);
+
 
 	@Value("${app.jwt.verification-expiration}")
 	private long verificationDurationMs;
@@ -103,6 +113,115 @@ public class ServiceEmailSenderImpl implements ServiceEmailSender, ServiceEmailV
 
 	    this.sendEmail(toEmail, subject, message);
 	}
+	
+	
+	public void sendEventRegistrationEmailToAdmin(String adminEmail, String txtName, String eventCode, String eventType, Date eventDate) throws MessagingException {
+	    String subject = "New Event Registration – Diamond Event";
 
+	    String message = String.format(
+	        """
+	        Hello Admin,
+
+	        A new event has been registered through the Diamond Event Services platform.
+
+	        📌 Event Details:
+	        • Registrant Name: %s
+	        • Event Code: %s
+	        • Event Type: %s
+	        • Event Date: %s
+
+	        Please review the registration and take any necessary follow-up actions.
+
+	        Best regards,
+	        Diamond Event System
+	        ✨ Celebrating Moments, Creating Memories ✨
+	        """,
+	        txtName, eventCode, eventType, UtilDateAndTime.dateToStringddmmyyyy(eventDate)
+	    );
+
+	    // Call your existing email sending method here, e.g.,
+	    sendEmail(adminEmail, subject, message);
+	}
+
+	
+	@Override
+	public void sendEventRegistrationEmailToAdminUsers(String txtName, String eventCode, String eventType, Date eventDate) {
+
+		List<UserMaster> userMasters = serviceUserMaster.getAllActiveAdminUsersForEmail();
+		if (userMasters != null && !userMasters.isEmpty()) {
+			String subject = "New Event Registration – Diamond Event";
+			for (UserMaster userMaster : userMasters) {
+				if (userMaster.getTxtEmail() != null) {
+					try {
+
+						String message = String.format("""
+								Hello %s,
+
+								A new event has been registered through the Diamond Event Services platform.
+
+								📌 Event Details:
+								• Registrant Name: %s
+								• Event Code: %s
+								• Event Type: %s
+								• Event Date: %s
+
+								Please review the registration and take any necessary follow-up actions.
+
+								Best regards,
+								Diamond Event System
+								✨ Celebrating Moments, Creating Memories ✨
+								""", userMaster.getTxtName(), txtName, eventCode, eventType,
+								UtilDateAndTime.dateToStringddmmyyyy(eventDate));
+						sendEmail(userMaster.getTxtEmail(), subject, message);
+					} catch (Exception e) {
+						LOGGER.debug(e.getMessage(), e);
+					}
+
+				}
+			}
+		}
+
+	}
+	
+	
+	
+	@Override
+	public void sendNewCustomerRegistrationEmailToAdminUsers(String txtName, String txtCode, String txtEmail, String txtPhone) {
+
+		List<UserMaster> userMasters = serviceUserMaster.getAllActiveAdminUsersForEmail();
+		if (userMasters != null && !userMasters.isEmpty()) {
+			String subject = "New Customer Registration – Diamond Event";
+			for (UserMaster userMaster : userMasters) {
+				if (userMaster.getTxtEmail() != null) {
+					try {
+
+						String message = String.format("""
+								Hello %s,
+
+								A new customer has been registered through the Diamond Event Services platform.
+
+								📌 Customer Details:
+								• Customer Name: %s
+								• Customer Code: %s
+								• Customer Phone: %s
+								• Customer Email: %s
+
+								Please review the registration and take any necessary follow-up actions.
+
+								Best regards,
+								Diamond Event System
+								✨ Celebrating Moments, Creating Memories ✨
+								""", userMaster.getTxtName(), txtName, txtCode, txtPhone,txtEmail);
+						sendEmail(userMaster.getTxtEmail(), subject, message);
+					} catch (Exception e) {
+						LOGGER.debug(e.getMessage(), e);
+					}
+
+				}
+			}
+		}
+
+	}
+	
 
 }

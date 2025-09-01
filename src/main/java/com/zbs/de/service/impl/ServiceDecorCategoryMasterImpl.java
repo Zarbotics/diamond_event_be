@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.zbs.de.controller.ControllerEventType;
 import com.zbs.de.mapper.MapperDecorCategoryMaster;
 import com.zbs.de.model.DecorCategoryMaster;
+import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryReferenceDocument;
 import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoResult;
@@ -105,10 +106,34 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 	@Override
 	public DtoResult saveWithDocuments(DtoDecorCategoryMaster dto, MultipartFile[] documents) {
 		try {
-			DecorCategoryMaster entity = MapperDecorCategoryMaster.toEntity(dto);
+//			DecorCategoryMaster entity = MapperDecorCategoryMaster.toEntity(dto);
+			Optional<DecorCategoryMaster> decOptional = null;
+			DecorCategoryMaster entity = null;
+			if (dto.getSerDecorCategoryId() != null) {
+				decOptional = this.repositoryDecorCategoryMaster
+						.findBySerDecorCategoryIdAndBlnIsDeletedFalse(dto.getSerDecorCategoryId());
+				if (decOptional == null || decOptional.isEmpty()) {
+					return new DtoResult("No Category Found For the Given Category Id In DB", null, null, null);
+				}
+			}
+
+			if (decOptional == null || decOptional.isEmpty()) {
+				entity = MapperDecorCategoryMaster.toEntity(dto);
+				entity.setBlnIsActive(true);
+				entity.setBlnIsApproved(true);
+				entity.setBlnIsDeleted(false);
+
+			} else {
+				entity = decOptional.get();
+				List<DecorCategoryPropertyMaster> existingValues = entity.getCategoryProperties();
+				entity.setCategoryProperties(existingValues);
+				entity.setTxtDecorCategoryCode(dto.getTxtDecorCategoryCode());
+				entity.setTxtDecorCategoryName(dto.getTxtDecorCategoryName());
+				entity.setBlnIsActive(dto.getBlnIsActive());
+			}
 			List<DecorCategoryReferenceDocument> docEntities = new ArrayList<>();
 
-			if (documents != null && documents.length > 0) {
+			if (documents != null && documents.length > 0 && dto.getReferenceDocuments() != null && !dto.getReferenceDocuments().isEmpty()) {
 				for (MultipartFile file : documents) {
 					String uploadPath = UtilFileStorage.saveFile(file, "decorCategory");
 
@@ -122,9 +147,10 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 
 					docEntities.add(document);
 				}
+				entity.setReferenceDocuments(docEntities);
 			}
 
-			entity.setReferenceDocuments(docEntities);
+
 			repositoryDecorCategoryMaster.save(entity);
 
 			return new DtoResult("Saved successfully", null, MapperDecorCategoryMaster.toDto(entity), null);
