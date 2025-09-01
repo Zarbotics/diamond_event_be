@@ -190,7 +190,7 @@ public class ServiceEmailSenderImpl implements ServiceEmailSender, ServiceEmailV
 
 		List<UserMaster> userMasters = serviceUserMaster.getAllActiveAdminUsersForEmail();
 		if (userMasters != null && !userMasters.isEmpty()) {
-			String subject = "New Event Registration – Diamond Event";
+			String subject = "New Customer Registration – Diamond Event";
 			for (UserMaster userMaster : userMasters) {
 				if (userMaster.getTxtEmail() != null) {
 					try {
@@ -200,7 +200,7 @@ public class ServiceEmailSenderImpl implements ServiceEmailSender, ServiceEmailV
 
 								A new customer has been registered through the Diamond Event Services platform.
 
-								📌 Event Details:
+								📌 Customer Details:
 								• Customer Name: %s
 								• Customer Code: %s
 								• Customer Phone: %s
