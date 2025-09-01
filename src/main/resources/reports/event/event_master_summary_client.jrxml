@@ -9,7 +9,7 @@
 	uuid="f70c8543-e6a5-4fbc-8c20-347e54e2a6cc">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml" />
 	<style name="Title" forecolor="#800020" fontName="Times New Roman" fontSize="22" isBold="true" />
-	<style name="SectionHeader" forecolor="#FFD700" fontName="Arial" fontSize="14" isBold="true" />
+	<style name="SectionHeader" forecolor="#002070" fontName="Arial" fontSize="14" isBold="true" />
 	<style name="Label" forecolor="#333333" fontName="Arial" fontSize="11" isBold="true" />
 	<style name="Value" forecolor="#000000" fontName="Arial" fontSize="11" />
 	<style name="TableHeader" mode="Opaque" forecolor="#FFFFFF" backcolor="#800020" fontName="Arial"
@@ -80,10 +80,10 @@
 	<field name="txt_event_extras_remarks" class="java.lang.String" />
 	<field name="txt_venue_remarks" class="java.lang.String" />
 	<background>
-		<band height="802">
+		<band height="802">  <!-- Keep original band height -->
 			<rectangle>
-				<reportElement x="0" y="0" width="595" height="802" backcolor="#EEEDE4"
-					uuid="d4e5f6a7-b8c9-4d0e-9f10-111213141516" />
+				<reportElement mode="Opaque" x="0" y="0" width="555" height="802"
+					backcolor="#EEEDE4" uuid="d4e5f6a7-b8c9-4d0e-9f10-111213141516" />
 			</rectangle>
 		</band>
 	</background>
