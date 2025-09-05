@@ -60,7 +60,7 @@ public class ControllerFileServe {
 	public ResponseEntity<Resource> serveFile(@PathVariable String category, @PathVariable String filename)
 			throws IOException {
 
-		Path filePath = Paths.get("D:/Zarbotics/UploadedFiles/", category, filename);
+		Path filePath = Paths.get("C:/Users/hp/Pictures/diamond_ev/", category, filename);
 		if (!Files.exists(filePath)) {
 			return ResponseEntity.notFound().build();
 		}
