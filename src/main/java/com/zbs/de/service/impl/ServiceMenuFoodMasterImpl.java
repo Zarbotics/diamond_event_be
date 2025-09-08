@@ -8,6 +8,7 @@ import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryMenuFoodMaster;
+import com.zbs.de.repository.RepositoryMenuFoodMasterCustom;
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
 
@@ -29,6 +30,9 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 	@Autowired
 	RepositoryMenuFoodMaster repositoryMenuFoodMaster;
 
+	@Autowired
+	RepositoryMenuFoodMasterCustom repositoryMenuFoodMasterCustom;
+
 	@Override
 	public List<DtoMenuFoodMaster> getAllData() {
 		List<MenuFoodMaster> list = repositoryMenuFoodMaster.findByBlnIsDeleted(false);
@@ -38,7 +42,7 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 		}
 		return dtos;
 	}
-	
+
 	@Override
 	public List<MenuFoodMaster> getAllDataEntity() {
 		List<MenuFoodMaster> list = repositoryMenuFoodMaster.findByBlnIsDeleted(false);
@@ -147,7 +151,7 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public DtoResult deleteById(Integer id) {
 		DtoResult result = new DtoResult();
@@ -161,6 +165,31 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 			result.setTxtMessage("No record found to delete");
 		}
 		return result;
+	}
+
+	@Override
+	public String generateNextMenuFoodCode(String foodType) {
+
+		String prefix = "";
+		if (foodType.equalsIgnoreCase("dessert")) {
+			prefix = "DSRT";
+		}else if (foodType.equalsIgnoreCase("drink")) {
+			prefix = "DRK";
+		}else if (foodType.equalsIgnoreCase("starter")) {
+			prefix = "STARTER_";
+		}else if (foodType.equalsIgnoreCase("appetiser")) {
+			prefix = "APP";
+		}else if (foodType.equalsIgnoreCase("saladandcondiment")) {
+			prefix = "SAL";
+		}else if (foodType.equalsIgnoreCase("maincourse")) {
+			prefix = "MAIN";
+		}else {
+			return "";
+		}
+		int currentMax = repositoryMenuFoodMasterCustom.findMaxCodeNumberByPrefix(prefix, 3);
+		int nextNumber = currentMax + 1;
+		String formattedNumber = String.format("%0" + 3 + "d", nextNumber);
+		return prefix + formattedNumber;
 	}
 
 }

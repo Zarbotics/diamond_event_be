@@ -98,4 +98,10 @@ public class ControllerMenuFoodMaster {
 
 	}
 
+	@PostMapping(value = "/generateEventCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateEventCode(@RequestBody DtoSearch dtoSearch) {
+		String txtCode = serviceMenuFoodMaster.generateNextMenuFoodCode(dtoSearch.getSearchKeyword());
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Food Menu Code", txtCode);
+	}
+
 }

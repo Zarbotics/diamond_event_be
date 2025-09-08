@@ -240,4 +240,23 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 
 	}
 
+	
+	@Override
+	public String generateNextDecorCategoryPropertyMasterCode() {
+		String maxCode = repositoryDecorCategoryPropertyMaster.findMaxDecorCategoryPropertyMasterCode();
+
+		int nextNumber = 1;
+
+		if (maxCode != null && maxCode.startsWith("DCP-")) {
+			try {
+				String numberPart = maxCode.substring(4);
+				nextNumber = Integer.parseInt(numberPart) + 1;
+			} catch (NumberFormatException e) {
+				nextNumber = 1;
+			}
+		}
+
+		return String.format("DCP-%03d", nextNumber);
+	}
+
 }

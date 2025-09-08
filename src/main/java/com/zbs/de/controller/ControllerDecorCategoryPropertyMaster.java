@@ -16,6 +16,8 @@ import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceDecorCategoryPropertyMaster;
 import com.zbs.de.util.ResponseMessage;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RequestMapping("/decorCategoryPropertyMaster")
 @CrossOrigin(origins = "")
 @RestController
@@ -61,4 +63,12 @@ public class ControllerDecorCategoryPropertyMaster {
 		DtoResult result = serviceDecorCategoryPropertyMaster.deleteById(dtoSearch.getId());
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
 	}
+	
+	@PostMapping(value = "/generateDecorCategoryPropertyMasterCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateEventCode(HttpServletRequest request) {
+		String txtCode = serviceDecorCategoryPropertyMaster.generateNextDecorCategoryPropertyMasterCode();
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched  DecorCategoryPropertyMaster Code.",
+				txtCode);
+	}
+
 }
