@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zbs.de.model.dto.DtoEventType;
 import com.zbs.de.model.dto.DtoResult;
@@ -105,6 +108,13 @@ public class ControllerEventType {
 		}
 
 	}
+	
+	@PostMapping(value = "/generateEventCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateEventCode(HttpServletRequest request) {
+		String txtCode = serviceEventType.generateNextEventTypeCode();
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Event Types", txtCode);
+	}
+
 
 
 }

@@ -102,6 +102,19 @@ public class ControllerEventMaster {
 		return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
 				result.getTxtMessage(), null);
 	}
+	
+	
+	@PostMapping(value = "/getAllTableView", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllTableView(HttpServletRequest request) {
+		LOGGER.info("Searching Event Masters");
+		DtoResult result = serviceEventMaster.getAllEventsTableView();
+		if (result.getResulList() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResulList());
+		}
+		return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+				result.getTxtMessage(), null);
+	}
 
 	@PostMapping(value = "/getEventStats", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getEventStats(HttpServletRequest request) {

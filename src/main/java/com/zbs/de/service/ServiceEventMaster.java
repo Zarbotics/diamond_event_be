@@ -27,4 +27,6 @@ public interface ServiceEventMaster {
 	DtoResult saveAndUpdateWithDocs(DtoEventMaster dtoEventMaster,  List<MultipartFile> files) throws IOException;
 	
 	DtoResult deleteById(Integer id);
+	
+	 DtoResult getAllEventsTableView();
 }

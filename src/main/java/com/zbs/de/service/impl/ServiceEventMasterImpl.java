@@ -40,6 +40,7 @@ import com.zbs.de.model.dto.DtoEventDecorPropertySelection;
 import com.zbs.de.model.dto.DtoEventDecorReferenceDocument;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterStats;
+import com.zbs.de.model.dto.DtoEventMasterTableView;
 import com.zbs.de.model.dto.DtoEventMenuFoodSelection;
 import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
@@ -836,6 +837,27 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	}
 
+	@Override
+	public DtoResult getAllEventsTableView() {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			List<DtoEventMasterTableView> events = repositoryEventMaster.getAllEventMastersTableView();
+			if (UtilRandomKey.isNotNull(events)) {
+				dtoResult.setTxtMessage("Success");
+				dtoResult.setResulList(new ArrayList<>(events));
+				return dtoResult;
+			} else {
+				dtoResult.setTxtMessage("No Data Found In System");
+				return dtoResult;
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
+			return dtoResult;
+		}
+
+	}
+
 	private String getFoodType(DtoMenuFoodMaster dtoMenuFoodMaster) {
 		if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsDrink()) && dtoMenuFoodMaster.getBlnIsDrink()) {
 			return "Drink";
@@ -1192,11 +1214,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 
 			} else {
-				
-				//******************************************
-				//*************** Create New ***************
-				//******************************************
-				
+
+				// ******************************************
+				// *************** Create New ***************
+				// ******************************************
+
 				blnIsNewEvent = true;
 				entity = MapperEventMaster.toEntity(dtoEventMaster);
 				entity.setEventRunningOrder(null);
@@ -1463,8 +1485,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							entity.getDteEventDate());
 
 					// ***** Send Email To All Admin Users ********
-					serviceEmailSender.sendEventRegistrationEmailToAdminUsers(userMaster.getTxtName(), entity.getTxtEventMasterCode(),
-							entity.getEventType().getTxtEventTypeName(), entity.getDteEventDate());
+					serviceEmailSender.sendEventRegistrationEmailToAdminUsers(userMaster.getTxtName(),
+							entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
+							entity.getDteEventDate());
 
 					dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
 							+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");

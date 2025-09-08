@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.dto.DtoEventMasterStats;
+import com.zbs.de.model.dto.DtoEventMasterTableView;
 
 @Repository("repositoryEventMaster")
 public interface RepositoryEventMaster extends JpaRepository<EventMaster, Integer> {
@@ -48,5 +49,11 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 			      AND (em.blnIsDeleted = false OR em.blnIsDeleted IS NULL)
 			""")
 	Optional<EventMaster> findByIdAndBlnIsDeletedFalse(@Param("id") Integer id);
+
+	@Query("Select new com.zbs.de.model.dto.DtoEventMasterTableView(e.serEventMasterId, e.txtEventMasterCode, e.txtEventMasterName, e.dteEventDate, "
+			+ "c.serCustId, c.txtCustCode, c.txtCustName, t.serEventTypeId, t.txtEventTypeCode, t.txtEventTypeName, v.serVenueMasterId, "
+			+ "v.txtVenueCode, v.txtVenueName) "
+			+ "From EventMaster e left join e.customerMaster c left join e.eventType t left join e.venueMaster v Where e.blnIsDeleted=false")
+	List<DtoEventMasterTableView> getAllEventMastersTableView();
 
 }

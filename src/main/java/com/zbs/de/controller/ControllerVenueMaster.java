@@ -41,7 +41,7 @@ public class ControllerVenueMaster {
 		return serviceVenueMaster.saveOrUpdate(dto);
 	}
 
-	@PostMapping(value = "/getAll",produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/getAll", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAll(HttpServletRequest request) {
 		return serviceVenueMaster.getAllVenues();
 	}
@@ -58,7 +58,7 @@ public class ControllerVenueMaster {
 
 	@PostMapping(value = "/saveVenue", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveVenue(@RequestPart("venueData") String venueJson,
-			@RequestPart(value = "files" , required = false) List<MultipartFile> files) {
+			@RequestPart(value = "files", required = false) List<MultipartFile> files) {
 
 		LOGGER.info("Save Venue VenueMaster by Dto: " + venueJson);
 
@@ -83,7 +83,7 @@ public class ControllerVenueMaster {
 		LOGGER.debug("Save Venue: " + responseMessage);
 		return responseMessage;
 	}
-	
+
 	@PostMapping(value = "/deleteById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage deleteById(@RequestBody DtoSearch dtoSearch) {
 		LOGGER.info("Deleting VenueMaster by ID: " + dtoSearch);
@@ -98,5 +98,10 @@ public class ControllerVenueMaster {
 
 	}
 
+	@PostMapping(value = "/generateVenueMasterCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateEventCode(HttpServletRequest request) {
+		String txtCode = serviceVenueMaster.generateNextVenueMasterCode();
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Venue Master Code.", txtCode);
+	}
 
 }
