@@ -156,6 +156,19 @@ public class ControllerEventMaster {
 		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
 				dtoEventMaster);
 	}
+	
+	
+	@PostMapping(value = "/getAllDataAdminPortal", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllDataAdminPortal(HttpServletRequest request) {
+		LOGGER.info("Searching Event Masters");
+		DtoResult result = serviceEventMaster.getAllEventsAdminPortal();
+		if (result.getResulList() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResulList());
+		}
+		return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+				result.getTxtMessage(), null);
+	}
 
 
 }

@@ -2454,5 +2454,137 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		}
 
 	}
+	
+	
+	@Override
+	public DtoResult getAllEventsAdminPortal() {
+		DtoResult dtoResult = new DtoResult();
+
+		try {
+
+			List<EventMaster> events = repositoryEventMaster.findByBlnIsDeletedFalse();
+			if (UtilRandomKey.isNotNull(events)) {
+
+				List<DtoEventMasterAdminPortal> dtoEventMasterLst = new ArrayList<>();
+				for (EventMaster event : events) {
+
+					DtoEventMasterAdminPortal dto = MapperEventMaster.toDtoEventMasterAdminPortal(event);
+
+					// Fetching Event Venue Detail
+					// ***********************************
+					if (UtilRandomKey.isNotNull(event.getVenueMasterDetail())) {
+						DtoResult res = serviceVenueMaster.getVenueByVenueMasterDetailId(
+								event.getVenueMasterDetail().getSerVenueMasterDetailId());
+						if (UtilRandomKey.isNotNull(res) && res.getTxtMessage().equalsIgnoreCase("Success")) {
+							VenueMaster venueMaster = (VenueMaster) res.getResult();
+							DtoEventVenue dtoEventVenue = new DtoEventVenue();
+							dtoEventVenue.setSerVenueMasterId(venueMaster.getSerVenueMasterId());
+							dtoEventVenue.setTxtVenueCode(venueMaster.getTxtVenueCode());
+							dtoEventVenue.setTxtVenueName(venueMaster.getTxtVenueName());
+							dtoEventVenue.setSerVenueMasterDetailId(
+									event.getVenueMasterDetail().getSerVenueMasterDetailId());
+							dtoEventVenue.setTxtHallCode(event.getVenueMasterDetail().getTxtHallCode());
+							dtoEventVenue.setTxtHallName(event.getVenueMasterDetail().getTxtHallName());
+						}
+					}
+
+					// Fetching Decor
+					// ***********************************
+					List<DtoEventDecorCategorySelection> eventDecorCategorySelections = serviceEventDecorCategorySelection
+							.getSelectionsWithChosenValues(dto.getSerEventMasterId());
+					dto.setDtoEventDecorSelections(eventDecorCategorySelections);
+
+					// Fetching Event Menu Food Selection
+					// ***********************************
+
+					List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
+							.getByEventMasterId(dto.getSerEventMasterId());
+
+					Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = new HashMap<>();
+
+					if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+						for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
+							if (entity.getMenuFoodMaster() != null) {
+								DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
+								MenuFoodMaster foodMaster = entity.getMenuFoodMaster();
+
+								dtoMenuFoodMaster.setSerMenuFoodId(foodMaster.getSerMenuFoodId());
+								dtoMenuFoodMaster.setTxtMenuFoodCode(foodMaster.getTxtMenuFoodCode());
+								dtoMenuFoodMaster.setTxtMenuFoodName(foodMaster.getTxtMenuFoodName());
+								dtoMenuFoodMaster.setBlnIsMainCourse(foodMaster.getBlnIsMainCourse());
+								dtoMenuFoodMaster.setBlnIsAppetiser(foodMaster.getBlnIsAppetiser());
+								dtoMenuFoodMaster.setBlnIsStarter(foodMaster.getBlnIsStarter());
+								dtoMenuFoodMaster.setBlnIsSaladAndCondiment(foodMaster.getBlnIsSaladAndCondiment());
+								dtoMenuFoodMaster.setBlnIsDessert(foodMaster.getBlnIsDessert());
+								dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
+								dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
+
+								String foodType = getFoodName(foodMaster);
+
+								if (!foodSelectionsMap.containsKey(foodType)) {
+									foodSelectionsMap.put(foodType, new ArrayList<>());
+								}
+								foodSelectionsMap.get(foodType).add(dtoMenuFoodMaster);
+							}
+						}
+					}
+
+					dto.setFoodSelections(foodSelectionsMap);
+
+					// Fetching Event Extras Selection
+					// ***********************************
+
+					List<EventDecorExtrasSelection> eventDecorExtrasSelection = serviceEventDecorExtrasSelection
+							.getByEventMasterId(dto.getSerEventMasterId());
+					List<DtoEventDecorExtrasSelection> dtoEventDecorExtrasSelections = new ArrayList<>();
+					if (UtilRandomKey.isNotNull(eventDecorExtrasSelection)) {
+						for (EventDecorExtrasSelection entity : eventDecorExtrasSelection) {
+							DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection = new DtoEventDecorExtrasSelection();
+							dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
+							dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
+							dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+							if (entity.getDecorExtrasMaster() != null) {
+								dtoEventDecorExtrasSelection
+										.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+								dtoEventDecorExtrasSelection
+										.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+								dtoEventDecorExtrasSelection
+										.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+							}
+
+							if (entity.getDecorExtrasOption() != null) {
+								dtoEventDecorExtrasSelection
+										.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+								dtoEventDecorExtrasSelection
+										.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+								dtoEventDecorExtrasSelection
+										.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+							}
+
+							dtoEventDecorExtrasSelections.add(dtoEventDecorExtrasSelection);
+						}
+					}
+					dto.setExtrasSelections(dtoEventDecorExtrasSelections);
+
+					dtoEventMasterLst.add(dto);
+
+				}
+
+				dtoResult.setTxtMessage("Success");
+				dtoResult.setResulList(new ArrayList<>(dtoEventMasterLst));
+				return dtoResult;
+
+			} else {
+				dtoResult.setTxtMessage("No Data Found In System");
+				return dtoResult;
+			}
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
+			return dtoResult;
+		}
+
+	}
 
 }

@@ -33,4 +33,6 @@ public interface ServiceEventMaster {
 
 	DtoResult saveAndUpdateWithDocsAdminPortal(DtoEventMasterAdminPortal dtoEventMasterAdminPortal,
 			List<MultipartFile> files) throws IOException;
+
+	DtoResult getAllEventsAdminPortal();
 }
