@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zbs.de.model.dto.DtoEventMaster;
+import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
 import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
@@ -138,6 +139,22 @@ public class ControllerEventMaster {
 					e.getMessage(), null);
 		}
 
+	}
+	
+	
+	@PostMapping(value = "/saveWithDocsAdminPortal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseMessage saveWithDocsAdminPortal(@RequestPart("eventMaster") String eventMaster,
+			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
+		LOGGER.info("Saving Event Master: {}", eventMaster);
+		DtoEventMasterAdminPortal dtoEventMaster = new ObjectMapper().readValue(eventMaster,
+				DtoEventMasterAdminPortal.class);
+		DtoResult result = serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dtoEventMaster, files);
+		if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+					result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
+				dtoEventMaster);
 	}
 
 
