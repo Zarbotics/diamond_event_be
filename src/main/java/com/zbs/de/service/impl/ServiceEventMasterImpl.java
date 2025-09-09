@@ -2394,7 +2394,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
 							dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
 
-							String foodType = entity.getTxtFoodType(); // e.g., "MainCourse", "Starter"
+							String foodType = getFoodName(foodMaster);
 
 							if (!foodSelectionsMap.containsKey(foodType)) {
 								foodSelectionsMap.put(foodType, new ArrayList<>());
