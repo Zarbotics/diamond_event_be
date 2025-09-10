@@ -18,7 +18,7 @@ public interface RepositoryCustomerMaster extends JpaRepository<CustomerMaster, 
 	String findMaxCustomerCode();
 	
 	
-	@Query("SELECT new com.zbs.de.model.dto.DtoCustomerDropDown(c.serCustId, c.txtCustCode, c.txtFirstName, c.txtLastName, c.txtCustName, c.txt_phone_number_1, c.txtEmail) FROM CustomerMaster c WHERE c.blnIsDeleted = false and c.blnIsActive = true")
+	@Query("SELECT new com.zbs.de.model.dto.DtoCustomerMasterDropDown(c.serCustId, c.txtCustCode, c.txtFirstName, c.txtLastName, c.txtCustName, c.txt_phone_number_1, c.txtEmail) FROM CustomerMaster c WHERE c.blnIsDeleted = false AND c.blnIsActive = true")
 	List<DtoCustomerMasterDropDown> getAllActive();
 
 	@Query("SELECT c FROM CustomerMaster c WHERE LOWER(c.txtEmail) = LOWER(:txtEmail) AND c.blnIsDeleted = false")
