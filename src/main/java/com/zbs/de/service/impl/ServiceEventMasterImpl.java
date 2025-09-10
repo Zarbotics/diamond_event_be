@@ -2162,7 +2162,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
 										.filter(pm -> pm.getSerPropertyId().intValue() == property
-												.getSerEventDecorPropertyId().intValue())
+												.getSerPropertyId().intValue())
 										.findFirst().orElse(null);
 
 								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
