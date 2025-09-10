@@ -883,6 +883,30 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		}
 
 	}
+	
+	private String getFoodType(MenuFoodMaster dtoMenuFoodMaster) {
+		if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsDrink()) && dtoMenuFoodMaster.getBlnIsDrink()) {
+			return "Drink";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsDessert())
+				&& dtoMenuFoodMaster.getBlnIsDessert()) {
+			return "Desert";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsAppetiser())
+				&& dtoMenuFoodMaster.getBlnIsAppetiser()) {
+			return "Appetiser";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsMainCourse())
+				&& dtoMenuFoodMaster.getBlnIsMainCourse()) {
+			return "MainCourse";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsSaladAndCondiment())
+				&& dtoMenuFoodMaster.getBlnIsSaladAndCondiment()) {
+			return "SaladAndCondiment";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsStarter())
+				&& dtoMenuFoodMaster.getBlnIsStarter()) {
+			return "Starter";
+		} else {
+			return null;
+		}
+
+	}
 
 	@Override
 	public List<DtoEventMasterStats> getEventTypeStats() {
@@ -2394,7 +2418,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
 							dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
 
-							String foodType = getFoodName(foodMaster);
+							String foodType = getFoodType(foodMaster);
 
 							if (!foodSelectionsMap.containsKey(foodType)) {
 								foodSelectionsMap.put(foodType, new ArrayList<>());
@@ -2519,7 +2543,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
 								dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
 
-								String foodType = getFoodName(foodMaster);
+								String foodType = getFoodType(foodMaster);
 
 								if (!foodSelectionsMap.containsKey(foodType)) {
 									foodSelectionsMap.put(foodType, new ArrayList<>());
