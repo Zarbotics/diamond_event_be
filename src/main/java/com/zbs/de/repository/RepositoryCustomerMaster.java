@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.zbs.de.model.CustomerMaster;
+import com.zbs.de.model.dto.DtoCustomerMasterDropDown;
 
 @Repository("repositoryCutomerMaster")
 public interface RepositoryCustomerMaster extends JpaRepository<CustomerMaster, Integer> {
@@ -15,6 +16,10 @@ public interface RepositoryCustomerMaster extends JpaRepository<CustomerMaster, 
 
 	@Query("SELECT MAX(c.txtCustCode) FROM CustomerMaster c")
 	String findMaxCustomerCode();
+	
+	
+	@Query("SELECT new com.zbs.de.model.dto.DtoCustomerDropDown(c.serCustId, c.txtCustCode, c.txtFirstName, c.txtLastName, c.txtCustName, c.txt_phone_number_1, c.txtEmail) FROM CustomerMaster c WHERE c.blnIsDeleted = false and c.blnIsActive = true")
+	List<DtoCustomerMasterDropDown> getAllActive();
 
 	@Query("SELECT c FROM CustomerMaster c WHERE LOWER(c.txtEmail) = LOWER(:txtEmail) AND c.blnIsDeleted = false")
 	List<CustomerMaster> findByTxtEmailIgnoreCaseAndBlnIsDeletedFalse(@Param("txtEmail") String txtEmail);

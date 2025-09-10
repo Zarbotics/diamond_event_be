@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
+import com.zbs.de.model.dto.DtoCustomerMasterDropDown;
 import com.zbs.de.model.dto.DtoCustomerMaster;
 import com.zbs.de.model.dto.DtoDashboardCustomer;
 import com.zbs.de.model.dto.DtoResult;
@@ -54,6 +55,24 @@ public class ControllerCustomerMaster {
 		ResponseMessage responseMessage = null;
 		List<DtoCustomerMaster> dtoSearch = new ArrayList<>();
 		dtoSearch = this.serviceCustomerMaster.getAllData();
+		if (dtoSearch != null) {
+			responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "GET ALL CUSTOMERS", dtoSearch);
+		} else {
+			responseMessage = new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
+					"UNABLE TO GET ALL CUSTOMERS", dtoSearch);
+		}
+
+		LOGGER.debug("Search ItemClassAccountSetup Method:" + dtoSearch);
+		return responseMessage;
+	}
+	
+	
+	@RequestMapping(value = "/getAllActiveDropDown", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
+	public ResponseMessage getAllActiveDropDown(HttpServletRequest request) throws Exception {
+		LOGGER.info("Search ItemClassAccountSetup Method");
+		ResponseMessage responseMessage = null;
+		List<DtoCustomerMasterDropDown> dtoSearch = new ArrayList<>();
+		dtoSearch = this.serviceCustomerMaster.getAllActiveDropDown();
 		if (dtoSearch != null) {
 			responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "GET ALL CUSTOMERS", dtoSearch);
 		} else {

@@ -3,6 +3,7 @@ package com.zbs.de.service;
 import java.util.List;
 
 import com.zbs.de.model.CustomerMaster;
+import com.zbs.de.model.dto.DtoCustomerMasterDropDown;
 import com.zbs.de.model.dto.DtoCustomerMaster;
 import com.zbs.de.model.dto.DtoDashboardCustomer;
 import com.zbs.de.model.dto.DtoResult;
@@ -17,5 +18,6 @@ public interface ServiceCustomerMaster {
 	String generateCustomerCode();
 	DtoDashboardCustomer getDashboardStats();
 	DtoResult deleteById(Integer id);
+	List<DtoCustomerMasterDropDown> getAllActiveDropDown();
 	
 }

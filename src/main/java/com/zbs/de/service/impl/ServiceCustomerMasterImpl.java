@@ -2,6 +2,7 @@ package com.zbs.de.service.impl;
 
 import com.zbs.de.mapper.MapperCustomerMaster;
 import com.zbs.de.model.CustomerMaster;
+import com.zbs.de.model.dto.DtoCustomerMasterDropDown;
 import com.zbs.de.model.dto.DtoCustomerMaster;
 import com.zbs.de.model.dto.DtoDashboardCustomer;
 import com.zbs.de.model.dto.DtoNotificationMaster;
@@ -46,6 +47,13 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 			}
 		}
 		return dtolist;
+	}
+	
+	
+	@Override
+	public List<DtoCustomerMasterDropDown> getAllActiveDropDown() {
+		List<DtoCustomerMasterDropDown> list = repositoryCustomerMaster.getAllActive();
+		return list;
 	}
 
 	@Override
