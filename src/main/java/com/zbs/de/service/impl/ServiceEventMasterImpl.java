@@ -889,7 +889,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			return "Drink";
 		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsDessert())
 				&& dtoMenuFoodMaster.getBlnIsDessert()) {
-			return "Desert";
+			return "Dessert";
 		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsAppetiser())
 				&& dtoMenuFoodMaster.getBlnIsAppetiser()) {
 			return "Appetiser";
