@@ -26,6 +26,9 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 	List<EventMaster> findByCustomerId(@Param("custId") Integer custId);
 
 	List<EventMaster> findByBlnIsDeletedFalse();
+	
+	@Query("SELECT e FROM EventMaster e WHERE e.blnIsDeleted = false order by e.serEventMasterId desc")
+	List<EventMaster> getAllNotDeleted();
 
 	@Query("SELECT new com.zbs.de.model.dto.DtoEventMasterStats(e.eventType.txtEventTypeName, COUNT(e)) "
 			+ "FROM EventMaster e " + "WHERE e.blnIsDeleted = false " + "GROUP BY e.eventType.txtEventTypeName")
@@ -53,7 +56,7 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 	@Query("Select new com.zbs.de.model.dto.DtoEventMasterTableView(e.serEventMasterId, e.txtEventMasterCode, e.txtEventMasterName, e.dteEventDate, "
 			+ "c.serCustId, c.txtCustCode, c.txtCustName, t.serEventTypeId, t.txtEventTypeCode, t.txtEventTypeName, v.serVenueMasterId, "
 			+ "v.txtVenueCode, v.txtVenueName) "
-			+ "From EventMaster e left join e.customerMaster c left join e.eventType t left join e.venueMaster v Where e.blnIsDeleted=false")
+			+ "From EventMaster e left join e.customerMaster c left join e.eventType t left join e.venueMaster v Where e.blnIsDeleted=false order by e.serEventMasterId desc")
 	List<DtoEventMasterTableView> getAllEventMastersTableView();
 
 }

@@ -2486,7 +2486,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 		try {
 
-			List<EventMaster> events = repositoryEventMaster.findByBlnIsDeletedFalse();
+			List<EventMaster> events = repositoryEventMaster.getAllNotDeleted();
 			if (UtilRandomKey.isNotNull(events)) {
 
 				List<DtoEventMasterAdminPortal> dtoEventMasterLst = new ArrayList<>();
