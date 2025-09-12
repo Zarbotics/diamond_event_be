@@ -46,6 +46,7 @@ import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
 import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 import com.zbs.de.model.dto.DtoEventMenuFoodSelection;
+import com.zbs.de.model.dto.DtoEventQuoteAndStatus;
 import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
 import com.zbs.de.model.dto.DtoNotificationMaster;
@@ -2598,6 +2599,17 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					}
 				}
 				dto.setExtrasSelections(dtoEventDecorExtrasSelections);
+				
+				
+				//Fetching Event Quoted Price
+				//***************************
+				if(event.getEventBudget() != null) {
+					DtoEventQuoteAndStatus dtoEventQuoteAndStatus = new DtoEventQuoteAndStatus();
+					dtoEventQuoteAndStatus.setNumQuotedPrice(event.getEventBudget().getNumQuotedPrice());
+					dtoEventQuoteAndStatus.setNumPaidAmount(event.getEventBudget().getNumPaidAmount());
+					dtoEventQuoteAndStatus.setTxtStatus(event.getEventBudget().getTxtStatus());
+					dto.setDtoEventQouteAndStatus(dtoEventQuoteAndStatus);
+				}
 
 				return dto;
 
@@ -2724,6 +2736,18 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						}
 					}
 					dto.setExtrasSelections(dtoEventDecorExtrasSelections);
+					
+					
+					//Fetching Event Quoted Price
+					//***************************
+					if(event.getEventBudget() != null) {
+						DtoEventQuoteAndStatus dtoEventQuoteAndStatus = new DtoEventQuoteAndStatus();
+						dtoEventQuoteAndStatus.setNumQuotedPrice(event.getEventBudget().getNumQuotedPrice());
+						dtoEventQuoteAndStatus.setNumPaidAmount(event.getEventBudget().getNumPaidAmount());
+						dtoEventQuoteAndStatus.setTxtStatus(event.getEventBudget().getTxtStatus());
+						dto.setDtoEventQouteAndStatus(dtoEventQuoteAndStatus);
+					}
+					
 
 					dtoEventMasterLst.add(dto);
 
