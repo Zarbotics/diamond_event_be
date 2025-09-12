@@ -61,6 +61,8 @@ public class DtoEventMaster {
 
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
 
+	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
+
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
 	}
@@ -427,6 +429,14 @@ public class DtoEventMaster {
 
 	public void setDteUpdateDate(String dteUpdateDate) {
 		this.dteUpdateDate = dteUpdateDate;
+	}
+
+	public DtoEventQuoteAndStatus getDtoEventQuoteAndStatus() {
+		return dtoEventQuoteAndStatus;
+	}
+
+	public void setDtoEventQuoteAndStatus(DtoEventQuoteAndStatus dtoEventQuoteAndStatus) {
+		this.dtoEventQuoteAndStatus = dtoEventQuoteAndStatus;
 	}
 
 }

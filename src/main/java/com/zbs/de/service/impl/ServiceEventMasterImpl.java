@@ -1,6 +1,7 @@
 package com.zbs.de.service.impl;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.DecorExtrasMaster;
 import com.zbs.de.model.DecorExtrasOption;
+import com.zbs.de.model.EventBudget;
 import com.zbs.de.model.EventDecorCategorySelection;
 import com.zbs.de.model.EventDecorExtrasSelection;
 import com.zbs.de.model.EventDecorPropertySelection;
@@ -1238,6 +1240,49 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					}
 					entity.setNumInfoFilledStatus(100);
 				}
+				
+				
+				// Setting Event Quoted Price
+				// **************************
+
+				if (entity.getEventBudget() != null) {
+					if (entity.getEventBudget().getNumPaidAmount() != null
+							&& entity.getEventBudget().getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
+						entity.getEventBudget().setTxtStatus("Confirmed");
+
+					} else if (dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
+							.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+						entity.getEventBudget().setTxtStatus("Quoted");
+						entity.getEventBudget()
+								.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+						entity.getEventBudget().setNumPaidAmount(BigDecimal.ZERO);
+
+					} else {
+						entity.getEventBudget().setTxtStatus("Inquiry");
+						entity.getEventBudget().setNumQuotedPrice(BigDecimal.ZERO);
+						entity.getEventBudget().setNumPaidAmount(BigDecimal.ZERO);
+
+					}
+
+				} else {
+					EventBudget eventBudget = new EventBudget();
+					if (dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
+							.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+						eventBudget.setTxtStatus("Quoted");
+						eventBudget.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+					} else {
+						eventBudget.setTxtStatus("Inquiry");
+						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+					}
+
+					entity.setEventBudget(eventBudget);
+
+				}
+				
 
 			} else {
 
@@ -1458,6 +1503,27 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				// Generate event master code
 				String code = generateNextEventMasterCode();
 				entity.setTxtEventMasterCode(code);
+				
+				
+				// Setting up Event QuotePrice
+				// ***************************
+
+				EventBudget eventBudget = new EventBudget();
+				if (dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
+						.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+					eventBudget.setTxtStatus("Quoted");
+					eventBudget.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				} else {
+					eventBudget.setTxtStatus("Inquiry");
+					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				}
+
+				entity.setEventBudget(eventBudget);
+
 			}
 
 			// ****** Setting Event Decor Extras ******
@@ -2040,6 +2106,50 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					}
 					entity.setNumInfoFilledStatus(100);
 				}
+				
+				// Setting Event Quoted Price
+				// **************************
+				
+				if (entity.getEventBudget() != null) {
+					if (entity.getEventBudget().getNumPaidAmount() != null
+							&& entity.getEventBudget().getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
+						entity.getEventBudget().setTxtStatus("Confirmed");
+
+					}else if(dtoEventMasterAdminPortal.getDtoEventQouteAndStatus().getNumQuotedPrice() != null
+							&& dtoEventMasterAdminPortal.getDtoEventQouteAndStatus().getNumQuotedPrice()
+							.compareTo(BigDecimal.ZERO) == 1) {
+						entity.getEventBudget().setTxtStatus("Quoted");
+						entity.getEventBudget().setNumQuotedPrice(dtoEventMasterAdminPortal.getDtoEventQouteAndStatus().getNumQuotedPrice());
+						entity.getEventBudget().setNumPaidAmount(BigDecimal.ZERO);
+
+					}else {
+						entity.getEventBudget().setTxtStatus("Inquiry");
+						entity.getEventBudget().setNumQuotedPrice(BigDecimal.ZERO);
+						entity.getEventBudget().setNumPaidAmount(BigDecimal.ZERO);
+						
+					}
+					
+					
+				}else {
+					EventBudget eventBudget = new EventBudget();
+					if(dtoEventMasterAdminPortal.getDtoEventQouteAndStatus().getNumQuotedPrice() != null
+							&& dtoEventMasterAdminPortal.getDtoEventQouteAndStatus().getNumQuotedPrice()
+							.compareTo(BigDecimal.ZERO) == 1) {
+						eventBudget.setTxtStatus("Quoted");
+						eventBudget.setNumQuotedPrice(dtoEventMasterAdminPortal.getDtoEventQouteAndStatus().getNumQuotedPrice());
+						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+					}else {
+						eventBudget.setTxtStatus("Inquiry");
+						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+						
+					}
+					
+					entity.setEventBudget(eventBudget);
+					
+				}
+				
 
 			} else {
 
@@ -2279,6 +2389,31 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				// Generate event master code
 				String code = generateNextEventMasterCode();
 				entity.setTxtEventMasterCode(code);
+				
+				
+				
+				// Setting Event Quoted Price
+				// **************************
+
+				EventBudget eventBudget = new EventBudget();
+				if (dtoEventMasterAdminPortal.getDtoEventQouteAndStatus().getNumQuotedPrice() != null
+						&& dtoEventMasterAdminPortal.getDtoEventQouteAndStatus().getNumQuotedPrice()
+								.compareTo(BigDecimal.ZERO) == 1) {
+					eventBudget.setTxtStatus("Quoted");
+					eventBudget.setNumQuotedPrice(
+							dtoEventMasterAdminPortal.getDtoEventQouteAndStatus().getNumQuotedPrice());
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				} else {
+					eventBudget.setTxtStatus("Inquiry");
+					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				}
+
+				entity.setEventBudget(eventBudget);
+				
+				
 			}
 
 			// ****** Setting Event Decor Extras ******

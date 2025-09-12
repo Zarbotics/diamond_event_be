@@ -6,16 +6,13 @@ import java.util.Date;
 
 import org.hibernate.annotations.DynamicInsert;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -33,8 +30,7 @@ public class EventBudget extends BaseEntity implements Serializable {
 	@Column(name = "ser_event_budget_id")
 	private Integer serEventBudgetId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ser_event_master_id", nullable = false)
+	@OneToOne(mappedBy = "eventBudget")
 	private EventMaster eventMaster;
 
 	@Column(name = "num_total_budget", precision = 18, scale = 2)
@@ -60,6 +56,15 @@ public class EventBudget extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_remarks", columnDefinition = "TEXT")
 	private String txtRemarks;
+
+	@Column(name = "num_qouted_price")
+	private BigDecimal numQuotedPrice;
+
+	@Column(name = "num_paid_amount")
+	private BigDecimal numPaidAmount;
+
+	@Column(name = "txt_status")
+	private String txtStatus;
 
 	public Integer getSerEventBudgetId() {
 		return serEventBudgetId;
@@ -139,6 +144,30 @@ public class EventBudget extends BaseEntity implements Serializable {
 
 	public void setTxtRemarks(String txtRemarks) {
 		this.txtRemarks = txtRemarks;
+	}
+
+	public BigDecimal getNumQuotedPrice() {
+		return numQuotedPrice;
+	}
+
+	public void setNumQuotedPrice(BigDecimal numQuotedPrice) {
+		this.numQuotedPrice = numQuotedPrice;
+	}
+
+	public BigDecimal getNumPaidAmount() {
+		return numPaidAmount;
+	}
+
+	public void setNumPaidAmount(BigDecimal numPaidAmount) {
+		this.numPaidAmount = numPaidAmount;
+	}
+
+	public String getTxtStatus() {
+		return txtStatus;
+	}
+
+	public void setTxtStatus(String txtStatus) {
+		this.txtStatus = txtStatus;
 	}
 
 }

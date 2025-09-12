@@ -59,11 +59,21 @@ public class DtoEventMasterAdminPortal {
 	private DtoEventVenue dtoEventVenue;
 
 	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
-	
+
 //	private List<DtoEventMenuFoodSelection> foodSelections;
 	private Map<String, List<DtoMenuFoodMaster>> foodSelections;
 
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
+
+	private DtoEventQuoteAndStatus dtoEventQouteAndStatus;
+
+	public DtoEventQuoteAndStatus getDtoEventQouteAndStatus() {
+		return dtoEventQouteAndStatus;
+	}
+
+	public void setDtoEventQouteAndStatus(DtoEventQuoteAndStatus dtoEventQouteAndStatus) {
+		this.dtoEventQouteAndStatus = dtoEventQouteAndStatus;
+	}
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;

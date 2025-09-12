@@ -17,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.Getter;
@@ -30,6 +31,14 @@ import lombok.Setter;
 @Table(name = "event_master")
 @NamedQuery(name = "EventMaster.findAll", query = "SELECT a FROM EventMaster a")
 public class EventMaster extends BaseEntity implements Serializable {
+
+	public EventBudget getEventBudget() {
+		return eventBudget;
+	}
+
+	public void setEventBudget(EventBudget eventBudget) {
+		this.eventBudget = eventBudget;
+	}
 
 	/**
 	 * 
@@ -145,6 +154,10 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "ser_vendor_id")
 	private VendorMaster vendorMaster;
+
+	@OneToOne
+	@JoinColumn(name = "ser_event_budget_id")
+	private EventBudget eventBudget;
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
