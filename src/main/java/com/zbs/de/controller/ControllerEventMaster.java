@@ -141,22 +141,28 @@ public class ControllerEventMaster {
 
 	}
 	
-	
 	@PostMapping(value = "/saveWithDocsAdminPortal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithDocsAdminPortal(@RequestPart("eventMaster") String eventMaster,
-			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
-		LOGGER.info("Saving Event Master: {}", eventMaster);
-		DtoEventMasterAdminPortal dtoEventMaster = new ObjectMapper().readValue(eventMaster,
-				DtoEventMasterAdminPortal.class);
-		DtoResult result = serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dtoEventMaster, files);
-		if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-					result.getResult());
+			@RequestPart(value = "files", required = false) List<MultipartFile> files) {
+		DtoEventMasterAdminPortal dtoEventMaster = null;
+		try {
+			LOGGER.info("Saving Event Master: {}", eventMaster);
+			dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMasterAdminPortal.class);
+			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dtoEventMaster, files);
+			if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			} else {
+				return new ResponseMessage(HttpStatus.METHOD_FAILURE.value(), HttpStatus.METHOD_FAILURE,
+						result.getTxtMessage(), dtoEventMaster);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(),e);
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
+					dtoEventMaster);
 		}
-		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
-				dtoEventMaster);
+
 	}
-	
 	
 	@PostMapping(value = "/getAllDataAdminPortal", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllDataAdminPortal(HttpServletRequest request) {

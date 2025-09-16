@@ -1,36 +1,15 @@
 package com.zbs.de.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-import org.hibernate.annotations.DynamicInsert;
-
-import com.zbs.de.util.enums.EnmPaymentMethod;
+import jakarta.persistence.*;
 
 @Entity
-@DynamicInsert
-@Data
-@Getter
-@Setter
 @Table(name = "event_payment")
-@NamedQuery(name = "EventPayment.findAll", query = "SELECT a FROM EventPayment a")
 public class EventPayment extends BaseEntity implements Serializable {
 
 	/**
@@ -40,43 +19,59 @@ public class EventPayment extends BaseEntity implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "ser_payment_id")
-	private Integer serPaymentId;
+	@Column(name = "ser_event_payment_id")
+	private Integer serEventPaymentId;
 
-	@ManyToOne
-	@JoinColumn(name = "ser_event_id")
-	private EventMaster eventMaster;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ser_event_budget_id", nullable = false)
+	private EventBudget eventBudget;
 
-	@Column(name = "num_amount")
+	@Column(name = "ser_event_master_id")
+	private Integer serEventMasterId; // optional duplicate for faster queries
+
+	@Column(name = "num_amount", precision = 18, scale = 2, nullable = false)
 	private BigDecimal numAmount;
 
-	@Column(name = "dte_due_date")
-	private Date dteDueDate;
+	@Column(name = "txt_payment_mode")
+	private String txtPaymentMode;
 
-	@Column(name = "dte_paid_date")
-	private Date dtePaidDate;
+	@Column(name = "txt_transaction_ref")
+	private String txtTransactionRef;
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "enm_payment_method")
-	private EnmPaymentMethod enmPaymentMethod;
+	@Column(name = "dte_payment_date")
+	private Date dtePaymentDate;
 
-	@Column(name = "txt_reference")
-	private String txtReference;
+	@Column(name = "txt_payment_status")
+	private String txtPaymentStatus;
 
-	public Integer getSerPaymentId() {
-		return serPaymentId;
+	@Column(name = "txt_remarks", columnDefinition = "TEXT")
+	private String txtRemarks;
+
+	@OneToMany(mappedBy = "eventPayment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<EventPaymentDocument> documents = new ArrayList<>();
+
+	public Integer getSerEventPaymentId() {
+		return serEventPaymentId;
 	}
 
-	public void setSerPaymentId(Integer serPaymentId) {
-		this.serPaymentId = serPaymentId;
+	public void setSerEventPaymentId(Integer serEventPaymentId) {
+		this.serEventPaymentId = serEventPaymentId;
 	}
 
-	public EventMaster getEventMaster() {
-		return eventMaster;
+	public EventBudget getEventBudget() {
+		return eventBudget;
 	}
 
-	public void setEventMaster(EventMaster eventMaster) {
-		this.eventMaster = eventMaster;
+	public void setEventBudget(EventBudget eventBudget) {
+		this.eventBudget = eventBudget;
+	}
+
+	public Integer getSerEventMasterId() {
+		return serEventMasterId;
+	}
+
+	public void setSerEventMasterId(Integer serEventMasterId) {
+		this.serEventMasterId = serEventMasterId;
 	}
 
 	public BigDecimal getNumAmount() {
@@ -87,36 +82,61 @@ public class EventPayment extends BaseEntity implements Serializable {
 		this.numAmount = numAmount;
 	}
 
-	public Date getDteDueDate() {
-		return dteDueDate;
+	public String getTxtPaymentMode() {
+		return txtPaymentMode;
 	}
 
-	public void setDteDueDate(Date dteDueDate) {
-		this.dteDueDate = dteDueDate;
+	public void setTxtPaymentMode(String txtPaymentMode) {
+		this.txtPaymentMode = txtPaymentMode;
 	}
 
-	public Date getDtePaidDate() {
-		return dtePaidDate;
+	public String getTxtTransactionRef() {
+		return txtTransactionRef;
 	}
 
-	public void setDtePaidDate(Date dtePaidDate) {
-		this.dtePaidDate = dtePaidDate;
+	public void setTxtTransactionRef(String txtTransactionRef) {
+		this.txtTransactionRef = txtTransactionRef;
 	}
 
-	public EnmPaymentMethod getEnmPaymentMethod() {
-		return enmPaymentMethod;
+	public Date getDtePaymentDate() {
+		return dtePaymentDate;
 	}
 
-	public void setEnmPaymentMethod(EnmPaymentMethod enmPaymentMethod) {
-		this.enmPaymentMethod = enmPaymentMethod;
+	public void setDtePaymentDate(Date dtePaymentDate) {
+		this.dtePaymentDate = dtePaymentDate;
 	}
 
-	public String getTxtReference() {
-		return txtReference;
+	public String getTxtPaymentStatus() {
+		return txtPaymentStatus;
 	}
 
-	public void setTxtReference(String txtReference) {
-		this.txtReference = txtReference;
+	public void setTxtPaymentStatus(String txtPaymentStatus) {
+		this.txtPaymentStatus = txtPaymentStatus;
 	}
 
+	public String getTxtRemarks() {
+		return txtRemarks;
+	}
+
+	public void setTxtRemarks(String txtRemarks) {
+		this.txtRemarks = txtRemarks;
+	}
+
+	public List<EventPaymentDocument> getDocuments() {
+		return documents;
+	}
+
+	public void setDocuments(List<EventPaymentDocument> documents) {
+		this.documents = documents;
+	}
+
+	public void addDocument(EventPaymentDocument doc) {
+		this.documents.add(doc);
+		doc.setEventPayment(this);
+	}
+
+	public void removeDocument(EventPaymentDocument doc) {
+		this.documents.remove(doc);
+		doc.setEventPayment(null);
+	}
 }

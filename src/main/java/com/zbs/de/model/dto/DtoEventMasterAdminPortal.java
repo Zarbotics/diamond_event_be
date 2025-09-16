@@ -65,15 +65,7 @@ public class DtoEventMasterAdminPortal {
 
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
 
-	private DtoEventQuoteAndStatus dtoEventQouteAndStatus;
-
-	public DtoEventQuoteAndStatus getDtoEventQouteAndStatus() {
-		return dtoEventQouteAndStatus;
-	}
-
-	public void setDtoEventQouteAndStatus(DtoEventQuoteAndStatus dtoEventQouteAndStatus) {
-		this.dtoEventQouteAndStatus = dtoEventQouteAndStatus;
-	}
+	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -441,6 +433,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setExtrasSelections(List<DtoEventDecorExtrasSelection> extrasSelections) {
 		this.extrasSelections = extrasSelections;
+	}
+
+	public DtoEventQuoteAndStatus getDtoEventQuoteAndStatus() {
+		return dtoEventQuoteAndStatus;
+	}
+
+	public void setDtoEventQuoteAndStatus(DtoEventQuoteAndStatus dtoEventQuoteAndStatus) {
+		this.dtoEventQuoteAndStatus = dtoEventQuoteAndStatus;
 	}
 
 }

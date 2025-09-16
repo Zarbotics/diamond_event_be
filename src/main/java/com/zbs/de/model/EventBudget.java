@@ -1,24 +1,14 @@
 package com.zbs.de.model;
 
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
-
-import org.hibernate.annotations.DynamicInsert;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.Data;
+import java.util.List;
 
 @Entity
-@DynamicInsert
-@Data
 @Table(name = "event_budget")
 @NamedQuery(name = "EventBudget.findAll", query = "SELECT a FROM EventBudget a")
 public class EventBudget extends BaseEntity implements Serializable {
@@ -30,7 +20,9 @@ public class EventBudget extends BaseEntity implements Serializable {
 	@Column(name = "ser_event_budget_id")
 	private Integer serEventBudgetId;
 
-	@OneToOne(mappedBy = "eventBudget")
+	// owning side: FK to event_master
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ser_event_master_id", nullable = false, unique = true)
 	private EventMaster eventMaster;
 
 	@Column(name = "num_total_budget", precision = 18, scale = 2)
@@ -60,11 +52,14 @@ public class EventBudget extends BaseEntity implements Serializable {
 	@Column(name = "num_qouted_price")
 	private BigDecimal numQuotedPrice;
 
-	@Column(name = "num_paid_amount")
+	@Column(name = "num_paid_amount", precision = 18, scale = 2)
 	private BigDecimal numPaidAmount;
 
 	@Column(name = "txt_status")
 	private String txtStatus;
+
+	@OneToMany(mappedBy = "eventBudget", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<EventPayment> payments = new ArrayList<>();
 
 	public Integer getSerEventBudgetId() {
 		return serEventBudgetId;
@@ -170,4 +165,21 @@ public class EventBudget extends BaseEntity implements Serializable {
 		this.txtStatus = txtStatus;
 	}
 
+	public List<EventPayment> getPayments() {
+		return payments;
+	}
+
+	public void setPayments(List<EventPayment> payments) {
+		this.payments = payments;
+	}
+
+	public void addPayment(EventPayment p) {
+		this.payments.add(p);
+		p.setEventBudget(this);
+	}
+
+	public void removePayment(EventPayment p) {
+		this.payments.remove(p);
+		p.setEventBudget(null);
+	}
 }
