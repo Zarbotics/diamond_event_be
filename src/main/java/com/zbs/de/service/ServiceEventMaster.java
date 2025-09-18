@@ -3,11 +3,14 @@ package com.zbs.de.service;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
+import com.zbs.de.model.dto.DtoEventMasterSearch;
 import com.zbs.de.model.dto.DtoEventMasterStats;
+import com.zbs.de.model.dto.DtoEventMasterTableView;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 
@@ -35,4 +38,8 @@ public interface ServiceEventMaster {
 			List<MultipartFile> files) throws IOException;
 
 	DtoResult getAllEventsAdminPortal();
+	
+	Page<DtoEventMasterTableView> search(DtoEventMasterSearch dto);
+	
+	Page<DtoEventMasterTableView> searchByBudgetStatus(String status, int page, int size);
 }

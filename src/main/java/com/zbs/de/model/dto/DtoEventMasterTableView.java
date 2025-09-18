@@ -25,6 +25,10 @@ public class DtoEventMasterTableView {
 	private String txtVenueCode;
 	private String txtVenueName;
 
+	private Integer serVendorId;
+	private String txtVendorCode;
+	private String txtVendorName;
+
 	public DtoEventMasterTableView() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -152,6 +156,30 @@ public class DtoEventMasterTableView {
 
 	public void setTxtVenueName(String txtVenueName) {
 		this.txtVenueName = txtVenueName;
+	}
+
+	public Integer getSerVendorId() {
+		return serVendorId;
+	}
+
+	public void setSerVendorId(Integer serVendorId) {
+		this.serVendorId = serVendorId;
+	}
+
+	public String getTxtVendorCode() {
+		return txtVendorCode;
+	}
+
+	public void setTxtVendorCode(String txtVendorCode) {
+		this.txtVendorCode = txtVendorCode;
+	}
+
+	public String getTxtVendorName() {
+		return txtVendorName;
+	}
+
+	public void setTxtVendorName(String txtVendorName) {
+		this.txtVendorName = txtVendorName;
 	}
 
 }

@@ -12,6 +12,11 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.zbs.de.mapper.MapperEventDecorCategorySelection;
@@ -43,6 +48,7 @@ import com.zbs.de.model.dto.DtoEventDecorPropertySelection;
 import com.zbs.de.model.dto.DtoEventDecorReferenceDocument;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
+import com.zbs.de.model.dto.DtoEventMasterSearch;
 import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 import com.zbs.de.model.dto.DtoEventMenuFoodSelection;
@@ -70,6 +76,7 @@ import com.zbs.de.service.ServiceMenuFoodMaster;
 import com.zbs.de.service.ServiceNotificationMaster;
 import com.zbs.de.service.ServiceVendorMaster;
 import com.zbs.de.service.ServiceVenueMaster;
+import com.zbs.de.spec.SepecificationsEventMaster;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
@@ -2774,6 +2781,70 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			return dtoResult;
 		}
 
+	}
+	
+	public Page<DtoEventMasterTableView> search(DtoEventMasterSearch dto) {
+		// enforce sane defaults and caps
+		int page = dto.getPage() != null && dto.getPage() >= 0 ? dto.getPage() : 0;
+		int size = dto.getSize() != null && dto.getSize() > 0 ? Math.min(dto.getSize(), 250) : 20;
+		String sortBy = dto.getSortBy() != null ? dto.getSortBy() : "dteEventDate";
+		Sort.Direction dir = "ASC".equalsIgnoreCase(dto.getSortDir()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+		Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
+
+		Specification<EventMaster> spec = SepecificationsEventMaster.fromDto(dto);
+
+		Page<EventMaster> pageResult = repositoryEventMaster.findAll(spec, pageable);
+
+		// Map entity -> DtoEventMasterTableView
+		Page<DtoEventMasterTableView> mapped = pageResult.map(em -> {
+			DtoEventMasterTableView tv = new DtoEventMasterTableView();
+			tv.setSerEventMasterId(em.getSerEventMasterId());
+			tv.setTxtEventMasterCode(em.getTxtEventMasterCode());
+			tv.setTxtEventMasterName(em.getTxtEventMasterName());
+			tv.setDteEventDate(UtilDateAndTime.mmddyyyyDateToString(em.getDteEventDate()));
+			if (em.getCustomerMaster() != null) {
+				tv.setSerCustId(em.getCustomerMaster().getSerCustId());
+				tv.setTxtCustCode(em.getCustomerMaster().getTxtCustCode());
+				tv.setTxtCustName(em.getCustomerMaster().getTxtCustName());
+			}
+			if (em.getEventType() != null) {
+				tv.setSerEventTypeId(em.getEventType().getSerEventTypeId());
+				tv.setTxtEventTypeCode(em.getEventType().getTxtEventTypeCode());
+				tv.setTxtEventTypeName(em.getEventType().getTxtEventTypeName());
+			}
+			if (em.getVenueMaster() != null) {
+				tv.setSerVenueMasterId(em.getVenueMaster().getSerVenueMasterId());
+				tv.setTxtVenueCode(em.getVenueMaster().getTxtVenueCode());
+				tv.setTxtVenueName(em.getVenueMaster().getTxtVenueName());
+			}
+			if (em.getVendorMaster() != null) {
+				tv.setSerVendorId(em.getVendorMaster().getSerVendorId());
+				tv.setTxtVendorCode(em.getVendorMaster().getTxtVendorCode());
+				tv.setTxtVendorName(em.getVendorMaster().getTxtVendorName());
+			}
+			return tv;
+		});
+
+		return mapped;
+	}
+	
+	@Override
+	public Page<DtoEventMasterTableView> searchByBudgetStatus(String status, int page, int size) {
+		Specification<EventMaster> spec = SepecificationsEventMaster.hasBudgetStatus(status);
+
+		Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dteEventDate"));
+
+		Page<EventMaster> pageResult = repositoryEventMaster.findAll(spec, pageable);
+
+		return pageResult.map(em -> {
+			DtoEventMasterTableView tv = new DtoEventMasterTableView();
+			tv.setSerEventMasterId(em.getSerEventMasterId());
+			tv.setTxtEventMasterCode(em.getTxtEventMasterCode());
+			tv.setTxtEventMasterName(em.getTxtEventMasterName());
+			tv.setDteEventDate(UtilDateAndTime.mmddyyyyDateToString(em.getDteEventDate()));
+			return tv;
+		});
 	}
 
 }
