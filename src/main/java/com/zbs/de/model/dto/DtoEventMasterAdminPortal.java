@@ -1,8 +1,10 @@
 package com.zbs.de.model.dto;
 
 import java.util.List;
+import java.util.Map;
 
-public class DtoEventMaster {
+public class DtoEventMasterAdminPortal {
+
 	private Integer serEventMasterId;
 	private String txtEventMasterCode;
 	private String txtEventMasterName;
@@ -57,7 +59,9 @@ public class DtoEventMaster {
 	private DtoEventVenue dtoEventVenue;
 
 	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
-	private List<DtoEventMenuFoodSelection> foodSelections;
+
+//	private List<DtoEventMenuFoodSelection> foodSelections;
+	private Map<String, List<DtoMenuFoodMaster>> foodSelections;
 
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
 
@@ -103,6 +107,14 @@ public class DtoEventMaster {
 		this.numNumberOfGuests = numNumberOfGuests;
 	}
 
+	public String getTxtNumberOfGuests() {
+		return txtNumberOfGuests;
+	}
+
+	public void setTxtNumberOfGuests(String txtNumberOfGuests) {
+		this.txtNumberOfGuests = txtNumberOfGuests;
+	}
+
 	public Integer getNumNumberOfTables() {
 		return numNumberOfTables;
 	}
@@ -117,6 +129,102 @@ public class DtoEventMaster {
 
 	public void setNumInfoFilledStatus(Integer numInfoFilledStatus) {
 		this.numInfoFilledStatus = numInfoFilledStatus;
+	}
+
+	public String getTxtBrideName() {
+		return txtBrideName;
+	}
+
+	public void setTxtBrideName(String txtBrideName) {
+		this.txtBrideName = txtBrideName;
+	}
+
+	public String getTxtBrideFirstName() {
+		return txtBrideFirstName;
+	}
+
+	public void setTxtBrideFirstName(String txtBrideFirstName) {
+		this.txtBrideFirstName = txtBrideFirstName;
+	}
+
+	public String getTxtBrideLastName() {
+		return txtBrideLastName;
+	}
+
+	public void setTxtBrideLastName(String txtBrideLastName) {
+		this.txtBrideLastName = txtBrideLastName;
+	}
+
+	public String getTxtGroomName() {
+		return txtGroomName;
+	}
+
+	public void setTxtGroomName(String txtGroomName) {
+		this.txtGroomName = txtGroomName;
+	}
+
+	public String getTxtGroomFirstName() {
+		return txtGroomFirstName;
+	}
+
+	public void setTxtGroomFirstName(String txtGroomFirstName) {
+		this.txtGroomFirstName = txtGroomFirstName;
+	}
+
+	public String getTxtGroomLastName() {
+		return txtGroomLastName;
+	}
+
+	public void setTxtGroomLastName(String txtGroomLastName) {
+		this.txtGroomLastName = txtGroomLastName;
+	}
+
+	public String getTxtBirthDayCelebrant() {
+		return txtBirthDayCelebrant;
+	}
+
+	public void setTxtBirthDayCelebrant(String txtBirthDayCelebrant) {
+		this.txtBirthDayCelebrant = txtBirthDayCelebrant;
+	}
+
+	public String getTxtAgeCategory() {
+		return txtAgeCategory;
+	}
+
+	public void setTxtAgeCategory(String txtAgeCategory) {
+		this.txtAgeCategory = txtAgeCategory;
+	}
+
+	public String getTxtChiefGuest() {
+		return txtChiefGuest;
+	}
+
+	public void setTxtChiefGuest(String txtChiefGuest) {
+		this.txtChiefGuest = txtChiefGuest;
+	}
+
+	public String getTxtEventStatus() {
+		return txtEventStatus;
+	}
+
+	public void setTxtEventStatus(String txtEventStatus) {
+		this.txtEventStatus = txtEventStatus;
+	}
+
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
+	}
+
+	public Boolean getBlnIsCouple() {
+		return blnIsCouple;
+	}
+
+	public void setBlnIsCouple(Boolean blnIsCouple) {
+		this.blnIsCouple = blnIsCouple;
 	}
 
 	public Integer getSerCustId() {
@@ -167,52 +275,12 @@ public class DtoEventMaster {
 		this.txtEventTypeName = txtEventTypeName;
 	}
 
-	public String getTxtBrideName() {
-		return txtBrideName;
+	public String getTxtOtherEventType() {
+		return txtOtherEventType;
 	}
 
-	public void setTxtBrideName(String txtBrideName) {
-		this.txtBrideName = txtBrideName;
-	}
-
-	public String getTxtGroomName() {
-		return txtGroomName;
-	}
-
-	public void setTxtGroomName(String txtGroomName) {
-		this.txtGroomName = txtGroomName;
-	}
-
-	public String getTxtBirthDayCelebrant() {
-		return txtBirthDayCelebrant;
-	}
-
-	public void setTxtBirthDayCelebrant(String txtBirthDayCelebrant) {
-		this.txtBirthDayCelebrant = txtBirthDayCelebrant;
-	}
-
-	public String getTxtAgeCategory() {
-		return txtAgeCategory;
-	}
-
-	public void setTxtAgeCategory(String txtAgeCategory) {
-		this.txtAgeCategory = txtAgeCategory;
-	}
-
-	public String getTxtChiefGuest() {
-		return txtChiefGuest;
-	}
-
-	public void setTxtChiefGuest(String txtChiefGuest) {
-		this.txtChiefGuest = txtChiefGuest;
-	}
-
-	public DtoEventRunningOrder getDtoEventRunningOrder() {
-		return dtoEventRunningOrder;
-	}
-
-	public void setDtoEventRunningOrder(DtoEventRunningOrder dtoEventRunningOrder) {
-		this.dtoEventRunningOrder = dtoEventRunningOrder;
+	public void setTxtOtherEventType(String txtOtherEventType) {
+		this.txtOtherEventType = txtOtherEventType;
 	}
 
 	public Integer getSerVenueMasterId() {
@@ -239,14 +307,6 @@ public class DtoEventMaster {
 		this.txtVenueName = txtVenueName;
 	}
 
-	public List<DtoEventMenuFoodSelection> getFoodSelections() {
-		return foodSelections;
-	}
-
-	public void setFoodSelections(List<DtoEventMenuFoodSelection> foodSelections) {
-		this.foodSelections = foodSelections;
-	}
-
 	public Integer getSerVendorId() {
 		return serVendorId;
 	}
@@ -269,102 +329,6 @@ public class DtoEventMaster {
 
 	public void setTxtVendorName(String txtVendorName) {
 		this.txtVendorName = txtVendorName;
-	}
-
-	public String getTxtNumberOfGuests() {
-		return txtNumberOfGuests;
-	}
-
-	public void setTxtNumberOfGuests(String txtNumberOfGuests) {
-		this.txtNumberOfGuests = txtNumberOfGuests;
-	}
-
-	public String getTxtOtherEventType() {
-		return txtOtherEventType;
-	}
-
-	public void setTxtOtherEventType(String txtOtherEventType) {
-		this.txtOtherEventType = txtOtherEventType;
-	}
-
-	public DtoEventVenue getDtoEventVenue() {
-		return dtoEventVenue;
-	}
-
-	public void setDtoEventVenue(DtoEventVenue dtoEventVenue) {
-		this.dtoEventVenue = dtoEventVenue;
-	}
-
-	public List<DtoEventDecorCategorySelection> getDtoEventDecorSelections() {
-		return dtoEventDecorSelections;
-	}
-
-	public void setDtoEventDecorSelections(List<DtoEventDecorCategorySelection> dtoEventDecorSelections) {
-		this.dtoEventDecorSelections = dtoEventDecorSelections;
-	}
-
-	public Boolean getBlnIsActive() {
-		return blnIsActive;
-	}
-
-	public void setBlnIsActive(Boolean blnIsActive) {
-		this.blnIsActive = blnIsActive;
-	}
-
-	public String getTxtEventStatus() {
-		return txtEventStatus;
-	}
-
-	public void setTxtEventStatus(String txtEventStatus) {
-		this.txtEventStatus = txtEventStatus;
-	}
-
-	public String getTxtBrideFirstName() {
-		return txtBrideFirstName;
-	}
-
-	public void setTxtBrideFirstName(String txtBrideFirstName) {
-		this.txtBrideFirstName = txtBrideFirstName;
-	}
-
-	public String getTxtBrideLastName() {
-		return txtBrideLastName;
-	}
-
-	public void setTxtBrideLastName(String txtBrideLastName) {
-		this.txtBrideLastName = txtBrideLastName;
-	}
-
-	public String getTxtGroomFirstName() {
-		return txtGroomFirstName;
-	}
-
-	public void setTxtGroomFirstName(String txtGroomFirstName) {
-		this.txtGroomFirstName = txtGroomFirstName;
-	}
-
-	public String getTxtGroomLastName() {
-		return txtGroomLastName;
-	}
-
-	public void setTxtGroomLastName(String txtGroomLastName) {
-		this.txtGroomLastName = txtGroomLastName;
-	}
-
-	public Boolean getBlnIsCouple() {
-		return blnIsCouple;
-	}
-
-	public void setBlnIsCouple(Boolean blnIsCouple) {
-		this.blnIsCouple = blnIsCouple;
-	}
-
-	public List<DtoEventDecorExtrasSelection> getExtrasSelections() {
-		return extrasSelections;
-	}
-
-	public void setExtrasSelections(List<DtoEventDecorExtrasSelection> extrasSelections) {
-		this.extrasSelections = extrasSelections;
 	}
 
 	public String getTxtEventRemarks() {
@@ -429,6 +393,46 @@ public class DtoEventMaster {
 
 	public void setDteUpdateDate(String dteUpdateDate) {
 		this.dteUpdateDate = dteUpdateDate;
+	}
+
+	public DtoEventRunningOrder getDtoEventRunningOrder() {
+		return dtoEventRunningOrder;
+	}
+
+	public void setDtoEventRunningOrder(DtoEventRunningOrder dtoEventRunningOrder) {
+		this.dtoEventRunningOrder = dtoEventRunningOrder;
+	}
+
+	public DtoEventVenue getDtoEventVenue() {
+		return dtoEventVenue;
+	}
+
+	public void setDtoEventVenue(DtoEventVenue dtoEventVenue) {
+		this.dtoEventVenue = dtoEventVenue;
+	}
+
+	public List<DtoEventDecorCategorySelection> getDtoEventDecorSelections() {
+		return dtoEventDecorSelections;
+	}
+
+	public void setDtoEventDecorSelections(List<DtoEventDecorCategorySelection> dtoEventDecorSelections) {
+		this.dtoEventDecorSelections = dtoEventDecorSelections;
+	}
+
+	public Map<String, List<DtoMenuFoodMaster>> getFoodSelections() {
+		return foodSelections;
+	}
+
+	public void setFoodSelections(Map<String, List<DtoMenuFoodMaster>> foodSelections) {
+		this.foodSelections = foodSelections;
+	}
+
+	public List<DtoEventDecorExtrasSelection> getExtrasSelections() {
+		return extrasSelections;
+	}
+
+	public void setExtrasSelections(List<DtoEventDecorExtrasSelection> extrasSelections) {
+		this.extrasSelections = extrasSelections;
 	}
 
 	public DtoEventQuoteAndStatus getDtoEventQuoteAndStatus() {

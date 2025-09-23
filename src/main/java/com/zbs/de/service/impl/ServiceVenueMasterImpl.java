@@ -397,5 +397,23 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 		}
 		return result;
 	}
+	
+	@Override
+	public String generateNextVenueMasterCode() {
+		String maxCode = repositoryVenueMaster.findMaxVenueMasterCode();
+
+		int nextNumber = 1;
+
+		if (maxCode != null && maxCode.startsWith("VEN-")) {
+			try {
+				String numberPart = maxCode.substring(4);
+				nextNumber = Integer.parseInt(numberPart) + 1;
+			} catch (NumberFormatException e) {
+				nextNumber = 1;
+			}
+		}
+
+		return String.format("VEN-%03d", nextNumber);
+	}
 
 }

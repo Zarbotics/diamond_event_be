@@ -25,4 +25,6 @@ public interface ServiceMenuFoodMaster {
 	Map<String, List<DtoMenuFoodMaster>> getAllFoodGroupedByType();
 	
 	DtoResult deleteById(Integer id);
+	
+	String generateNextMenuFoodCode(String prefix);
 }

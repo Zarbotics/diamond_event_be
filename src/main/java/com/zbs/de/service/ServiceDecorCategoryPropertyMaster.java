@@ -24,4 +24,6 @@ public interface ServiceDecorCategoryPropertyMaster {
 	
 	List<DecorCategoryPropertyMaster> getAllPropertiesMaster();
 	
+	String generateNextDecorCategoryPropertyMasterCode();
+	
 }

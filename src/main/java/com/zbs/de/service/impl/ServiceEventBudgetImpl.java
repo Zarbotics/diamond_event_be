@@ -54,7 +54,6 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 		EventBudget eventBudget = new EventBudget();
 		if (UtilRandomKey.isNotNull(optionalExisting) && !optionalExisting.isEmpty()) {
 			eventBudget = optionalExisting.get();
-			eventBudget.setEventMaster(eventMaster);
 			eventBudget.setNumTotalBudget(dtoEventBudget.getNumTotalBudget());
 			eventBudget.setNumTotalExpense(dtoEventBudget.getNumTotalExpense());
 			eventBudget.setTxtPaymentType(dtoEventBudget.getTxtPaymentType());
@@ -86,6 +85,13 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 	@Override
 	public DtoEventBudget getByEventId(Integer serEventMasterId) {
 		return repositoryEventBudget.findByEventMaster_SerEventMasterId(serEventMasterId).map(MapperEventBudget::toDto)
+				.orElse(null);
+	}
+	
+	
+	@Override
+	public EventBudget getEventBudgetByEventId(Integer serEventMasterId) {
+		return repositoryEventBudget.findByEventMaster_SerEventMasterId(serEventMasterId)
 				.orElse(null);
 	}
 
@@ -153,6 +159,16 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 			result.setTxtMessage("No record found to delete");
 		}
 		return result;
+	}
+	
+	
+	@Override
+	public void save(EventBudget eventBudget) {
+		try {
+			repositoryEventBudget.save(eventBudget);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(),e);
+		}
 	}
 
 }

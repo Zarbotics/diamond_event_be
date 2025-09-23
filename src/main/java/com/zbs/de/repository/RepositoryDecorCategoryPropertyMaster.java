@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.zbs.de.model.DecorCategoryPropertyMaster;
@@ -16,4 +17,6 @@ public interface RepositoryDecorCategoryPropertyMaster extends JpaRepository<Dec
 
 	List<DecorCategoryPropertyMaster> findByDecorCategoryMaster_SerDecorCategoryIdAndBlnIsDeletedFalse(Integer categoryId);
 
+	@Query("SELECT MAX(e.txtPropertyCode) FROM DecorCategoryPropertyMaster e")
+	String findMaxDecorCategoryPropertyMasterCode();
 }

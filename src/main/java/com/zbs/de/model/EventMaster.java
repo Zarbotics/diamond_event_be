@@ -10,6 +10,7 @@ import org.hibernate.annotations.DynamicInsert;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,6 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.Getter;
@@ -145,6 +147,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "ser_vendor_id")
 	private VendorMaster vendorMaster;
+
+	@OneToOne(mappedBy = "eventMaster", fetch = FetchType.LAZY)
+	private EventBudget eventBudget;
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
@@ -437,6 +442,14 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setTxtVenueRemarks(String txtVenueRemarks) {
 		this.txtVenueRemarks = txtVenueRemarks;
+	}
+
+	public EventBudget getEventBudget() {
+		return eventBudget;
+	}
+
+	public void setEventBudget(EventBudget eventBudget) {
+		this.eventBudget = eventBudget;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)

@@ -233,7 +233,7 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 		dtoResult.setResult(saved);
 		return dtoResult;
 	}
-	
+
 	@Override
 	public DtoResult deleteById(Integer id) {
 		DtoResult result = new DtoResult();
@@ -247,6 +247,24 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 			result.setTxtMessage("No record found to delete");
 		}
 		return result;
+	}
+
+	@Override
+	public String generateNextEventTypeCode() {
+		String maxCode = repositoryEventType.findMaxEventTypeCode();
+
+		int nextNumber = 1;
+
+		if (maxCode != null && maxCode.startsWith("ET-")) {
+			try {
+				String numberPart = maxCode.substring(3);
+				nextNumber = Integer.parseInt(numberPart) + 1;
+			} catch (NumberFormatException e) {
+				nextNumber = 1;
+			}
+		}
+
+		return String.format("ET-%03d", nextNumber);
 	}
 
 }

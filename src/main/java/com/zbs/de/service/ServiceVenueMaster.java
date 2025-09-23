@@ -28,4 +28,6 @@ public interface ServiceVenueMaster {
 	DtoResult getVenueDetailByVenueMasterDetailId(Integer venueMasterDetailId);
 
 	DtoResult deleteById(Integer id);
+
+	String generateNextVenueMasterCode();
 }
