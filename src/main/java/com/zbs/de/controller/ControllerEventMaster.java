@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
 import com.zbs.de.model.dto.DtoEventMasterSearch;
@@ -219,6 +220,32 @@ public class ControllerEventMaster {
 	        return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
 	                "Error while searching: " + e.getMessage(), null);
 	    }
+	}
+
+	
+	@PostMapping(value = "/searchEntity", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage searchEntity(@RequestBody DtoEventMasterSearch dtoEventMaster, HttpServletRequest request) {
+		LOGGER.info("Searching Event Masters with filters: {}", dtoEventMaster);
+		try {
+			// call service (expects Page<DtoEventMasterTableView>)
+			Page<EventMaster> page = serviceEventMaster.searchEntity(dtoEventMaster);
+
+			// If service returns null, treat as empty page (safer for clients)
+			if (page == null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No records found", Page.empty());
+			}
+
+			if (page.hasContent()) {
+				// return the full Page so front-end can access content + paging metadata
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", page);
+			} else {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No records found", page);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error while searching Event Masters", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error while searching events: " + e.getMessage(), null);
+		}
 	}
 
 }

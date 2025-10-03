@@ -68,5 +68,9 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 	@Override
 	@EntityGraph(attributePaths = { "customerMaster", "eventType", "venueMaster", "vendorMaster" })
 	Page<EventMaster> findAll(Specification<EventMaster> spec, Pageable pageable);
+	
+	
+	@Query("SELECT MAX(e.txtEventMasterCode) FROM EventMaster e WHERE e.txtEventMasterCode LIKE CONCAT('DE-', :year, '-%')")
+	String findMaxEventCodeForYear(@Param("year") int year);
 
 }
