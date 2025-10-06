@@ -18,7 +18,8 @@ import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 
 @Repository("repositoryEventMaster")
-public interface RepositoryEventMaster extends JpaRepository<EventMaster, Integer>,JpaSpecificationExecutor<EventMaster> {
+public interface RepositoryEventMaster
+		extends JpaRepository<EventMaster, Integer>, JpaSpecificationExecutor<EventMaster> {
 
 	@Query("SELECT MAX(e.txtEventMasterCode) FROM EventMaster e")
 	String findMaxEventCode();
@@ -66,7 +67,10 @@ public interface RepositoryEventMaster extends JpaRepository<EventMaster, Intege
 
 	// override findAll so Spring Data will apply entity-graph when using paging
 	@Override
-	@EntityGraph(attributePaths = { "customerMaster", "eventType", "venueMaster", "vendorMaster" })
+	@EntityGraph(attributePaths = { "customerMaster", "eventType", "venueMaster", "vendorMaster", "eventBudget" })
 	Page<EventMaster> findAll(Specification<EventMaster> spec, Pageable pageable);
+
+	@Query("SELECT MAX(e.txtEventMasterCode) FROM EventMaster e WHERE e.txtEventMasterCode LIKE CONCAT('DE-', :year, '-%')")
+	String findMaxEventCodeForYear(@Param("year") int year);
 
 }

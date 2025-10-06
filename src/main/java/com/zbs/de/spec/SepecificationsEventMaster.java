@@ -137,11 +137,25 @@ public final class SepecificationsEventMaster {
 
 			// global q across a few important columns (if provided)
 			if (hasText(dto.getQ())) {
-				String q = "%" + dto.getQ().trim().toLowerCase() + "%";
-				Predicate p1 = cb.like(cb.lower(root.get("txtEventMasterName")), q);
-				Predicate p2 = cb.like(cb.lower(root.get("txtEventMasterCode")), q);
-				Predicate p3 = cb.like(cb.lower(root.get("txtEventRemarks")), q);
-				predicates.add(cb.or(p1, p2, p3));
+			    String q = "%" + dto.getQ().trim().toLowerCase() + "%";
+
+			    // local event fields
+			    Predicate p1 = cb.like(cb.lower(root.get("txtEventMasterName")), q);
+			    Predicate p2 = cb.like(cb.lower(root.get("txtEventMasterCode")), q);
+			    Predicate p3 = cb.like(cb.lower(root.get("txtEventRemarks")), q);
+
+			    // joined fields
+			    Join<EventMaster, CustomerMaster> custJoin = root.join("customerMaster", JoinType.LEFT);
+			    Predicate p4 = cb.like(cb.lower(custJoin.get("txtCustName")), q);
+
+			    Join<EventMaster, EventType> typeJoin = root.join("eventType", JoinType.LEFT);
+			    Predicate p5 = cb.like(cb.lower(typeJoin.get("txtEventTypeName")), q);
+
+			    // convert date to string for search (optional, database-specific)
+			    Expression<String> eventDateAsString = cb.function("TO_CHAR", String.class, root.get("dteEventDate"), cb.literal("YYYY-MM-DD"));
+			    Predicate p6 = cb.like(cb.lower(eventDateAsString), q);
+
+			    predicates.add(cb.or(p1, p2, p3, p4, p5, p6));
 			}
 
 			return cb.and(predicates.toArray(new Predicate[0]));

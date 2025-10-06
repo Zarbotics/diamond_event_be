@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
 import com.zbs.de.model.dto.DtoEventMasterSearch;
@@ -41,5 +42,9 @@ public interface ServiceEventMaster {
 	
 	Page<DtoEventMasterTableView> search(DtoEventMasterSearch dto);
 	
+	Page<EventMaster> searchEntity(DtoEventMasterSearch dto);
+	
 	Page<DtoEventMasterTableView> searchByBudgetStatus(String status, int page, int size);
+	
+	Page<DtoEventMasterAdminPortal> searchInEntityAndEventBudget(DtoEventMasterSearch dto);
 }

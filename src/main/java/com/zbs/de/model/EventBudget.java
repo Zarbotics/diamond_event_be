@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "event_budget")
 @NamedQuery(name = "EventBudget.findAll", query = "SELECT a FROM EventBudget a")
@@ -21,6 +23,7 @@ public class EventBudget extends BaseEntity implements Serializable {
 	private Integer serEventBudgetId;
 
 	// owning side: FK to event_master
+	@JsonIgnore
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_event_master_id", nullable = false, unique = true)
 	private EventMaster eventMaster;
