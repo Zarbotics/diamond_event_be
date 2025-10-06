@@ -45,4 +45,6 @@ public interface ServiceEventMaster {
 	Page<EventMaster> searchEntity(DtoEventMasterSearch dto);
 	
 	Page<DtoEventMasterTableView> searchByBudgetStatus(String status, int page, int size);
+	
+	Page<DtoEventMasterAdminPortal> searchInEntityAndEventBudget(DtoEventMasterSearch dto);
 }

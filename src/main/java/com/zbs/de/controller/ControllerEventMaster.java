@@ -247,5 +247,31 @@ public class ControllerEventMaster {
 					"Error while searching events: " + e.getMessage(), null);
 		}
 	}
+	
+	
+	@PostMapping(value = "/searchInEntityAndEventBudget", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage searchInEntityAndEventBudget(@RequestBody DtoEventMasterSearch dtoEventMaster, HttpServletRequest request) {
+		LOGGER.info("Searching Event Masters with filters: {}", dtoEventMaster);
+		try {
+			// call service (expects Page<DtoEventMasterTableView>)
+			Page<DtoEventMasterAdminPortal> page = serviceEventMaster.searchInEntityAndEventBudget(dtoEventMaster);
+
+			// If service returns null, treat as empty page (safer for clients)
+			if (page == null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No records found", Page.empty());
+			}
+
+			if (page.hasContent()) {
+				// return the full Page so front-end can access content + paging metadata
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", page);
+			} else {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No records found", page);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error while searching Event Masters", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error while searching events: " + e.getMessage(), null);
+		}
+	}
 
 }

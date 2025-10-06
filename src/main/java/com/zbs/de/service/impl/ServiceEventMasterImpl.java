@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -2960,6 +2961,192 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			tv.setDteEventDate(UtilDateAndTime.mmddyyyyDateToString(em.getDteEventDate()));
 			return tv;
 		});
+	}
+
+	
+//	@Override
+//	public Page<EventMaster> searchInEntityAndEventBudget(DtoEventMasterSearch dto) {
+//	    // enforce sane defaults and caps
+//	    int page = dto.getPage() != null && dto.getPage() >= 0 ? dto.getPage() : 0;
+//	    int size = dto.getSize() != null && dto.getSize() > 0 ? Math.min(dto.getSize(), 250) : 20;
+//	    String sortBy = dto.getSortBy() != null ? dto.getSortBy() : "dteEventDate";
+//	    Sort.Direction dir = "ASC".equalsIgnoreCase(dto.getSortDir()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+//
+//	    Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
+//
+//	    // Base specification from DTO (already covers many filters)
+//	    Specification<EventMaster> spec = SepecificationsEventMaster.fromDto(dto);
+//
+//	    // If txtBudgetStatus provided, AND the budget-spec explicitly (makes intent clear).
+//	    if (dto.getTxtBudgetStatus() != null && !dto.getTxtBudgetStatus().trim().isEmpty()) {
+//	        spec = spec.and(SepecificationsEventMaster.hasBudgetStatus(dto.getTxtBudgetStatus().trim()));
+//	    }
+//
+//	    // Execute paged query — repository's @EntityGraph now includes eventBudget
+//	    Page<EventMaster> pageResult = repositoryEventMaster.findAll(spec, pageable);
+//
+//	    return pageResult;
+//	}
+	
+	@Override
+	public Page<DtoEventMasterAdminPortal> searchInEntityAndEventBudget(DtoEventMasterSearch dto) {
+		// enforce sane defaults and caps
+		int page = dto.getPage() != null && dto.getPage() >= 0 ? dto.getPage() : 0;
+		int size = dto.getSize() != null && dto.getSize() > 0 ? Math.min(dto.getSize(), 250) : 20;
+		String sortBy = dto.getSortBy() != null ? dto.getSortBy() : "dteEventDate";
+		Sort.Direction dir = "ASC".equalsIgnoreCase(dto.getSortDir()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+		Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
+
+		// Base specification from DTO (already covers many filters)
+		Specification<EventMaster> spec = SepecificationsEventMaster.fromDto(dto);
+
+		// If txtBudgetStatus provided, AND the budget-spec explicitly (makes intent
+		// clear).
+		if (dto.getTxtBudgetStatus() != null && !dto.getTxtBudgetStatus().trim().isEmpty()) {
+			spec = spec.and(SepecificationsEventMaster.hasBudgetStatus(dto.getTxtBudgetStatus().trim()));
+		}
+
+		// Execute paged query — repository's @EntityGraph now includes eventBudget
+		Page<EventMaster> pageResult = repositoryEventMaster.findAll(spec, pageable);
+
+		// Map EventMaster -> DtoEventMasterAdminPortal and enrich with related
+		// selections
+		List<DtoEventMasterAdminPortal> dtos = new ArrayList<>(pageResult.getContent().size());
+
+		// Collect event ids for optional batch lookups (see optimization comments
+		// below)
+		List<Integer> eventIds = new ArrayList<>();
+		for (EventMaster em : pageResult.getContent()) {
+			eventIds.add(em.getSerEventMasterId());
+		}
+
+		for (EventMaster event : pageResult.getContent()) {
+			DtoEventMasterAdminPortal dtoEvent = MapperEventMaster.toDtoEventMasterAdminPortal(event);
+
+			// 1) Venue detail (if present)
+			try {
+				if (UtilRandomKey.isNotNull(event.getVenueMasterDetail())) {
+					DtoResult res = serviceVenueMaster
+							.getVenueByVenueMasterDetailId(event.getVenueMasterDetail().getSerVenueMasterDetailId());
+					if (UtilRandomKey.isNotNull(res) && "Success".equalsIgnoreCase(res.getTxtMessage())) {
+						VenueMaster venueMaster = (VenueMaster) res.getResult();
+						DtoEventVenue dtoEventVenue = new DtoEventVenue();
+						dtoEventVenue.setSerVenueMasterId(venueMaster.getSerVenueMasterId());
+						dtoEventVenue.setTxtVenueCode(venueMaster.getTxtVenueCode());
+						dtoEventVenue.setTxtVenueName(venueMaster.getTxtVenueName());
+						dtoEventVenue
+								.setSerVenueMasterDetailId(event.getVenueMasterDetail().getSerVenueMasterDetailId());
+						dtoEventVenue.setTxtHallCode(event.getVenueMasterDetail().getTxtHallCode());
+						dtoEventVenue.setTxtHallName(event.getVenueMasterDetail().getTxtHallName());
+
+						dtoEvent.setDtoEventVenue(dtoEventVenue);
+					}
+				}
+			} catch (Exception ex) {
+				LOGGER.debug("Failed to fetch venue detail for event {}: {}", event.getSerEventMasterId(),
+						ex.getMessage(), ex);
+			}
+
+			// 2) Decor category selections
+			try {
+				List<DtoEventDecorCategorySelection> decorSelections = serviceEventDecorCategorySelection
+						.getSelectionsWithChosenValues(dtoEvent.getSerEventMasterId());
+				dtoEvent.setDtoEventDecorSelections(decorSelections);
+			} catch (Exception ex) {
+				LOGGER.debug("Failed to fetch decor selections for event {}: {}", event.getSerEventMasterId(),
+						ex.getMessage(), ex);
+				dtoEvent.setDtoEventDecorSelections(new ArrayList<>());
+			}
+
+			// 3) Menu Food Selections -> grouped by food type
+			try {
+				List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
+						.getByEventMasterId(dtoEvent.getSerEventMasterId());
+
+				Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = new HashMap<>();
+				if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+					for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
+						if (entity.getMenuFoodMaster() != null) {
+							DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
+							MenuFoodMaster foodMaster = entity.getMenuFoodMaster();
+
+							dtoMenuFoodMaster.setSerMenuFoodId(foodMaster.getSerMenuFoodId());
+							dtoMenuFoodMaster.setTxtMenuFoodCode(foodMaster.getTxtMenuFoodCode());
+							dtoMenuFoodMaster.setTxtMenuFoodName(foodMaster.getTxtMenuFoodName());
+							dtoMenuFoodMaster.setBlnIsMainCourse(foodMaster.getBlnIsMainCourse());
+							dtoMenuFoodMaster.setBlnIsAppetiser(foodMaster.getBlnIsAppetiser());
+							dtoMenuFoodMaster.setBlnIsStarter(foodMaster.getBlnIsStarter());
+							dtoMenuFoodMaster.setBlnIsSaladAndCondiment(foodMaster.getBlnIsSaladAndCondiment());
+							dtoMenuFoodMaster.setBlnIsDessert(foodMaster.getBlnIsDessert());
+							dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
+							dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
+
+							String foodType = getFoodType(foodMaster);
+							foodSelectionsMap.computeIfAbsent(foodType, k -> new ArrayList<>()).add(dtoMenuFoodMaster);
+						}
+					}
+				}
+				dtoEvent.setFoodSelections(foodSelectionsMap);
+			} catch (Exception ex) {
+				LOGGER.debug("Failed to fetch menu food selections for event {}: {}", event.getSerEventMasterId(),
+						ex.getMessage(), ex);
+				dtoEvent.setFoodSelections(new HashMap<>());
+			}
+
+			// 4) Decor extras selections
+			try {
+				List<EventDecorExtrasSelection> extras = serviceEventDecorExtrasSelection
+						.getByEventMasterId(dtoEvent.getSerEventMasterId());
+				List<DtoEventDecorExtrasSelection> dtoExtras = new ArrayList<>();
+				if (UtilRandomKey.isNotNull(extras)) {
+					for (EventDecorExtrasSelection entity : extras) {
+						DtoEventDecorExtrasSelection e = new DtoEventDecorExtrasSelection();
+						e.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
+						e.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
+						e.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+						if (entity.getDecorExtrasMaster() != null) {
+							e.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+							e.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+							e.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+						}
+						if (entity.getDecorExtrasOption() != null) {
+							e.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+							e.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+							e.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+						}
+						dtoExtras.add(e);
+					}
+				}
+				dtoEvent.setExtrasSelections(dtoExtras);
+			} catch (Exception ex) {
+				LOGGER.debug("Failed to fetch extras selections for event {}: {}", event.getSerEventMasterId(),
+						ex.getMessage(), ex);
+				dtoEvent.setExtrasSelections(new ArrayList<>());
+			}
+
+			// 5) Budget / quoted price and status
+			try {
+				EventBudget eventBudget = serviceEventBudget.getEventBudgetByEventId(event.getSerEventMasterId());
+				if (eventBudget != null) {
+					DtoEventQuoteAndStatus quote = new DtoEventQuoteAndStatus();
+					quote.setNumQuotedPrice(eventBudget.getNumQuotedPrice());
+					quote.setNumPaidAmount(eventBudget.getNumPaidAmount());
+					quote.setTxtStatus(eventBudget.getTxtStatus());
+					dtoEvent.setDtoEventQuoteAndStatus(quote);
+				}
+			} catch (Exception ex) {
+				LOGGER.debug("Failed to fetch budget for event {}: {}", event.getSerEventMasterId(), ex.getMessage(),
+						ex);
+			}
+
+			dtos.add(dtoEvent);
+		}
+
+		// Build and return a Page of DTOs with the same total/count as the original
+		// Page<EventMaster>
+		Page<DtoEventMasterAdminPortal> dtoPage = new PageImpl<>(dtos, pageable, pageResult.getTotalElements());
+		return dtoPage;
 	}
 
 }
