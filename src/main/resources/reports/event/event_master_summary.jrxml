@@ -1,102 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version
-6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-	name="Event_Summary" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20"
-	rightMargin="20" topMargin="20" bottomMargin="20" uuid="f70c8543-e6a5-4fbc-8c20-347e54e2a6cc">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml" />
-	<style name="Title" forecolor="#800020" fontName="Times New Roman" fontSize="22" isBold="true" />
-	<style name="SectionHeader" forecolor="#FFD700" fontName="Arial" fontSize="14" isBold="true" />
-	<style name="Label" forecolor="#333333" fontName="Arial" fontSize="11" isBold="true" />
-	<style name="Value" forecolor="#000000" fontName="Arial" fontSize="11" />
-	<style name="TableHeader" mode="Opaque" forecolor="#FFFFFF" backcolor="#800020" fontName="Arial"
-		isBold="true" />
-	<style name="TableCell" mode="Opaque" backcolor="#F7F7F7" fontName="Arial" />
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Event_Summary" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f70c8543-e6a5-4fbc-8c20-347e54e2a6cc">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<style name="Title" forecolor="#800020" fontName="Times New Roman" fontSize="22" isBold="true"/>
+	<style name="SectionHeader" forecolor="#FFD700" fontName="Arial" fontSize="14" isBold="true"/>
+	<style name="Label" forecolor="#333333" fontName="Arial" fontSize="11" isBold="true"/>
+	<style name="Value" forecolor="#000000" fontName="Arial" fontSize="11"/>
+	<style name="TableHeader" mode="Opaque" forecolor="#FFFFFF" backcolor="#800020" fontName="Arial" isBold="true"/>
+	<style name="TableCell" mode="Opaque" backcolor="#F7F7F7" fontName="Arial"/>
 	<subDataset name="DecorDataset" uuid="1c8ff306-7f2d-4b3f-add9-db9899a0f735">
-		<parameter name="EVENT_ID" class="java.lang.Integer" />
+		<parameter name="EVENT_ID" class="java.lang.Integer"/>
 		<queryString>
 			<![CDATA[SELECT * FROM v_event_decor WHERE ser_event_master_id = $P{EVENT_ID}]]>
 		</queryString>
-		<field name="txt_decor_category_name" class="java.lang.String" />
-		<field name="txt_property_name" class="java.lang.String" />
-		<field name="txt_property_value" class="java.lang.String" />
-		<field name="property_image" class="java.lang.String" />
-		<field name="reference_image" class="java.lang.String" />
-		<field name="category_remarks" class="java.lang.String" />
+		<field name="txt_decor_category_name" class="java.lang.String"/>
+		<field name="txt_property_name" class="java.lang.String"/>
+		<field name="txt_property_value" class="java.lang.String"/>
+		<field name="property_image" class="java.lang.String"/>
+		<field name="reference_image" class="java.lang.String"/>
+		<field name="category_remarks" class="java.lang.String"/>
 	</subDataset>
 	<subDataset name="FoodDataset" uuid="1c8ff306-7f2d-4b3f-add9-db9899a0f135">
-		<parameter name="EVENT_ID" class="java.lang.Integer" />
+		<parameter name="EVENT_ID" class="java.lang.Integer"/>
 		<queryString>
 			<![CDATA[SELECT * FROM v_event_food WHERE ser_event_master_id = $P{EVENT_ID}]]>
 		</queryString>
-		<field name="txt_menu_food_name" class="java.lang.String" />
-		<field name="food_type" class="java.lang.String" />
+		<field name="txt_menu_food_name" class="java.lang.String"/>
+		<field name="food_type" class="java.lang.String"/>
 	</subDataset>
-
-
 	<subDataset name="ExtrasDataset" uuid="1c8ff306-7f2d-4b3f-add9-db1475a0f135">
-		<parameter name="EVENT_ID" class="java.lang.Integer" />
+		<parameter name="EVENT_ID" class="java.lang.Integer"/>
 		<queryString>
 			<![CDATA[SELECT * FROM v_event_extras WHERE ser_event_master_id = $P{EVENT_ID}]]>
 		</queryString>
-		<field name="txt_extras_name" class="java.lang.String" />
-		<field name="txt_option_name" class="java.lang.String" />
-		<field name="option_document" class="java.lang.String" />
+		<field name="txt_extras_name" class="java.lang.String"/>
+		<field name="txt_option_name" class="java.lang.String"/>
+		<field name="option_document" class="java.lang.String"/>
 	</subDataset>
-
-	<parameter name="EVENT_ID" class="java.lang.Integer" />
+	<parameter name="EVENT_ID" class="java.lang.Integer"/>
+	<parameter name="REPORT_LOGO_IMAGE" class="java.awt.Image"/>
 	<queryString>
 		<![CDATA[SELECT * FROM v_event_summary WHERE ser_event_master_id = $P{EVENT_ID}]]>
 	</queryString>
-	<field name="txt_event_master_code" class="java.lang.String" />
-	<field name="txt_event_master_name" class="java.lang.String" />
-	<field name="dte_event_date" class="java.util.Date" />
-	<field name="txt_event_type_name" class="java.lang.String" />
-	<field name="txt_cust_code" class="java.lang.String" />
-	<field name="txt_cust_name" class="java.lang.String" />
-	<field name="cust_txt_first_name" class="java.lang.String" />
-	<field name="cust_txt_last_name" class="java.lang.String" />
-	<field name="txt_email" class="java.lang.String" />
-	<field name="txt_phone_number_1" class="java.lang.String" />
-	<field name="txt_address_1" class="java.lang.String" />
-	<field name="num_number_of_guests" class="java.lang.Integer" />
-	<field name="txt_number_of_guests" class="java.lang.String" />
-	<field name="num_number_of_tables" class="java.lang.Integer" />
-	<field name="txt_bride_name" class="java.lang.String" />
-	<field name="txt_bride_first_name" class="java.lang.String" />
-	<field name="txt_bride_last_name" class="java.lang.String" />
-	<field name="txt_groom_name" class="java.lang.String" />
-	<field name="txt_groom_first_name" class="java.lang.String" />
-	<field name="txt_groom_last_name" class="java.lang.String" />
-	<field name="txt_venue_code" class="java.lang.String" />
-	<field name="txt_venue_name" class="java.lang.String" />
-	<field name="txt_city_name" class="java.lang.String" />
-	<field name="txt_vendor_code" class="java.lang.String" />
-	<field name="txt_vendor_name" class="java.lang.String" />
-	<field name="txt_event_remarks" class="java.lang.String" />
-	<field name="txt_decore_remarks" class="java.lang.String" />
-	<field name="txt_external_supplier_remarks" class="java.lang.String" />
-	<field name="txt_catering_remarks" class="java.lang.String" />
-	<field name="txt_event_extras_remarks" class="java.lang.String" />
-	<field name="txt_venue_remarks" class="java.lang.String" />
+	<field name="txt_event_master_code" class="java.lang.String"/>
+	<field name="txt_event_master_name" class="java.lang.String"/>
+	<field name="dte_event_date" class="java.util.Date"/>
+	<field name="txt_event_type_name" class="java.lang.String"/>
+	<field name="txt_cust_code" class="java.lang.String"/>
+	<field name="txt_cust_name" class="java.lang.String"/>
+	<field name="cust_txt_first_name" class="java.lang.String"/>
+	<field name="cust_txt_last_name" class="java.lang.String"/>
+	<field name="txt_email" class="java.lang.String"/>
+	<field name="txt_phone_number_1" class="java.lang.String"/>
+	<field name="txt_address_1" class="java.lang.String"/>
+	<field name="num_number_of_guests" class="java.lang.Integer"/>
+	<field name="txt_number_of_guests" class="java.lang.String"/>
+	<field name="num_number_of_tables" class="java.lang.Integer"/>
+	<field name="txt_bride_name" class="java.lang.String"/>
+	<field name="txt_bride_first_name" class="java.lang.String"/>
+	<field name="txt_bride_last_name" class="java.lang.String"/>
+	<field name="txt_groom_name" class="java.lang.String"/>
+	<field name="txt_groom_first_name" class="java.lang.String"/>
+	<field name="txt_groom_last_name" class="java.lang.String"/>
+	<field name="txt_venue_code" class="java.lang.String"/>
+	<field name="txt_venue_name" class="java.lang.String"/>
+	<field name="txt_city_name" class="java.lang.String"/>
+	<field name="txt_vendor_code" class="java.lang.String"/>
+	<field name="txt_vendor_name" class="java.lang.String"/>
+	<field name="txt_event_remarks" class="java.lang.String"/>
+	<field name="txt_decore_remarks" class="java.lang.String"/>
+	<field name="txt_external_supplier_remarks" class="java.lang.String"/>
+	<field name="txt_catering_remarks" class="java.lang.String"/>
+	<field name="txt_event_extras_remarks" class="java.lang.String"/>
+	<field name="txt_venue_remarks" class="java.lang.String"/>
 	<title>
 		<band height="80">
 			<image>
-				<reportElement x="0" y="0" width="120" height="60"
-					uuid="5a6e2471-8948-44bf-ba1a-01968b495dc7" />
-				<imageExpression><![CDATA["C:/Users/T15/Documents/Jasper_Reports/de_logo.png"]]></imageExpression>
+				<reportElement x="0" y="0" width="120" height="60" uuid="5a6e2471-8948-44bf-ba1a-01968b495dc7"/>
+				<imageExpression><![CDATA[$P{REPORT_LOGO_IMAGE}]]></imageExpression>
 			</image>
 			<staticText>
-				<reportElement style="Title" x="150" y="10" width="300" height="30"
-					uuid="52809529-f288-48fc-81d7-c58e7ce0ca1d" />
+				<reportElement style="Title" x="150" y="10" width="300" height="30" uuid="52809529-f288-48fc-81d7-c58e7ce0ca1d"/>
 				<text><![CDATA[Event Summary]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="360" y="12" width="195" height="18"
-					uuid="440df09f-2d67-4961-92cd-f45529fae711" />
-				<textElement textAlignment="Right" />
+				<reportElement x="360" y="12" width="195" height="18" uuid="440df09f-2d67-4961-92cd-f45529fae711"/>
+				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA["Date: " + new java.text.SimpleDateFormat("dd-MM-yyyy").format($F{dte_event_date})]]></textFieldExpression>
 			</textField>
 		</band>
@@ -104,250 +93,195 @@
 	<detail>
 		<band height="620" splitType="Stretch">
 			<staticText>
-				<reportElement style="SectionHeader" x="0" y="0" width="250" height="18"
-					uuid="cd6bb0e6-89a7-4ebc-9a56-c5ca92e8f8d2" />
+				<reportElement style="SectionHeader" x="0" y="0" width="250" height="18" uuid="cd6bb0e6-89a7-4ebc-9a56-c5ca92e8f8d2"/>
 				<text><![CDATA[Event Information]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="Label" x="0" y="24" width="120" height="15"
-					uuid="5febf52c-c7b4-4a92-81be-20ba50a5517b" />
+				<reportElement style="Label" x="0" y="24" width="120" height="15" uuid="5febf52c-c7b4-4a92-81be-20ba50a5517b"/>
 				<text><![CDATA[Event Code:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="24" width="240" height="15"
-					uuid="ce8ffa38-1e70-4637-a228-f019d38f0ecb" />
-				<textFieldExpression><![CDATA[$F{txt_event_master_code} == null ? "-----------" : $F{txt_event_master_code} ]]></textFieldExpression>
+				<reportElement style="Value" x="130" y="24" width="240" height="15" uuid="ce8ffa38-1e70-4637-a228-f019d38f0ecb"/>
+				<textFieldExpression><![CDATA[$F{txt_event_master_code} == null ? "-----------" : $F{txt_event_master_code}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="42" width="120" height="15"
-					uuid="6d8bc0ca-f7c7-4922-9dd1-7855cb5a54d2" />
+				<reportElement style="Label" x="0" y="42" width="120" height="15" uuid="6d8bc0ca-f7c7-4922-9dd1-7855cb5a54d2"/>
 				<text><![CDATA[Event Name:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="42" width="240" height="15"
-					uuid="986d5d96-c040-428d-a5f5-eeb39599890c" />
+				<reportElement style="Value" x="130" y="42" width="240" height="15" uuid="986d5d96-c040-428d-a5f5-eeb39599890c"/>
 				<textFieldExpression><![CDATA[$F{txt_event_master_name}== null ? "-----------" : $F{txt_event_master_name}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="60" width="120" height="15"
-					uuid="30c8b11a-b56c-4241-bbdb-27bce240bc59" />
+				<reportElement style="Label" x="0" y="60" width="120" height="15" uuid="30c8b11a-b56c-4241-bbdb-27bce240bc59"/>
 				<text><![CDATA[Event Type:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="60" width="240" height="15"
-					uuid="e28c5b22-c8d3-448d-80f5-e975096bbb56" />
+				<reportElement style="Value" x="130" y="60" width="240" height="15" uuid="e28c5b22-c8d3-448d-80f5-e975096bbb56"/>
 				<textFieldExpression><![CDATA[$F{txt_event_type_name}== null ? "-----------" : $F{txt_event_type_name}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="78" width="120" height="15"
-					uuid="9d5d632b-fcce-41ea-9390-72f283fe125f" />
+				<reportElement style="Label" x="0" y="78" width="120" height="15" uuid="9d5d632b-fcce-41ea-9390-72f283fe125f"/>
 				<text><![CDATA[Remarks:]]></text>
 			</staticText>
 			<textField textAdjust="StretchHeight">
-				<reportElement style="Value" x="130" y="78" width="425" height="30"
-					uuid="d0fdf008-e045-4d95-b0f0-8e70ec5b5a5f" />
+				<reportElement style="Value" x="130" y="78" width="425" height="30" uuid="d0fdf008-e045-4d95-b0f0-8e70ec5b5a5f"/>
 				<textFieldExpression><![CDATA[$F{txt_event_remarks} == null ? "-----------" : $F{txt_event_remarks}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="SectionHeader" x="0" y="118" width="250" height="18"
-					uuid="c555d7ce-f8c6-4d0f-bcf9-134f882106bf" />
+				<reportElement style="SectionHeader" x="0" y="118" width="250" height="18" uuid="c555d7ce-f8c6-4d0f-bcf9-134f882106bf"/>
 				<text><![CDATA[Customer Information]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="Label" x="0" y="142" width="120" height="15"
-					uuid="a657224e-9695-4b15-9e20-22a3e76714ec" />
+				<reportElement style="Label" x="0" y="142" width="120" height="15" uuid="a657224e-9695-4b15-9e20-22a3e76714ec"/>
 				<text><![CDATA[Customer Code:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="142" width="150" height="15"
-					uuid="a67622c1-b379-46e6-92e3-5026cd422ba0" />
+				<reportElement style="Value" x="130" y="142" width="150" height="15" uuid="a67622c1-b379-46e6-92e3-5026cd422ba0"/>
 				<textFieldExpression><![CDATA[$F{txt_cust_code} == null ? "-----------" : $F{txt_cust_code}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="160" width="120" height="15"
-					uuid="8c9a2681-423e-43cb-98fa-5d149faa1629" />
+				<reportElement style="Label" x="0" y="160" width="120" height="15" uuid="8c9a2681-423e-43cb-98fa-5d149faa1629"/>
 				<text><![CDATA[Customer Name:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="160" width="240" height="15"
-					uuid="754a5033-a50d-4dfd-aaeb-92b0a728d7eb" />
+				<reportElement style="Value" x="130" y="160" width="240" height="15" uuid="754a5033-a50d-4dfd-aaeb-92b0a728d7eb"/>
 				<textFieldExpression><![CDATA[$F{cust_txt_first_name} + " " + $F{cust_txt_last_name}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="178" width="120" height="15"
-					uuid="c55e8e45-099c-42a7-b5e8-16841e97a80b" />
+				<reportElement style="Label" x="0" y="178" width="120" height="15" uuid="c55e8e45-099c-42a7-b5e8-16841e97a80b"/>
 				<text><![CDATA[Email:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="178" width="240" height="15"
-					uuid="811253a4-73e2-4a00-b4cd-0aafa4a94e15" />
+				<reportElement style="Value" x="130" y="178" width="240" height="15" uuid="811253a4-73e2-4a00-b4cd-0aafa4a94e15"/>
 				<textFieldExpression><![CDATA[$F{txt_email} == null ? "-----------" : $F{txt_email}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="196" width="120" height="15"
-					uuid="baab1d94-7a26-4dad-bbb6-047f128d082c" />
+				<reportElement style="Label" x="0" y="196" width="120" height="15" uuid="baab1d94-7a26-4dad-bbb6-047f128d082c"/>
 				<text><![CDATA[Phone:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="196" width="240" height="15"
-					uuid="82de96e1-e8dc-4585-bd58-33ef31b92025" />
+				<reportElement style="Value" x="130" y="196" width="240" height="15" uuid="82de96e1-e8dc-4585-bd58-33ef31b92025"/>
 				<textFieldExpression><![CDATA[$F{txt_phone_number_1} == null ? "-----------" : $F{txt_phone_number_1}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="214" width="120" height="15"
-					uuid="6abbbcb0-6ab3-45d9-9363-e502a553d8dd" />
+				<reportElement style="Label" x="0" y="214" width="120" height="15" uuid="6abbbcb0-6ab3-45d9-9363-e502a553d8dd"/>
 				<text><![CDATA[Address:]]></text>
 			</staticText>
 			<textField textAdjust="StretchHeight">
-				<reportElement style="Value" x="130" y="214" width="425" height="30"
-					uuid="c008f717-0926-4b1d-91ef-1ea2cc1888c9" />
+				<reportElement style="Value" x="130" y="214" width="425" height="30" uuid="c008f717-0926-4b1d-91ef-1ea2cc1888c9"/>
 				<textFieldExpression><![CDATA[$F{txt_address_1} == null ? "-----------" : $F{txt_address_1}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="SectionHeader" x="0" y="254" width="250" height="18"
-					uuid="2606f21b-5f43-4941-a58c-2060a3afde6a" />
+				<reportElement style="SectionHeader" x="0" y="254" width="250" height="18" uuid="2606f21b-5f43-4941-a58c-2060a3afde6a"/>
 				<text><![CDATA[Bride & Groom]]></text>
 			</staticText>
-
-
 			<staticText>
-				<reportElement style="Label" x="0" y="278" width="60" height="15"
-					uuid="52e977d7-e5f0-4333-8f9d-e5df94ea765c" />
+				<reportElement style="Label" x="0" y="278" width="60" height="15" uuid="52e977d7-e5f0-4333-8f9d-e5df94ea765c"/>
 				<text><![CDATA[Bride First Name:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="278" width="120" height="15"
-					uuid="89c45cc1-bd80-41a7-b465-e8a0e75a969b" />
+				<reportElement style="Value" x="130" y="278" width="120" height="15" uuid="89c45cc1-bd80-41a7-b465-e8a0e75a969b"/>
 				<textFieldExpression><![CDATA[$F{txt_bride_first_name} == null ? "-----------" : $F{txt_bride_first_name}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="250" y="278" width="60" height="15"
-					uuid="52e988d7-e5f0-4333-8f9d-e5df94ea765c" />
+				<reportElement style="Label" x="250" y="278" width="60" height="15" uuid="52e988d7-e5f0-4333-8f9d-e5df94ea765c"/>
 				<text><![CDATA[Bride Last Name:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="370" y="278" width="120" height="15"
-					uuid="89c45cd1-bd80-41a7-b465-e8a0e75a969b" />
+				<reportElement style="Value" x="370" y="278" width="120" height="15" uuid="89c45cd1-bd80-41a7-b465-e8a0e75a969b"/>
 				<textFieldExpression><![CDATA[$F{txt_bride_last_name} == null ? "-----------" : $F{txt_bride_last_name}]]></textFieldExpression>
 			</textField>
-
-
 			<staticText>
-				<reportElement style="Label" x="0" y="296" width="60" height="15"
-					uuid="a7903422-7d5d-4595-a2c4-3b08a09c3a9e" />
+				<reportElement style="Label" x="0" y="296" width="60" height="15" uuid="a7903422-7d5d-4595-a2c4-3b08a09c3a9e"/>
 				<text><![CDATA[Groom Firat Name:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="296" width="120" height="15"
-					uuid="c691e264-6c1e-417e-9392-fe36cd3cff1f" />
+				<reportElement style="Value" x="130" y="296" width="120" height="15" uuid="c691e264-6c1e-417e-9392-fe36cd3cff1f"/>
 				<textFieldExpression><![CDATA[$F{txt_groom_first_name} == null ? "-----------" : $F{txt_groom_first_name}]]></textFieldExpression>
 			</textField>
-
 			<staticText>
-				<reportElement style="Label" x="250" y="296" width="60" height="15"
-					uuid="a7903433-7d5d-4595-a2c4-3b08a09c3a9e" />
+				<reportElement style="Label" x="250" y="296" width="60" height="15" uuid="a7903433-7d5d-4595-a2c4-3b08a09c3a9e"/>
 				<text><![CDATA[Groom Laat Name:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="370" y="296" width="120" height="15"
-					uuid="c691e284-6c1e-417e-9392-fe36cd3cff1f" />
+				<reportElement style="Value" x="370" y="296" width="120" height="15" uuid="c691e284-6c1e-417e-9392-fe36cd3cff1f"/>
 				<textFieldExpression><![CDATA[$F{txt_groom_last_name} == null ? "-----------" : $F{txt_groom_last_name}]]></textFieldExpression>
 			</textField>
-
-
 			<staticText>
-				<reportElement style="SectionHeader" x="0" y="332" width="250" height="18"
-					uuid="06fbc853-4f62-4833-b508-23b7bfd7bfc4" />
+				<reportElement style="SectionHeader" x="0" y="332" width="250" height="18" uuid="06fbc853-4f62-4833-b508-23b7bfd7bfc4"/>
 				<text><![CDATA[Guests & Tables]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="Label" x="0" y="356" width="140" height="15"
-					uuid="481a819d-4688-4bf4-a8d8-96566f38ecbc" />
+				<reportElement style="Label" x="0" y="356" width="140" height="15" uuid="481a819d-4688-4bf4-a8d8-96566f38ecbc"/>
 				<text><![CDATA[Number of Guests:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="150" y="356" width="120" height="15"
-					uuid="7cd70142-a34f-45ef-8ae2-8eb624059143" />
+				<reportElement style="Value" x="150" y="356" width="120" height="15" uuid="7cd70142-a34f-45ef-8ae2-8eb624059143"/>
 				<textFieldExpression><![CDATA[$F{num_number_of_guests} == null ? "-----------" : $F{num_number_of_guests}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="392" width="140" height="15"
-					uuid="46b75684-8dfa-40ba-a1d7-cdb0cdf521f6" />
+				<reportElement style="Label" x="0" y="392" width="140" height="15" uuid="46b75684-8dfa-40ba-a1d7-cdb0cdf521f6"/>
 				<text><![CDATA[Number of Tables:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="150" y="392" width="120" height="15"
-					uuid="d9aac617-7693-40d9-83cc-23c1dd7f0453" />
+				<reportElement style="Value" x="150" y="392" width="120" height="15" uuid="d9aac617-7693-40d9-83cc-23c1dd7f0453"/>
 				<textFieldExpression><![CDATA[$F{num_number_of_tables} == null ? "-----------" : $F{num_number_of_tables}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="SectionHeader" x="0" y="428" width="250" height="18"
-					uuid="954eb031-352f-4620-b86a-fe9819e24328" />
+				<reportElement style="SectionHeader" x="0" y="428" width="250" height="18" uuid="954eb031-352f-4620-b86a-fe9819e24328"/>
 				<text><![CDATA[Venue]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="Label" x="0" y="452" width="120" height="15"
-					uuid="cbd28a18-5e21-4c07-b8c4-035bdc137872" />
+				<reportElement style="Label" x="0" y="452" width="120" height="15" uuid="cbd28a18-5e21-4c07-b8c4-035bdc137872"/>
 				<text><![CDATA[Venue Code:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="452" width="150" height="15"
-					uuid="551d299f-8306-49db-a4cb-9ca3df357743" />
+				<reportElement style="Value" x="130" y="452" width="150" height="15" uuid="551d299f-8306-49db-a4cb-9ca3df357743"/>
 				<textFieldExpression><![CDATA[$F{txt_venue_code} == null ? "-----------" : $F{txt_venue_code}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="470" width="120" height="15"
-					uuid="15f4dac5-3ec7-425a-8ad9-e40daabc826a" />
+				<reportElement style="Label" x="0" y="470" width="120" height="15" uuid="15f4dac5-3ec7-425a-8ad9-e40daabc826a"/>
 				<text><![CDATA[Venue Name:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="470" width="240" height="15"
-					uuid="4855a576-ef91-46ed-8472-26219726c0f4" />
+				<reportElement style="Value" x="130" y="470" width="240" height="15" uuid="4855a576-ef91-46ed-8472-26219726c0f4"/>
 				<textFieldExpression><![CDATA[$F{txt_venue_name} == null ? "-----------" : $F{txt_venue_name}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="488" width="120" height="15"
-					uuid="a1c78959-563b-43cc-bcba-20d5fb3bddf0" />
+				<reportElement style="Label" x="0" y="488" width="120" height="15" uuid="a1c78959-563b-43cc-bcba-20d5fb3bddf0"/>
 				<text><![CDATA[City:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="488" width="180" height="15"
-					uuid="1d5bced5-42a8-4bfb-ba47-c7b508c7c3c0" />
+				<reportElement style="Value" x="130" y="488" width="180" height="15" uuid="1d5bced5-42a8-4bfb-ba47-c7b508c7c3c0"/>
 				<textFieldExpression><![CDATA[$F{txt_city_name} == null ? "-----------" : $F{txt_city_name}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="SectionHeader" x="0" y="524" width="250" height="18"
-					uuid="9d83601e-94e8-4175-ba3b-acb73e0e6224" />
+				<reportElement style="SectionHeader" x="0" y="524" width="250" height="18" uuid="9d83601e-94e8-4175-ba3b-acb73e0e6224"/>
 				<text><![CDATA[External Supplier]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="Label" x="0" y="548" width="120" height="15"
-					uuid="2faba3d6-d810-4b37-93c9-e6016218d8de" />
+				<reportElement style="Label" x="0" y="548" width="120" height="15" uuid="2faba3d6-d810-4b37-93c9-e6016218d8de"/>
 				<text><![CDATA[Supplier Code:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="548" width="150" height="15"
-					uuid="303a31c5-37f3-4486-989a-b6444aaf62b7" />
+				<reportElement style="Value" x="130" y="548" width="150" height="15" uuid="303a31c5-37f3-4486-989a-b6444aaf62b7"/>
 				<textFieldExpression><![CDATA[$F{txt_vendor_code} == null ? "-----------" : $F{txt_vendor_code}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="0" y="566" width="120" height="15"
-					uuid="d10b1a1e-5b7d-4de8-9b7e-036a192b800c" />
+				<reportElement style="Label" x="0" y="566" width="120" height="15" uuid="d10b1a1e-5b7d-4de8-9b7e-036a192b800c"/>
 				<text><![CDATA[Supplier Name:]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Value" x="130" y="566" width="240" height="15"
-					uuid="21406a6f-d3ed-4c36-9021-f931e6d06d2a" />
+				<reportElement style="Value" x="130" y="566" width="240" height="15" uuid="21406a6f-d3ed-4c36-9021-f931e6d06d2a"/>
 				<textFieldExpression><![CDATA[$F{txt_vendor_name} == null ? "-----------" : $F{txt_vendor_name}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement style="Label" x="300" y="548" width="80" height="15"
-					uuid="bc2b1f01-0335-439a-b575-e7ed92617c41" />
+				<reportElement style="Label" x="300" y="548" width="80" height="15" uuid="bc2b1f01-0335-439a-b575-e7ed92617c41"/>
 				<text><![CDATA[Remarks:]]></text>
 			</staticText>
 			<textField textAdjust="StretchHeight">
-				<reportElement style="Value" x="380" y="548" width="175" height="33"
-					uuid="36414e12-925d-4f78-be26-c8579536f7e9" />
+				<reportElement style="Value" x="380" y="548" width="175" height="33" uuid="36414e12-925d-4f78-be26-c8579536f7e9"/>
 				<textFieldExpression><![CDATA[$F{txt_external_supplier_remarks} == null ? "-----------" : $F{txt_external_supplier_remarks}]]></textFieldExpression>
 			</textField>
 		</band>
@@ -355,14 +289,12 @@
 	<pageFooter>
 		<band height="22">
 			<textField>
-				<reportElement x="415" y="2" width="120" height="18"
-					uuid="7b0cfb0f-30b8-4def-8961-837112eeb1ef" />
-				<textElement textAlignment="Right" />
+				<reportElement x="415" y="2" width="120" height="18" uuid="7b0cfb0f-30b8-4def-8961-837112eeb1ef"/>
+				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER} + " of"]]></textFieldExpression>
 			</textField>
 			<textField evaluationTime="Report">
-				<reportElement x="535" y="2" width="20" height="18"
-					uuid="910aa053-8ea8-42c6-a36d-16b1605f75e4" />
+				<reportElement x="535" y="2" width="20" height="18" uuid="910aa053-8ea8-42c6-a36d-16b1605f75e4"/>
 				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 		</band>
@@ -370,21 +302,15 @@
 	<summary>
 		<band height="80" splitType="Stretch">
 			<frame>
-				<reportElement positionType="Float" x="0" y="0" width="555" height="0"
-					uuid="cebc79ab-c6df-44f5-b2ac-94fd0221dfbb" />
+				<reportElement positionType="Float" x="0" y="0" width="555" height="0" uuid="cebc79ab-c6df-44f5-b2ac-94fd0221dfbb"/>
 				<staticText>
-					<reportElement style="SectionHeader" x="0" y="0" width="250" height="18"
-						uuid="dab40126-5cd7-4015-add1-8cd8d9da79c3" />
+					<reportElement style="SectionHeader" x="0" y="0" width="250" height="18" uuid="dab40126-5cd7-4015-add1-8cd8d9da79c3"/>
 					<text><![CDATA[Decor Selections]]></text>
 				</staticText>
 				<componentElement>
-					<reportElement positionType="Float" x="0" y="24" width="555" height="0"
-						uuid="780e95a8-27be-449b-9469-74ba6b23beba" />
-					<jr:table
-						xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
-						xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
-						<datasetRun subDataset="DecorDataset"
-							uuid="8b20e858-6a94-4266-9334-07311726b916">
+					<reportElement positionType="Float" x="0" y="24" width="555" height="0" uuid="780e95a8-27be-449b-9469-74ba6b23beba"/>
+					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+						<datasetRun subDataset="DecorDataset" uuid="8b20e858-6a94-4266-9334-07311726b916">
 							<datasetParameter name="EVENT_ID">
 								<datasetParameterExpression><![CDATA[$P{EVENT_ID}]]></datasetParameterExpression>
 							</datasetParameter>
@@ -393,15 +319,13 @@
 						<jr:column width="130" uuid="e3e27bdd-d7ad-43d3-a98c-a8d5a934b9f4">
 							<jr:columnHeader height="22">
 								<staticText>
-									<reportElement style="TableHeader" x="0" y="0" width="130"
-										height="22" uuid="6b577553-2ba2-46a7-a808-57be80ae5cf3" />
+									<reportElement style="TableHeader" x="0" y="0" width="130" height="22" uuid="6b577553-2ba2-46a7-a808-57be80ae5cf3"/>
 									<text><![CDATA[Category]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="40">
 								<textField>
-									<reportElement style="TableCell" x="0" y="0" width="130"
-										height="20" uuid="b14a7c62-d7dd-4a71-8017-97b0e1037859" />
+									<reportElement style="TableCell" x="0" y="0" width="130" height="20" uuid="b14a7c62-d7dd-4a71-8017-97b0e1037859"/>
 									<textFieldExpression><![CDATA[$F{txt_decor_category_name} == null ? "-----------" : $F{txt_decor_category_name}]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
@@ -409,15 +333,13 @@
 						<jr:column width="160" uuid="929afc6f-20f6-4e9c-99f5-9ce6fa7c1808">
 							<jr:columnHeader height="22">
 								<staticText>
-									<reportElement style="TableHeader" x="0" y="0" width="160"
-										height="22" uuid="f7a793ff-6da8-4b28-abee-1606b57040a9" />
+									<reportElement style="TableHeader" x="0" y="0" width="160" height="22" uuid="f7a793ff-6da8-4b28-abee-1606b57040a9"/>
 									<text><![CDATA[Sub Category]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="40">
 								<textField>
-									<reportElement style="TableCell" x="0" y="0" width="160"
-										height="20" uuid="26d62c4e-54f5-44d8-8952-e00475a52606" />
+									<reportElement style="TableCell" x="0" y="0" width="160" height="20" uuid="26d62c4e-54f5-44d8-8952-e00475a52606"/>
 									<textFieldExpression><![CDATA[$F{txt_property_name} == null ? "-----------" : $F{txt_property_name}]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
@@ -425,15 +347,13 @@
 						<jr:column width="165" uuid="747aa4bf-b761-4014-a7ad-a9a1783d1f3d">
 							<jr:columnHeader height="22">
 								<staticText>
-									<reportElement style="TableHeader" x="0" y="0" width="165"
-										height="22" uuid="27273009-7b00-458c-85f6-bd699d1df9f8" />
+									<reportElement style="TableHeader" x="0" y="0" width="165" height="22" uuid="27273009-7b00-458c-85f6-bd699d1df9f8"/>
 									<text><![CDATA[Selected Value]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="40">
 								<textField textAdjust="StretchHeight">
-									<reportElement style="TableCell" x="0" y="0" width="165"
-										height="20" uuid="1647205c-6c8c-440d-ac24-117cd93b362a" />
+									<reportElement style="TableCell" x="0" y="0" width="165" height="20" uuid="1647205c-6c8c-440d-ac24-117cd93b362a"/>
 									<textFieldExpression><![CDATA[$F{txt_property_value} == null ? "-----------" : $F{txt_property_value}]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
@@ -441,15 +361,13 @@
 						<jr:column width="100" uuid="5f0a3e1a-5000-4fe9-9339-7ae5e2d2b17e">
 							<jr:columnHeader height="22">
 								<staticText>
-									<reportElement style="TableHeader" x="0" y="0" width="100"
-										height="22" uuid="3a619940-f944-4bcb-a02b-6df638286d0a" />
+									<reportElement style="TableHeader" x="0" y="0" width="100" height="22" uuid="3a619940-f944-4bcb-a02b-6df638286d0a"/>
 									<text><![CDATA[Image]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="40">
 								<image scaleImage="RetainShape">
-									<reportElement x="0" y="0" width="100" height="40"
-										uuid="997e3664-43e3-4a93-a9d4-4e613407e757" />
+									<reportElement x="0" y="0" width="100" height="40" uuid="997e3664-43e3-4a93-a9d4-4e613407e757"/>
 									<imageExpression><![CDATA[$F{property_image}]]></imageExpression>
 								</image>
 							</jr:detailCell>
@@ -457,27 +375,20 @@
 					</jr:table>
 				</componentElement>
 				<textField textAdjust="StretchHeight">
-					<reportElement style="Value" positionType="Float" x="0" y="30" width="555"
-						height="40" uuid="0a9e5400-f9cf-4cb8-864d-accaeb058d98" />
+					<reportElement style="Value" positionType="Float" x="0" y="30" width="555" height="40" uuid="0a9e5400-f9cf-4cb8-864d-accaeb058d98"/>
 					<textFieldExpression><![CDATA[$F{txt_decore_remarks}]]></textFieldExpression>
 				</textField>
 			</frame>
 			<frame>
-				<reportElement positionType="Float" x="0" y="0" width="555" height="0"
-					uuid="59766b6a-bfa4-48c6-997b-b623846b14d8" />
+				<reportElement positionType="Float" x="0" y="0" width="555" height="0" uuid="59766b6a-bfa4-48c6-997b-b623846b14d8"/>
 				<staticText>
-					<reportElement style="SectionHeader" x="0" y="0" width="250" height="18"
-						uuid="8f15aae8-66e5-46c0-8e24-f3ba67ebe6b6" />
+					<reportElement style="SectionHeader" x="0" y="0" width="250" height="18" uuid="8f15aae8-66e5-46c0-8e24-f3ba67ebe6b6"/>
 					<text><![CDATA[Food Selections]]></text>
 				</staticText>
 				<componentElement>
-					<reportElement positionType="Float" x="0" y="24" width="555" height="0"
-						uuid="c845d029-3d3f-4daa-abf8-b7ef186edc42" />
-					<jr:table
-						xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
-						xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
-						<datasetRun subDataset="FoodDataset"
-							uuid="6f0e6acd-e9cd-4d79-8f5c-a0767ef95ddb">
+					<reportElement positionType="Float" x="0" y="24" width="555" height="0" uuid="c845d029-3d3f-4daa-abf8-b7ef186edc42"/>
+					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+						<datasetRun subDataset="FoodDataset" uuid="6f0e6acd-e9cd-4d79-8f5c-a0767ef95ddb">
 							<datasetParameter name="EVENT_ID">
 								<datasetParameterExpression><![CDATA[$P{EVENT_ID}]]></datasetParameterExpression>
 							</datasetParameter>
@@ -486,15 +397,13 @@
 						<jr:column width="150" uuid="e60c2e8c-82d2-4b75-b55b-0455bb3e7740">
 							<jr:columnHeader height="22">
 								<staticText>
-									<reportElement style="TableHeader" x="0" y="0" width="150"
-										height="22" uuid="1230ca68-2fbc-450e-9088-5d8833ff3ce6" />
+									<reportElement style="TableHeader" x="0" y="0" width="150" height="22" uuid="1230ca68-2fbc-450e-9088-5d8833ff3ce6"/>
 									<text><![CDATA[Food Type]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField>
-									<reportElement style="TableCell" x="0" y="0" width="150"
-										height="20" uuid="cb0154a0-bd1b-42b2-b2af-6c88d95dd184" />
+									<reportElement style="TableCell" x="0" y="0" width="150" height="20" uuid="cb0154a0-bd1b-42b2-b2af-6c88d95dd184"/>
 									<textFieldExpression><![CDATA[$F{food_type}]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
@@ -502,15 +411,13 @@
 						<jr:column width="405" uuid="aaf76d3b-79bd-4fc7-a6ce-c75592c42ea1">
 							<jr:columnHeader height="22">
 								<staticText>
-									<reportElement style="TableHeader" x="0" y="0" width="405"
-										height="22" uuid="d6a80c10-4348-48fe-b343-edddd9bbf8af" />
+									<reportElement style="TableHeader" x="0" y="0" width="405" height="22" uuid="d6a80c10-4348-48fe-b343-edddd9bbf8af"/>
 									<text><![CDATA[Food Name]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="20">
 								<textField>
-									<reportElement style="TableCell" x="0" y="0" width="405"
-										height="20" uuid="f289d5cf-cf9c-402f-a369-f8affc50ac15" />
+									<reportElement style="TableCell" x="0" y="0" width="405" height="20" uuid="f289d5cf-cf9c-402f-a369-f8affc50ac15"/>
 									<textFieldExpression><![CDATA[$F{txt_menu_food_name} == null ? "-----------" : $F{txt_menu_food_name}]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
@@ -518,98 +425,71 @@
 					</jr:table>
 				</componentElement>
 				<textField textAdjust="StretchHeight">
-					<reportElement style="Value" positionType="Float" x="0" y="30" width="555"
-						height="40" uuid="e535c0f4-b613-47ba-93ba-9f86b6d6a464" />
+					<reportElement style="Value" positionType="Float" x="0" y="30" width="555" height="40" uuid="e535c0f4-b613-47ba-93ba-9f86b6d6a464"/>
 					<textFieldExpression><![CDATA[$F{txt_catering_remarks} == null ? "-----------" : $F{txt_catering_remarks}]]></textFieldExpression>
 				</textField>
 			</frame>
-
-
-			<!-- -->
-			<!-- -->
-			<!-- -->
-
-
 			<frame>
-				<reportElement positionType="Float" x="0" y="0" width="555" height="0"
-					uuid="59766b6a-bfa4-48c6-997b-b623846b13d8" />
+				<reportElement positionType="Float" x="0" y="0" width="555" height="0" uuid="59766b6a-bfa4-48c6-997b-b623846b13d8"/>
 				<staticText>
-					<reportElement style="SectionHeader" x="0" y="0" width="250" height="18"
-						uuid="8f15aae8-66e5-46c0-8e24-f3ba67ebe9b6" />
+					<reportElement style="SectionHeader" x="0" y="0" width="250" height="18" uuid="8f15aae8-66e5-46c0-8e24-f3ba67ebe9b6"/>
 					<text><![CDATA[Extras Selections]]></text>
 				</staticText>
 				<componentElement>
-					<reportElement positionType="Float" x="0" y="24" width="555" height="0"
-						uuid="c845d129-3d3f-4daa-abf8-b7ef186edc42" />
-					<jr:table
-						xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
-						xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
-						<datasetRun subDataset="ExtrasDataset"
-							uuid="6f0e6acd-e9cd-4d79-8f5c-a0767ef95ddb">
+					<reportElement positionType="Float" x="0" y="24" width="555" height="0" uuid="c845d129-3d3f-4daa-abf8-b7ef186edc42"/>
+					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+						<datasetRun subDataset="ExtrasDataset" uuid="6f0e6acd-e9cd-4d79-8f5c-a0767ef95ddb">
 							<datasetParameter name="EVENT_ID">
 								<datasetParameterExpression><![CDATA[$P{EVENT_ID}]]></datasetParameterExpression>
 							</datasetParameter>
 							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 						</datasetRun>
-
-
-						<jr:column width="150" uuid="e60c2e8c-82d2-4b75-b55b-005bb3e7740">
+						<jr:column width="150" uuid="e60c2e8c-82d2-4b75-b55b-0005bb3e7740">
 							<jr:columnHeader height="22">
 								<staticText>
-									<reportElement style="TableHeader" x="0" y="0" width="150"
-										height="22" uuid="1230ca68-2fbc-450e-9988-5d8833ff3ce6" />
+									<reportElement style="TableHeader" x="0" y="0" width="150" height="22" uuid="1230ca68-2fbc-450e-9988-5d8833ff3ce6"/>
 									<text><![CDATA[Extras Name]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="40">
 								<textField>
-									<reportElement style="TableCell" x="0" y="0" width="150"
-										height="20" uuid="cb0154a0-bd1b-99b2-b2af-6c88d95dd184" />
+									<reportElement style="TableCell" x="0" y="0" width="150" height="20" uuid="cb0154a0-bd1b-99b2-b2af-6c88d95dd184"/>
 									<textFieldExpression><![CDATA[$F{txt_extras_name} == null ? "-----------" : $F{txt_extras_name}]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
 						</jr:column>
-
-
 						<jr:column width="150" uuid="aaf76d3b-79bd-4fc7-a6ce-c75592c42ea1">
 							<jr:columnHeader height="22">
 								<staticText>
-									<reportElement style="TableHeader" x="0" y="0" width="150"
-										height="22" uuid="d6a80c10-4348-58fe-b343-edddd9bbf8af" />
+									<reportElement style="TableHeader" x="0" y="0" width="150" height="22" uuid="d6a80c10-4348-58fe-b343-edddd9bbf8af"/>
 									<text><![CDATA[Selected Option]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="40">
 								<textField>
-									<reportElement style="TableCell" x="0" y="0" width="150"
-										height="20" uuid="f289d5cf-cf9c-402f-a069-f8affc50ac15" />
+									<reportElement style="TableCell" x="0" y="0" width="150" height="20" uuid="f289d5cf-cf9c-402f-a069-f8affc50ac15"/>
 									<textFieldExpression><![CDATA[$F{txt_option_name} == null ? "-----------" : $F{txt_option_name}]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
 						</jr:column>
-
 						<jr:column width="255" uuid="5f0a3e1a-5000-4fe9-9311-7ae5e2d2b17e">
 							<jr:columnHeader height="22">
 								<staticText>
-									<reportElement style="TableHeader" x="0" y="0" width="255"
-										height="22" uuid="3a619940-f944-4bcb-a03b-6df638286d0a" />
+									<reportElement style="TableHeader" x="0" y="0" width="255" height="22" uuid="3a619940-f944-4bcb-a03b-6df638286d0a"/>
 									<text><![CDATA[Image]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell height="40">
 								<image scaleImage="RetainShape">
-									<reportElement x="0" y="0" width="255" height="40"
-										uuid="997e3664-43e3-4a93-a9d4-4e613222e757" />
+									<reportElement x="0" y="0" width="255" height="40" uuid="997e3664-43e3-4a93-a9d4-4e613222e757"/>
 									<imageExpression><![CDATA[$F{option_document}]]></imageExpression>
 								</image>
 							</jr:detailCell>
 						</jr:column>
-
 					</jr:table>
 				</componentElement>
 				<textField textAdjust="StretchHeight">
-					<reportElement style="Value" positionType="Float" x="0" y="30" width="555"
-						height="40" uuid="e535c0f4-b613-47ba-93ba-9f86b7d7a464" />
+					<reportElement style="Value" positionType="Float" x="0" y="30" width="555" height="40" uuid="e535c0f4-b613-47ba-93ba-9f86b7d7a464"/>
 					<textFieldExpression><![CDATA[$F{txt_event_extras_remarks} == null ? "-----------" : $F{txt_event_extras_remarks}]]></textFieldExpression>
 				</textField>
 			</frame>
