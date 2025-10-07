@@ -47,6 +47,20 @@ public class ControllerCityMaster {
 		return responseMessage;
 	}
 
+	@RequestMapping(value = "/getAllActive", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
+	public ResponseMessage getAllActive(HttpServletRequest request) throws Exception {
+		LOGGER.info("Fetching all Active CityMaster data");
+		DtoResult dtoResult;
+		dtoResult = serviceCityMaster.getAllActive();
+		if (dtoResult != null && dtoResult.getResult() != null) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, dtoResult.getTxtMessage(),
+					dtoResult.getResult());
+		} else {
+			return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, dtoResult.getTxtMessage(),
+					null);
+		}
+	}
+
 	@RequestMapping(value = "/saveOrUpdate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
 	public ResponseMessage saveOrUpdate(@RequestBody DtoCityMaster dtoCityMaster, HttpServletRequest request)
 			throws Exception {

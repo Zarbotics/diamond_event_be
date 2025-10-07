@@ -49,6 +49,30 @@ public class ServiceCityMasterImpl implements ServiceCityMaster {
 
 	}
 
+	
+	
+	@Override
+	public DtoResult getAllActive() {
+		try {
+			List<CityMaster> list = repositoryCityMaster.findByBlnIsActiveTrueAndBlnIsDeletedFalse();
+			if (list != null && !list.isEmpty()) {
+				List<DtoCityMaster> dtoList = new ArrayList<>();
+				for (CityMaster city : list) {
+					dtoList.add(MapperCityMaster.toDto(city));
+				}
+				return new DtoResult("Fetched Successfully", null, dtoList, null);
+			} else {
+				return new DtoResult("No Record Found.", null, null, null);
+			}
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new DtoResult("Internal Server Error", null, null, null);
+		}
+
+	}
+
+	
 	@Override
 	public ResponseMessage saveAndUpdate(DtoCityMaster dto) {
 		ResponseMessage res = new ResponseMessage();

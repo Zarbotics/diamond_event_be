@@ -10,4 +10,6 @@ import com.zbs.de.model.CityMaster;
 @Repository("repositoryCityMaster")
 public interface RepositoryCityMaster extends JpaRepository<CityMaster, Integer> {
 	List<CityMaster> findByBlnIsDeleted(Boolean blnIsDeleted);
+
+	List<CityMaster> findByBlnIsActiveTrueAndBlnIsDeletedFalse();
 }
