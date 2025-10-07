@@ -38,6 +38,7 @@
 		<field name="option_document" class="java.lang.String"/>
 	</subDataset>
 	<parameter name="EVENT_ID" class="java.lang.Integer"/>
+	<parameter name="REPORT_LOGO_IMAGE" class="java.awt.Image"/>
 	<queryString>
 		<![CDATA[SELECT * FROM v_event_summary WHERE ser_event_master_id = $P{EVENT_ID}]]>
 	</queryString>
@@ -76,7 +77,7 @@
 		<band height="80">
 			<image>
 				<reportElement x="0" y="0" width="120" height="60" uuid="5a6e2471-8948-44bf-ba1a-01968b495dc7"/>
-				<imageExpression><![CDATA["C:/Users/T15/Documents/Jasper_Reports/de_logo.png"]]></imageExpression>
+				<imageExpression><![CDATA[$P{REPORT_LOGO_IMAGE}]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement style="Title" x="150" y="10" width="300" height="30" uuid="52809529-f288-48fc-81d7-c58e7ce0ca1d"/>
