@@ -34,8 +34,6 @@
 		<field name="txt_menu_food_name" class="java.lang.String" />
 		<field name="food_type" class="java.lang.String" />
 	</subDataset>
-
-
 	<subDataset name="ExtrasDataset" uuid="1c8ff306-7f2d-4b3f-add9-db1475a0f135">
 		<parameter name="EVENT_ID" class="java.lang.Integer" />
 		<queryString>
@@ -45,8 +43,8 @@
 		<field name="txt_option_name" class="java.lang.String" />
 		<field name="option_document" class="java.lang.String" />
 	</subDataset>
-
 	<parameter name="EVENT_ID" class="java.lang.Integer" />
+	<parameter name="REPORT_LOGO_IMAGE" class="java.awt.Image" />
 	<queryString>
 		<![CDATA[SELECT * FROM v_event_summary WHERE ser_event_master_id = $P{EVENT_ID}]]>
 	</queryString>
@@ -86,7 +84,7 @@
 			<image>
 				<reportElement x="0" y="0" width="120" height="60"
 					uuid="5a6e2471-8948-44bf-ba1a-01968b495dc7" />
-				<imageExpression><![CDATA[this.getClass().getResource("/reports/assets/de_logo.png").getPath()]]></imageExpression>
+				<imageExpression><![CDATA[$P{REPORT_LOGO_IMAGE}]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement style="Title" x="150" y="10" width="300" height="30"
@@ -116,7 +114,7 @@
 			<textField>
 				<reportElement style="Value" x="130" y="24" width="240" height="15"
 					uuid="ce8ffa38-1e70-4637-a228-f019d38f0ecb" />
-				<textFieldExpression><![CDATA[$F{txt_event_master_code} == null ? "-----------" : $F{txt_event_master_code} ]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{txt_event_master_code} == null ? "-----------" : $F{txt_event_master_code}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement style="Label" x="0" y="42" width="120" height="15"
@@ -208,8 +206,6 @@
 					uuid="2606f21b-5f43-4941-a58c-2060a3afde6a" />
 				<text><![CDATA[Bride & Groom]]></text>
 			</staticText>
-
-
 			<staticText>
 				<reportElement style="Label" x="0" y="278" width="60" height="15"
 					uuid="52e977d7-e5f0-4333-8f9d-e5df94ea765c" />
@@ -230,8 +226,6 @@
 					uuid="89c45cd1-bd80-41a7-b465-e8a0e75a969b" />
 				<textFieldExpression><![CDATA[$F{txt_bride_last_name} == null ? "-----------" : $F{txt_bride_last_name}]]></textFieldExpression>
 			</textField>
-
-
 			<staticText>
 				<reportElement style="Label" x="0" y="296" width="60" height="15"
 					uuid="a7903422-7d5d-4595-a2c4-3b08a09c3a9e" />
@@ -242,7 +236,6 @@
 					uuid="c691e264-6c1e-417e-9392-fe36cd3cff1f" />
 				<textFieldExpression><![CDATA[$F{txt_groom_first_name} == null ? "-----------" : $F{txt_groom_first_name}]]></textFieldExpression>
 			</textField>
-
 			<staticText>
 				<reportElement style="Label" x="250" y="296" width="60" height="15"
 					uuid="a7903433-7d5d-4595-a2c4-3b08a09c3a9e" />
@@ -253,8 +246,6 @@
 					uuid="c691e284-6c1e-417e-9392-fe36cd3cff1f" />
 				<textFieldExpression><![CDATA[$F{txt_groom_last_name} == null ? "-----------" : $F{txt_groom_last_name}]]></textFieldExpression>
 			</textField>
-
-
 			<staticText>
 				<reportElement style="SectionHeader" x="0" y="332" width="250" height="18"
 					uuid="06fbc853-4f62-4833-b508-23b7bfd7bfc4" />
@@ -523,13 +514,6 @@
 					<textFieldExpression><![CDATA[$F{txt_catering_remarks} == null ? "-----------" : $F{txt_catering_remarks}]]></textFieldExpression>
 				</textField>
 			</frame>
-
-
-			<!-- -->
-			<!-- -->
-			<!-- -->
-
-
 			<frame>
 				<reportElement positionType="Float" x="0" y="0" width="555" height="0"
 					uuid="59766b6a-bfa4-48c6-997b-b623846b13d8" />
@@ -551,9 +535,7 @@
 							</datasetParameter>
 							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 						</datasetRun>
-
-
-						<jr:column width="150" uuid="e60c2e8c-82d2-4b75-b55b-005bb3e7740">
+						<jr:column width="150" uuid="e60c2e8c-82d2-4b75-b55b-0005bb3e7740">
 							<jr:columnHeader height="22">
 								<staticText>
 									<reportElement style="TableHeader" x="0" y="0" width="150"
@@ -569,8 +551,6 @@
 								</textField>
 							</jr:detailCell>
 						</jr:column>
-
-
 						<jr:column width="150" uuid="aaf76d3b-79bd-4fc7-a6ce-c75592c42ea1">
 							<jr:columnHeader height="22">
 								<staticText>
@@ -587,7 +567,6 @@
 								</textField>
 							</jr:detailCell>
 						</jr:column>
-
 						<jr:column width="255" uuid="5f0a3e1a-5000-4fe9-9311-7ae5e2d2b17e">
 							<jr:columnHeader height="22">
 								<staticText>
@@ -604,7 +583,6 @@
 								</image>
 							</jr:detailCell>
 						</jr:column>
-
 					</jr:table>
 				</componentElement>
 				<textField textAdjust="StretchHeight">
