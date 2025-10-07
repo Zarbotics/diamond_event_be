@@ -105,7 +105,7 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.util.JRLoader;
 
 @Service("serviceReport")
-public class ServiceReportImpl implements ServiceReport {
+public class ServiceReportImpl implements ServiceReport { 
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
 
