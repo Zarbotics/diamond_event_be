@@ -16,4 +16,6 @@ public interface ServiceCityMaster {
 	CityMaster getByPK(Integer serCityId);
 
 	DtoResult deleteById(Integer id);
+	
+	DtoResult getAllActive();
 }
