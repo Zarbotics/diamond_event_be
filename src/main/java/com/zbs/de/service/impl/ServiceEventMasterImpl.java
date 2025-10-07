@@ -1691,13 +1691,13 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if(eventMaster.getEventRunningOrder() != null) {
 				percentage +=10;
 			}
-			if(eventMaster.getDecorSelections() != null) {
+			if(eventMaster.getDecorSelections() != null && !eventMaster.getDecorSelections().isEmpty()) {
 				percentage += 25;
 			}
-			if(eventMaster.getFoodSelections() != null) {
+			if(eventMaster.getFoodSelections() != null && !eventMaster.getFoodSelections().isEmpty()) {
 				percentage += 25;
 			}
-			if(eventMaster.getExtrasSelections()!= null) {
+			if(eventMaster.getExtrasSelections()!= null && !eventMaster.getExtrasSelections().isEmpty()) {
 				percentage += 10;
 			}
 			
