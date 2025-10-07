@@ -201,7 +201,7 @@ public class ServiceReportImpl implements ServiceReport {
 					return img;
 				// otherwise continue to fallback
 			}
-		} catch (Exception ex) {
+		} catch (Exception ex) { 
 			LOGGER.debug("Failed to load image from classpath {} : {}", classpathPath, ex.getMessage());
 		}
 
