@@ -1,6 +1,7 @@
 package com.zbs.de.service.impl;
 
 import com.zbs.de.mapper.MapperCustomerMaster;
+import com.zbs.de.model.CityMaster;
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.dto.DtoCustomerMasterDropDown;
 import com.zbs.de.model.dto.DtoCustomerMaster;
@@ -8,6 +9,7 @@ import com.zbs.de.model.dto.DtoDashboardCustomer;
 import com.zbs.de.model.dto.DtoNotificationMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryCustomerMaster;
+import com.zbs.de.service.ServiceCityMaster;
 import com.zbs.de.service.ServiceCustomerMaster;
 import com.zbs.de.service.ServiceEmailSender;
 import com.zbs.de.service.ServiceNotificationMaster;
@@ -34,6 +36,9 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 	
 	@Autowired
 	private ServiceEmailSender serviceEmailSender;
+	
+	@Autowired
+	private ServiceCityMaster serviceCityMaster;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
 	
@@ -61,6 +66,11 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 		ResponseMessage res = new ResponseMessage();
 		try {
 			LOGGER.info("Save or update CustomerMaster");
+			if(dtoCustomerMaster == null) {
+				res.setMessage("No Data To Save");
+				res.setResult(null);
+				return res;
+			}
 
 			Boolean blnIsNewCustomer = false;
 
@@ -78,6 +88,12 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 					.findByTxtEmailIgnoreCaseAndBlnIsDeletedFalse(email);
 
 			CustomerMaster customerMaster;
+			
+			// ******Fetching City ***********
+			CityMaster cityMaster = null;
+			if(dtoCustomerMaster.getSerCityId() != null) {
+				cityMaster = serviceCityMaster.getByPK(dtoCustomerMaster.getSerCityId());
+			}
 
 			if (!existingList.isEmpty()) {
 				// Update the first found customer
@@ -108,6 +124,9 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster.setTxtLastName(dtoCustomerMaster.getTxtLastName());
 				customerMaster.setUpdatedDate(UtilDateAndTime.getCurrentDate());
 				customerMaster.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+				customerMaster.setBlnIsActive(dtoCustomerMaster.getBlnIsActive());
+				customerMaster.setBlnIsDeleted(false);
+				customerMaster.setBlnIsApproved(true);
 
 				LOGGER.info("Updating existing customer with email: " + email);
 			} else {
@@ -116,12 +135,15 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster = MapperCustomerMaster.toEntity(dtoCustomerMaster);
 				customerMaster.setTxtCustCode(this.generateCustomerCode());
 				customerMaster.setCreatedDate(UtilDateAndTime.getCurrentDate());
-				customerMaster.setBlnIsActive(true);
+				customerMaster.setBlnIsActive(dtoCustomerMaster.getBlnIsActive());
 				customerMaster.setBlnIsDeleted(false);
 				customerMaster.setBlnIsApproved(true);
 				customerMaster.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 				LOGGER.info("Creating new customer with email: " + email);
 
+			}
+			if(cityMaster != null) {
+				customerMaster.setCityMaster(cityMaster);
 			}
 
 			customerMaster = repositoryCustomerMaster.saveAndFlush(customerMaster);
