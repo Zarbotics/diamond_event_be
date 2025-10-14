@@ -1027,6 +1027,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtEventRemarks(dtoEventMaster.getTxtEventRemarks());
 				entity.setTxtExternalSupplierRemarks(dtoEventMaster.getTxtExternalSupplierRemarks());
 				entity.setTxtVenueRemarks(dtoEventMaster.getTxtVenueRemarks());
+				entity.setNumFormState(dtoEventMaster.getNumFormState());
 //				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 //					entity.setNumInfoFilledStatus(0);
 //				}
@@ -1334,6 +1335,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setEventType(null);
 				entity.setDecorSelections(null);
 				entity.setFoodSelections(null);
+				entity.setNumFormState(dtoEventMaster.getNumFormState());
 				entity = repositoryEventMaster.save(entity);
 				entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 

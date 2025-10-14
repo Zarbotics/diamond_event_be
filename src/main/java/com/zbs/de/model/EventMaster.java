@@ -118,6 +118,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 	 */
 	@Column(name = "num_inof_filled_status")
 	private Integer numInfoFilledStatus;
+	
+	@Column(name = "num_form_state")
+	private Integer numFormState;
 
 	@ManyToOne
 	@JoinColumn(name = "ser_cust_id")
@@ -450,6 +453,14 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setEventBudget(EventBudget eventBudget) {
 		this.eventBudget = eventBudget;
+	}
+
+	public Integer getNumFormState() {
+		return numFormState;
+	}
+
+	public void setNumFormState(Integer numFormState) {
+		this.numFormState = numFormState;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
