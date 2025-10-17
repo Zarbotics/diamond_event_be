@@ -27,5 +27,7 @@ public interface ServiceDecorExtrasMaster {
 	List<DecorExtrasMaster> getAllDecorExtrasMaster();
 	
 	 DtoResult saveAndUpdate(DtoDecorExtrasMaster dto);
+	 
+	 DtoResult getAllActive();
 
 }
