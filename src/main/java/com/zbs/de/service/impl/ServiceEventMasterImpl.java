@@ -673,7 +673,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				return dtoResult;
 			}
 
-			List<EventMaster> eventMasterLst = repositoryEventMaster.findByCustomerId(dtoSearch.getId());
+			List<EventMaster> eventMasterLst = repositoryEventMaster.findActiveEventMasterByCustomerId(dtoSearch.getId());
 			List<DtoEventMaster> dtoEventMasterLst = new ArrayList<>();
 			if (eventMasterLst != null && !eventMasterLst.isEmpty()) {
 

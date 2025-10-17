@@ -30,6 +30,9 @@ public interface RepositoryEventMaster
 
 	@Query("SELECT e FROM EventMaster e WHERE e.customerMaster.serCustId = :custId AND e.blnIsDeleted = false")
 	List<EventMaster> findByCustomerId(@Param("custId") Integer custId);
+	
+	@Query("SELECT e FROM EventMaster e WHERE e.customerMaster.serCustId = :custId AND e.blnIsDeleted = false and e.blnIsActive = true")
+	List<EventMaster> findActiveEventMasterByCustomerId(@Param("custId") Integer custId);
 
 	List<EventMaster> findByBlnIsDeletedFalse();
 
