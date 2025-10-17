@@ -52,6 +52,13 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 				.map(MapperDecorCategoryMaster::toMasterDto).collect(Collectors.toList());
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
+	
+	@Override
+	public DtoResult getAllActive() {
+		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.getAllActive().stream()
+				.map(MapperDecorCategoryMaster::toMasterDto).collect(Collectors.toList());
+		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
+	}
 
 	@Override
 	public DtoResult getAllMasterData() {
