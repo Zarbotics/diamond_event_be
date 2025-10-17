@@ -191,5 +191,39 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 		String formattedNumber = String.format("%0" + 3 + "d", nextNumber);
 		return prefix + formattedNumber;
 	}
+	
+	@Override
+	public Map<String, List<DtoMenuFoodMaster>> getAllActiveFoodGroupedByType() {
+		Map<String, List<DtoMenuFoodMaster>> grouped = new HashMap<>();
+		try {
+			List<MenuFoodMaster> allItems = repositoryMenuFoodMaster.getAllActiveMenuFoodMaster();
+			for (MenuFoodMaster item : allItems) {
+				if (Boolean.TRUE.equals(item.getBlnIsDessert())) {
+					grouped.computeIfAbsent("Dessert", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsDrink())) {
+					grouped.computeIfAbsent("Drink", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsStarter())) {
+					grouped.computeIfAbsent("Starter", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsAppetiser())) {
+					grouped.computeIfAbsent("Appetiser", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsSaladAndCondiment())) {
+					grouped.computeIfAbsent("SaladAndCondiment", k -> new ArrayList<>())
+							.add(MapperMenuFoodMaster.toDto(item));
+				}
+				if (Boolean.TRUE.equals(item.getBlnIsMainCourse())) {
+					grouped.computeIfAbsent("MainCourse", k -> new ArrayList<>()).add(MapperMenuFoodMaster.toDto(item));
+				}
+			}
+
+			return grouped;
+		} catch (Exception e) {
+			LOGGER.error("Error fetching grouped food items", e);
+			return null;
+		}
+	}
 
 }
