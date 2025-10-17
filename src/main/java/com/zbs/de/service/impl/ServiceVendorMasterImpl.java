@@ -35,6 +35,16 @@ public class ServiceVendorMasterImpl implements ServiceVendorMaster {
 		}
 		return dtos;
 	}
+	
+	@Override
+	public List<DtoVendorMaster> getAllActiveData() {
+		List<VendorMaster> list = repositoryVendorMaster.findAllActive();
+		List<DtoVendorMaster> dtos = new ArrayList<>();
+		for (VendorMaster vendor : list) {
+			dtos.add(MapperVendorMaster.toDto(vendor));
+		}
+		return dtos;
+	}
 
 	@Override
 	public ResponseMessage saveAndUpdate(DtoVendorMaster dto) {
