@@ -48,6 +48,7 @@ public class MapperEventMaster {
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setTxtEventStatus(entity.getTxtEventStatus());
 		dto.setBlnIsCouple(entity.getBlnIsCouple());
+		dto.setNumFormState(entity.getNumFormState());
 
 		dto.setTxtCateringRemarks(entity.getTxtCateringRemarks());
 		dto.setTxtDecoreRemarks(entity.getTxtDecoreRemarks());
@@ -142,6 +143,7 @@ public class MapperEventMaster {
 		entity.setTxtEventRemarks(dto.getTxtEventRemarks());
 		entity.setTxtExternalSupplierRemarks(dto.getTxtExternalSupplierRemarks());
 		entity.setTxtVenueRemarks(dto.getTxtVenueRemarks());
+		entity.setNumFormState(dto.getNumFormState());
 
 		if (dto.getDtoEventDecorSelections() != null) {
 			List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()

@@ -53,6 +53,8 @@ public class DtoEventMaster {
 	private String dteCreatedDate;
 	private String dteUpdateDate;
 
+	private Integer numFormState;
+
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
 
@@ -437,6 +439,14 @@ public class DtoEventMaster {
 
 	public void setDtoEventQuoteAndStatus(DtoEventQuoteAndStatus dtoEventQuoteAndStatus) {
 		this.dtoEventQuoteAndStatus = dtoEventQuoteAndStatus;
+	}
+
+	public Integer getNumFormState() {
+		return numFormState;
+	}
+
+	public void setNumFormState(Integer numFormState) {
+		this.numFormState = numFormState;
 	}
 
 }
