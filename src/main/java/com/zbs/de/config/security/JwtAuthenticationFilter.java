@@ -1,6 +1,7 @@
 package com.zbs.de.config.security;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ import com.zbs.de.repository.RepositoryUserMaster;
 import com.zbs.de.util.JwtTokenUtil;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		if (token != null) {
 			try {
 				Claims claims = jwtTokenUtil.validateToken(token);
+
+				// Check if token expired
+				if (claims.getExpiration().before(new Date())) {
+					throw new ExpiredJwtException(null, claims, "Token expired");
+				}
+
 				String email = claims.getSubject();
 				Integer userId = (Integer) claims.get("userId");
 
@@ -48,10 +56,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null,
 							List.of());
 					SecurityContextHolder.getContext().setAuthentication(auth);
+				} else {
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					response.getWriter().write("Invalid user");
+					return;
 				}
 
-			} catch (Exception e) {
-				// token invalid
+			} catch (ExpiredJwtException ex) {
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.getWriter().write("Access token expired");
+				return;
+
+			} catch (Exception ex) {
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.getWriter().write("Invalid or malformed token");
+				return;
 			}
 		}
 
