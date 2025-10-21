@@ -20,4 +20,7 @@ public interface RepositoryMenuFoodMaster extends JpaRepository<MenuFoodMaster, 
 			+ "(:type = 'SaladAndCondiment' AND m.blnIsSaladAndCondiment = true) OR "
 			+ "(:type = 'MainCourse' AND m.blnIsMainCourse = true))")
 	List<MenuFoodMaster> findByFoodType(@Param("type") String type);
+
+	@Query("SELECT e FROM MenuFoodMaster e where e.blnIsDeleted = false and e.blnIsActive ")
+	List<MenuFoodMaster> getAllActiveMenuFoodMaster();
 }

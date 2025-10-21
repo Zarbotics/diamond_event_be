@@ -21,4 +21,7 @@ public interface RepositoryVenueMaster extends JpaRepository<VenueMaster, Intege
 	
 	@Query("SELECT MAX(e.txtVenueCode) FROM VenueMaster e")
 	String findMaxVenueMasterCode();
+	
+	@Query("SELECT v FROM VenueMaster v left join v.cityMaster c where v.blnIsDeleted = false and v.blnIsActive = true and c.blnIsDeleted = false and c.blnIsActive")
+	List<VenueMaster> getAllActiveVenuesByActiveCities();
 }

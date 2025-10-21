@@ -17,4 +17,6 @@ public interface ServiceVendorMaster {
 	VendorMaster getByPK(Integer id);
 	
 	DtoResult deleteById(Integer id);
+	
+	List<DtoVendorMaster> getAllActiveData();
 }

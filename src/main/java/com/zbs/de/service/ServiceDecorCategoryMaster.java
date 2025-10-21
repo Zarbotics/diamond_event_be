@@ -20,4 +20,6 @@ public interface ServiceDecorCategoryMaster {
 	public DtoResult getAllMasterData();
 
 	DtoResult saveWithDocuments(DtoDecorCategoryMaster dto, MultipartFile[] documents);
+	
+	DtoResult getAllActive();
 }

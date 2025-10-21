@@ -276,4 +276,21 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 		}
 	}
 
+	
+	@Override
+	public DtoResult getAllActive() {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllActiveWithOptionsWhereNotDeleted();
+			List<DtoDecorExtrasMaster> dtoList = extras.stream().map(MapperDecorExtrasMaster::toDto)
+					.collect(Collectors.toList());
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(dtoList);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Failed to retrieve extras");
+		}
+		return dtoResult;
+	}
+	
 }

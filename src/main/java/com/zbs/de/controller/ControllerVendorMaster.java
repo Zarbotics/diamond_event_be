@@ -76,5 +76,16 @@ public class ControllerVendorMaster {
 		}
 
 	}
+	
+	
+	@RequestMapping(value = "/getAllActiveData", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveData(HttpServletRequest request) {
+		LOGGER.info("Fetching all vendor data");
+		List<DtoVendorMaster> data = serviceVendorMaster.getAllActiveData();
+		if (data != null && !data.isEmpty()) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "All vendors fetched", data);
+		}
+		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "No vendors found", null);
+	}
 
 }

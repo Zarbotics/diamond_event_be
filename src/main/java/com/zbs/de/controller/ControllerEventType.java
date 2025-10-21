@@ -65,6 +65,13 @@ public class ControllerEventType {
 		List<DtoEventType> list = serviceEventType.getAllEventTypesWithSubEvents();
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Event Types", list);
 	}
+	
+	
+	@PostMapping(value = "/getAllActiveEventTypesWithSubEvents", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveEventTypesWithSubEvents() {
+		List<DtoEventType> list = serviceEventType.getAllActiveEventTypesWithSubEvents();
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Event Types", list);
+	}
 
 	@PostMapping(value = "/saveEventType", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveVenue(@RequestPart("eventTypeData") String eventTypeJson,

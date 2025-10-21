@@ -132,6 +132,36 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 					"Error grouping venues by city: " + e.getMessage(), null);
 		}
 	}
+	
+	@Override
+	public ResponseMessage getAllActiveVenuesGroupedByActiveCities() {
+		try {
+			List<VenueMaster> list = repositoryVenueMaster.getAllActiveVenuesByActiveCities();
+			Map<CityMaster, List<VenueMaster>> grouped = list.stream()
+					.collect(Collectors.groupingBy(VenueMaster::getCityMaster));
+
+			List<DtoVenueMasterByCity> result = new ArrayList<>();
+			for (Map.Entry<CityMaster, List<VenueMaster>> entry : grouped.entrySet()) {
+				CityMaster city = entry.getKey();
+				List<DtoVenueMaster> venues = entry.getValue().stream().map(MapperVenueMaster::toDto)
+						.collect(Collectors.toList());
+
+				DtoVenueMasterByCity dto = new DtoVenueMasterByCity();
+				dto.setSerCityId(city.getSerCityId());
+				dto.setTxtCityName(city.getTxtCityName());
+				dto.setTxtCityCode(city.getTxtCityCode());
+				dto.setVenueMasters(venues);
+				result.add(dto);
+			}
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched venues grouped by city", result);
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error grouping venues by city: " + e.getMessage(), null);
+		}
+	}
+	
 
 	@Override
 	public ResponseMessage getVenuesByCityId(Integer cityId) {

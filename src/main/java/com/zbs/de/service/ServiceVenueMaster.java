@@ -30,4 +30,6 @@ public interface ServiceVenueMaster {
 	DtoResult deleteById(Integer id);
 
 	String generateNextVenueMasterCode();
+	
+	 ResponseMessage getAllActiveVenuesGroupedByActiveCities();
 }

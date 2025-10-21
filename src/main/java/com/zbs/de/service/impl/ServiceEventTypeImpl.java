@@ -72,6 +72,35 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 		}
 		return dtos;
 	}
+	
+	
+	@Override
+	public List<DtoEventType> getAllActiveEventTypesWithSubEvents() {
+		List<EventType> list = repositoryEventType.findAllActive();
+		List<DtoEventType> dtos = new ArrayList<>();
+		for (EventType type : list) {
+			if (UtilRandomKey.isNotNull(type.getBlnIsMainEvent()) && !type.getBlnIsMainEvent()) {
+				continue;
+			}
+			DtoEventType eventType = MapperEventType.toDto(type);
+
+			// ******** Filtering Sub Events ****************
+			// **********************************************
+			List<DtoEventType> subEvents = new ArrayList<>();
+			for (EventType subtype : list) {
+				if (UtilRandomKey.isNotNull(subtype.getParentEventType()) && subtype.getParentEventType()
+						.getSerEventTypeId().intValue() == type.getSerEventTypeId().intValue() && subtype.getBlnIsActive()!= null && subtype.getBlnIsActive()) {
+					subEvents.add(MapperEventType.toDto(subtype));
+
+				}
+			}
+
+			eventType.setSubEvents(subEvents);
+			dtos.add(eventType);
+
+		}
+		return dtos;
+	}
 
 	@Override
 	public ResponseMessage saveAndUpdate(DtoEventType dto) {

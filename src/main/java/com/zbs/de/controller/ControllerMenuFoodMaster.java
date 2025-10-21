@@ -103,5 +103,15 @@ public class ControllerMenuFoodMaster {
 		String txtCode = serviceMenuFoodMaster.generateNextMenuFoodCode(dtoSearch.getSearchKeyword());
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Food Menu Code", txtCode);
 	}
+	
+	@RequestMapping(value = "/getAllActiveFoodsByType", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveFoodsByType(@RequestBody DtoSearch dtoSearch) {
+		LOGGER.info("Fetching AllMenuFoodMaster by Type : {}", dtoSearch.getSearchKeyword());
+		Map<String, List<DtoMenuFoodMaster>> result = serviceMenuFoodMaster.getAllActiveFoodGroupedByType();
+		if (result != null) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully", result);
+		}
+		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "Unable To Fetch", null);
+	}
 
 }

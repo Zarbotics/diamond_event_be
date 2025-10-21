@@ -55,6 +55,11 @@ public class ControllerVenueMaster {
 	public ResponseMessage getAllGroupedByCity(HttpServletRequest request) {
 		return serviceVenueMaster.getAllVenuesGroupedByCity();
 	}
+	
+	@PostMapping(value = "/getAllActiveVenuesGroupedByActiveCities", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveVenuesGroupedByActiveCities(HttpServletRequest request) {
+		return serviceVenueMaster.getAllActiveVenuesGroupedByActiveCities();
+	}
 
 	@PostMapping(value = "/saveVenue", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveVenue(@RequestPart("venueData") String venueJson,

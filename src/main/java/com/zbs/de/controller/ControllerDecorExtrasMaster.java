@@ -71,6 +71,19 @@ public class ControllerDecorExtrasMaster {
 				result.getTxtMessage(), null);
 	}
 
+	
+	@PostMapping(value = "/getAllActiveData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveData(HttpServletRequest request) {
+		LOGGER.info("Searching Decor Extras");
+		DtoResult result = serviceDecorExtrasMaster.getAllActive();
+		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+				result.getTxtMessage(), null);
+	}
+	
 	@PostMapping(value = "/deleteById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage deleteById(@RequestBody DtoSearch dtoSearch) {
 		LOGGER.info("Deleting Decor Extra by ID: " + dtoSearch);
