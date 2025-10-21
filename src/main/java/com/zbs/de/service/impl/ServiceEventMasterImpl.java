@@ -1146,6 +1146,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 					for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
 						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
+						decorSelection.setSerEventDecorCategorySelectionId(null);
 						decorSelection.setEventMaster(entity);
 //						decorSelection = repositoryEventDecorCategorySelection.save(decorSelection);
 
@@ -1418,6 +1419,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 					for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
 						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
+						decorSelection.setSerEventDecorCategorySelectionId(null);
 						decorSelection.setEventMaster(entity);
 
 //						if (decorSelection.getSelectedProperties() != null) {
