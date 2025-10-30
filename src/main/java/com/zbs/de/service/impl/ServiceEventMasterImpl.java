@@ -144,6 +144,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	public DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster) {
 		// Validate required IDs
 		DtoResult dtoResult = new DtoResult();
+	
 		if (dtoEventMaster.getSerCustId() == null || dtoEventMaster.getSerEventTypeId() == null) {
 			LOGGER.debug("Customer ID and Event Type ID are required");
 			dtoResult.setTxtMessage("Customer ID and Event Type ID are required");
@@ -165,6 +166,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		if (optionalExisting.isPresent()) {
 			// Update existing
 			entity = optionalExisting.get();
+			
+			// ****Check if Edit Allowed or Not***
+			if (entity.getIsEditAllowed() != null && entity.getIsEditAllowed() == false) {
+				LOGGER.debug("This Event Can't be deleted as Event Is Marked For Restrict Edit.");
+				dtoResult.setTxtMessage(
+						"You do not have permission to edit this event. Contact Diamond Event administration for changes!");
+				return dtoResult;
+			}
+			
 
 			// Manually update values (keep ID)
 			entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
@@ -187,7 +197,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			entity.setTxtEventExtrasRemarks(dtoEventMaster.getTxtEventExtrasRemarks());
 			entity.setTxtEventRemarks(dtoEventMaster.getTxtEventRemarks());
 			entity.setTxtExternalSupplierRemarks(dtoEventMaster.getTxtExternalSupplierRemarks());
-
+			entity.setIsEditAllowed(dtoEventMaster.getIsEditAllowed());
+			
 //			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 //				entity.setNumInfoFilledStatus(0);
 //			}
@@ -1002,6 +1013,14 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (optionalExisting != null && optionalExisting.isPresent()) {
 				// Update existing
 				entity = optionalExisting.get();
+				
+				// ****Check if Edit Allowed or Not***
+				if (entity.getIsEditAllowed() != null && entity.getIsEditAllowed() == false) {
+					LOGGER.debug("This Event Can't be deleted as Event Is Marked For Restrict Edit.");
+					dtoResult.setTxtMessage(
+							"You do not have permission to edit this event. Contact Diamond Event administration for changes!");
+					return dtoResult;
+				}
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
@@ -1025,6 +1044,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtExternalSupplierRemarks(dtoEventMaster.getTxtExternalSupplierRemarks());
 				entity.setTxtVenueRemarks(dtoEventMaster.getTxtVenueRemarks());
 				entity.setNumFormState(dtoEventMaster.getNumFormState());
+				entity.setIsEditAllowed(dtoEventMaster.getIsEditAllowed());
 //				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 //					entity.setNumInfoFilledStatus(0);
 //				}
@@ -1907,6 +1927,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtEventRemarks(dtoEventMasterAdminPortal.getTxtEventRemarks());
 				entity.setTxtExternalSupplierRemarks(dtoEventMasterAdminPortal.getTxtExternalSupplierRemarks());
 				entity.setTxtVenueRemarks(dtoEventMasterAdminPortal.getTxtVenueRemarks());
+				entity.setIsEditAllowed(dtoEventMasterAdminPortal.getIsEditAllowed());
 //				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 //					entity.setNumInfoFilledStatus(0);
 //				}
