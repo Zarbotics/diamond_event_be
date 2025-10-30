@@ -53,6 +53,8 @@ public class DtoEventMaster {
 	private String dteCreatedDate;
 	private String dteUpdateDate;
 
+	private Boolean isEditAllowed;
+
 	private Integer numFormState;
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
@@ -447,6 +449,14 @@ public class DtoEventMaster {
 
 	public void setNumFormState(Integer numFormState) {
 		this.numFormState = numFormState;
+	}
+
+	public Boolean getIsEditAllowed() {
+		return isEditAllowed;
+	}
+
+	public void setIsEditAllowed(Boolean isEditAllowed) {
+		this.isEditAllowed = isEditAllowed;
 	}
 
 }

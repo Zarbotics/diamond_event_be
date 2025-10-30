@@ -54,6 +54,8 @@ public class DtoEventMasterAdminPortal {
 
 	private String dteCreatedDate;
 	private String dteUpdateDate;
+	
+	private Boolean isEditAllowed;
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
@@ -441,6 +443,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setDtoEventQuoteAndStatus(DtoEventQuoteAndStatus dtoEventQuoteAndStatus) {
 		this.dtoEventQuoteAndStatus = dtoEventQuoteAndStatus;
+	}
+
+	public Boolean getIsEditAllowed() {
+		return isEditAllowed;
+	}
+
+	public void setIsEditAllowed(Boolean isEditAllowed) {
+		this.isEditAllowed = isEditAllowed;
 	}
 
 }

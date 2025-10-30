@@ -145,6 +145,8 @@ public class MapperEventMaster {
 		entity.setTxtVenueRemarks(dto.getTxtVenueRemarks());
 		entity.setNumFormState(dto.getNumFormState());
 
+		entity.setIsEditAllowed(dto.getIsEditAllowed());
+		
 		if (dto.getDtoEventDecorSelections() != null) {
 			List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()
 					.map(MapperEventDecorCategorySelection::toEntity).collect(Collectors.toList());
@@ -285,6 +287,7 @@ public class MapperEventMaster {
 		entity.setTxtEventRemarks(dto.getTxtEventRemarks());
 		entity.setTxtExternalSupplierRemarks(dto.getTxtExternalSupplierRemarks());
 		entity.setTxtVenueRemarks(dto.getTxtVenueRemarks());
+		entity.setIsEditAllowed(dto.getIsEditAllowed());
 
 		if (dto.getDtoEventDecorSelections() != null) {
 			List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()

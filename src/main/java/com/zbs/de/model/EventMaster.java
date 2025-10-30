@@ -111,6 +111,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_venue_remarks")
 	private String txtVenueRemarks;
+	
+	@Column(name = "is_edit_allowed")
+	private Boolean isEditAllowed = true;
 
 	/**
 	 * This variable is to show how many sections has been filled by the client
@@ -463,6 +466,14 @@ public class EventMaster extends BaseEntity implements Serializable {
 		this.numFormState = numFormState;
 	}
 
+	public Boolean getIsEditAllowed() {
+		return isEditAllowed;
+	}
+
+	public void setIsEditAllowed(Boolean isEditAllowed) {
+		this.isEditAllowed = isEditAllowed;
+	}
+
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //	private List<EventType> eventTypeLst = new ArrayList<>();
 //
@@ -480,5 +491,7 @@ public class EventMaster extends BaseEntity implements Serializable {
 //
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //	private List<PaymentTransaction> paymentTransactionLst = new ArrayList<>();
+	
+	
 
 }
