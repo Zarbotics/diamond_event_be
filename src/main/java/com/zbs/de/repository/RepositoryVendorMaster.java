@@ -14,4 +14,7 @@ public interface RepositoryVendorMaster extends JpaRepository<VendorMaster, Inte
 	
 	@Query("SELECT v FROM VendorMaster v where v.blnIsActive = true and v.blnIsDeleted = false ")
 	List<VendorMaster> findAllActive();
+	
+	@Query("SELECT MAX(e.txtVendorCode) FROM VendorMaster e")
+	String findMaxVendorMasterCode();
 }
