@@ -59,7 +59,9 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 			// ******** Setting Venue Master *********
 			VenueMaster venue = MapperVenueMaster.toVenueMaster(dto);
 			venue.setCityMaster(cityMaster);
-			venue.setBlnIsActive(true);
+			if(dto.getBlnIsActive() == null) {
+				venue.setBlnIsActive(true);
+			}
 			venue.setBlnIsDeleted(false);
 			venue.setBlnIsApproved(true);
 			venue.setCreatedDate(new Date());
@@ -278,6 +280,13 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 			venue.setTxtEmailAddress(dto.getTxtEmailAddress());
 			venue.setTxtPhoneNumber(dto.getTxtPhoneNumber());
 			venue.setTxtWebLink(dto.getTxtWebLink());
+			venue.setBlnIsApproved(true);
+			venue.setBlnIsDeleted(false);
+			if(dto.getBlnIsActive() != null) {
+				venue.setBlnIsActive(dto.getBlnIsActive());
+			}else {
+				venue.setBlnIsActive(true);
+			}
 			venue.setCityMaster(serviceCityMaster.getByPK(dto.getSerCityId()));
 
 			if (dto.getVenueMasterDetails() != null && !dto.getVenueMasterDetails().isEmpty()) {

@@ -167,5 +167,24 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 			return new DtoResult("Error while saving decor category with documents", null, null, null);
 		}
 	}
+	
+	
+	@Override
+	public String generateNextDecorCategoryMasterCode() {
+		String maxCode = repositoryDecorCategoryMaster.findMaxDecorCategoryMasterCode();
+
+		int nextNumber = 1;
+
+		if (maxCode != null && maxCode.startsWith("DC-")) {
+			try {
+				String numberPart = maxCode.substring(2);
+				nextNumber = Integer.parseInt(numberPart) + 1;
+			} catch (NumberFormatException e) {
+				nextNumber = 1;
+			}
+		}
+
+		return String.format("DC-%03d", nextNumber);
+	}
 
 }

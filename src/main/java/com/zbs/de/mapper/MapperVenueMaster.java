@@ -22,6 +22,7 @@ public class MapperVenueMaster {
 		dto.setTxtPhoneNumber(entity.getTxtPhoneNumber());
 		dto.setTxtEmailAddress(entity.getTxtEmailAddress());
 		dto.setTxtWebLink(entity.getTxtWebLink());
+		dto.setBlnIsActive(entity.getBlnIsActive());
 		if (entity.getCityMaster() != null) {
 			dto.setSerCityId(entity.getCityMaster().getSerCityId());
 			dto.setTxtCityName(entity.getCityMaster().getTxtCityName());
@@ -84,6 +85,7 @@ public class MapperVenueMaster {
 		venue.setTxtEmailAddress(dto.getTxtEmailAddress());
 		venue.setTxtPhoneNumber(dto.getTxtPhoneNumber());
 		venue.setTxtWebLink(dto.getTxtWebLink());
+		venue.setBlnIsActive(dto.getBlnIsActive());
 		return venue;
 	}
 

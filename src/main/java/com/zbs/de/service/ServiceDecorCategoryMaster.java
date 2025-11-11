@@ -22,4 +22,6 @@ public interface ServiceDecorCategoryMaster {
 	DtoResult saveWithDocuments(DtoDecorCategoryMaster dto, MultipartFile[] documents);
 	
 	DtoResult getAllActive();
+	
+	String generateNextDecorCategoryMasterCode();
 }
