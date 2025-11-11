@@ -87,5 +87,11 @@ public class ControllerVendorMaster {
 		}
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "No vendors found", null);
 	}
+	
+	@PostMapping(value = "/generateVendorCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateVendorCode(HttpServletRequest request) {
+		String txtCode = serviceVendorMaster.generateNextVendorMasterCode();
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Vendor Master Code", txtCode);
+	}
 
 }

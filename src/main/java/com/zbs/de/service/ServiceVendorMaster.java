@@ -19,4 +19,6 @@ public interface ServiceVendorMaster {
 	DtoResult deleteById(Integer id);
 	
 	List<DtoVendorMaster> getAllActiveData();
+	
+	String generateNextVendorMasterCode();
 }
