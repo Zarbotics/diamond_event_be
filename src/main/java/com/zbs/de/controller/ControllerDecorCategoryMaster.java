@@ -104,4 +104,11 @@ public class ControllerDecorCategoryMaster {
 		}
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "No data found", null);
 	}
+	
+	@PostMapping(value = "/generateDecorCategoryMasterCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateDecorCategoryMasterCode(HttpServletRequest request) {
+		String txtCode = serviceDecorCategoryMaster.generateNextDecorCategoryMasterCode();
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched  DecorCategoryMaster Code.",
+				txtCode);
+	}
 }

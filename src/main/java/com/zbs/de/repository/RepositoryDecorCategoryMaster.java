@@ -18,5 +18,8 @@ public interface RepositoryDecorCategoryMaster extends JpaRepository<DecorCatego
 
 	@Query("SELECT cm FROM DecorCategoryMaster cm where cm.blnIsDeleted = false and cm.blnIsActive ")
 	List<DecorCategoryMaster> getAllActive();
+	
+	@Query("SELECT MAX(e.txtDecorCategoryCode) FROM DecorCategoryMaster e")
+	String findMaxDecorCategoryMasterCode();
 
 }
