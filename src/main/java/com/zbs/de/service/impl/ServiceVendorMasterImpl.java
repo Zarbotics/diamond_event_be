@@ -51,7 +51,9 @@ public class ServiceVendorMasterImpl implements ServiceVendorMaster {
 		ResponseMessage res = new ResponseMessage();
 		try {
 			VendorMaster entity = MapperVendorMaster.toEntity(dto);
-			entity.setBlnIsActive(true);
+			if(dto.getBlnIsActive() == null) {
+				entity.setBlnIsActive(true);
+			}
 			entity.setBlnIsDeleted(false);
 			entity.setBlnIsApproved(true);
 			entity = repositoryVendorMaster.saveAndFlush(entity);

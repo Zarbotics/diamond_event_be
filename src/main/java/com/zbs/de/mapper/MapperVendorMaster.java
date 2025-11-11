@@ -24,6 +24,7 @@ public class MapperVendorMaster {
 		entity.setEnmVendorType(dto.getEnmVendorType());
 		entity.setTxtAddress(dto.getTxtAddress());
 		entity.setTxtPhoneNumber(dto.getTxtPhoneNumber());
+		entity.setBlnIsActive(dto.getBlnIsActive());
 		return entity;
 	}
 }
