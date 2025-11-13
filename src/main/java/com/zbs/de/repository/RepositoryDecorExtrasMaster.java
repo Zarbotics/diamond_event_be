@@ -24,5 +24,9 @@ public interface RepositoryDecorExtrasMaster extends JpaRepository<DecorExtrasMa
 	@Query("SELECT DISTINCT m FROM DecorExtrasMaster m " + "LEFT JOIN FETCH m.decorExtrasOptions o "
 			+ "WHERE m.blnIsDeleted = false AND m.blnIsActive = true AND (o.blnIsDeleted = false OR o IS NULL) AND o.blnIsActive = true ")
 	List<DecorExtrasMaster> findAllActiveWithOptionsWhereNotDeleted();
+	
+	
+	@Query("SELECT MAX(e.txtExtrasCode) FROM DecorExtrasMaster e")
+	String findMaxExtrasCode();
 
 }

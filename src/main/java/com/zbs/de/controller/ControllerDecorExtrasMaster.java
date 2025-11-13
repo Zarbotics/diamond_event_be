@@ -111,4 +111,10 @@ public class ControllerDecorExtrasMaster {
 		}
 
 	}
+	
+	@PostMapping(value = "/generateExtrasCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateExtrasCode(HttpServletRequest request) {
+		String txtCode = serviceDecorExtrasMaster.generateExtrasCode();
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Event Extras Code.", txtCode);
+	}
 }

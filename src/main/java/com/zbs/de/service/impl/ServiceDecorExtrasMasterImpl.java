@@ -293,4 +293,22 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 		return dtoResult;
 	}
 	
+	@Override
+	public String generateExtrasCode() {
+		String maxCode = repositoryDecorExtrasMaster.findMaxExtrasCode();
+
+		int nextNumber = 1;
+
+		if (maxCode != null && maxCode.startsWith("EXT-")) {
+			try {
+				String numberPart = maxCode.substring(4);
+				nextNumber = Integer.parseInt(numberPart) + 1;
+			} catch (NumberFormatException e) {
+				nextNumber = 1;
+			}
+		}
+
+		return String.format("EXT-%03d", nextNumber);
+	}
+
 }
