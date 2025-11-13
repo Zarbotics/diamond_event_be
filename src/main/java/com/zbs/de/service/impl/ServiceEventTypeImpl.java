@@ -137,6 +137,9 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 			if (entity == null) {
 				entity = MapperEventType.toEntity(dto);
 				entity.setParentEventType(parent);
+				if(parent != null) {
+					entity.setTxtEventTypeCode(generateNextEventTypeCode());
+				}
 				entity.setBlnIsActive(true);
 				entity.setBlnIsDeleted(false);
 				entity.setBlnIsApproved(true);
@@ -226,6 +229,9 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 		if (entity == null) {
 			entity = MapperEventType.toEntity(dto);
 			entity.setParentEventType(parent);
+			if(parent != null) {
+				entity.setTxtEventTypeCode(generateNextEventTypeCode());
+			}
 			entity.setBlnIsActive(true);
 			entity.setBlnIsDeleted(false);
 			entity.setBlnIsApproved(true);
