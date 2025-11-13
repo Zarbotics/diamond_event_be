@@ -169,5 +169,12 @@ public class ControllerCustomerMaster {
 		}
 
 	}
+	
+	
+	@PostMapping(value = "/generateCustomerCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateCustomerCode(HttpServletRequest request) {
+		String txtCode = serviceCustomerMaster.generateCustomerCode();
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Customer Code", txtCode);
+	}
 
 }
