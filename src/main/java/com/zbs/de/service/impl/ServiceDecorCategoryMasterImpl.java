@@ -126,7 +126,12 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 
 			if (decOptional == null || decOptional.isEmpty()) {
 				entity = MapperDecorCategoryMaster.toEntity(dto);
-				entity.setBlnIsActive(true);
+				if(dto.getBlnIsActive() == null) {
+					entity.setBlnIsActive(true);
+				}else {
+					entity.setBlnIsActive(dto.getBlnIsActive());
+				}
+
 				entity.setBlnIsApproved(true);
 				entity.setBlnIsDeleted(false);
 

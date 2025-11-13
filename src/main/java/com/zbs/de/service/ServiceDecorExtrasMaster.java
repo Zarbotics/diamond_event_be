@@ -29,5 +29,7 @@ public interface ServiceDecorExtrasMaster {
 	 DtoResult saveAndUpdate(DtoDecorExtrasMaster dto);
 	 
 	 DtoResult getAllActive();
+	 
+	 String generateExtrasCode();
 
 }
