@@ -53,10 +53,48 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
 	
+//	@Override
+//	public DtoResult getAllActive() {
+//		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.getAllActive().stream()
+//				.map(MapperDecorCategoryMaster::toMasterDto).collect(Collectors.toList());
+//		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
+//	}
+
 	@Override
 	public DtoResult getAllActive() {
+
 		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.getAllActive().stream()
-				.map(MapperDecorCategoryMaster::toMasterDto).collect(Collectors.toList());
+				.map(MapperDecorCategoryMaster::toMasterDto).peek(master -> {
+
+					// ---------------------------------------
+					// 2. Filter Category Properties
+					// ---------------------------------------
+					if (master.getCategoryProperties() != null) {
+						master.setCategoryProperties(master.getCategoryProperties().stream()
+								.filter(prop -> Boolean.TRUE.equals(prop.getBlnIsActive())).peek(prop -> {
+
+									// ---------------------------------------
+									// 3. Filter Property Values for each Property
+									// ---------------------------------------
+									if (prop.getPropertyValues() != null) {
+										prop.setPropertyValues(prop.getPropertyValues().stream()
+												.filter(val -> Boolean.TRUE.equals(val.getBlnIsActive())).peek(val -> {
+
+													// ---------------------------------------
+													// 4. Include document ONLY if blnIsDocument = true
+													// ---------------------------------------
+													if (!Boolean.TRUE.equals(val.getBlnIsDocument())) {
+														val.setDocument(null);
+													}
+
+												}).collect(Collectors.toList()));
+									}
+
+								}).collect(Collectors.toList()));
+					}
+
+				}).collect(Collectors.toList());
+
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
 
