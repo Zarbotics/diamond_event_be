@@ -54,7 +54,11 @@ public class ServiceMenuFoodMasterImpl implements ServiceMenuFoodMaster {
 		ResponseMessage res = new ResponseMessage();
 		try {
 			MenuFoodMaster entity = MapperMenuFoodMaster.toEntity(dto);
-			entity.setBlnIsActive(true);
+			if(dto.getBlnIsActive() != null) {
+				entity.setBlnIsActive(dto.getBlnIsActive());
+			}else {
+				entity.setBlnIsActive(true);
+			}
 			entity.setBlnIsDeleted(false);
 			entity.setBlnIsApproved(true);
 			entity = repositoryMenuFoodMaster.saveAndFlush(entity);
