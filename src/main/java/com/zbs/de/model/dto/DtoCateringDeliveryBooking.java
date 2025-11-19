@@ -1,6 +1,7 @@
 package com.zbs.de.model.dto;
 
 import java.util.List;
+import java.util.Map;
 
 public class DtoCateringDeliveryBooking {
 
@@ -24,6 +25,8 @@ public class DtoCateringDeliveryBooking {
 	private String txtEventTypeName;
 
 	private List<DtoCateringDeliveryItemDetail> cateringDeliveryItemDetails;
+	
+	private Map<String, List<DtoMenuFoodMaster>> foodSelections;
 
 	public Integer getSerDeliveryBookingId() {
 		return serDeliveryBookingId;
@@ -160,5 +163,14 @@ public class DtoCateringDeliveryBooking {
 	public void setCateringDeliveryItemDetails(List<DtoCateringDeliveryItemDetail> cateringDeliveryItemDetails) {
 		this.cateringDeliveryItemDetails = cateringDeliveryItemDetails;
 	}
+
+	public Map<String, List<DtoMenuFoodMaster>> getFoodSelections() {
+		return foodSelections;
+	}
+
+	public void setFoodSelections(Map<String, List<DtoMenuFoodMaster>> foodSelections) {
+		this.foodSelections = foodSelections;
+	}
+	
 
 }
