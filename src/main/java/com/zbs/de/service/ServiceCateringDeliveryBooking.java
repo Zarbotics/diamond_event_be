@@ -18,4 +18,10 @@ public interface ServiceCateringDeliveryBooking {
 	String generateAutoCode();
 	
 	DtoResult getByCustId(DtoSearch dtoSearch);
+	
+	DtoResult saveOrUpdateCateringAdminPortal(DtoCateringDeliveryBooking dto);
+	
+	 DtoResult getAllCP();
+	 
+	 DtoResult getByPKCP(Integer id);
 }

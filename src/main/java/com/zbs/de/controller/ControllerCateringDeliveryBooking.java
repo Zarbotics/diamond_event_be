@@ -36,6 +36,22 @@ public class ControllerCateringDeliveryBooking {
 		}
 
 	}
+	
+	@PostMapping(value = "/saveOrUpdateAdminPortal", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseMessage> saveOrUpdateAdminPortal(@RequestBody DtoCateringDeliveryBooking dto,
+			HttpServletRequest request) {
+		
+		DtoResult result = service.saveOrUpdateCateringAdminPortal(dto);
+		if(result != null && result.getTxtMessage().equalsIgnoreCase("Success") && result.getResult() != null) {
+			return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully",
+					result.getResult()));
+		}else {
+			return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+					result.getResult()));
+		}
+
+	}
+	
 
 	@PostMapping(value = "/getById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> getById(@RequestBody DtoCateringDeliveryBooking dto,
@@ -44,12 +60,27 @@ public class ControllerCateringDeliveryBooking {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
 				service.getByPK(id).getResult()));
 	}
+	
+	@PostMapping(value = "/getByIdCP", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseMessage> getByIdCP(@RequestBody DtoCateringDeliveryBooking dto,
+			HttpServletRequest request) {
+		Integer id = dto.getSerDeliveryBookingId();
+		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
+				service.getByPKCP(id).getResult()));
+	}
 
 	@PostMapping(value = "/getAll", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> getAll(@RequestBody DtoCateringDeliveryBooking dto,
 			HttpServletRequest request) {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
 				service.getAll().getResulList()));
+	}
+	
+	@PostMapping(value = "/getAllAdminPortal", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseMessage> getAllAdminPortal(@RequestBody DtoCateringDeliveryBooking dto,
+			HttpServletRequest request) {
+		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
+				service.getAllCP().getResulList()));
 	}
 	
 	@PostMapping(value = "/getByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
