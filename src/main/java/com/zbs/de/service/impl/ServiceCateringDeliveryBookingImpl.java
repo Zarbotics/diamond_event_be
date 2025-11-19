@@ -302,12 +302,35 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 				() -> result.setTxtMessage("Not found"));
 		return result;
 	}
+	
+	
+	@Override
+	public DtoResult getByPKCP(Integer id) {
+		DtoResult result = new DtoResult();
+		repositoryCateringDeliveryBooking.findBySerDeliveryBookingIdAndBlnIsDeletedFalse(id).ifPresentOrElse(
+				booking -> result.setResult(MapperCateringDeliveryBooking.toDtoCP(booking)),
+				() -> result.setTxtMessage("Not found"));
+		return result;
+	}
 
 	@Override
 	public DtoResult getAll() {
 		DtoResult result = new DtoResult();
 		List<CateringDeliveryBooking> bookings = repositoryCateringDeliveryBooking.findByBlnIsDeletedFalse();
 		List<DtoCateringDeliveryBooking> list = bookings.stream().map(MapperCateringDeliveryBooking::toDto)
+				.collect(Collectors.toList());
+		result.setResulList(new ArrayList<>(list));
+		result.setTxtMessage("Fetched successfully");
+		return result;
+	}
+	
+	
+
+	@Override
+	public DtoResult getAllCP() {
+		DtoResult result = new DtoResult();
+		List<CateringDeliveryBooking> bookings = repositoryCateringDeliveryBooking.findByBlnIsDeletedFalse();
+		List<DtoCateringDeliveryBooking> list = bookings.stream().map(MapperCateringDeliveryBooking::toDtoCP)
 				.collect(Collectors.toList());
 		result.setResulList(new ArrayList<>(list));
 		result.setTxtMessage("Fetched successfully");

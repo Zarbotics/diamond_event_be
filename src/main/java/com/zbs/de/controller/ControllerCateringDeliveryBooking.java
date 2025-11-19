@@ -60,12 +60,27 @@ public class ControllerCateringDeliveryBooking {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
 				service.getByPK(id).getResult()));
 	}
+	
+	@PostMapping(value = "/getByIdCP", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseMessage> getByIdCP(@RequestBody DtoCateringDeliveryBooking dto,
+			HttpServletRequest request) {
+		Integer id = dto.getSerDeliveryBookingId();
+		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
+				service.getByPKCP(id).getResult()));
+	}
 
 	@PostMapping(value = "/getAll", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> getAll(@RequestBody DtoCateringDeliveryBooking dto,
 			HttpServletRequest request) {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
 				service.getAll().getResulList()));
+	}
+	
+	@PostMapping(value = "/getAllAdminPortal", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseMessage> getAllAdminPortal(@RequestBody DtoCateringDeliveryBooking dto,
+			HttpServletRequest request) {
+		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
+				service.getAllCP().getResulList()));
 	}
 	
 	@PostMapping(value = "/getByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

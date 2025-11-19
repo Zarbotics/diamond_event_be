@@ -1,12 +1,16 @@
 package com.zbs.de.mapper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryItemDetail;
+import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
 import com.zbs.de.model.dto.DtoCateringDeliveryItemDetail;
+import com.zbs.de.model.dto.DtoMenuFoodMaster;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilRandomKey;
 
@@ -52,6 +56,78 @@ public class MapperCateringDeliveryBooking {
 		return dto;
 	}
 	
+	
+	public static DtoCateringDeliveryBooking toDtoCP(CateringDeliveryBooking entity) {
+		if (UtilRandomKey.isNull(entity)) {
+			return null;
+		}
+		DtoCateringDeliveryBooking dto = new DtoCateringDeliveryBooking();
+		dto.setSerDeliveryBookingId(entity.getSerDeliveryBookingId());
+		dto.setTxtBookingStatus(entity.getTxtBookingStatus());
+		dto.setTxtDeliveryBookingCode(entity.getTxtDeliveryBookingCode());
+		dto.setBlnBookingStatus(entity.getBlnBookingStatus());
+		dto.setBlnRequestMeeting(entity.getBlnRequestMeeting());
+		if (UtilRandomKey.isNotNull(entity.getDteDeliveryDate())) {
+			dto.setDteDeliveryDate(UtilDateAndTime.mmddyyyyDateToString(entity.getDteDeliveryDate()));
+		}
+		dto.setTxtDeliveryLocation(entity.getTxtDeliveryLocation());
+		dto.setTxtDeliveryTime(entity.getTxtDeliveryTime());
+		dto.setTxtRemarks(entity.getTxtRemarks());
+		dto.setTxtSpecialInstructions(entity.getTxtSpecialInstructions());
+
+		if (entity.getCustomerMaster() != null) {
+			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
+			dto.setTxtCustCode(entity.getCustomerMaster().getTxtCustCode());
+			dto.setTxtCustName(entity.getCustomerMaster().getTxtCustName());
+		}
+		if (entity.getEventType() != null) {
+			dto.setSerEventTypeId(entity.getEventType().getSerEventTypeId());
+			dto.setTxtEventTypeCode(entity.getEventType().getTxtEventTypeCode());
+			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
+		}
+		if(entity.getCateringDeliveryItemDetails() != null && !entity.getCateringDeliveryItemDetails().isEmpty()) {
+//			List<DtoCateringDeliveryItemDetail> details = new ArrayList<>();
+//			for(CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
+//				DtoCateringDeliveryItemDetail detailDto = toDtoCateringDeliveryItemDetail(detail);
+//				details.add(detailDto);
+//			}
+//			
+//			dto.setCateringDeliveryItemDetails(details);
+			
+
+			Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = new HashMap<>();
+
+			for (CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
+				if (detail.getMenueFoodMaster() != null) {
+					DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
+					MenuFoodMaster foodMaster = detail.getMenueFoodMaster();
+
+					dtoMenuFoodMaster.setSerMenuFoodId(foodMaster.getSerMenuFoodId());
+					dtoMenuFoodMaster.setTxtMenuFoodCode(foodMaster.getTxtMenuFoodCode());
+					dtoMenuFoodMaster.setTxtMenuFoodName(foodMaster.getTxtMenuFoodName());
+					dtoMenuFoodMaster.setBlnIsMainCourse(foodMaster.getBlnIsMainCourse());
+					dtoMenuFoodMaster.setBlnIsAppetiser(foodMaster.getBlnIsAppetiser());
+					dtoMenuFoodMaster.setBlnIsStarter(foodMaster.getBlnIsStarter());
+					dtoMenuFoodMaster.setBlnIsSaladAndCondiment(foodMaster.getBlnIsSaladAndCondiment());
+					dtoMenuFoodMaster.setBlnIsDessert(foodMaster.getBlnIsDessert());
+					dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
+					dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
+
+					String foodType = getFoodType(foodMaster);
+
+					if (!foodSelectionsMap.containsKey(foodType)) {
+						foodSelectionsMap.put(foodType, new ArrayList<>());
+					}
+					foodSelectionsMap.get(foodType).add(dtoMenuFoodMaster);
+				}
+			}
+
+			dto.setFoodSelections(foodSelectionsMap);
+		}
+
+		return dto;
+	}
+	
 	public static DtoCateringDeliveryItemDetail toDtoCateringDeliveryItemDetail(CateringDeliveryItemDetail entity) {
 		if(entity != null) {
 			DtoCateringDeliveryItemDetail dto =new DtoCateringDeliveryItemDetail();
@@ -90,5 +166,28 @@ public class MapperCateringDeliveryBooking {
 
 		return entity;
 	}
+	
+	private static String getFoodType(MenuFoodMaster dtoMenuFoodMaster) {
+		if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsDrink()) && dtoMenuFoodMaster.getBlnIsDrink()) {
+			return "Drink";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsDessert())
+				&& dtoMenuFoodMaster.getBlnIsDessert()) {
+			return "Dessert";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsAppetiser())
+				&& dtoMenuFoodMaster.getBlnIsAppetiser()) {
+			return "Appetiser";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsMainCourse())
+				&& dtoMenuFoodMaster.getBlnIsMainCourse()) {
+			return "MainCourse";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsSaladAndCondiment())
+				&& dtoMenuFoodMaster.getBlnIsSaladAndCondiment()) {
+			return "SaladAndCondiment";
+		} else if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getBlnIsStarter())
+				&& dtoMenuFoodMaster.getBlnIsStarter()) {
+			return "Starter";
+		} else {
+			return null;
+		}
 
+	}
 }

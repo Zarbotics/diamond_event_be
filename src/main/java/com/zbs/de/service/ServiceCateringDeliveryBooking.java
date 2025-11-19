@@ -20,4 +20,8 @@ public interface ServiceCateringDeliveryBooking {
 	DtoResult getByCustId(DtoSearch dtoSearch);
 	
 	DtoResult saveOrUpdateCateringAdminPortal(DtoCateringDeliveryBooking dto);
+	
+	 DtoResult getAllCP();
+	 
+	 DtoResult getByPKCP(Integer id);
 }
