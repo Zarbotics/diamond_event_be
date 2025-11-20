@@ -29,4 +29,6 @@ public interface ServiceEventType {
 	String generateNextEventTypeCode();
 
 	List<DtoEventType> getAllActiveEventTypesWithSubEvents();
+	
+	List<DtoEventType> getAllActiveSubEventsOnlyCP();
 }
