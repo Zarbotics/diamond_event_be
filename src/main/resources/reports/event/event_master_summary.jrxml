@@ -426,7 +426,7 @@
 				</componentElement>
 				<textField textAdjust="StretchHeight">
 					<reportElement style="Value" positionType="Float" x="0" y="30" width="555" height="40" uuid="e535c0f4-b613-47ba-93ba-9f86b6d6a464"/>
-					<textFieldExpression><![CDATA[$F{txt_catering_remarks} == null ? "-----------" : $F{txt_catering_remarks}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{txt_catering_remarks} == null ?  "-----------" : $F{txt_catering_remarks}]]></textFieldExpression>
 				</textField>
 			</frame>
 			<frame>
