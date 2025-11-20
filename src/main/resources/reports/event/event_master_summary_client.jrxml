@@ -92,21 +92,21 @@
 				<textElement textAlignment="Center">
 					<font fontName="Arial" size="20" isBold="true" pdfFontName="Helvetica-Bold"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{txt_event_master_name}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["" + $F{txt_event_master_name}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="141" y="444" width="300" height="25" forecolor="#FFFFFF" uuid="f30ec5b3-e1cd-44d8-b968-c07f42668d11"/>
 				<textElement textAlignment="Center">
 					<font fontName="Arial" size="16" pdfFontName="Helvetica"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{txt_event_type_name}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["" + $F{txt_event_type_name}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="141" y="479" width="300" height="20" forecolor="#FFFFFF" uuid="9eebeb2b-7024-4178-b6ee-9e7210255d2c"/>
 				<textElement textAlignment="Center">
 					<font fontName="Arial" size="14" pdfFontName="Helvetica"/>
 				</textElement>
-				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("dd MMMM yyyy").format($F{dte_event_date})]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dte_event_date} == null ? "" : new java.text.SimpleDateFormat("dd MMMM yyyy").format("" + $F{dte_event_date})]]></textFieldExpression>
 			</textField>
 		</band>
 	</title>
@@ -396,7 +396,7 @@
 				</componentElement>
 				<textField textAdjust="StretchHeight">
 					<reportElement style="Value" positionType="Float" x="0" y="30" width="555" height="40" uuid="0a9e5400-f9cf-4cb8-864d-accaeb058d98"/>
-					<textFieldExpression><![CDATA[$F{txt_decore_remarks}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{txt_decore_remarks} == null ? "-----------" : $F{txt_decore_remarks}]]></textFieldExpression>
 				</textField>
 			</frame>
 			<frame>
