@@ -329,7 +329,8 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 	@Override
 	public DtoResult getAllCP() {
 		DtoResult result = new DtoResult();
-		List<CateringDeliveryBooking> bookings = repositoryCateringDeliveryBooking.findByBlnIsDeletedFalse();
+//		List<CateringDeliveryBooking> bookings = repositoryCateringDeliveryBooking.findByBlnIsDeletedFalse();
+		List<CateringDeliveryBooking> bookings = repositoryCateringDeliveryBooking.findAllSortedByClosestDeliveryDate();
 		List<DtoCateringDeliveryBooking> list = bookings.stream().map(MapperCateringDeliveryBooking::toDtoCP)
 				.collect(Collectors.toList());
 		result.setResulList(new ArrayList<>(list));
