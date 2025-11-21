@@ -23,4 +23,14 @@ public interface RepositoryCateringDeliveryBooking extends JpaRepository<Caterin
 
 	@Query("SELECT e FROM CateringDeliveryBooking e WHERE e.customerMaster.serCustId = :custId AND e.blnIsDeleted = false")
 	List<CateringDeliveryBooking> findByCustomerId(@Param("custId") Integer custId);
+
+	@Query(value = """
+			SELECT *
+			FROM catering_delivery_booking
+			WHERE COALESCE(bln_is_deleted, false) = false
+			ORDER BY
+			    (dte_delivery_date < CURRENT_DATE) ASC,
+			    ABS(EXTRACT(EPOCH FROM (dte_delivery_date - CURRENT_DATE)))
+			""", nativeQuery = true)
+	List<CateringDeliveryBooking> findAllSortedByClosestDeliveryDate();
 }
