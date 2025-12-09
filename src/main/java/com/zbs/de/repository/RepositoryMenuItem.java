@@ -8,7 +8,9 @@ import java.util.List;
 
 public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	List<MenuItem> findByTxtRole(String role);
-	
+
+	List<MenuItem> findByTxtType(String txtType);
+
 	@Query(value = "select * from menu_item where txt_path <@ ?1", nativeQuery = true)
 	List<MenuItem> findDescendantsByTxtPath(String ltreePath);
 

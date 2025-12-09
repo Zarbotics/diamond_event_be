@@ -42,6 +42,9 @@ public class MenuItem extends BaseEntity {
 	@Column(name = "txt_role", nullable = false)
 	private String txtRole;
 
+	@Column(name = "txt_type", nullable = false)
+	private String txtType;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_menu_item_id")
 	private MenuItem parent;
@@ -171,6 +174,14 @@ public class MenuItem extends BaseEntity {
 
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
+	}
+
+	public String getTxtType() {
+		return txtType;
+	}
+
+	public void setTxtType(String txtType) {
+		this.txtType = txtType;
 	}
 
 }

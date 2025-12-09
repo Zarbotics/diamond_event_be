@@ -18,4 +18,18 @@ public interface ServiceMenuItem {
 	List<DtoMenuItem> getChildren(Long parentId);
 
 	void move(Long id, Long newParentId);
+	
+    List<DtoMenuItem> findByRole(String role);
+    
+    List<DtoMenuItem> findByType(String type);
+    
+    List<DtoMenuItem> getBundleItems(Long bundleMenuItemId);
+    
+    List<DtoMenuItem> findDescendantsByPath(String ltreePath);
+    
+    List<DtoMenuItem> getSelectableItemsUnderParent(Long parentId);
+    
+    List<String> getTypes();
+    
+    List<String> getRoles();
 }

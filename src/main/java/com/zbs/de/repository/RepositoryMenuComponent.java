@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface RepositoryMenuComponent extends JpaRepository<MenuComponent, Long> {
 	List<MenuComponent> findByParentMenuItem_SerMenuItemId(Long parentMenuItemId);
+	
+    List<MenuComponent> findByChildMenuItem_SerMenuItemId(Long childMenuItemId);
 }

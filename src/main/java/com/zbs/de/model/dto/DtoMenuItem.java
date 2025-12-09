@@ -9,6 +9,7 @@ public class DtoMenuItem {
 	private String txtShortName;
 	private String txtDescription;
 	private String txtRole;
+	private String txtType;
 	private Long parentId;
 	private Integer numDisplayOrder;
 	private Boolean blnIsSelectable;
@@ -22,7 +23,7 @@ public class DtoMenuItem {
 	}
 
 	public DtoMenuItem(Long idserMenuItemId, String txtCode, String txtName, String txtShortName, String txtDescription,
-			String txtRole, Long parentId, Integer numDisplayOrder, Boolean blnIsSelectable,
+			String txtRole, String txtType, Long parentId, Integer numDisplayOrder, Boolean blnIsSelectable,
 			Map<String, Object> metadata, Double numDefaultServingsPerGuest, String txtPath) {
 		super();
 		this.serMenuItemId = idserMenuItemId;
@@ -31,6 +32,7 @@ public class DtoMenuItem {
 		this.txtShortName = txtShortName;
 		this.txtDescription = txtDescription;
 		this.txtRole = txtRole;
+		this.txtType = txtType;
 		this.parentId = parentId;
 		this.numDisplayOrder = numDisplayOrder;
 		this.blnIsSelectable = blnIsSelectable;
@@ -133,6 +135,14 @@ public class DtoMenuItem {
 
 	public void setTxtPath(String txtPath) {
 		this.txtPath = txtPath;
+	}
+
+	public String getTxtType() {
+		return txtType;
+	}
+
+	public void setTxtType(String txtType) {
+		this.txtType = txtType;
 	}
 
 }

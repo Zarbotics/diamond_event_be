@@ -45,7 +45,7 @@ public class ControllerMenuItem {
 	public ResponseMessage update(@RequestBody DtoMenuItem dto, HttpServletRequest request) {
 		LOGGER.info("Saving Menu Item: {}", dto);
 
-		DtoMenuItem result = service.update(dto.getSerMenuItemId() ,dto);
+		DtoMenuItem result = service.update(dto.getSerMenuItemId(), dto);
 
 		if (result != null) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully updated", result);

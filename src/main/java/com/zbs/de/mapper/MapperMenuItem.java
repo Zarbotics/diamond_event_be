@@ -20,6 +20,7 @@ public class MapperMenuItem {
 		dto.setTxtShortName(entity.getTxtShortName());
 		dto.setTxtDescription(entity.getTxtDescription());
 		dto.setTxtRole(entity.getTxtRole());
+		dto.setTxtType(entity.getTxtType());
 		dto.setNumDisplayOrder(entity.getNumDisplayOrder());
 		dto.setBlnIsSelectable(entity.getBlnIsSelectable());
 		dto.setMetadata(entity.getMetadata());
@@ -49,6 +50,7 @@ public class MapperMenuItem {
 		entity.setTxtShortName(dto.getTxtShortName());
 		entity.setTxtDescription(dto.getTxtDescription());
 		entity.setTxtRole(dto.getTxtRole());
+		entity.setTxtType(dto.getTxtType());
 		entity.setNumDisplayOrder(dto.getNumDisplayOrder());
 		entity.setBlnIsSelectable(dto.getBlnIsSelectable());
 		entity.setMetadata(dto.getMetadata());
@@ -77,6 +79,7 @@ public class MapperMenuItem {
 		entity.setTxtShortName(dto.getTxtShortName());
 		entity.setTxtDescription(dto.getTxtDescription());
 		entity.setTxtRole(dto.getTxtRole());
+		entity.setTxtType(dto.getTxtType());
 		entity.setNumDisplayOrder(dto.getNumDisplayOrder());
 		entity.setBlnIsSelectable(dto.getBlnIsSelectable());
 		entity.setMetadata(dto.getMetadata());
