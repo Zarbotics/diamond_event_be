@@ -1,8 +1,13 @@
 package com.zbs.de.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 import com.zbs.de.mapper.MapperMenuItem;
 import com.zbs.de.model.MenuComponent;
 import com.zbs.de.model.MenuItem;
+import com.zbs.de.model.dto.DtoMenuCsvImportResult;
+import com.zbs.de.model.dto.DtoMenuCsvRowResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.repository.RepositoryMenuComponent;
 import com.zbs.de.repository.RepositoryMenuItem;
@@ -15,10 +20,17 @@ import com.zbs.de.util.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -33,6 +45,11 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 	@Autowired
 	private RepositoryMenuComponent componentRepo;
+
+	@Autowired
+	private ObjectMapper objectMapper;
+
+	private long autoCodeCounter = 1000;
 
 	@Override
 	@Transactional
@@ -181,4 +198,287 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	public List<String> getRoles() {
 		return Arrays.stream(EnmMenuItemRole.values()).map(Enum::name).toList();
 	}
+
+	@Override
+	@Transactional
+	public DtoMenuCsvImportResult importCsv(MultipartFile file) {
+		List<DtoMenuCsvRowResult> errors = new ArrayList<>();
+		int total = 0;
+		int success = 0;
+
+		if (file == null || file.isEmpty()) {
+			DtoMenuCsvImportResult r = new DtoMenuCsvImportResult(0, 0, 1,
+					Arrays.asList(new DtoMenuCsvRowResult(0, null, null, "No file uploaded", "")));
+			return r;
+		}
+
+		try (InputStream is = file.getInputStream();
+				InputStreamReader isr = new InputStreamReader(is, "UTF-8");
+				CSVReader csvReader = new CSVReader(isr)) {
+
+			// Read header first
+			String[] header = csvReader.readNext();
+			if (header == null) {
+				return new DtoMenuCsvImportResult(0, 0, 0, errors);
+			}
+
+			// Normalize header length & positions expected
+			// Expected columns (in order):
+			// parent_code,code,name,short_name,type,role,description,default_servings_per_guest,is_selectable,display_order,metadata_json
+			final int EXPECTED_COLS = 11;
+
+			int rowNum = 1; // header = row 1
+			String[] row;
+			Map<String, Long> localCodeToId = new HashMap<>(); // mapping of codes created during this import
+
+			// Preload existing top-level codes into local map for quick lookup (so
+			// parent_code may refer to existing db)
+			List<MenuItem> existingWithCodes = repo.findAll();
+			if (existingWithCodes != null) {
+				existingWithCodes = existingWithCodes.stream()
+						.filter(mi -> mi.getTxtCode() != null && !mi.getTxtCode().isBlank()).toList();
+			}
+
+			for (MenuItem mi : existingWithCodes) {
+				localCodeToId.put(mi.getTxtCode(), mi.getSerMenuItemId());
+			}
+
+			while ((row = csvReader.readNext()) != null) {
+				rowNum++;
+				total++;
+
+				// Allow rows with fewer columns — pad to expected length
+				if (row.length < EXPECTED_COLS) {
+					String[] tmp = new String[EXPECTED_COLS];
+					System.arraycopy(row, 0, tmp, 0, row.length);
+					for (int i = row.length; i < EXPECTED_COLS; i++)
+						tmp[i] = "";
+					row = tmp;
+				}
+
+				// Trim each column safely
+				for (int i = 0; i < row.length; i++) {
+					if (row[i] != null)
+						row[i] = row[i].trim();
+					else
+						row[i] = "";
+				}
+
+				// map columns
+				String parentCode = row[0];
+				String code = row[1];
+				String name = row[2];
+				String shortName = row[3];
+				String type = row[4];
+				String role = row[5];
+				String description = row[6];
+				String defaultServings = row[7];
+				String isSelectable = row[8];
+				String displayOrder = row[9];
+				String metadataJson = row[10];
+
+				String rawRow = String.join(",", row);
+
+				// basic validations
+				if (name == null || name.isBlank()) {
+					errors.add(new DtoMenuCsvRowResult(rowNum, code, name, "Missing required field: name", rawRow));
+					continue;
+				}
+				if (type == null || type.isBlank()) {
+					errors.add(new DtoMenuCsvRowResult(rowNum, code, name, "Missing required field: type", rawRow));
+					continue;
+				}
+				if (role == null || role.isBlank()) {
+					errors.add(new DtoMenuCsvRowResult(rowNum, code, name, "Missing required field: role", rawRow));
+					continue;
+				}
+
+				// Resolve or generate code (hybrid approach)
+				String finalCode = null;
+				if (code != null && !code.isBlank()) {
+					finalCode = code;
+					// ensure uniqueness: if already created in this import, append suffix
+					if (localCodeToId.containsKey(finalCode)) {
+						// try to append numeric suffix
+						int suffix = 1;
+						String base = finalCode;
+						while (localCodeToId.containsKey(finalCode)) {
+							finalCode = base + "_" + suffix++;
+						}
+					}
+				} else {
+					// generate code: MI + zero-padded counter
+					synchronized (this) {
+						autoCodeCounter++;
+						finalCode = String.format("MI%04d", autoCodeCounter);
+					}
+				}
+
+				// parent resolution: empty means top-level
+				Long parentId = null;
+				if (parentCode != null && !parentCode.isBlank()) {
+					// first try local map (items created earlier in this import)
+					if (localCodeToId.containsKey(parentCode)) {
+						parentId = localCodeToId.get(parentCode);
+					} else {
+						// try DB by code
+						MenuItem parent = repo.findByTxtCode(parentCode);
+						if (parent != null) {
+							parentId = parent.getSerMenuItemId();
+							// cache it for further reference
+							localCodeToId.put(parentCode, parentId);
+						} else {
+							errors.add(new DtoMenuCsvRowResult(rowNum, finalCode, name,
+									"Parent code not found: " + parentCode, rawRow));
+							continue;
+						}
+					}
+				}
+
+				// parse numeric fields
+				Double defaultServingsVal = null;
+				if (defaultServings != null && !defaultServings.isBlank()) {
+					try {
+						defaultServingsVal = Double.parseDouble(defaultServings);
+					} catch (NumberFormatException nfe) {
+						errors.add(new DtoMenuCsvRowResult(rowNum, finalCode, name,
+								"Invalid default_servings_per_guest: " + defaultServings, rawRow));
+						continue;
+					}
+				}
+
+				Integer displayOrderVal = null;
+				if (displayOrder != null && !displayOrder.isBlank()) {
+					try {
+						displayOrderVal = Integer.parseInt(displayOrder);
+					} catch (NumberFormatException nfe) {
+						errors.add(new DtoMenuCsvRowResult(rowNum, finalCode, name,
+								"Invalid display_order: " + displayOrder, rawRow));
+						continue;
+					}
+				}
+
+				Boolean isSelectableVal = null;
+				if (isSelectable != null && !isSelectable.isBlank()) {
+					String s = isSelectable.trim().toLowerCase();
+					if ("true".equals(s) || "1".equals(s) || "yes".equals(s))
+						isSelectableVal = true;
+					else if ("false".equals(s) || "0".equals(s) || "no".equals(s))
+						isSelectableVal = false;
+					else {
+						errors.add(new DtoMenuCsvRowResult(rowNum, finalCode, name,
+								"Invalid is_selectable value: " + isSelectable, rawRow));
+						continue;
+					}
+				}
+
+				Map<String, Object> metadata = null;
+				if (metadataJson != null && !metadataJson.isBlank()) {
+					try {
+						// Accept single quotes by replacing with double quotes, but prefer valid JSON
+						String normalized = metadataJson.trim();
+						if (normalized.startsWith("'") && normalized.endsWith("'")) {
+							normalized = normalized.substring(1, normalized.length() - 1);
+						}
+						// Some users may use single quotes inside; try a permissive parse
+						metadata = objectMapper.readValue(normalized, Map.class);
+					} catch (Exception ex) {
+						// final attempt: try replacing single quotes with double quotes
+						try {
+							String alt = metadataJson.replace("'", "\"");
+							metadata = objectMapper.readValue(alt, Map.class);
+						} catch (Exception ex2) {
+							errors.add(new DtoMenuCsvRowResult(rowNum, finalCode, name,
+									"Invalid metadata_json: " + ex2.getMessage(), rawRow));
+							continue;
+						}
+					}
+				}
+
+				// Build DtoMenuItem and call existing service to create item
+				try {
+					DtoMenuItem dto = new DtoMenuItem();
+					dto.setTxtCode(finalCode);
+					dto.setTxtName(name);
+					dto.setTxtShortName((shortName == null || shortName.isBlank()) ? null : shortName);
+					dto.setTxtType(type);
+					dto.setTxtRole(role);
+					dto.setTxtDescription((description == null || description.isBlank()) ? null : description);
+					dto.setNumDefaultServingsPerGuest(defaultServingsVal);
+					dto.setBlnIsSelectable(isSelectableVal == null ? Boolean.TRUE : isSelectableVal);
+					dto.setNumDisplayOrder(displayOrderVal == null ? 0 : displayOrderVal);
+					dto.setMetadata(metadata);
+					if (parentId != null)
+						dto.setParentId(parentId);
+
+					DtoMenuItem saved = this.create(dto); // uses existing business logic
+					// cache mapping finalCode -> saved id
+					localCodeToId.put(finalCode, saved.getSerMenuItemId());
+					success++;
+				} catch (Exception ex) {
+					errors.add(
+							new DtoMenuCsvRowResult(rowNum, finalCode, name, "Save error: " + ex.getMessage(), rawRow));
+					// continue with next row
+				}
+			} // end rows loop
+
+		} catch (IOException | CsvValidationException ex) {
+			// Fatal read error — return as single failure
+			return new DtoMenuCsvImportResult(0, 0, 1,
+					Arrays.asList(new DtoMenuCsvRowResult(0, null, null, "CSV read error: " + ex.getMessage(), "")));
+		}
+
+		int failed = total - success;
+		DtoMenuCsvImportResult result = new DtoMenuCsvImportResult(total, success, failed, errors);
+		return result;
+	}
+	
+	
+	@Override
+	public String generateNextCode(String prefix) {
+		prefix = prefix.toUpperCase().trim();
+
+		String lastCode = repo.findMaxCodeByPrefix(prefix);
+
+		// CASE 1: No code found → start at 001
+		if (lastCode == null || lastCode.isBlank()) {
+			return prefix + "-001";
+		}
+
+		// Extract number part safely
+		String numericPart = extractNumericPart(lastCode);
+
+		int nextNumber = 1;
+
+		// CASE 2: numeric part exists and is a valid integer
+		if (numericPart != null) {
+			try {
+				nextNumber = Integer.parseInt(numericPart) + 1;
+			} catch (NumberFormatException e) {
+				// CASE 3: if malformed, restart from 1
+				nextNumber = 1;
+			}
+		}
+
+		// Format with leading zeros (3 digits)
+		return prefix + "-" + String.format("%03d", nextNumber);
+	}
+
+	/**
+	 * Extracts numeric portion from something like: SEC_004 → returns "004" CAT_19
+	 * → returns "19" CAT → returns null BAD_CODE → returns null
+	 */
+	private String extractNumericPart(String code) {
+		if (code == null)
+			return null;
+
+		int underscoreIndex = code.lastIndexOf("-");
+
+		if (underscoreIndex == -1 || underscoreIndex == code.length() - 1) {
+			return null; // no numeric part
+		}
+
+		return code.substring(underscoreIndex + 1);
+	}
+
 }

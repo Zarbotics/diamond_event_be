@@ -3,6 +3,7 @@ package com.zbs.de.repository;
 import com.zbs.de.model.MenuItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -16,4 +17,16 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 
 	@Query(value = "select * from menu_item where parent_menu_item_id = ?1", nativeQuery = true)
 	List<MenuItem> findByParentId(Long parentId);
+	
+	MenuItem findByTxtCode(String txtCode);
+
+	@Query("""
+			    SELECT m.txtCode
+			    FROM MenuItem m
+			    WHERE m.txtCode LIKE CONCAT(:prefix, '_%')
+			    ORDER BY m.txtCode DESC
+			    LIMIT 1
+			""")
+	String findMaxCodeByPrefix(@Param("prefix") String prefix);
+	 
 }

@@ -7,8 +7,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.util.ResponseMessage;
@@ -118,4 +121,24 @@ public class ControllerMenuItem {
 		}
 	}
 
+	@PostMapping(path = "/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<DtoMenuCsvImportResult> importCsv(@RequestPart("file") MultipartFile file) {
+		DtoMenuCsvImportResult result = service.importCsv(file);
+		return ResponseEntity.ok(result);
+	}
+
+	@PostMapping(value = "/generateCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateMenuItemCode(HttpServletRequest request, @RequestBody String prefix) {
+		try {
+
+			String txtCode = service.generateNextCode(prefix);
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched MenuItem Code.", txtCode);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to generate code.", null);
+		}
+	}
 }

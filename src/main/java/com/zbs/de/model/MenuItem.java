@@ -8,6 +8,9 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import org.hibernate.annotations.Type;
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLLTreeType;
+
 @Entity
 @Table(name = "menu_item")
 @NamedQuery(name = "MenuItem.findAll", query = "SELECT a FROM MenuItem a")
@@ -56,6 +59,7 @@ public class MenuItem extends BaseEntity {
 	 * Store hierarchical path using Postgres ltree type (DDL must set column type
 	 * ltree). Example: "Grazing.GrazingBar.Selections.Fruits"
 	 */
+	@Type(PostgreSQLLTreeType.class)
 	@Column(name = "txt_path", columnDefinition = "ltree", nullable = false)
 	private String txtPath;
 

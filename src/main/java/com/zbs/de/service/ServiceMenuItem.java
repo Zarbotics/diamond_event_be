@@ -2,6 +2,9 @@ package com.zbs.de.service;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 
 public interface ServiceMenuItem {
@@ -32,4 +35,8 @@ public interface ServiceMenuItem {
     List<String> getTypes();
     
     List<String> getRoles();
+    
+    DtoMenuCsvImportResult importCsv(MultipartFile file);
+    
+    String generateNextCode(String prefix);
 }
