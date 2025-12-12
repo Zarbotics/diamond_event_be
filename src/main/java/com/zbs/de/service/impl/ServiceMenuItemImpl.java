@@ -452,7 +452,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}else if(prefix.equalsIgnoreCase("SUBCATEGORY")) {
 			prefix = "sub";
 		}else if(prefix.equalsIgnoreCase("ITEM")) {
-			prefix = "im";
+			prefix = "mi";
 		}else if(prefix.equalsIgnoreCase("OPTION")) {
 			prefix = "opt";
 		}else if(prefix.equalsIgnoreCase("SELECTION")) {
@@ -465,7 +465,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 		// CASE 1: No code found → start at 001
 		if (lastCode == null || lastCode.isBlank()) {
-			if(prefix.equalsIgnoreCase("IM")) {
+			if(prefix.equalsIgnoreCase("MI")) {
 				return prefix + "-1001";
 			}else {
 				return prefix + "-001";
@@ -489,7 +489,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}
 
 		// Format with leading zeros (3 digits)
-		if(prefix.equalsIgnoreCase("IM")) {
+		if(prefix.equalsIgnoreCase("MI")) {
 			return prefix + "-" + String.format("%04d", nextNumber);
 		}else {
 			return prefix + "-" + String.format("%03d", nextNumber);
