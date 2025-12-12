@@ -436,13 +436,41 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	
 	@Override
 	public String generateNextCode(String prefix) {
+		
+//		List<String> types = this.getTypes();
+//		if(types != null && !types.isEmpty()) {
+//			STATION, BUNDLE, GROUP, CATEGORY, SUBCATEGORY, ITEM, OPTION, SELECTION;
+//		}
+		if(prefix.equalsIgnoreCase("SECTION")) {
+			prefix = "sec";
+		}else if(prefix.equalsIgnoreCase("BUNDLE")) {
+			prefix = "bdl";
+		}else if(prefix.equalsIgnoreCase("GROUP")) {
+			prefix = "grp";
+		}else if(prefix.equalsIgnoreCase("CATEGORY")) {
+			prefix = "cat";
+		}else if(prefix.equalsIgnoreCase("SUBCATEGORY")) {
+			prefix = "sub";
+		}else if(prefix.equalsIgnoreCase("ITEM")) {
+			prefix = "im";
+		}else if(prefix.equalsIgnoreCase("OPTION")) {
+			prefix = "opt";
+		}else if(prefix.equalsIgnoreCase("SELECTION")) {
+			prefix = "slc";
+		}else if(prefix.equalsIgnoreCase("STATION")) {
+			prefix = "sta";
+		}
 		prefix = prefix.toUpperCase().trim();
-
 		String lastCode = repo.findMaxCodeByPrefix(prefix);
 
 		// CASE 1: No code found → start at 001
 		if (lastCode == null || lastCode.isBlank()) {
-			return prefix + "-001";
+			if(prefix.equalsIgnoreCase("IM")) {
+				return prefix + "-1001";
+			}else {
+				return prefix + "-001";
+			}
+			
 		}
 
 		// Extract number part safely
@@ -461,7 +489,12 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}
 
 		// Format with leading zeros (3 digits)
-		return prefix + "-" + String.format("%03d", nextNumber);
+		if(prefix.equalsIgnoreCase("IM")) {
+			return prefix + "-" + String.format("%04d", nextNumber);
+		}else {
+			return prefix + "-" + String.format("%03d", nextNumber);
+		}
+
 	}
 
 	/**

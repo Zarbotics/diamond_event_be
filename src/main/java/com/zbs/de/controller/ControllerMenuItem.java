@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.util.ResponseMessage;
 
@@ -128,10 +129,10 @@ public class ControllerMenuItem {
 	}
 
 	@PostMapping(value = "/generateCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage generateMenuItemCode(HttpServletRequest request, @RequestBody String prefix) {
+	public ResponseMessage generateMenuItemCode(HttpServletRequest request, @RequestBody DtoSearch dtoSearch) {
 		try {
 
-			String txtCode = service.generateNextCode(prefix);
+			String txtCode = service.generateNextCode(dtoSearch.getSearchKeyword());
 
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched MenuItem Code.", txtCode);
 
