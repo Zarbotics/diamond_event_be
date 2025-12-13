@@ -1,7 +1,7 @@
 package com.zbs.de.util.enums;
 
 public enum EnmMenuItemRole {
-	SINGLE, PARENT, SELECTION_GROUP, OPTIONAL, BUNDLE;
+	CATEGORY, SUBCATEGORY, STATION, GROUP, BUNDLE, ITEM;
 
 	public static EnmMenuItemRole of(String s) {
 		if (s == null)

@@ -18,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin/menu")
-@CrossOrigin(origins = "")
 public class ControllerMenuAdmin {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerMenuAdmin.class);

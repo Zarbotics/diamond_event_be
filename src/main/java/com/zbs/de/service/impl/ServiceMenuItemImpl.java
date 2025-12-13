@@ -196,7 +196,8 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 	@Override
 	public List<String> getRoles() {
-		return Arrays.stream(EnmMenuItemRole.values()).map(Enum::name).toList();
+		List<String> roles =  Arrays.stream(EnmMenuItemRole.values()).map(Enum::name).toList();
+		return roles;
 	}
 
 	@Override
@@ -310,7 +311,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 					// generate code: MI + zero-padded counter
 					synchronized (this) {
 						autoCodeCounter++;
-						finalCode = String.format("MI%04d", autoCodeCounter);
+						finalCode = String.format("MI-%04d", autoCodeCounter);
 					}
 				}
 
@@ -512,6 +513,31 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}
 
 		return code.substring(underscoreIndex + 1);
+	}
+
+	@Override
+	public List<DtoMenuItem> getValidParentsByRole(String role) {
+
+		EnmMenuItemRole currentRole = EnmMenuItemRole.of(role);
+		if (currentRole == null) {
+			return List.of();
+		}
+
+		List<String> allowedParentRoles = switch (currentRole) {
+		case SUBCATEGORY -> List.of(EnmMenuItemRole.CATEGORY.name());
+		case STATION -> List.of(EnmMenuItemRole.SUBCATEGORY.name(), EnmMenuItemRole.CATEGORY.name());
+		case GROUP -> List.of(EnmMenuItemRole.STATION.name(),EnmMenuItemRole.SUBCATEGORY.name(), EnmMenuItemRole.CATEGORY.name());
+		case BUNDLE -> List.of(EnmMenuItemRole.GROUP.name());
+		case ITEM -> List.of(EnmMenuItemRole.GROUP.name(), EnmMenuItemRole.BUNDLE.name(), EnmMenuItemRole.CATEGORY.name(), EnmMenuItemRole.SUBCATEGORY.name());
+		default -> List.of();
+		};
+
+		if (allowedParentRoles.isEmpty()) {
+			return List.of();
+		}
+
+		return allowedParentRoles.stream().flatMap(r -> repo.findByTxtRoleAndBlnIsDeletedFalse(r).stream())
+				.map(MapperMenuItem::toDto).toList();
 	}
 
 }

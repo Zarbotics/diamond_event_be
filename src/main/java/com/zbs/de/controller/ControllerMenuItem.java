@@ -142,4 +142,43 @@ public class ControllerMenuItem {
 					"Failed to generate code.", null);
 		}
 	}
+	
+	@PostMapping(value = "/getValidParentsByRole", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getValidParentsByRole(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+
+		LOGGER.info("Fetching valid parent MenuItems for role: {}", dtoSearch.getSearchKeyword());
+
+		try {
+			List<DtoMenuItem> parents = service.getValidParentsByRole(dtoSearch.getSearchKeyword());
+
+			if (parents != null && !parents.isEmpty()) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+						"Successfully fetched valid parent menu items", parents);
+			}
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No valid parent menu items found",
+					parents);
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching valid parent MenuItems", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
+	
+	
+	@PostMapping(value = "/getAllRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllRoles(HttpServletRequest request) {
+		LOGGER.info("Fetching Menu Roles");
+		try {
+			List<String> list = service.getRoles();
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", list);
+		} catch (Exception e) {
+			LOGGER.error("Error fetching Menu roles", e);
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					"Failed to fetch menu roles", null);
+		}
+	}
+	
+
 }

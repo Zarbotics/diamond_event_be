@@ -1,7 +1,7 @@
 package com.zbs.de.util.enums;
 
 public enum EnmMenuItemType {
-	STATION, BUNDLE, GROUP,SECTION,CATEGORY, SUBCATEGORY, ITEM, OPTION, SELECTION;
+	CATEGORY, SUBCATEGORY, STATION, GROUP, BUNDLE, ITEM;
 
 	public static EnmMenuItemType of(String s) {
 		if (s == null)

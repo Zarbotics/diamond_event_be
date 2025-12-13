@@ -39,4 +39,6 @@ public interface ServiceMenuItem {
     DtoMenuCsvImportResult importCsv(MultipartFile file);
     
     String generateNextCode(String prefix);
+    
+    List<DtoMenuItem> getValidParentsByRole(String role);
 }
