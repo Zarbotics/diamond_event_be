@@ -56,6 +56,10 @@ public class MapperEventMaster {
 		dto.setTxtEventRemarks(entity.getTxtEventRemarks());
 		dto.setTxtExternalSupplierRemarks(entity.getTxtExternalSupplierRemarks());
 		dto.setTxtVenueRemarks(entity.getTxtVenueRemarks());
+		
+		dto.setTxtContactPersonFirstName(entity.getTxtContactPersonFirstName());
+		dto.setTxtContactPersonLastName(entity.getTxtContactPersonLastName());
+		dto.setTxtContactPersonPhoneNo(entity.getTxtContactPersonPhoneNo());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -144,6 +148,10 @@ public class MapperEventMaster {
 		entity.setTxtExternalSupplierRemarks(dto.getTxtExternalSupplierRemarks());
 		entity.setTxtVenueRemarks(dto.getTxtVenueRemarks());
 		entity.setNumFormState(dto.getNumFormState());
+		
+		entity.setTxtContactPersonFirstName(dto.getTxtContactPersonFirstName());
+		entity.setTxtContactPersonLastName(dto.getTxtContactPersonLastName());
+		entity.setTxtContactPersonPhoneNo(dto.getTxtContactPersonPhoneNo());
 
 		entity.setIsEditAllowed(dto.getIsEditAllowed());
 		
@@ -200,6 +208,10 @@ public class MapperEventMaster {
 		dto.setTxtEventRemarks(entity.getTxtEventRemarks());
 		dto.setTxtExternalSupplierRemarks(entity.getTxtExternalSupplierRemarks());
 		dto.setTxtVenueRemarks(entity.getTxtVenueRemarks());
+		
+		dto.setTxtContactPersonFirstName(entity.getTxtContactPersonFirstName());
+		dto.setTxtContactPersonLastName(entity.getTxtContactPersonLastName());
+		dto.setTxtContactPersonPhoneNo(entity.getTxtContactPersonPhoneNo());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -288,6 +300,10 @@ public class MapperEventMaster {
 		entity.setTxtExternalSupplierRemarks(dto.getTxtExternalSupplierRemarks());
 		entity.setTxtVenueRemarks(dto.getTxtVenueRemarks());
 		entity.setIsEditAllowed(dto.getIsEditAllowed());
+		
+		entity.setTxtContactPersonFirstName(dto.getTxtContactPersonFirstName());
+		entity.setTxtContactPersonLastName(dto.getTxtContactPersonLastName());
+		entity.setTxtContactPersonPhoneNo(dto.getTxtContactPersonPhoneNo());
 
 		if (dto.getDtoEventDecorSelections() != null) {
 			List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()

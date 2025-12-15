@@ -200,6 +200,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			entity.setTxtEventRemarks(dtoEventMaster.getTxtEventRemarks());
 			entity.setTxtExternalSupplierRemarks(dtoEventMaster.getTxtExternalSupplierRemarks());
 			entity.setIsEditAllowed(dtoEventMaster.getIsEditAllowed());
+			entity.setTxtContactPersonFirstName(dtoEventMaster.getTxtContactPersonFirstName());
+			entity.setTxtContactPersonLastName(dtoEventMaster.getTxtContactPersonLastName());
+			entity.setTxtContactPersonPhoneNo(dtoEventMaster.getTxtContactPersonPhoneNo());
 			
 //			if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 //				entity.setNumInfoFilledStatus(0);
@@ -1048,6 +1051,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtVenueRemarks(dtoEventMaster.getTxtVenueRemarks());
 				entity.setNumFormState(dtoEventMaster.getNumFormState());
 				entity.setIsEditAllowed(dtoEventMaster.getIsEditAllowed());
+				entity.setTxtContactPersonFirstName(dtoEventMaster.getTxtContactPersonFirstName());
+				entity.setTxtContactPersonLastName(dtoEventMaster.getTxtContactPersonLastName());
+				entity.setTxtContactPersonPhoneNo(dtoEventMaster.getTxtContactPersonPhoneNo());				
 //				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 //					entity.setNumInfoFilledStatus(0);
 //				}
@@ -1934,6 +1940,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtExternalSupplierRemarks(dtoEventMasterAdminPortal.getTxtExternalSupplierRemarks());
 				entity.setTxtVenueRemarks(dtoEventMasterAdminPortal.getTxtVenueRemarks());
 				entity.setIsEditAllowed(dtoEventMasterAdminPortal.getIsEditAllowed());
+				entity.setTxtContactPersonFirstName(dtoEventMasterAdminPortal.getTxtContactPersonFirstName());
+				entity.setTxtContactPersonLastName(dtoEventMasterAdminPortal.getTxtContactPersonLastName());
+				entity.setTxtContactPersonPhoneNo(dtoEventMasterAdminPortal.getTxtContactPersonPhoneNo());
 //				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 //					entity.setNumInfoFilledStatus(0);
 //				}
