@@ -42,6 +42,11 @@ public class DtoEventMaster {
 	private Integer serVendorId;
 	private String txtVendorCode;
 	private String txtVendorName;
+	
+	
+	private String txtContactPersonFirstName;
+	private String txtContactPersonLastName;
+	private String txtContactPersonPhoneNo;
 
 	private String txtEventRemarks;
 	private String txtDecoreRemarks;
@@ -457,6 +462,30 @@ public class DtoEventMaster {
 
 	public void setIsEditAllowed(Boolean isEditAllowed) {
 		this.isEditAllowed = isEditAllowed;
+	}
+
+	public String getTxtContactPersonFirstName() {
+		return txtContactPersonFirstName;
+	}
+
+	public void setTxtContactPersonFirstName(String txtContactPersonFirstName) {
+		this.txtContactPersonFirstName = txtContactPersonFirstName;
+	}
+
+	public String getTxtContactPersonLastName() {
+		return txtContactPersonLastName;
+	}
+
+	public void setTxtContactPersonLastName(String txtContactPersonLastName) {
+		this.txtContactPersonLastName = txtContactPersonLastName;
+	}
+
+	public String getTxtContactPersonPhoneNo() {
+		return txtContactPersonPhoneNo;
+	}
+
+	public void setTxtContactPersonPhoneNo(String txtContactPersonPhoneNo) {
+		this.txtContactPersonPhoneNo = txtContactPersonPhoneNo;
 	}
 
 }

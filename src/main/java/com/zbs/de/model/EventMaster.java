@@ -79,6 +79,15 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "txt_groom_last_name")
 	private String txtGroomLastName;
 
+	@Column(name = "txt_contact_person_first_name")
+	private String txtContactPersonFirstName;
+
+	@Column(name = "txt_contact_person_last_name")
+	private String txtContactPersonLastName;
+
+	@Column(name = "txt_contact_person_phone_no")
+	private String txtContactPersonPhoneNo;
+
 	@Column(name = "txt_birthday_celebrant")
 	private String txtBirthDayCelebrant;
 
@@ -111,7 +120,7 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_venue_remarks")
 	private String txtVenueRemarks;
-	
+
 	@Column(name = "is_edit_allowed")
 	private Boolean isEditAllowed = true;
 
@@ -121,7 +130,7 @@ public class EventMaster extends BaseEntity implements Serializable {
 	 */
 	@Column(name = "num_inof_filled_status")
 	private Integer numInfoFilledStatus;
-	
+
 	@Column(name = "num_form_state")
 	private Integer numFormState;
 
@@ -474,6 +483,30 @@ public class EventMaster extends BaseEntity implements Serializable {
 		this.isEditAllowed = isEditAllowed;
 	}
 
+	public String getTxtContactPersonFirstName() {
+		return txtContactPersonFirstName;
+	}
+
+	public void setTxtContactPersonFirstName(String txtContactPersonFirstName) {
+		this.txtContactPersonFirstName = txtContactPersonFirstName;
+	}
+
+	public String getTxtContactPersonLastName() {
+		return txtContactPersonLastName;
+	}
+
+	public void setTxtContactPersonLastName(String txtContactPersonLastName) {
+		this.txtContactPersonLastName = txtContactPersonLastName;
+	}
+
+	public String getTxtContactPersonPhoneNo() {
+		return txtContactPersonPhoneNo;
+	}
+
+	public void setTxtContactPersonPhoneNo(String txtContactPersonPhoneNo) {
+		this.txtContactPersonPhoneNo = txtContactPersonPhoneNo;
+	}
+
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //	private List<EventType> eventTypeLst = new ArrayList<>();
 //
@@ -491,7 +524,5 @@ public class EventMaster extends BaseEntity implements Serializable {
 //
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //	private List<PaymentTransaction> paymentTransactionLst = new ArrayList<>();
-	
-	
 
 }
