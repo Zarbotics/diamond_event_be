@@ -55,13 +55,11 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	@Transactional
 	public DtoMenuItem create(DtoMenuItem dto) {
 		MenuItem entity = MapperMenuItem.toEntity(dto);
-		
-	    EnmMenuItemRole role = EnmMenuItemRole.of(dto.getTxtRole());
-	    if (role == null) {
-	        throw new IllegalArgumentException("Invalid menu role");
-	    }
-	    
 
+		EnmMenuItemRole role = EnmMenuItemRole.of(dto.getTxtRole());
+		if (role == null) {
+			throw new IllegalArgumentException("Invalid menu role");
+		}
 
 		// parent handling
 		if (dto.getParentId() != null) {
@@ -73,8 +71,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		} else {
 			entity.setTxtPath(treeUtil.sanitizeForLtree(entity.getTxtCode()));
 		}
-		
-	    
+
 		if (entity.getBlnIsSelectable() == null)
 			entity.setBlnIsSelectable(true);
 		repo.save(entity);
@@ -116,7 +113,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 //		repo.save(exist);
 //		return MapperMenuItem.toDto(exist);
 //	}
-	
+
 	@Override
 	@Transactional
 	public DtoMenuItem update(Long id, DtoMenuItem dto) {
@@ -199,11 +196,15 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		List<MenuItem> all = repo.findAll();
 		return treeUtil.buildTreeDto(all);
 	}
-	
+
 	@Override
-	public List<MenuItem> getAll() {
+	public List<DtoMenuItem> getAll() {
 		List<MenuItem> all = repo.findAll();
-		return all;
+		if (all != null && !all.isEmpty()) {
+			return all.stream().map(MapperMenuItem::toDto).collect(Collectors.toList());
+		} else {
+			return new ArrayList<>();
+		}
 	}
 
 	@Override
@@ -277,7 +278,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 	@Override
 	public List<String> getRoles() {
-		List<String> roles =  Arrays.stream(EnmMenuItemRole.values()).map(Enum::name).toList();
+		List<String> roles = Arrays.stream(EnmMenuItemRole.values()).map(Enum::name).toList();
 		return roles;
 	}
 
@@ -514,32 +515,31 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		DtoMenuCsvImportResult result = new DtoMenuCsvImportResult(total, success, failed, errors);
 		return result;
 	}
-	
-	
+
 	@Override
 	public String generateNextCode(String prefix) {
-		
+
 //		List<String> types = this.getTypes();
 //		if(types != null && !types.isEmpty()) {
 //			STATION, BUNDLE, GROUP, CATEGORY, SUBCATEGORY, ITEM, OPTION, SELECTION;
 //		}
-		if(prefix.equalsIgnoreCase("SECTION")) {
+		if (prefix.equalsIgnoreCase("SECTION")) {
 			prefix = "sec";
-		}else if(prefix.equalsIgnoreCase("BUNDLE")) {
+		} else if (prefix.equalsIgnoreCase("BUNDLE")) {
 			prefix = "bdl";
-		}else if(prefix.equalsIgnoreCase("GROUP")) {
+		} else if (prefix.equalsIgnoreCase("GROUP")) {
 			prefix = "grp";
-		}else if(prefix.equalsIgnoreCase("CATEGORY")) {
+		} else if (prefix.equalsIgnoreCase("CATEGORY")) {
 			prefix = "cat";
-		}else if(prefix.equalsIgnoreCase("SUBCATEGORY")) {
+		} else if (prefix.equalsIgnoreCase("SUBCATEGORY")) {
 			prefix = "sub";
-		}else if(prefix.equalsIgnoreCase("ITEM")) {
+		} else if (prefix.equalsIgnoreCase("ITEM")) {
 			prefix = "mi";
-		}else if(prefix.equalsIgnoreCase("OPTION")) {
+		} else if (prefix.equalsIgnoreCase("OPTION")) {
 			prefix = "opt";
-		}else if(prefix.equalsIgnoreCase("SELECTION")) {
+		} else if (prefix.equalsIgnoreCase("SELECTION")) {
 			prefix = "slc";
-		}else if(prefix.equalsIgnoreCase("STATION")) {
+		} else if (prefix.equalsIgnoreCase("STATION")) {
 			prefix = "sta";
 		}
 		prefix = prefix.toUpperCase().trim();
@@ -547,12 +547,12 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 		// CASE 1: No code found → start at 001
 		if (lastCode == null || lastCode.isBlank()) {
-			if(prefix.equalsIgnoreCase("MI")) {
+			if (prefix.equalsIgnoreCase("MI")) {
 				return prefix + "-1001";
-			}else {
+			} else {
 				return prefix + "-001";
 			}
-			
+
 		}
 
 		// Extract number part safely
@@ -571,9 +571,9 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}
 
 		// Format with leading zeros (3 digits)
-		if(prefix.equalsIgnoreCase("MI")) {
+		if (prefix.equalsIgnoreCase("MI")) {
 			return prefix + "-" + String.format("%04d", nextNumber);
-		}else {
+		} else {
 			return prefix + "-" + String.format("%03d", nextNumber);
 		}
 
@@ -607,9 +607,11 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		List<String> allowedParentRoles = switch (currentRole) {
 		case SUBCATEGORY -> List.of(EnmMenuItemRole.CATEGORY.name());
 		case STATION -> List.of(EnmMenuItemRole.SUBCATEGORY.name(), EnmMenuItemRole.CATEGORY.name());
-		case GROUP -> List.of(EnmMenuItemRole.STATION.name(),EnmMenuItemRole.SUBCATEGORY.name(), EnmMenuItemRole.CATEGORY.name());
+		case GROUP -> List.of(EnmMenuItemRole.STATION.name(), EnmMenuItemRole.SUBCATEGORY.name(),
+				EnmMenuItemRole.CATEGORY.name());
 		case BUNDLE -> List.of(EnmMenuItemRole.GROUP.name());
-		case ITEM -> List.of(EnmMenuItemRole.GROUP.name(), EnmMenuItemRole.BUNDLE.name(), EnmMenuItemRole.CATEGORY.name(), EnmMenuItemRole.SUBCATEGORY.name());
+		case ITEM -> List.of(EnmMenuItemRole.GROUP.name(), EnmMenuItemRole.BUNDLE.name(),
+				EnmMenuItemRole.CATEGORY.name(), EnmMenuItemRole.SUBCATEGORY.name());
 		default -> List.of();
 		};
 

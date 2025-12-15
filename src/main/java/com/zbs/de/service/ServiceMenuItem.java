@@ -43,5 +43,5 @@ public interface ServiceMenuItem {
     
     List<DtoMenuItem> getValidParentsByRole(String role);
     
-    List<MenuItem> getAll();
+    List<DtoMenuItem> getAll();
 }

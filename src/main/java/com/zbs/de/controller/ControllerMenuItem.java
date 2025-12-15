@@ -104,7 +104,7 @@ public class ControllerMenuItem {
 		LOGGER.info("Fetching MenuItem Tree");
 
 		try {
-			List<MenuItem> tree = service.getAll();
+			List<DtoMenuItem> tree = service.getAll();
 
 			if (tree != null && !tree.isEmpty()) {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", tree);
