@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 
@@ -41,4 +42,6 @@ public interface ServiceMenuItem {
     String generateNextCode(String prefix);
     
     List<DtoMenuItem> getValidParentsByRole(String role);
+    
+    List<MenuItem> getAll();
 }

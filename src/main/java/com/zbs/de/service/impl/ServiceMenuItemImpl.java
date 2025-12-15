@@ -55,53 +55,128 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	@Transactional
 	public DtoMenuItem create(DtoMenuItem dto) {
 		MenuItem entity = MapperMenuItem.toEntity(dto);
+		
+	    EnmMenuItemRole role = EnmMenuItemRole.of(dto.getTxtRole());
+	    if (role == null) {
+	        throw new IllegalArgumentException("Invalid menu role");
+	    }
+	    
+
+
 		// parent handling
 		if (dto.getParentId() != null) {
 			MenuItem parent = repo.findById(dto.getParentId())
 					.orElseThrow(() -> new NotFoundException("Parent not found"));
+			validateParentRole(role, parent);
 			entity.setParent(parent);
 			entity.setTxtPath(treeUtil.computeChildPath(parent.getTxtPath(), entity.getTxtCode()));
 		} else {
 			entity.setTxtPath(treeUtil.sanitizeForLtree(entity.getTxtCode()));
 		}
+		
+	    
 		if (entity.getBlnIsSelectable() == null)
 			entity.setBlnIsSelectable(true);
 		repo.save(entity);
 		return MapperMenuItem.toDto(entity);
 	}
 
+//	@Override
+//	@Transactional
+//	public DtoMenuItem update(Long id, DtoMenuItem dto) {
+//		MenuItem exist = repo.findById(id).orElseThrow(() -> new NotFoundException("MenuItem not found"));
+//		exist.setTxtCode(dto.getTxtCode());
+//		exist.setTxtName(dto.getTxtName());
+//		exist.setTxtShortName(dto.getTxtShortName());
+//		exist.setTxtDescription(dto.getTxtDescription());
+//		exist.setTxtRole(dto.getTxtRole());
+//		exist.setNumDisplayOrder(dto.getNumDisplayOrder());
+//		exist.setBlnIsSelectable(dto.getBlnIsSelectable());
+//		exist.setMetadata(dto.getMetadata());
+//		exist.setNumDefaultServingsPerGuest(dto.getNumDefaultServingsPerGuest());
+//
+//		Long newParentId = dto.getParentId();
+//		Long oldParentId = exist.getParent() == null ? null : exist.getParent().getSerMenuItemId();
+//		if ((newParentId == null && oldParentId != null) || (newParentId != null && !newParentId.equals(oldParentId))) {
+//			MenuItem newParent = null;
+//			if (newParentId != null)
+//				newParent = repo.findById(newParentId).orElseThrow(() -> new NotFoundException("Parent not found"));
+//			exist.setParent(newParent);
+//			String newPath = newParent == null ? treeUtil.sanitizeForLtree(exist.getTxtCode())
+//					: treeUtil.computeChildPath(newParent.getTxtPath(), exist.getTxtCode());
+//			treeUtil.updatePathForSubtree(exist, newPath);
+//		} else {
+//			// if code changed, update path for subtree as well
+//			if (!exist.getTxtCode().equals(dto.getTxtCode())) {
+//				String basePath = exist.getParent() == null ? treeUtil.sanitizeForLtree(dto.getTxtCode())
+//						: treeUtil.computeChildPath(exist.getParent().getTxtPath(), dto.getTxtCode());
+//				treeUtil.updatePathForSubtree(exist, basePath);
+//			}
+//		}
+//		repo.save(exist);
+//		return MapperMenuItem.toDto(exist);
+//	}
+	
 	@Override
 	@Transactional
 	public DtoMenuItem update(Long id, DtoMenuItem dto) {
+
 		MenuItem exist = repo.findById(id).orElseThrow(() -> new NotFoundException("MenuItem not found"));
+
+		// ---- BASIC FIELDS ----
 		exist.setTxtCode(dto.getTxtCode());
 		exist.setTxtName(dto.getTxtName());
 		exist.setTxtShortName(dto.getTxtShortName());
 		exist.setTxtDescription(dto.getTxtDescription());
 		exist.setTxtRole(dto.getTxtRole());
+		exist.setTxtType(dto.getTxtType()); // 🔴 MISSING BEFORE
 		exist.setNumDisplayOrder(dto.getNumDisplayOrder());
 		exist.setBlnIsSelectable(dto.getBlnIsSelectable());
 		exist.setMetadata(dto.getMetadata());
 		exist.setNumDefaultServingsPerGuest(dto.getNumDefaultServingsPerGuest());
 
+		// ---- ROLE ENUM ----
+		EnmMenuItemRole currentRole = EnmMenuItemRole.of(dto.getTxtRole());
+		if (currentRole == null) {
+			throw new IllegalArgumentException("Invalid menu role");
+		}
+
+		// ---- PARENT HANDLING ----
 		Long newParentId = dto.getParentId();
 		Long oldParentId = exist.getParent() == null ? null : exist.getParent().getSerMenuItemId();
-		if ((newParentId == null && oldParentId != null) || (newParentId != null && !newParentId.equals(oldParentId))) {
-			MenuItem newParent = null;
-			if (newParentId != null)
-				newParent = repo.findById(newParentId).orElseThrow(() -> new NotFoundException("Parent not found"));
+
+		MenuItem newParent = null;
+		if (newParentId != null) {
+			newParent = repo.findById(newParentId).orElseThrow(() -> new NotFoundException("Parent not found"));
+		}
+
+		// 🔴 VALIDATE ROLE ↔ PARENT (MANDATORY)
+		validateParentRole(currentRole, newParent);
+
+		// ---- PATH UPDATE ----
+		boolean parentChanged = (newParentId == null && oldParentId != null)
+				|| (newParentId != null && !newParentId.equals(oldParentId));
+
+		if (parentChanged) {
+
 			exist.setParent(newParent);
-			String newPath = newParent == null ? treeUtil.sanitizeForLtree(exist.getTxtCode())
+
+			String newPath = (newParent == null) ? treeUtil.sanitizeForLtree(exist.getTxtCode())
 					: treeUtil.computeChildPath(newParent.getTxtPath(), exist.getTxtCode());
+
 			treeUtil.updatePathForSubtree(exist, newPath);
+
 		} else {
-			// if code changed, update path for subtree as well
+			// Code changed → update subtree paths
 			if (!exist.getTxtCode().equals(dto.getTxtCode())) {
-				String basePath = exist.getParent() == null ? treeUtil.sanitizeForLtree(dto.getTxtCode())
+
+				String basePath = (exist.getParent() == null) ? treeUtil.sanitizeForLtree(dto.getTxtCode())
 						: treeUtil.computeChildPath(exist.getParent().getTxtPath(), dto.getTxtCode());
+
 				treeUtil.updatePathForSubtree(exist, basePath);
 			}
 		}
+
 		repo.save(exist);
 		return MapperMenuItem.toDto(exist);
 	}
@@ -123,6 +198,12 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	public List<DtoMenuItem> getTree() {
 		List<MenuItem> all = repo.findAll();
 		return treeUtil.buildTreeDto(all);
+	}
+	
+	@Override
+	public List<MenuItem> getAll() {
+		List<MenuItem> all = repo.findAll();
+		return all;
 	}
 
 	@Override
@@ -538,6 +619,48 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 		return allowedParentRoles.stream().flatMap(r -> repo.findByTxtRoleAndBlnIsDeletedFalse(r).stream())
 				.map(MapperMenuItem::toDto).toList();
+	}
+
+	private void validateParentRole(EnmMenuItemRole currentRole, MenuItem parent) {
+
+		// CATEGORY must be root
+		if (currentRole == EnmMenuItemRole.CATEGORY) {
+			if (parent != null) {
+				throw new IllegalArgumentException("CATEGORY cannot have a parent");
+			}
+			return;
+		}
+
+		// All others must have a parent
+		if (parent == null) {
+			throw new IllegalArgumentException(currentRole + " must have a parent");
+		}
+
+		EnmMenuItemRole parentRole = EnmMenuItemRole.of(parent.getTxtRole());
+		if (parentRole == null) {
+			throw new IllegalArgumentException("Invalid parent role");
+		}
+
+		List<String> allowedParentRoles = switch (currentRole) {
+		case SUBCATEGORY -> List.of(EnmMenuItemRole.CATEGORY.name());
+
+		case STATION -> List.of(EnmMenuItemRole.SUBCATEGORY.name(), EnmMenuItemRole.CATEGORY.name());
+
+		case GROUP -> List.of(EnmMenuItemRole.STATION.name(), EnmMenuItemRole.SUBCATEGORY.name(),
+				EnmMenuItemRole.CATEGORY.name());
+
+		case BUNDLE -> List.of(EnmMenuItemRole.GROUP.name());
+
+		case ITEM -> List.of(EnmMenuItemRole.GROUP.name(), EnmMenuItemRole.BUNDLE.name(),
+				EnmMenuItemRole.CATEGORY.name(), EnmMenuItemRole.SUBCATEGORY.name());
+
+		default -> List.of();
+		};
+
+		if (!allowedParentRoles.contains(parentRole.name())) {
+			throw new IllegalArgumentException("Invalid parent role " + parentRole + " for menu role " + currentRole
+					+ ". Allowed: " + allowedParentRoles);
+		}
 	}
 
 }

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.model.dto.DtoSearch;
@@ -84,6 +85,26 @@ public class ControllerMenuItem {
 
 		try {
 			List<DtoMenuItem> tree = service.getTree();
+
+			if (tree != null && !tree.isEmpty()) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", tree);
+			}
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No Menu Items Found", tree);
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching MenuItem Tree", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
+	
+	@PostMapping(value = "/getAll", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAll(HttpServletRequest request) {
+		LOGGER.info("Fetching MenuItem Tree");
+
+		try {
+			List<MenuItem> tree = service.getAll();
 
 			if (tree != null && !tree.isEmpty()) {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", tree);
