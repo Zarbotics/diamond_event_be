@@ -6,8 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
+	@Query("SELECT e FROM MenuItem e WHERE  e.serMenuItemId = :id AND e.blnIsDeleted = false")
+	Optional<MenuItem>  getByMenuItemId(@Param("id") Long id);
+	
 	List<MenuItem> findByTxtRole(String role);
 
 	List<MenuItem> findByTxtType(String txtType);

@@ -48,7 +48,7 @@ public class MenuItem extends BaseEntity {
 	@Column(name = "txt_type", nullable = false)
 	private String txtType;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne
 	@JoinColumn(name = "parent_menu_item_id")
 	private MenuItem parent;
 

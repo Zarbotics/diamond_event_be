@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("serviceMenuItemImpl")
@@ -144,7 +145,10 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 		MenuItem newParent = null;
 		if (newParentId != null) {
-			newParent = repo.findById(newParentId).orElseThrow(() -> new NotFoundException("Parent not found"));
+			 newParent = repo.getByMenuItemId(newParentId).map(p -> {
+				p.getTxtCode(); // force init
+				return p;
+			}).orElseThrow(() -> new NotFoundException("Parent not found"));
 		}
 
 		// 🔴 VALIDATE ROLE ↔ PARENT (MANDATORY)
