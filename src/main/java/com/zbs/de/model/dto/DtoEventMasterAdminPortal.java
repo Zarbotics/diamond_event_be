@@ -3,6 +3,7 @@ package com.zbs.de.model.dto;
 import java.util.List;
 import java.util.Map;
 
+
 public class DtoEventMasterAdminPortal {
 
 	private Integer serEventMasterId;
@@ -20,6 +21,10 @@ public class DtoEventMasterAdminPortal {
 	private String txtGroomName;
 	private String txtGroomFirstName;
 	private String txtGroomLastName;
+
+	private String txtContactPersonFirstName;
+	private String txtContactPersonLastName;
+	private String txtContactPersonPhoneNo;
 
 	private String txtBirthDayCelebrant;
 	private String txtAgeCategory;
@@ -54,7 +59,7 @@ public class DtoEventMasterAdminPortal {
 
 	private String dteCreatedDate;
 	private String dteUpdateDate;
-	
+
 	private Boolean isEditAllowed;
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
@@ -451,6 +456,30 @@ public class DtoEventMasterAdminPortal {
 
 	public void setIsEditAllowed(Boolean isEditAllowed) {
 		this.isEditAllowed = isEditAllowed;
+	}
+
+	public String getTxtContactPersonFirstName() {
+		return txtContactPersonFirstName;
+	}
+
+	public void setTxtContactPersonFirstName(String txtContactPersonFirstName) {
+		this.txtContactPersonFirstName = txtContactPersonFirstName;
+	}
+
+	public String getTxtContactPersonLastName() {
+		return txtContactPersonLastName;
+	}
+
+	public void setTxtContactPersonLastName(String txtContactPersonLastName) {
+		this.txtContactPersonLastName = txtContactPersonLastName;
+	}
+
+	public String getTxtContactPersonPhoneNo() {
+		return txtContactPersonPhoneNo;
+	}
+
+	public void setTxtContactPersonPhoneNo(String txtContactPersonPhoneNo) {
+		this.txtContactPersonPhoneNo = txtContactPersonPhoneNo;
 	}
 
 }
