@@ -34,4 +34,7 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	String findMaxCodeByPrefix(@Param("prefix") String prefix);
 	 
 	List<MenuItem> findByTxtRoleAndBlnIsDeletedFalse(String txtRole);
+	
+	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND e.blnIsDeleted = false")
+	List<MenuItem>  getAllItemsByRoleId(@Param("id") Integer id);
 }
