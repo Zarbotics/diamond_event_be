@@ -73,13 +73,14 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		if (dto.getParentId() != null) {
 			MenuItem parent = repo.findById(dto.getParentId())
 					.orElseThrow(() -> new NotFoundException("Parent not found"));
-			validateParentRole(menuItemRole, parent.getMenuItemRole());
+			validateParentRole(menuItemRole, parent!= null ? parent.getMenuItemRole() : null);
 			entity.setParent(parent);
 			entity.setTxtPath(treeUtil.computeChildPath(parent.getTxtPath(), entity.getTxtCode()));
 		} else {
 			entity.setTxtPath(treeUtil.sanitizeForLtree(entity.getTxtCode()));
 		}
 
+		entity.setMenuItemRole(menuItemRole);
 		if (entity.getBlnIsSelectable() == null)
 			entity.setBlnIsSelectable(true);
 		repo.save(entity);
@@ -164,7 +165,8 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}
 
 		// 🔴 VALIDATE ROLE ↔ PARENT (MANDATORY)
-		validateParentRole(currentRole, newParent.getMenuItemRole());
+		validateParentRole(currentRole, newParent!= null ? newParent.getMenuItemRole() : null);
+		exist.setMenuItemRole(currentRole);
 
 		// ---- PATH UPDATE ----
 		boolean parentChanged = (newParentId == null && oldParentId != null)

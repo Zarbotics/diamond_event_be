@@ -29,7 +29,7 @@ public class MapperMenuItem {
 
 		// parentId (avoid triggering lazy load)
 		dto.setParentId(entity.getParent() != null ? entity.getParent().getSerMenuItemId() : null);
-
+		dto.setSerMenuItemRoleId(entity.getMenuItemRole() != null ? entity.getMenuItemRole().getSerMenuItemRoleId() : null);
 		return dto;
 	}
 
