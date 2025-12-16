@@ -10,6 +10,7 @@ import com.zbs.de.model.MenuItemRole;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuCsvRowResult;
 import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryMenuComponent;
 import com.zbs.de.repository.RepositoryMenuItem;
 import com.zbs.de.service.ServiceMenuItem;
@@ -19,6 +20,8 @@ import com.zbs.de.util.enums.EnmMenuItemRole;
 import com.zbs.de.util.enums.EnmMenuItemType;
 import com.zbs.de.util.exception.NotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("serviceMenuItemImpl")
@@ -54,6 +56,8 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceMenuItemImpl.class);
 
 	private long autoCodeCounter = 1000;
 
@@ -726,6 +730,24 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}
 
 		return false;
+	}
+	
+	@Override
+	public DtoResult getAllByRoleId(Integer id) {
+		try {
+			List<MenuItem> items = repo.getAllItemsByRoleId(id);
+			if (items != null && !items.isEmpty()) {
+
+				List<DtoMenuItem> dtoMenuItems = items.stream().map(MapperMenuItem::toDto).collect(Collectors.toList());
+				return new DtoResult("Items Fetched Successfully.", null, dtoMenuItems, null);
+			} else {
+				return new DtoResult("No Items Found Against This Role In Database", null, null, null);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new DtoResult(e.getMessage(), null, null, null);
+		}
+		
 	}
 
 }
