@@ -107,7 +107,7 @@ public class ControllerMenuAdmin {
 	// GET DESCENDANTS BY PATH
 	// ================================
 	@PostMapping(value = "/getDescendantsByPath", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getDescendantsByPath(@RequestBody String txtPath) {
+	public ResponseMessage getDescendantsByPath(@RequestBody String txtPath, HttpServletRequest request) {
 		LOGGER.info("Fetching Descendants for Path:", txtPath);
 		try {
 			List<DtoMenuItem> list = svc.findDescendantsByPath(txtPath);

@@ -27,7 +27,7 @@ public class ControllerMenuItemRole {
 	private ServiceMenuItemRole service;
 
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage saveOrUpdate(@RequestBody DtoMenuItemRole dto) {
+	public ResponseMessage saveOrUpdate(@RequestBody DtoMenuItemRole dto,  HttpServletRequest request) {
 		LOGGER.info("Request received to save/update MenuItemRole: {}", dto);
 		try {
 			DtoMenuItemRole result = service.saveOrUpdate(dto);
@@ -40,7 +40,7 @@ public class ControllerMenuItemRole {
 	}
 
 	@PostMapping(value = "/getById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getById(@RequestBody DtoSearch dtoSearch) {
+	public ResponseMessage getById(@RequestBody DtoSearch dtoSearch,  HttpServletRequest request) {
 		LOGGER.info("Request received to fetch MenuItemRole by ID: {}", dtoSearch.getId());
 		try {
 			DtoMenuItemRole dto = service.getById(dtoSearch.getId());
@@ -51,8 +51,8 @@ public class ControllerMenuItemRole {
 		}
 	}
 
-	@PostMapping(value = "/getAllRoles", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAllRoles() {
+	@PostMapping(value = "/getAllRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllRoles(HttpServletRequest request) {
 		LOGGER.info("Request received to fetch all MenuItemRoles");
 		try {
 			List<DtoMenuItemRole> list = service.getAllRoles();
@@ -64,7 +64,7 @@ public class ControllerMenuItemRole {
 		}
 	}
 
-	@PostMapping(value = "/getAllRolesByParentId", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/getAllRolesByParentId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllRolesByParentId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Request received to fetch all child MenuItemRoles");
 		try {
@@ -77,7 +77,7 @@ public class ControllerMenuItemRole {
 		}
 	}
 
-	@PostMapping(value = "/getAllActiveRolesByParentId", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/getAllActiveRolesByParentId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllActiveRolesByParentId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Request received to fetch all active child MenuItemRoles");
 		try {
@@ -90,8 +90,8 @@ public class ControllerMenuItemRole {
 		}
 	}
 
-	@PostMapping(value = "/getAllActiveRoles", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAllActiveRoles() {
+	@PostMapping(value = "/getAllActiveRoles",consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveRoles(HttpServletRequest request) {
 		LOGGER.info("Request received to fetch active MenuItemRoles");
 		try {
 			List<DtoMenuItemRole> list = service.getAllActiveRoles();
@@ -103,8 +103,8 @@ public class ControllerMenuItemRole {
 		}
 	}
 
-	@PostMapping(value = "/getAllCompositionRoles", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAllCompositionRoles() {
+	@PostMapping(value = "/getAllCompositionRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllCompositionRoles(HttpServletRequest request) {
 		LOGGER.info("Request received to fetch composition roles");
 		try {
 			List<DtoMenuItemRole> list = service.getAllCompositionRoles();
@@ -116,8 +116,8 @@ public class ControllerMenuItemRole {
 		}
 	}
 
-	@PostMapping(value = "/getAllMenuItemRoles", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAllMenuItemRoles() {
+	@PostMapping(value = "/getAllMenuItemRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllMenuItemRoles(HttpServletRequest request) {
 		LOGGER.info("Request received to fetch composition roles");
 		try {
 			List<DtoMenuItemRole> list = service.getAllMenuItemRoles();
@@ -129,8 +129,8 @@ public class ControllerMenuItemRole {
 		}
 	}
 
-	@PostMapping(value = "/getAllActiveCompositionRoles", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAllActiveCompositionRoles() {
+	@PostMapping(value = "/getAllActiveCompositionRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveCompositionRoles(HttpServletRequest request) {
 		LOGGER.info("Request received to fetch active composition roles");
 		try {
 			List<DtoMenuItemRole> list = service.getAllActiveCompositionRoles();
@@ -142,8 +142,8 @@ public class ControllerMenuItemRole {
 		}
 	}
 
-	@PostMapping(value = "/getAllActiveMenuItemRoles", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAllActiveMenuItemRoles() {
+	@PostMapping(value = "/getAllActiveMenuItemRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveMenuItemRoles(HttpServletRequest request) {
 		LOGGER.info("Request received to fetch active composition roles");
 		try {
 			List<DtoMenuItemRole> list = service.getAllActiveMenuItemRoles();
