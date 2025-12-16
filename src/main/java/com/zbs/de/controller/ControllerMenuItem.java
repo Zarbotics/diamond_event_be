@@ -63,7 +63,7 @@ public class ControllerMenuItem {
 	// DELETE
 	// -------------------------------------------------------------
 	@PostMapping(value = "/deleteById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage deleteById(@RequestBody Long id) {
+	public ResponseMessage deleteById(@RequestBody Long id, HttpServletRequest request) {
 		LOGGER.info("Deleting MenuItem by ID: {}", id);
 
 		try {
@@ -144,7 +144,7 @@ public class ControllerMenuItem {
 	}
 
 	@PostMapping(path = "/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<DtoMenuCsvImportResult> importCsv(@RequestPart("file") MultipartFile file) {
+	public ResponseEntity<DtoMenuCsvImportResult> importCsv(@RequestPart("file") MultipartFile file, HttpServletRequest request) {
 		DtoMenuCsvImportResult result = service.importCsv(file);
 		return ResponseEntity.ok(result);
 	}

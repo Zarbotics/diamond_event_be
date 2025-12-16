@@ -68,7 +68,7 @@ public class ControllerMenuComponent {
 	}
 
 	@PostMapping(value = "/delete", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage delete(@RequestBody Long id) {
+	public ResponseMessage delete(@RequestBody Long id, HttpServletRequest request) {
 		try {
 			LOGGER.info("Deleting MenuComponent with id: {}", id);
 			svc.delete(id);
