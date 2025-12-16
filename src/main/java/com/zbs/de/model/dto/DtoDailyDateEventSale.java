@@ -1,14 +1,7 @@
 package com.zbs.de.model.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class DtoDailyDateEventSale {
 	private String date; // yyyy-MM-dd (dte_event_date)
 	private long events;
