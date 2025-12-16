@@ -14,6 +14,8 @@ import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceMenuItemRole;
 import com.zbs.de.util.ResponseMessage;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/menuItemRole")
 @CrossOrigin(origins = "")
@@ -62,6 +64,32 @@ public class ControllerMenuItemRole {
 		}
 	}
 
+	@PostMapping(value = "/getAllRolesByParentId", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllRolesByParentId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		LOGGER.info("Request received to fetch all child MenuItemRoles");
+		try {
+			List<DtoMenuItemRole> list = service.getRolesByParentRoleId(dtoSearch.getId());
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully", list);
+		} catch (Exception e) {
+			LOGGER.error("Error fetching MenuItemRoles", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
+
+	@PostMapping(value = "/getAllActiveRolesByParentId", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveRolesByParentId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		LOGGER.info("Request received to fetch all active child MenuItemRoles");
+		try {
+			List<DtoMenuItemRole> list = service.getActiveRolesByParentRoleId(dtoSearch.getId());
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully", list);
+		} catch (Exception e) {
+			LOGGER.error("Error fetching MenuItemRoles", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
+
 	@PostMapping(value = "/getAllActiveRoles", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllActiveRoles() {
 		LOGGER.info("Request received to fetch active MenuItemRoles");
@@ -87,7 +115,7 @@ public class ControllerMenuItemRole {
 					e.getMessage(), null);
 		}
 	}
-	
+
 	@PostMapping(value = "/getAllMenuItemRoles", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllMenuItemRoles() {
 		LOGGER.info("Request received to fetch composition roles");
@@ -113,7 +141,7 @@ public class ControllerMenuItemRole {
 					e.getMessage(), null);
 		}
 	}
-	
+
 	@PostMapping(value = "/getAllActiveMenuItemRoles", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllActiveMenuItemRoles() {
 		LOGGER.info("Request received to fetch active composition roles");

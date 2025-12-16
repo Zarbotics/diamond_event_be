@@ -49,6 +49,10 @@ public class MenuItem extends BaseEntity {
 	private String txtType;
 
 	@ManyToOne
+	@JoinColumn(name = "ser_menu_item_role_id")
+	private MenuItemRole menuItemRole;
+
+	@ManyToOne
 	@JoinColumn(name = "parent_menu_item_id")
 	private MenuItem parent;
 
@@ -186,6 +190,14 @@ public class MenuItem extends BaseEntity {
 
 	public void setTxtType(String txtType) {
 		this.txtType = txtType;
+	}
+
+	public MenuItemRole getMenuItemRole() {
+		return menuItemRole;
+	}
+
+	public void setMenuItemRole(MenuItemRole menuItemRole) {
+		this.menuItemRole = menuItemRole;
 	}
 
 }

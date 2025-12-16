@@ -6,12 +6,14 @@ import com.opencsv.exceptions.CsvValidationException;
 import com.zbs.de.mapper.MapperMenuItem;
 import com.zbs.de.model.MenuComponent;
 import com.zbs.de.model.MenuItem;
+import com.zbs.de.model.MenuItemRole;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuCsvRowResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.repository.RepositoryMenuComponent;
 import com.zbs.de.repository.RepositoryMenuItem;
 import com.zbs.de.service.ServiceMenuItem;
+import com.zbs.de.service.ServiceMenuItemRole;
 import com.zbs.de.service.ServiceTreeUtility;
 import com.zbs.de.util.enums.EnmMenuItemRole;
 import com.zbs.de.util.enums.EnmMenuItemType;
@@ -46,6 +48,9 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 	@Autowired
 	private RepositoryMenuComponent componentRepo;
+	
+	@Autowired
+	private ServiceMenuItemRole serivceMenuItemRole;
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -57,22 +62,25 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	public DtoMenuItem create(DtoMenuItem dto) {
 		MenuItem entity = MapperMenuItem.toEntity(dto);
 
-		EnmMenuItemRole role = EnmMenuItemRole.of(dto.getTxtRole());
-		if (role == null) {
+		
+		MenuItemRole menuItemRole = serivceMenuItemRole.getMenuItemRoleById(dto.getSerMenuItemRoleId());
+		if(menuItemRole == null) {
 			throw new IllegalArgumentException("Invalid menu role");
 		}
+
 
 		// parent handling
 		if (dto.getParentId() != null) {
 			MenuItem parent = repo.findById(dto.getParentId())
 					.orElseThrow(() -> new NotFoundException("Parent not found"));
-			validateParentRole(role, parent);
+			validateParentRole(menuItemRole, parent!= null ? parent.getMenuItemRole() : null);
 			entity.setParent(parent);
 			entity.setTxtPath(treeUtil.computeChildPath(parent.getTxtPath(), entity.getTxtCode()));
 		} else {
 			entity.setTxtPath(treeUtil.sanitizeForLtree(entity.getTxtCode()));
 		}
 
+		entity.setMenuItemRole(menuItemRole);
 		if (entity.getBlnIsSelectable() == null)
 			entity.setBlnIsSelectable(true);
 		repo.save(entity);
@@ -134,8 +142,13 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		exist.setNumDefaultServingsPerGuest(dto.getNumDefaultServingsPerGuest());
 
 		// ---- ROLE ENUM ----
-		EnmMenuItemRole currentRole = EnmMenuItemRole.of(dto.getTxtRole());
-		if (currentRole == null) {
+//		EnmMenuItemRole currentRole = EnmMenuItemRole.of(dto.getTxtRole());
+//		if (currentRole == null) {
+//			throw new IllegalArgumentException("Invalid menu role");
+//		}
+		
+		MenuItemRole currentRole = serivceMenuItemRole.getMenuItemRoleById(dto.getSerMenuItemRoleId());
+		if(currentRole == null) {
 			throw new IllegalArgumentException("Invalid menu role");
 		}
 
@@ -152,7 +165,8 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}
 
 		// 🔴 VALIDATE ROLE ↔ PARENT (MANDATORY)
-		validateParentRole(currentRole, newParent);
+		validateParentRole(currentRole, newParent!= null ? newParent.getMenuItemRole() : null);
+		exist.setMenuItemRole(currentRole);
 
 		// ---- PATH UPDATE ----
 		boolean parentChanged = (newParentId == null && oldParentId != null)
@@ -627,46 +641,91 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 				.map(MapperMenuItem::toDto).toList();
 	}
 
-	private void validateParentRole(EnmMenuItemRole currentRole, MenuItem parent) {
+//	private void validateParentRole(EnmMenuItemRole currentRole, MenuItem parent) {
+//
+//		// CATEGORY must be root
+//		if (currentRole == EnmMenuItemRole.CATEGORY) {
+//			if (parent != null) {
+//				throw new IllegalArgumentException("CATEGORY cannot have a parent");
+//			}
+//			return;
+//		}
+//
+//		// All others must have a parent
+//		if (parent == null) {
+//			throw new IllegalArgumentException(currentRole + " must have a parent");
+//		}
+//
+//		EnmMenuItemRole parentRole = EnmMenuItemRole.of(parent.getTxtRole());
+//		if (parentRole == null) {
+//			throw new IllegalArgumentException("Invalid parent role");
+//		}
+//
+//		List<String> allowedParentRoles = switch (currentRole) {
+//		case SUBCATEGORY -> List.of(EnmMenuItemRole.CATEGORY.name());
+//
+//		case STATION -> List.of(EnmMenuItemRole.SUBCATEGORY.name(), EnmMenuItemRole.CATEGORY.name());
+//
+//		case GROUP -> List.of(EnmMenuItemRole.STATION.name(), EnmMenuItemRole.SUBCATEGORY.name(),
+//				EnmMenuItemRole.CATEGORY.name());
+//
+//		case BUNDLE -> List.of(EnmMenuItemRole.GROUP.name());
+//
+//		case ITEM -> List.of(EnmMenuItemRole.GROUP.name(), EnmMenuItemRole.BUNDLE.name(),
+//				EnmMenuItemRole.CATEGORY.name(), EnmMenuItemRole.SUBCATEGORY.name());
+//
+//		default -> List.of();
+//		};
+//
+//		if (!allowedParentRoles.contains(parentRole.name())) {
+//			throw new IllegalArgumentException("Invalid parent role " + parentRole + " for menu role " + currentRole
+//					+ ". Allowed: " + allowedParentRoles);
+//		}
+//	}
 
-		// CATEGORY must be root
-		if (currentRole == EnmMenuItemRole.CATEGORY) {
-			if (parent != null) {
-				throw new IllegalArgumentException("CATEGORY cannot have a parent");
+	private void validateParentRole(MenuItemRole currentRole, MenuItemRole parentRole) {
+
+		// 1️⃣ Root role validation (CATEGORY or any root-level role)
+		if (currentRole.getParentMenuItemRole() == null && parentRole != null) {
+			throw new IllegalArgumentException(currentRole.getTxtRoleCode() + " cannot have a parent");
+		}
+
+		// 2️⃣ Non-root roles must have parent
+		if (currentRole.getParentMenuItemRole() != null && parentRole == null) {
+			throw new IllegalArgumentException(currentRole.getTxtRoleCode() + " must have a parent");
+		}
+
+		// 3️⃣ Validate allowed parent based on hierarchy
+		if (parentRole != null) {
+
+			boolean isValidParent = isAllowedParent(currentRole, parentRole);
+
+			if (!isValidParent) {
+				throw new IllegalArgumentException("Invalid parent role " + parentRole.getTxtRoleCode()
+						+ " for menu role " + currentRole.getTxtRoleCode());
 			}
-			return;
+		}
+	}
+
+	private boolean isAllowedParent(MenuItemRole currentRole, MenuItemRole parentRole) {
+
+		MenuItemRole allowedParent = currentRole.getParentMenuItemRole();
+
+		// Direct parent match
+		if (allowedParent == null) {
+			return false;
 		}
 
-		// All others must have a parent
-		if (parent == null) {
-			throw new IllegalArgumentException(currentRole + " must have a parent");
+		// Traverse up parent chain
+		MenuItemRole cursor = parentRole;
+		while (cursor != null) {
+			if (cursor.getSerMenuItemRoleId().equals(allowedParent.getSerMenuItemRoleId())) {
+				return true;
+			}
+			cursor = cursor.getParentMenuItemRole();
 		}
 
-		EnmMenuItemRole parentRole = EnmMenuItemRole.of(parent.getTxtRole());
-		if (parentRole == null) {
-			throw new IllegalArgumentException("Invalid parent role");
-		}
-
-		List<String> allowedParentRoles = switch (currentRole) {
-		case SUBCATEGORY -> List.of(EnmMenuItemRole.CATEGORY.name());
-
-		case STATION -> List.of(EnmMenuItemRole.SUBCATEGORY.name(), EnmMenuItemRole.CATEGORY.name());
-
-		case GROUP -> List.of(EnmMenuItemRole.STATION.name(), EnmMenuItemRole.SUBCATEGORY.name(),
-				EnmMenuItemRole.CATEGORY.name());
-
-		case BUNDLE -> List.of(EnmMenuItemRole.GROUP.name());
-
-		case ITEM -> List.of(EnmMenuItemRole.GROUP.name(), EnmMenuItemRole.BUNDLE.name(),
-				EnmMenuItemRole.CATEGORY.name(), EnmMenuItemRole.SUBCATEGORY.name());
-
-		default -> List.of();
-		};
-
-		if (!allowedParentRoles.contains(parentRole.name())) {
-			throw new IllegalArgumentException("Invalid parent role " + parentRole + " for menu role " + currentRole
-					+ ". Allowed: " + allowedParentRoles);
-		}
+		return false;
 	}
 
 }
