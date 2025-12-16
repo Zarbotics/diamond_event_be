@@ -11,9 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.util.ResponseMessage;
@@ -186,8 +186,29 @@ public class ControllerMenuItem {
 					e.getMessage(), null);
 		}
 	}
-	
-	
+
+	@PostMapping(value = "/getAllByRoleId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllByRoleId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+
+		LOGGER.info("Fetching valid parent MenuItems for role: {}", dtoSearch.getId());
+
+		try {
+			DtoResult dtoResult = service.getAllByRoleId(dtoSearch.getId());
+
+			if (dtoResult != null && dtoResult.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+						"Successfully fetched valid parent menu items", dtoResult.getResult());
+			}
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, dtoResult.getTxtMessage(), null);
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching valid parent MenuItems", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
+
 	@PostMapping(value = "/getAllRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllRoles(HttpServletRequest request) {
 		LOGGER.info("Fetching Menu Roles");

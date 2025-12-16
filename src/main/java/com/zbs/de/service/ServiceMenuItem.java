@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.model.dto.DtoResult;
 
 public interface ServiceMenuItem {
 	DtoMenuItem create(DtoMenuItem dto);
@@ -44,4 +45,6 @@ public interface ServiceMenuItem {
     List<DtoMenuItem> getValidParentsByRole(String role);
     
     List<DtoMenuItem> getAll();
+    
+    DtoResult getAllByRoleId(Integer id);
 }
