@@ -76,6 +76,7 @@ public class DtoCustomerMaster extends DtoBaseEntity {
 		this.address3 = address3;
 	}
 
+	
 	public String getTxtCustName() {
 		return txtCustName;
 	}
