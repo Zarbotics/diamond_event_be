@@ -28,6 +28,17 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 		LOGGER.info("Saving MenuItemRole DTO: {}", dto);
 		try {
 			MenuItemRole entity;
+			MenuItemRole parentRole = null;
+			if(dto.getParentMenuRoleId() != null) {
+				Optional<MenuItemRole> optionalParent = repository
+						.findBySerMenuItemRoleIdAndBlnIsDeletedFalse(dto.getParentMenuRoleId());
+				if(optionalParent != null && !optionalParent.isEmpty()) {
+					parentRole = optionalParent.get();
+				}else {
+					throw new RuntimeException("Parent Item Role not found");
+				}
+			}
+			
 
 			if (dto.getSerMenuItemRoleId() != null) {
 				Optional<MenuItemRole> optional = repository
@@ -37,6 +48,7 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 				}
 				entity = optional.get();
 				entity.setUpdatedDate(new Date());
+				entity.setBlnIsActive(dto.getBlnIsActive());
 			} else {
 				entity = new MenuItemRole();
 				entity.setBlnIsActive(true);
@@ -46,6 +58,8 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 
 			entity.setTxtRoleCode(dto.getTxtRoleCode());
 			entity.setTxtRoleName(dto.getTxtRoleName());
+			validateParent(entity, parentRole);
+			entity.setParentMenuItemRole(parentRole);
 			entity.setBlnIsCompositionRole(dto.getBlnIsCompositionRole());
 
 			MenuItemRole saved = repository.save(entity);
@@ -70,11 +84,25 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 		}
 	}
 
+	
+	@Override
+	public MenuItemRole getMenuItemRoleById(Integer id) {
+		LOGGER.info("Fetching MenuItemRole by ID: {}", id);
+		try {
+			MenuItemRole entity = repository.findBySerMenuItemRoleIdAndBlnIsDeletedFalse(id)
+					.orElseThrow(() -> new RuntimeException("Menu Item Role not found"));
+			return entity;
+		} catch (Exception e) {
+			LOGGER.error("Error fetching MenuItemRole", e);
+			throw new RuntimeException("Failed to fetch Menu Item Role: " + e.getMessage());
+		}
+	}
+	
 	@Override
 	public List<DtoMenuItemRole> getAllCompositionRoles() {
 		LOGGER.info("Fetching all composition roles");
 		try {
-			return repository.findByBlnIsCompositionRoleTrueAndBlnIsDeletedFalse().stream().map(this::toDto)
+			return repository.findByBlnIsCompositionRoleTrueAndBlnIsDeletedFalseOrderBySerMenuItemRoleIdDesc().stream().map(this::toDto)
 					.collect(Collectors.toList());
 		} catch (Exception e) {
 			LOGGER.error("Error fetching composition roles", e);
@@ -86,7 +114,7 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 	public List<DtoMenuItemRole> getAllMenuItemRoles() {
 		LOGGER.info("Fetching all composition roles");
 		try {
-			return repository.findByBlnIsCompositionRoleFalseAndBlnIsDeletedFalse().stream().map(this::toDto)
+			return repository.findByBlnIsCompositionRoleFalseAndBlnIsDeletedFalseOrderBySerMenuItemRoleIdDesc().stream().map(this::toDto)
 					.collect(Collectors.toList());
 		} catch (Exception e) {
 			LOGGER.error("Error fetching composition roles", e);
@@ -98,7 +126,7 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 	public List<DtoMenuItemRole> getAllActiveCompositionRoles() {
 		LOGGER.info("Fetching all active composition roles");
 		try {
-			return repository.findByBlnIsCompositionRoleTrueAndBlnIsActiveTrueAndBlnIsDeletedFalse().stream()
+			return repository.findByBlnIsCompositionRoleTrueAndBlnIsActiveTrueAndBlnIsDeletedFalseOrderBySerMenuItemRoleIdDesc().stream()
 					.map(this::toDto).collect(Collectors.toList());
 		} catch (Exception e) {
 			LOGGER.error("Error fetching active composition roles", e);
@@ -110,7 +138,7 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 	public List<DtoMenuItemRole> getAllActiveMenuItemRoles() {
 		LOGGER.info("Fetching all active composition roles");
 		try {
-			return repository.findByBlnIsCompositionRoleFalseAndBlnIsActiveTrueAndBlnIsDeletedFalse().stream()
+			return repository.findByBlnIsCompositionRoleFalseAndBlnIsActiveTrueAndBlnIsDeletedFalseOrderBySerMenuItemRoleIdDesc().stream()
 					.map(this::toDto).collect(Collectors.toList());
 		} catch (Exception e) {
 			LOGGER.error("Error fetching active composition roles", e);
@@ -122,7 +150,7 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 	public List<DtoMenuItemRole> getAllRoles() {
 		LOGGER.info("Fetching all MenuItemRoles");
 		try {
-			return repository.findByBlnIsDeletedFalse().stream().map(this::toDto).collect(Collectors.toList());
+			return repository.findByBlnIsDeletedFalseOrderBySerMenuItemRoleIdDesc().stream().map(this::toDto).collect(Collectors.toList());
 		} catch (Exception e) {
 			LOGGER.error("Error fetching MenuItemRoles", e);
 			throw new RuntimeException("Failed to fetch Menu Item Roles");
@@ -133,7 +161,7 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 	public List<DtoMenuItemRole> getAllActiveRoles() {
 		LOGGER.info("Fetching all active MenuItemRoles");
 		try {
-			return repository.findByBlnIsActiveTrueAndBlnIsDeletedFalse().stream().map(this::toDto)
+			return repository.findByBlnIsActiveTrueAndBlnIsDeletedFalseOrderBySerMenuItemRoleIdDesc().stream().map(this::toDto)
 					.collect(Collectors.toList());
 		} catch (Exception e) {
 			LOGGER.error("Error fetching active MenuItemRoles", e);
@@ -141,6 +169,52 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 		}
 	}
 
+	@Override
+	public List<DtoMenuItemRole> getRolesByParentRoleId(Integer parentRoleId) {
+		LOGGER.info("Fetching all composition roles");
+		try {
+			return repository.findByParentRoleId(parentRoleId).stream().map(this::toDto)
+					.collect(Collectors.toList());
+		} catch (Exception e) {
+			LOGGER.error("Error fetching child roles", e);
+			throw new RuntimeException("Failed to fetch composition roles");
+		}
+	}
+
+	@Override
+	public List<DtoMenuItemRole> getActiveRolesByParentRoleId(Integer parentRoleId) {
+		LOGGER.info("Fetching all composition roles");
+		try {
+			return repository.findActiveByParentRoleId(parentRoleId).stream().map(this::toDto)
+					.collect(Collectors.toList());
+		} catch (Exception e) {
+			LOGGER.error("Error fetching child roles", e);
+			throw new RuntimeException("Failed to fetch composition roles");
+		}
+	}
+
+	
+	private void validateParent(MenuItemRole entity, MenuItemRole parent) {
+	    if (parent == null) return;
+
+	    // Self reference check
+	    if (entity.getSerMenuItemRoleId() != null &&
+	        entity.getSerMenuItemRoleId().equals(parent.getSerMenuItemRoleId())) {
+	        throw new RuntimeException("A role cannot be parent of itself");
+	    }
+
+	    // Circular hierarchy check
+	    MenuItemRole current = parent;
+	    while (current != null) {
+	        if (current.getSerMenuItemRoleId() != null &&
+	            current.getSerMenuItemRoleId().equals(entity.getSerMenuItemRoleId())) {
+	            throw new RuntimeException("Circular parent-child relationship detected");
+	        }
+	        current = current.getParentMenuItemRole();
+	    }
+	}
+
+	
 	/*
 	 * ===================== Mapping =====================
 	 */
@@ -151,6 +225,10 @@ public class ServiceMenuItemRoleImpl implements ServiceMenuItemRole {
 		dto.setTxtRoleCode(entity.getTxtRoleCode());
 		dto.setTxtRoleName(entity.getTxtRoleName());
 		dto.setBlnIsCompositionRole(entity.getBlnIsCompositionRole());
+		dto.setBlnIsActive(entity.getBlnIsActive());
+		if(entity.getParentMenuItemRole() != null) {
+			dto.setParentMenuRoleId(entity.getParentMenuItemRole().getSerMenuItemRoleId());
+		}
 		return dto;
 	}
 }
