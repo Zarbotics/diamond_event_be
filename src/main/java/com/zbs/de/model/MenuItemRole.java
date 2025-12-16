@@ -1,10 +1,14 @@
 package com.zbs.de.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 
@@ -26,6 +30,11 @@ public class MenuItemRole extends BaseEntity {
 
 	@Column(name = "bln_is_component_role")
 	private Boolean blnIsCompositionRole;
+
+	@ManyToOne
+	@JoinColumn(name = "parent_menu_role_id")
+	@JsonIgnore
+	private MenuItemRole parentMenuItemRole;
 
 	public Integer getSerMenuItemRoleId() {
 		return serMenuItemRoleId;
@@ -58,4 +67,13 @@ public class MenuItemRole extends BaseEntity {
 	public void setBlnIsCompositionRole(Boolean blnIsCompositionRole) {
 		this.blnIsCompositionRole = blnIsCompositionRole;
 	}
+
+	public MenuItemRole getParentMenuItemRole() {
+		return parentMenuItemRole;
+	}
+
+	public void setParentMenuItemRole(MenuItemRole parentMenuItemRole) {
+		this.parentMenuItemRole = parentMenuItemRole;
+	}
+
 }

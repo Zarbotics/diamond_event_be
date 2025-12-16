@@ -8,7 +8,10 @@ public class DtoMenuItem {
 	private String txtName;
 	private String txtShortName;
 	private String txtDescription;
+	
 	private String txtRole;
+	private Integer serMenuItemRoleId;
+	
 	private String txtType;
 	private Long parentId;
 	private Integer numDisplayOrder;
@@ -145,4 +148,13 @@ public class DtoMenuItem {
 		this.txtType = txtType;
 	}
 
+	public Integer getSerMenuItemRoleId() {
+		return serMenuItemRoleId;
+	}
+
+	public void setSerMenuItemRoleId(Integer serMenuItemRoleId) {
+		this.serMenuItemRoleId = serMenuItemRoleId;
+	}
+
+	
 }

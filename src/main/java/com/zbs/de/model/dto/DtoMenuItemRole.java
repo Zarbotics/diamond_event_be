@@ -5,6 +5,8 @@ public class DtoMenuItemRole {
 	private String txtRoleCode;
 	private String txtRoleName;
 	private Boolean blnIsCompositionRole;
+	private Boolean blnIsActive;
+	private Integer parentMenuRoleId;
 
 	public DtoMenuItemRole() {
 		super();
@@ -12,12 +14,14 @@ public class DtoMenuItemRole {
 	}
 
 	public DtoMenuItemRole(Integer serMenuItemRoleId, String txtRoleCode, String txtRoleName,
-			Boolean blnIsCompositionRole) {
+			Boolean blnIsCompositionRole, Integer parentMenuRoleId,Boolean blnIsActive) {
 		super();
 		this.serMenuItemRoleId = serMenuItemRoleId;
 		this.txtRoleCode = txtRoleCode;
 		this.txtRoleName = txtRoleName;
 		this.blnIsCompositionRole = blnIsCompositionRole;
+		this.parentMenuRoleId = parentMenuRoleId;
+		this.blnIsActive = blnIsActive;
 	}
 
 	public Integer getSerMenuItemRoleId() {
@@ -51,5 +55,22 @@ public class DtoMenuItemRole {
 	public void setBlnIsCompositionRole(Boolean blnIsCompositionRole) {
 		this.blnIsCompositionRole = blnIsCompositionRole;
 	}
+
+	public Integer getParentMenuRoleId() {
+		return parentMenuRoleId;
+	}
+
+	public void setParentMenuRoleId(Integer parentMenuRoleId) {
+		this.parentMenuRoleId = parentMenuRoleId;
+	}
+
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
+	}
+	
 
 }
