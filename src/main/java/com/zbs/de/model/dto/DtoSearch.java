@@ -33,6 +33,8 @@ public class DtoSearch {
 	/** The id. */
 	private Integer id;
 
+	private Long idL;
+
 	private Integer id1;
 
 	private Integer id2;
@@ -248,6 +250,14 @@ public class DtoSearch {
 
 	public void setId2(Integer id2) {
 		this.id2 = id2;
+	}
+
+	public Long getIdL() {
+		return idL;
+	}
+
+	public void setIdL(Long idL) {
+		this.idL = idL;
 	}
 
 }

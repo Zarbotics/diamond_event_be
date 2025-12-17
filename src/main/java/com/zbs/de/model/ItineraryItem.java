@@ -15,14 +15,15 @@ public class ItineraryItem extends BaseEntity {
 	@Column(name = "ser_itinerary_item_id")
 	private Long serItineraryItemId;
 
-	@Column(name = "txt_code", unique = true)
+	@Column(name = "txt_code")
 	private String txtCode;
 
 	@Column(name = "txt_name")
 	private String txtName;
 
-	@Column(name = "txt_item_type")
-	private String txtItemType; // PLATE, SPOON, GLASS, BOWL, FORK, KNIFE, SERVING_PLATTER
+	@ManyToOne
+	@JoinColumn(name = "ser_itinerary_item_type_id")
+	private ItineraryItemType itineraryItemType;
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "metadata", columnDefinition = "jsonb")
@@ -56,14 +57,6 @@ public class ItineraryItem extends BaseEntity {
 		this.txtName = txtName;
 	}
 
-	public String getTxtItemType() {
-		return txtItemType;
-	}
-
-	public void setTxtItemType(String txtItemType) {
-		this.txtItemType = txtItemType;
-	}
-
 	public Map<String, Object> getMetadata() {
 		return metadata;
 	}
@@ -71,5 +64,14 @@ public class ItineraryItem extends BaseEntity {
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
 	}
+
+	public ItineraryItemType getItineraryItemType() {
+		return itineraryItemType;
+	}
+
+	public void setItineraryItemType(ItineraryItemType itineraryItemType) {
+		this.itineraryItemType = itineraryItemType;
+	}
+	
 
 }
