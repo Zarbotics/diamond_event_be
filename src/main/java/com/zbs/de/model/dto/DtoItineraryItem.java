@@ -7,6 +7,7 @@ public class DtoItineraryItem {
 	private String txtCode;
 	private String txtName;
 	private String txtItemType;
+	private Boolean blnIsActive;
 	private Map<String, Object> metadata;
 
 	public DtoItineraryItem() {
@@ -15,13 +16,14 @@ public class DtoItineraryItem {
 	}
 
 	public DtoItineraryItem(Long serItineraryItemId, String txtCode, String txtName, String txtItemType,
-			Map<String, Object> metadata) {
+			Boolean blnIsActive, Map<String, Object> metadata) {
 		super();
 		this.serItineraryItemId = serItineraryItemId;
 		this.txtCode = txtCode;
 		this.txtName = txtName;
 		this.txtItemType = txtItemType;
 		this.metadata = metadata;
+		this.blnIsActive = blnIsActive;
 	}
 
 	public Long getSerItineraryItemId() {
@@ -62,6 +64,14 @@ public class DtoItineraryItem {
 
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
+	}
+
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
 	}
 
 }
