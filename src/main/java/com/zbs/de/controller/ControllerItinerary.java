@@ -2,6 +2,8 @@ package com.zbs.de.controller;
 
 import com.zbs.de.model.dto.DtoItineraryItem;
 import com.zbs.de.model.dto.DtoMenuItemItineraryMap;
+import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceItineraryItem;
 import com.zbs.de.service.ServiceMenuItemItineraryMap;
 import com.zbs.de.util.ResponseMessage;
@@ -19,7 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin/itinerary")
-@CrossOrigin(origins = "*") // adjust for your environment
+@CrossOrigin(origins = "") // adjust for your environment
 public class ControllerItinerary {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerItinerary.class);
@@ -30,40 +32,155 @@ public class ControllerItinerary {
 	@Autowired
 	private ServiceMenuItemItineraryMap mapService;
 
-	@PostMapping(value = "/item/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage createItem(@RequestBody DtoItineraryItem dto, HttpServletRequest request) {
+	// -------------------------------------------------------------
+	// CREATE
+	// -------------------------------------------------------------
+	@PostMapping(value = "/item/save", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage save(@RequestBody DtoItineraryItem dto, HttpServletRequest request) {
 		try {
-			LOGGER.info("Creating Itinerary Item: {}", dto);
-			DtoItineraryItem created = itemService.create(dto);
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Created", created);
+			LOGGER.info("Saving Itinerary Item: {}", dto);
+			DtoResult result = itemService.create(dto);
+			if (result.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			}
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, result.getTxtMessage(),
+					null);
 		} catch (Exception e) {
-			LOGGER.error("Failed to create Itinerary Item", e);
-			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to create", dto);
+			LOGGER.error("Error saving Itinerary Item", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to save Itinerary Item: " + e.getMessage(), null);
 		}
 	}
 
+	// -------------------------------------------------------------
+	// UPDATE
+	// -------------------------------------------------------------
 	@PostMapping(value = "/item/update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage updateItem(@RequestBody DtoItineraryItem dto, HttpServletRequest request) {
+	public ResponseMessage update(@RequestBody DtoItineraryItem dto, HttpServletRequest request) {
 		try {
-			LOGGER.info("Creating Itinerary Item: {}", dto);
-			DtoItineraryItem updated = itemService.update(dto.getSerItineraryItemId(), dto);
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Update", updated);
+			LOGGER.info("Updating Itinerary Item: {}", dto);
+			DtoResult result = itemService.update(dto);
+			if (result.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			}
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, result.getTxtMessage(),
+					null);
 		} catch (Exception e) {
-			LOGGER.error("Failed to create Itinerary Item", e);
-			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to update", dto);
+			LOGGER.error("Error updating Itinerary Item", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to update Itinerary Item: " + e.getMessage(), null);
 		}
 	}
 
-	@GetMapping(value = "/item/getAll", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage items(HttpServletRequest request) {
+	// -------------------------------------------------------------
+	// FETCH ALL
+	// -------------------------------------------------------------
+	@PostMapping(value = "/item/getAll", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAll(HttpServletRequest request) {
 		try {
 			LOGGER.info("Fetching all Itinerary Items");
-			List<DtoItineraryItem> list = itemService.getAll();
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "OK", list);
+			DtoResult result = itemService.getAll();
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+					result.getResult());
 		} catch (Exception e) {
-			LOGGER.error("Failed to fetch Itinerary Items", e);
+			LOGGER.error("Error fetching all Itinerary Items", e);
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to fetch", null);
+					"Failed to fetch all Itinerary Items: " + e.getMessage(), null);
+		}
+	}
+
+	// -------------------------------------------------------------
+	// FETCH ALL ACTIVE
+	// -------------------------------------------------------------
+	@PostMapping(value = "/item/getAllActive", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActive(HttpServletRequest request) {
+		try {
+			LOGGER.info("Fetching all active Itinerary Items");
+			DtoResult result = itemService.getAllActive();
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+					result.getResult());
+		} catch (Exception e) {
+			LOGGER.error("Error fetching active Itinerary Items", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to fetch active Itinerary Items: " + e.getMessage(), null);
+		}
+	}
+
+	// -------------------------------------------------------------
+	// FETCH BY ID
+	// -------------------------------------------------------------
+	@PostMapping(value = "/item/getById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getById(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		try {
+			LOGGER.info("Fetching Itinerary Item by ID: {}", dtoSearch.getIdL());
+			DtoResult result = itemService.getById(dtoSearch.getIdL());
+			if (result.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			}
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, result.getTxtMessage(),
+					null);
+		} catch (Exception e) {
+			LOGGER.error("Error fetching Itinerary Item by ID", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to fetch Itinerary Item: " + e.getMessage(), null);
+		}
+	}
+
+	// -------------------------------------------------------------
+	// GENERATE NEXT CODE
+	// -------------------------------------------------------------
+	@PostMapping(value = "/item/generateCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateCode(HttpServletRequest request) {
+		try {
+			LOGGER.info("Generating next Itinerary Item Code");
+			DtoResult result = itemService.generateNextCode();
+			if (result.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			}
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					result.getTxtMessage(), null);
+		} catch (Exception e) {
+			LOGGER.error("Error generating next code", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to generate next code: " + e.getMessage(), null);
+		}
+	}
+
+	// -------------------------------------------------------------
+	// FETCH ACTIVE ITEMS BY TYPE
+	// -------------------------------------------------------------
+	@PostMapping(value = "/item/getAllActiveByType", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveByType(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		try {
+			LOGGER.info("Fetching all active Itinerary Items by Type ID: {}", dtoSearch.getId());
+			DtoResult result = itemService.getAllActiveItineraryItemsByType(dtoSearch.getId());
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+					result.getResult());
+		} catch (Exception e) {
+			LOGGER.error("Error fetching active items by type", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to fetch active items by type: " + e.getMessage(), null);
+		}
+	}
+
+	// -------------------------------------------------------------
+	// FETCH ALL ITEMS BY TYPE
+	// -------------------------------------------------------------
+	@PostMapping(value = "/item/getAllByType", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllByType(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		try {
+			LOGGER.info("Fetching all Itinerary Items by Type ID: {}", dtoSearch.getId());
+			DtoResult result = itemService.getAllItineraryItemsByType(dtoSearch.getId());
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+					result.getResult());
+		} catch (Exception e) {
+			LOGGER.error("Error fetching items by type", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to fetch items by type: " + e.getMessage(), null);
 		}
 	}
 

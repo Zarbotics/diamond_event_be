@@ -3,7 +3,6 @@ package com.zbs.de.service.impl;
 import com.zbs.de.model.PricingRule;
 import com.zbs.de.model.dto.DtoPricingRule;
 import com.zbs.de.model.PriceVersion;
-import com.zbs.de.controller.ControllerDashboard;
 import com.zbs.de.mapper.MapperPricingRule;
 import com.zbs.de.repository.RepositoryPricingRule;
 import com.zbs.de.repository.RepositoryPriceVersion;

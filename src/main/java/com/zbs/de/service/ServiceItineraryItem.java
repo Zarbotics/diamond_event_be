@@ -1,17 +1,26 @@
 package com.zbs.de.service;
 
+import com.zbs.de.model.ItineraryItem;
 import com.zbs.de.model.dto.DtoItineraryItem;
-
-import java.util.List;
+import com.zbs.de.model.dto.DtoResult;
 
 public interface ServiceItineraryItem {
-	DtoItineraryItem create(DtoItineraryItem dto);
 
-	DtoItineraryItem update(Long id, DtoItineraryItem dto);
+	DtoResult create(DtoItineraryItem dto);
 
-	DtoItineraryItem getById(Long id);
+	DtoResult update(DtoItineraryItem dto);
 
-	List<DtoItineraryItem> getAll();
+	DtoResult getById(Long id);
 
-	void delete(Long id);
+	ItineraryItem getItineraryItemById(Long id);
+
+	DtoResult getAll();
+
+	DtoResult getAllActive();
+
+	DtoResult generateNextCode();
+
+	DtoResult getAllActiveItineraryItemsByType(Integer typeId);
+
+	DtoResult getAllItineraryItemsByType(Integer typeId);
 }

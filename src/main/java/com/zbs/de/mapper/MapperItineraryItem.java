@@ -15,7 +15,11 @@ public class MapperItineraryItem {
 		dto.setSerItineraryItemId(entity.getSerItineraryItemId());
 		dto.setTxtCode(entity.getTxtCode());
 		dto.setTxtName(entity.getTxtName());
-		dto.setTxtItemType(entity.getTxtItemType());
+		if (entity.getItineraryItemType() != null) {
+			dto.setSerItineraryItemTypeId(entity.getItineraryItemType().getSerItineraryItemTypeId());
+			dto.setTxtItineraryItemCode(entity.getItineraryItemType().getTxtCode());
+			dto.setTxtItineraryItemName(entity.getItineraryItemType().getTxtName());
+		}
 		dto.setMetadata(entity.getMetadata() != null ? new HashMap<>(entity.getMetadata()) : null);
 
 		return dto;
@@ -29,7 +33,6 @@ public class MapperItineraryItem {
 		entity.setSerItineraryItemId(dto.getSerItineraryItemId());
 		entity.setTxtCode(dto.getTxtCode());
 		entity.setTxtName(dto.getTxtName());
-		entity.setTxtItemType(dto.getTxtItemType());
 		entity.setMetadata(dto.getMetadata() != null ? new HashMap<>(dto.getMetadata()) : null);
 
 		return entity;

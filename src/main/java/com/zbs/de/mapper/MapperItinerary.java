@@ -15,7 +15,12 @@ public class MapperItinerary {
 		dto.setSerItineraryItemId(entity.getSerItineraryItemId());
 		dto.setTxtCode(entity.getTxtCode());
 		dto.setTxtName(entity.getTxtName());
-		dto.setTxtItemType(entity.getTxtItemType());
+		dto.setBlnIsActive(entity.getBlnIsActive());
+		if (entity.getItineraryItemType() != null) {
+			dto.setSerItineraryItemTypeId(entity.getItineraryItemType().getSerItineraryItemTypeId());
+			dto.setTxtItineraryItemCode(entity.getItineraryItemType().getTxtCode());
+			dto.setTxtItineraryItemName(entity.getItineraryItemType().getTxtName());
+		}
 		dto.setMetadata(entity.getMetadata() != null ? new HashMap<>(entity.getMetadata()) : null);
 		return dto;
 	}
@@ -26,9 +31,9 @@ public class MapperItinerary {
 
 		ItineraryItem entity = new ItineraryItem();
 		entity.setSerItineraryItemId(dto.getSerItineraryItemId()); // usually ID is
-		// ignored on create entity.setTxtCode(dto.getTxtCode());
+		entity.setTxtCode(dto.getTxtCode());
 		entity.setTxtName(dto.getTxtName());
-		entity.setTxtItemType(dto.getTxtItemType());
+		entity.setBlnIsActive(dto.getBlnIsActive());
 		entity.setMetadata(dto.getMetadata() != null ? new HashMap<>(dto.getMetadata()) : null);
 		return entity;
 	}
