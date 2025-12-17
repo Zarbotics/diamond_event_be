@@ -6,7 +6,10 @@ public class DtoItineraryItem {
 	private Long serItineraryItemId;
 	private String txtCode;
 	private String txtName;
-	private String txtItemType;
+	private Integer serItineraryItemTypeId;
+	private String txtItineraryItemCode;
+	private String txtItineraryItemName;
+	private Boolean blnIsActive;
 	private Map<String, Object> metadata;
 
 	public DtoItineraryItem() {
@@ -14,14 +17,28 @@ public class DtoItineraryItem {
 		// TODO Auto-generated constructor stub
 	}
 
-	public DtoItineraryItem(Long serItineraryItemId, String txtCode, String txtName, String txtItemType,
+	public DtoItineraryItem(Long serItineraryItemId, String txtCode, String txtName, Integer serItineraryItemTypeId,
+			String txtItineraryItemCode, String txtItineraryItemName, Boolean blnIsActive,
 			Map<String, Object> metadata) {
 		super();
 		this.serItineraryItemId = serItineraryItemId;
 		this.txtCode = txtCode;
 		this.txtName = txtName;
-		this.txtItemType = txtItemType;
+		this.serItineraryItemTypeId = serItineraryItemTypeId;
+		this.txtItineraryItemCode = txtItineraryItemCode;
+		this.txtItineraryItemName = txtItineraryItemName;
+		this.blnIsActive = blnIsActive;
 		this.metadata = metadata;
+	}
+
+	public DtoItineraryItem(Long serItineraryItemId, String txtCode, String txtName, String txtItemType,
+			Boolean blnIsActive, Map<String, Object> metadata) {
+		super();
+		this.serItineraryItemId = serItineraryItemId;
+		this.txtCode = txtCode;
+		this.txtName = txtName;
+		this.metadata = metadata;
+		this.blnIsActive = blnIsActive;
 	}
 
 	public Long getSerItineraryItemId() {
@@ -48,20 +65,44 @@ public class DtoItineraryItem {
 		this.txtName = txtName;
 	}
 
-	public String getTxtItemType() {
-		return txtItemType;
-	}
-
-	public void setTxtItemType(String txtItemType) {
-		this.txtItemType = txtItemType;
-	}
-
 	public Map<String, Object> getMetadata() {
 		return metadata;
 	}
 
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
+	}
+
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
+	}
+
+	public Integer getSerItineraryItemTypeId() {
+		return serItineraryItemTypeId;
+	}
+
+	public void setSerItineraryItemTypeId(Integer serItineraryItemTypeId) {
+		this.serItineraryItemTypeId = serItineraryItemTypeId;
+	}
+
+	public String getTxtItineraryItemCode() {
+		return txtItineraryItemCode;
+	}
+
+	public void setTxtItineraryItemCode(String txtItineraryItemCode) {
+		this.txtItineraryItemCode = txtItineraryItemCode;
+	}
+
+	public String getTxtItineraryItemName() {
+		return txtItineraryItemName;
+	}
+
+	public void setTxtItineraryItemName(String txtItineraryItemName) {
+		this.txtItineraryItemName = txtItineraryItemName;
 	}
 
 }
