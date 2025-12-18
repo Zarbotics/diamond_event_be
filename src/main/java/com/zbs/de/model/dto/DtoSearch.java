@@ -53,6 +53,7 @@ public class DtoSearch {
 	private List<String> messages;
 
 	private List<Integer> listIds;
+	private List<Long> listIdLs;
 
 	private String fileHeaderName;
 
@@ -258,6 +259,14 @@ public class DtoSearch {
 
 	public void setIdL(Long idL) {
 		this.idL = idL;
+	}
+
+	public List<Long> getListIdLs() {
+		return listIdLs;
+	}
+
+	public void setListIdLs(List<Long> listIdLs) {
+		this.listIdLs = listIdLs;
 	}
 
 }
