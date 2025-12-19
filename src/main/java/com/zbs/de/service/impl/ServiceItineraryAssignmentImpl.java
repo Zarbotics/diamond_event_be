@@ -2,6 +2,7 @@ package com.zbs.de.service.impl;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +34,7 @@ import com.zbs.de.repository.RepositoryMenuItem;
 import com.zbs.de.service.ServiceItineraryAssignment;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.enums.EnmItineraryUnitType;
+import com.zbs.de.util.enums.EnmMenuItemRole;
 
 @Service
 @Transactional
@@ -819,5 +821,12 @@ public class ServiceItineraryAssignmentImpl implements ServiceItineraryAssignmen
 		assignment.setNumTotalItineraries(detailDtos.size());
 		repository.save(assignment);
 	}
+	
+	@Override
+	public List<String> getAllItineraryUnits() {
+		List<String> roles = Arrays.stream(EnmItineraryUnitType.values()).map(Enum::name).toList();
+		return roles;
+	}
+
 
 }

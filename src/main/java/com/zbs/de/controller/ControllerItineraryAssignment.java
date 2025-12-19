@@ -315,4 +315,20 @@ public class ControllerItineraryAssignment {
 					"Failed to generate assignment code: " + e.getMessage(), null);
 		}
 	}
+	
+	// -------------------------------------------------------------
+	// GENERATE ASSIGNMENT CODE
+	// -------------------------------------------------------------
+	@PostMapping(value = "/getAllItineraryUnits", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllItineraryUnits(HttpServletRequest request) {
+		try {
+			LOGGER.info("Generating assignment code");
+			List<String> units= service.getAllItineraryUnits();
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Code generated successfully", units);
+		} catch (Exception e) {
+			LOGGER.error("Error generating assignment code", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to generate assignment code: " + e.getMessage(), null);
+		}
+	}
 }
