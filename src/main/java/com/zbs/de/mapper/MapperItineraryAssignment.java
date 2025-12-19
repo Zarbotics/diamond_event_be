@@ -30,6 +30,10 @@ public class MapperItineraryAssignment {
 		dto.setMenuItemCode(entity.getMenuItem().getTxtCode());
 		dto.setMenuItemName(entity.getMenuItem().getTxtName());
 
+		if(entity.getMenuItem() != null && entity.getMenuItem().getMenuItemRole() != null) {
+			dto.setSerMenuItemRoleId(entity.getMenuItem().getMenuItemRole().getSerMenuItemRoleId());
+			dto.setTxtRoleCode(entity.getMenuItem().getMenuItemRole().getTxtRoleCode());
+		}
 //		// Fetch and convert details
 //		List<ItineraryAssignmentDetail> details = detailRepository
 //				.findByItineraryAssignment_SerItineraryAssignmentIdAndBlnIsDeletedFalseOrderByNumDisplayOrderAsc(

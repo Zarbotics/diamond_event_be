@@ -10,6 +10,8 @@ public class DtoItineraryAssignment {
 
 	private Long serItineraryAssignmentId;
 	private Long serMenuItemId;
+	private Integer serMenuItemRoleId;
+	private String txtRoleCode;
 	private String txtAssignmentName;
 	private String txtAssignmentCode; // Auto-generated: IIA-1001
 	private String txtDescription;
@@ -31,6 +33,31 @@ public class DtoItineraryAssignment {
 
 	// Constructors
 	public DtoItineraryAssignment() {
+	}
+
+	public DtoItineraryAssignment(Long serItineraryAssignmentId, Long serMenuItemId, Integer serMenuItemRoleId,
+			String txtRoleCode, String txtAssignmentName, String txtAssignmentCode, String txtDescription,
+			Integer numTotalItineraries, String dteValidFrom, String dteValidTo, Integer numPriority,
+			Boolean blnIsActive, Boolean blnIsApproved, Map<String, Object> metadata,
+			List<DtoItineraryAssignmentDetail> details, String menuItemCode, String menuItemName) {
+		super();
+		this.serItineraryAssignmentId = serItineraryAssignmentId;
+		this.serMenuItemId = serMenuItemId;
+		this.serMenuItemRoleId = serMenuItemRoleId;
+		this.txtRoleCode = txtRoleCode;
+		this.txtAssignmentName = txtAssignmentName;
+		this.txtAssignmentCode = txtAssignmentCode;
+		this.txtDescription = txtDescription;
+		this.numTotalItineraries = numTotalItineraries;
+		this.dteValidFrom = dteValidFrom;
+		this.dteValidTo = dteValidTo;
+		this.numPriority = numPriority;
+		this.blnIsActive = blnIsActive;
+		this.blnIsApproved = blnIsApproved;
+		this.metadata = metadata;
+		this.details = details;
+		this.menuItemCode = menuItemCode;
+		this.menuItemName = menuItemName;
 	}
 
 	public DtoItineraryAssignment(Long serItineraryAssignmentId, String txtAssignmentCode, String txtAssignmentName,
@@ -164,4 +191,21 @@ public class DtoItineraryAssignment {
 	public void setMenuItemName(String menuItemName) {
 		this.menuItemName = menuItemName;
 	}
+
+	public Integer getSerMenuItemRoleId() {
+		return serMenuItemRoleId;
+	}
+
+	public void setSerMenuItemRoleId(Integer serMenuItemRoleId) {
+		this.serMenuItemRoleId = serMenuItemRoleId;
+	}
+
+	public String getTxtRoleCode() {
+		return txtRoleCode;
+	}
+
+	public void setTxtRoleCode(String txtRoleCode) {
+		this.txtRoleCode = txtRoleCode;
+	}
+
 }
