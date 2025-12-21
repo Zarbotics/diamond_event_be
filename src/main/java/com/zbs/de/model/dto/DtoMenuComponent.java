@@ -5,11 +5,17 @@ import java.util.Map;
 public class DtoMenuComponent {
 	private Long serComponentId;
 	private Long parentMenuItemId;
+	private String parentMenuItemName;
+	private String parentMenuItemCode;
 	private Long childMenuItemId;
+	private String childMenuItemName;
+	private String childMenuItemCode;
 	private String txtComponentKind; // INCLUDED|SELECTION|OPTIONAL|GROUP
+	private String txtDisplayName;
 	private Integer numSelectionMin;
 	private Integer numSelectionMax;
 	private Integer numSequenceOrder;
+	private Boolean blnIsActive;
 	private Map<String, Object> metadata;
 
 	public DtoMenuComponent() {
@@ -92,6 +98,54 @@ public class DtoMenuComponent {
 
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
+	}
+
+	public String getParentMenuItemName() {
+		return parentMenuItemName;
+	}
+
+	public void setParentMenuItemName(String parentMenuItemName) {
+		this.parentMenuItemName = parentMenuItemName;
+	}
+
+	public String getParentMenuItemCode() {
+		return parentMenuItemCode;
+	}
+
+	public void setParentMenuItemCode(String parentMenuItemCode) {
+		this.parentMenuItemCode = parentMenuItemCode;
+	}
+
+	public String getChildMenuItemName() {
+		return childMenuItemName;
+	}
+
+	public void setChildMenuItemName(String childMenuItemName) {
+		this.childMenuItemName = childMenuItemName;
+	}
+
+	public String getChildMenuItemCode() {
+		return childMenuItemCode;
+	}
+
+	public void setChildMenuItemCode(String childMenuItemCode) {
+		this.childMenuItemCode = childMenuItemCode;
+	}
+
+	public String getTxtDisplayName() {
+		return txtDisplayName;
+	}
+
+	public void setTxtDisplayName(String txtDisplayName) {
+		this.txtDisplayName = txtDisplayName;
+	}
+
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
 	}
 
 }

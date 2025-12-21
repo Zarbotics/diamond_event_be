@@ -33,11 +33,16 @@ public class DtoSearch {
 	/** The id. */
 	private Integer id;
 
-	private Long idL;
-
 	private Integer id1;
 
 	private Integer id2;
+
+	/** The Long Id. */
+	private Long idL;
+
+	private Long idL1;
+
+	private Long idL2;
 
 	/** The ids. */
 	private List<String> ids;
@@ -61,6 +66,7 @@ public class DtoSearch {
 	private List<Integer> itemIds;
 
 	private boolean inActiveItems;
+	private boolean blnFlag;
 
 	private String fromDate;
 	private String toDate;
@@ -267,6 +273,30 @@ public class DtoSearch {
 
 	public void setListIdLs(List<Long> listIdLs) {
 		this.listIdLs = listIdLs;
+	}
+
+	public Long getIdL1() {
+		return idL1;
+	}
+
+	public void setIdL1(Long idL1) {
+		this.idL1 = idL1;
+	}
+
+	public Long getIdL2() {
+		return idL2;
+	}
+
+	public void setIdL2(Long idL2) {
+		this.idL2 = idL2;
+	}
+
+	public boolean isBlnFlag() {
+		return blnFlag;
+	}
+
+	public void setBlnFlag(boolean blnFlag) {
+		this.blnFlag = blnFlag;
 	}
 
 }

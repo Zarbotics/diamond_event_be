@@ -3,13 +3,37 @@ package com.zbs.de.service;
 import java.util.List;
 
 import com.zbs.de.model.dto.DtoMenuComponent;
+import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.DtoSelectionGroupRequest;
 
 public interface ServiceMenuComponent {
-	DtoMenuComponent create(DtoMenuComponent dto);
 
-	DtoMenuComponent update(Long id, DtoMenuComponent dto);
+	DtoResult createComponent(DtoMenuComponent request);
 
-	void delete(Long id);
+	DtoResult updateComponent(DtoMenuComponent dto);
 
-	List<DtoMenuComponent> findByParent(Long parentMenuItemId);
+	DtoResult deleteComponent(Long componentId);
+
+	DtoResult getComponentById(Long componentId);
+
+	// Group operations
+	DtoResult createSelectionGroup(DtoSelectionGroupRequest request);
+
+	DtoResult deleteComponentsByParent(Long parentMenuItemId);
+
+	DtoResult deleteComponentsByParentAndDisplayName(Long parentMenuItemId, String displayName);
+
+	// Queries
+	DtoResult getComponentsByMenuItem(Long menuItemId);
+
+	DtoResult getActiveComponentsByMenuItem(Long menuItemId);
+
+	DtoResult getComponentsGrouped(Long menuItemId);
+
+	DtoResult getMenuItemWithComponents(Long menuItemId);
+
+	// Bulk operations
+	DtoResult updateComponentSequence(List<Long> componentIds); // Reorder
+
+	DtoResult copyComponents(Long sourceMenuItemId, Long targetMenuItemId);
 }

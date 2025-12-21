@@ -30,6 +30,9 @@ public class MenuComponent extends BaseEntity {
 	@Column(name = "txt_component_kind")
 	private String txtComponentKind; // INCLUDED|SELECTION|OPTIONAL|GROUP
 
+	@Column(name = "txt_display_name")
+	private String txtDisplayName;
+
 	@Column(name = "num_selection_min")
 	private Integer numSelectionMin;
 
@@ -109,6 +112,14 @@ public class MenuComponent extends BaseEntity {
 
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
+	}
+
+	public String getTxtDisplayName() {
+		return txtDisplayName;
+	}
+
+	public void setTxtDisplayName(String txtDisplayName) {
+		this.txtDisplayName = txtDisplayName;
 	}
 
 }

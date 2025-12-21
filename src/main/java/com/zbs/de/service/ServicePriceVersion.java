@@ -1,19 +1,46 @@
 package com.zbs.de.service;
 
-import java.util.List;
+import java.util.Date;
 
 import com.zbs.de.model.dto.DtoPriceVersion;
+import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.PriceVersion;
 
 public interface ServicePriceVersion {
-	DtoPriceVersion create(DtoPriceVersion dto);
 
-	DtoPriceVersion update(Long id, DtoPriceVersion dto);
+	// CRUD Operations
+	DtoResult create(DtoPriceVersion dto);
 
-	void delete(Long id);
+	DtoResult update(DtoPriceVersion dto);
 
-	DtoPriceVersion getById(Long id);
+	DtoResult delete(Long id);
 
-	List<DtoPriceVersion> listAll();
+	DtoResult getById(Long id);
 
-	DtoPriceVersion publish(Long id);
+	DtoResult getAll();
+
+	DtoResult getAllActive();
+
+	DtoResult getDefault();
+
+	// Special Operations
+	DtoResult activate(Long id);
+
+	DtoResult deactivate(Long id);
+
+	DtoResult setAsDefault(Long id);
+
+	DtoResult duplicate(Long sourceId, String newName);
+
+	// Query Operations
+	DtoResult getActiveForDate(Date date);
+
+	DtoResult getByCode(String versionCode);
+
+	// Helper Methods
+	PriceVersion getPriceVersionEntityById(Long id);
+
+	String generateVersionCode();
+
+	PriceVersion getActivePriceVersionForDate(Date date);
 }
