@@ -389,4 +389,17 @@ public class ServicePriceVersionImpl implements ServicePriceVersion {
 			throw new RuntimeException("Failed to get active price version: " + e.getMessage());
 		}
 	}
+	
+	@Override
+	public String generatePriceVersionCode() {
+		try {
+			Optional<Long> maxCodeNumber = repository.findMaxVersionCodeNumber();
+			long nextNumber = maxCodeNumber.orElse(100L) + 1;
+			return String.format("MPV-%03d", nextNumber);
+		} catch (Exception e) {
+			LOGGER.error("Error generating assignment code", e);
+			// Fallback: use timestamp
+			return "MPV-" + System.currentTimeMillis() % 1000;
+		}
+	}
 }

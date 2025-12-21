@@ -18,7 +18,8 @@ import com.zbs.de.util.ResponseMessage;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/price-version")
+@RequestMapping("/menu/price-version")
+@CrossOrigin(origins = "")
 public class ControllerPriceVersion {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerPriceVersion.class);
@@ -260,4 +261,20 @@ public class ControllerPriceVersion {
 					"Failed to fetch Price Version: " + e.getMessage(), null);
 		}
 	}
+	
+	// -------------------------------------------------------------
+		// GENERATE ASSIGNMENT CODE
+		// -------------------------------------------------------------
+		@PostMapping(value = "/generateCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseMessage generateCode(HttpServletRequest request) {
+			try {
+				LOGGER.info("Generating assignment code");
+				String code = service.generatePriceVersionCode();
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Code generated successfully", code);
+			} catch (Exception e) {
+				LOGGER.error("Error generating assignment code", e);
+				return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+						"Failed to generate assignment code: " + e.getMessage(), null);
+			}
+		}
 }

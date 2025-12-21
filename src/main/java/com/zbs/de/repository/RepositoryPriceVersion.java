@@ -33,6 +33,6 @@ public interface RepositoryPriceVersion extends JpaRepository<PriceVersion, Long
 	List<PriceVersion> findActiveForDate(@Param("date") Date date);
 
 	// Get max version code number
-	@Query("SELECT MAX(CAST(SUBSTRING(pv.txtVersionCode, 4) AS long)) FROM PriceVersion pv WHERE pv.txtVersionCode LIKE 'PV-%'")
+	@Query("SELECT MAX(CAST(SUBSTRING(pv.txtVersionCode, 5) AS long)) FROM PriceVersion pv WHERE pv.txtVersionCode LIKE 'MPV-%'")
 	Optional<Long> findMaxVersionCodeNumber();
 }

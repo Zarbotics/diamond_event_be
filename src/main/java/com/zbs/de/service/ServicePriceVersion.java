@@ -43,4 +43,6 @@ public interface ServicePriceVersion {
 	String generateVersionCode();
 
 	PriceVersion getActivePriceVersionForDate(Date date);
+	
+	String generatePriceVersionCode();
 }
