@@ -74,9 +74,9 @@ public class ServiceMenuComponentImpl implements ServiceMenuComponent {
 				List<MenuComponent> existingComponents = repository.findByParentAndRole(request.getParentMenuItemId(),
 						group.getSerComponenetKindRoleId());
 
-				Map<Long, MenuComponent> existingChildMap = existingComponents.stream()
-						.filter(c -> c.getChildMenuItem() != null)
-						.collect(Collectors.toMap(c -> c.getChildMenuItem().getSerMenuItemId(), c -> c));
+//				Map<Long, MenuComponent> existingChildMap = existingComponents.stream()
+//						.filter(c -> c.getChildMenuItem() != null)
+//						.collect(Collectors.toMap(c -> c.getChildMenuItem().getSerMenuItemId(), c -> c));
 
 				// Process each item in the group
 				int itemOrder = 1;
@@ -84,13 +84,13 @@ public class ServiceMenuComponentImpl implements ServiceMenuComponent {
 					MenuComponent component;
 
 					// Check if this child item already exists in this group
-					if (itemDto.getSerMenuItemId() != null
-							&& existingChildMap.containsKey(itemDto.getSerMenuItemId())) {
-						// Update existing component
-						component = existingChildMap.get(itemDto.getSerMenuItemId());
-						component.setUpdatedDate(new Date());
-						LOGGER.debug("Updating existing component for item: {}", itemDto.getSerMenuItemId());
-					} else {
+//					if (itemDto.getSerMenuItemId() != null
+//							&& existingChildMap.containsKey(itemDto.getSerMenuItemId())) {
+//						// Update existing component
+//						component = existingChildMap.get(itemDto.getSerMenuItemId());
+//						component.setUpdatedDate(new Date());
+//						LOGGER.debug("Updating existing component for item: {}", itemDto.getSerMenuItemId());
+//					} else {
 						// Create new component
 						component = new MenuComponent();
 						component.setBlnIsDeleted(false);
@@ -114,7 +114,7 @@ public class ServiceMenuComponentImpl implements ServiceMenuComponent {
 						}
 
 						LOGGER.debug("Creating new component for item in group: {}", group.getTxtDisplayName());
-					}
+//					}
 
 					// Set component properties
 					component.setComponenetKindRole(componentRole);
@@ -131,20 +131,20 @@ public class ServiceMenuComponentImpl implements ServiceMenuComponent {
 					MenuComponent savedComponent = repository.save(component);
 					allSavedComponents.add(MapperMenuComponent.toDto(savedComponent));
 
-					// Remove from existing map to track processed items
-					if (itemDto.getSerMenuItemId() != null) {
-						existingChildMap.remove(itemDto.getSerMenuItemId());
-					}
+//					// Remove from existing map to track processed items
+//					if (itemDto.getSerMenuItemId() != null) {
+//						existingChildMap.remove(itemDto.getSerMenuItemId());
+//					}
 				}
 
 				// Delete components for items that were removed from this group
-				for (MenuComponent componentToDelete : existingChildMap.values()) {
-					LOGGER.info("Soft deleting component for removed item: {}",
-							componentToDelete.getChildMenuItem().getSerMenuItemId());
-					componentToDelete.setBlnIsDeleted(true);
-					componentToDelete.setUpdatedDate(new Date());
-					repository.save(componentToDelete);
-				}
+//				for (MenuComponent componentToDelete : existingChildMap.values()) {
+//					LOGGER.info("Soft deleting component for removed item: {}",
+//							componentToDelete.getChildMenuItem().getSerMenuItemId());
+//					componentToDelete.setBlnIsDeleted(true);
+//					componentToDelete.setUpdatedDate(new Date());
+//					repository.save(componentToDelete);
+//				}
 			}
 
 			// Handle groups that were completely removed
