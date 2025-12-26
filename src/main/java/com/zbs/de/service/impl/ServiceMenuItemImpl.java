@@ -50,13 +50,13 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 	@Autowired
 	private RepositoryMenuComponent componentRepo;
-	
+
 	@Autowired
 	private ServiceMenuItemRole serivceMenuItemRole;
 
 	@Autowired
 	private ObjectMapper objectMapper;
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceMenuItemImpl.class);
 
 	private long autoCodeCounter = 1000;
@@ -66,18 +66,16 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	public DtoMenuItem create(DtoMenuItem dto) {
 		MenuItem entity = MapperMenuItem.toEntity(dto);
 
-		
 		MenuItemRole menuItemRole = serivceMenuItemRole.getMenuItemRoleById(dto.getSerMenuItemRoleId());
-		if(menuItemRole == null) {
+		if (menuItemRole == null) {
 			throw new IllegalArgumentException("Invalid menu role");
 		}
-
 
 		// parent handling
 		if (dto.getParentId() != null) {
 			MenuItem parent = repo.findById(dto.getParentId())
 					.orElseThrow(() -> new NotFoundException("Parent not found"));
-			validateParentRole(menuItemRole, parent!= null ? parent.getMenuItemRole() : null);
+			validateParentRole(menuItemRole, parent != null ? parent.getMenuItemRole() : null);
 			entity.setParent(parent);
 			entity.setTxtPath(treeUtil.computeChildPath(parent.getTxtPath(), entity.getTxtCode()));
 		} else {
@@ -150,9 +148,9 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 //		if (currentRole == null) {
 //			throw new IllegalArgumentException("Invalid menu role");
 //		}
-		
+
 		MenuItemRole currentRole = serivceMenuItemRole.getMenuItemRoleById(dto.getSerMenuItemRoleId());
-		if(currentRole == null) {
+		if (currentRole == null) {
 			throw new IllegalArgumentException("Invalid menu role");
 		}
 
@@ -162,14 +160,14 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 		MenuItem newParent = null;
 		if (newParentId != null) {
-			 newParent = repo.getByMenuItemId(newParentId).map(p -> {
+			newParent = repo.getByMenuItemId(newParentId).map(p -> {
 				p.getTxtCode(); // force init
 				return p;
 			}).orElseThrow(() -> new NotFoundException("Parent not found"));
 		}
 
 		// 🔴 VALIDATE ROLE ↔ PARENT (MANDATORY)
-		validateParentRole(currentRole, newParent!= null ? newParent.getMenuItemRole() : null);
+		validateParentRole(currentRole, newParent != null ? newParent.getMenuItemRole() : null);
 		exist.setMenuItemRole(currentRole);
 
 		// ---- PATH UPDATE ----
@@ -731,7 +729,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 		return false;
 	}
-	
+
 	@Override
 	public DtoResult getAllByRoleId(Integer id) {
 		try {
@@ -747,7 +745,43 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 			LOGGER.debug(e.getMessage(), e);
 			return new DtoResult(e.getMessage(), null, null, null);
 		}
-		
+
+	}
+
+	@Override
+	public DtoResult getAllActiveCompositeItems() {
+		try {
+			List<MenuItem> items = repo.findAllActiveCompositeItems();
+			if (items != null && !items.isEmpty()) {
+
+				List<DtoMenuItem> dtoMenuItems = items.stream().map(MapperMenuItem::toDto).collect(Collectors.toList());
+				return new DtoResult("Composite Items Fetched Successfully.", null, dtoMenuItems, null);
+			} else {
+				return new DtoResult("No Composite Items Found Against This Role In Database", null, null, null);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new DtoResult(e.getMessage(), null, null, null);
+		}
+
+	}
+
+	@Override
+	public DtoResult getAllActive() {
+		try {
+			List<MenuItem> items = repo.getAllActiveMenuItems();
+			if (items != null && !items.isEmpty()) {
+
+				List<DtoMenuItem> dtoMenuItems = items.stream().map(MapperMenuItem::toDto).collect(Collectors.toList());
+				return new DtoResult("Active Items Fetched Successfully.", null, dtoMenuItems, null);
+			} else {
+				return new DtoResult("No Active Items Found Against This Role In Database", null, null, null);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new DtoResult(e.getMessage(), null, null, null);
+		}
+
 	}
 
 }

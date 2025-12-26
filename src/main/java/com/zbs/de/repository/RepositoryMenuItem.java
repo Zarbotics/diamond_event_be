@@ -10,8 +10,8 @@ import java.util.Optional;
 
 public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	@Query("SELECT e FROM MenuItem e WHERE  e.serMenuItemId = :id AND e.blnIsDeleted = false")
-	Optional<MenuItem>  getByMenuItemId(@Param("id") Long id);
-	
+	Optional<MenuItem> getByMenuItemId(@Param("id") Long id);
+
 	List<MenuItem> findByTxtRole(String role);
 
 	List<MenuItem> findByTxtType(String txtType);
@@ -21,7 +21,7 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 
 	@Query(value = "select * from menu_item where parent_menu_item_id = ?1", nativeQuery = true)
 	List<MenuItem> findByParentId(Long parentId);
-	
+
 	MenuItem findByTxtCode(String txtCode);
 
 	@Query("""
@@ -32,9 +32,18 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 			    LIMIT 1
 			""")
 	String findMaxCodeByPrefix(@Param("prefix") String prefix);
-	 
+
 	List<MenuItem> findByTxtRoleAndBlnIsDeletedFalse(String txtRole);
-	
+
 	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND e.blnIsDeleted = false")
-	List<MenuItem>  getAllItemsByRoleId(@Param("id") Integer id);
+	List<MenuItem> getAllItemsByRoleId(@Param("id") Integer id);
+
+	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsComposite = true AND mi.blnIsDeleted = false ORDER BY mi.txtName")
+	List<MenuItem> findAllCompositeItems();
+
+	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsComposite = true AND mi.blnIsDeleted = false AND mi.blnIsActive = true ORDER BY mi.txtName")
+	List<MenuItem> findAllActiveCompositeItems();
+
+	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsDeleted = false AND mi.blnIsActive = true ORDER BY mi.serMenuItemId desc")
+	List<MenuItem> getAllActiveMenuItems();
 }

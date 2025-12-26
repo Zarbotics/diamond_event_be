@@ -98,7 +98,7 @@ public class ControllerMenuItem {
 					e.getMessage(), null);
 		}
 	}
-	
+
 	@PostMapping(value = "/getAll", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAll(HttpServletRequest request) {
 		LOGGER.info("Fetching MenuItem Tree");
@@ -144,7 +144,8 @@ public class ControllerMenuItem {
 	}
 
 	@PostMapping(path = "/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<DtoMenuCsvImportResult> importCsv(@RequestPart("file") MultipartFile file, HttpServletRequest request) {
+	public ResponseEntity<DtoMenuCsvImportResult> importCsv(@RequestPart("file") MultipartFile file,
+			HttpServletRequest request) {
 		DtoMenuCsvImportResult result = service.importCsv(file);
 		return ResponseEntity.ok(result);
 	}
@@ -163,7 +164,7 @@ public class ControllerMenuItem {
 					"Failed to generate code.", null);
 		}
 	}
-	
+
 	@PostMapping(value = "/getValidParentsByRole", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getValidParentsByRole(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 
@@ -221,6 +222,49 @@ public class ControllerMenuItem {
 					"Failed to fetch menu roles", null);
 		}
 	}
-	
+
+	@PostMapping(value = "/getAllActiveCompositeItems", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllCompositeItems(HttpServletRequest request) {
+
+		LOGGER.info("Fetching all composite Items");
+
+		try {
+			DtoResult dtoResult = service.getAllActiveCompositeItems();
+
+			if (dtoResult != null && dtoResult.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+						"Successfully fetched all composite Items", dtoResult.getResult());
+			}
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, dtoResult.getTxtMessage(), null);
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching all composite Items", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
+
+	@PostMapping(value = "/getAllActive", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActive(HttpServletRequest request) {
+
+		LOGGER.info("Fetching all active Items");
+
+		try {
+			DtoResult dtoResult = service.getAllActive();
+
+			if (dtoResult != null && dtoResult.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+						"Successfully fetched all active Items", dtoResult.getResult());
+			}
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, dtoResult.getTxtMessage(), null);
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching all active Items", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
 
 }

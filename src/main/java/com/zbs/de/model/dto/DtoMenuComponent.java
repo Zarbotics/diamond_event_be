@@ -7,7 +7,7 @@ public class DtoMenuComponent {
 	private Long serComponentId;
 	private Long parentMenuItemId;
 	private Long childMenuItemId;
-	private Integer serComponenetKindRoleId;; // Component kind role (INCLUDED|SELECTION|OPTIONAL|GROUP)
+	private Integer serComponenetKindRoleId; // Component kind role (INCLUDED|SELECTION|OPTIONAL|GROUP)
 	private String txtComponenetKindRoleCode;
 	private String txtComponenetKindRoleName;
 	private String txtDisplayName;
