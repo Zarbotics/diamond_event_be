@@ -1,525 +1,372 @@
 package com.zbs.de.service.impl;
 
-import com.zbs.de.mapper.MapperMenuItem;
-import com.zbs.de.model.MenuComponent;
-import com.zbs.de.model.MenuItem;
-import com.zbs.de.model.dto.DtoMenuComponent;
-import com.zbs.de.model.dto.DtoMenuItem;
-import com.zbs.de.model.dto.DtoComponentGroup;
-import com.zbs.de.model.dto.DtoMenuItemWithComponents;
-import com.zbs.de.model.dto.DtoResult;
-import com.zbs.de.model.dto.DtoSelectionGroupRequest;
-import com.zbs.de.repository.RepositoryMenuComponent;
-import com.zbs.de.repository.RepositoryMenuItem;
-import com.zbs.de.service.ServiceMenuComponent;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zbs.de.mapper.MapperMenuComponent;
+import com.zbs.de.mapper.MapperMenuItem;
+import com.zbs.de.model.MenuComponent;
+import com.zbs.de.model.MenuItem;
+import com.zbs.de.model.MenuItemRole;
+import com.zbs.de.model.dto.DtoMenuComponent;
+import com.zbs.de.model.dto.DtoMenuComponentRequest;
+import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.model.dto.DtoMenuItemRole;
+import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.repository.RepositoryMenuComponent;
+import com.zbs.de.repository.RepositoryMenuItem;
+import com.zbs.de.service.ServiceMenuComponent;
+import com.zbs.de.service.ServiceMenuItemRole;
+
 @Service
 public class ServiceMenuComponentImpl implements ServiceMenuComponent {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceMenuComponentImpl.class);
 
 	@Autowired
 	private RepositoryMenuComponent repository;
 
 	@Autowired
-	private RepositoryMenuItem menuItemRepository;
+	private RepositoryMenuItem repositoryMenuItem;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceMenuItemImpl.class);
+	@Autowired
+	private ServiceMenuItemRole serviceMenuItemRole;
 
 	@Override
-	public DtoResult createComponent(DtoMenuComponent request) {
+	@Transactional
+	public DtoResult saveOrUpdateComponents(DtoMenuComponentRequest request) {
+		LOGGER.info("Saving/Updating components for parent menu item: {}", request.getParentMenuItemId());
+
+		DtoResult result = new DtoResult();
+
 		try {
-			// Validate parent
-			MenuItem parent = menuItemRepository.findById(request.getParentMenuItemId()).orElseThrow(
-					() -> new RuntimeException("Parent menu item not found with ID: " + request.getParentMenuItemId()));
-
-			// Mark parent as composite if not already
-			if (parent.getBlnIsComposite() == null || !parent.getBlnIsComposite()) {
-				parent.setBlnIsComposite(true);
-				menuItemRepository.save(parent);
-			}
-
-			// Create component
-			MenuComponent component = new MenuComponent();
-			component.setParentMenuItem(parent);
-			component.setTxtComponentKind(request.getTxtComponentKind());
-			component.setTxtDisplayName(request.getTxtDisplayName());
-			component.setNumSelectionMin(request.getNumSelectionMin());
-			component.setNumSelectionMax(request.getNumSelectionMax());
-
-			// Set sequence order if not provided
-			if (request.getNumSequenceOrder() == null) {
-				Integer maxOrder = repository.findMaxSequenceOrderByParentId(parent.getSerMenuItemId());
-				component.setNumSequenceOrder(maxOrder + 1);
+			// Validate parent menu item exists
+			MenuItem parentMenuItem = null;
+			Optional<MenuItem> optParentMenuItem = repositoryMenuItem.getByMenuItemId(request.getParentMenuItemId());
+			if (optParentMenuItem == null || optParentMenuItem.isEmpty()) {
+				return new DtoResult("Parent menu item not found", null, null, null);
 			} else {
-				component.setNumSequenceOrder(request.getNumSequenceOrder());
+				parentMenuItem = optParentMenuItem.get();
 			}
 
-			// Set child if provided
-			if (request.getChildMenuItemId() != null) {
-				MenuItem child = menuItemRepository.findById(request.getChildMenuItemId())
-						.orElseThrow(() -> new RuntimeException(
-								"Child menu item not found with ID: " + request.getChildMenuItemId()));
-				component.setChildMenuItem(child);
-			}
+			// Track all saved components
+			List<DtoMenuComponent> allSavedComponents = new ArrayList<>();
 
-			// Set default active status
-			component.setBlnIsActive(true);
-			component.setBlnIsDeleted(false);
+			// Process each group
+			for (DtoMenuComponent group : request.getComponents()) {
+				// Validate component kind role exists
+				MenuItemRole componentRole = serviceMenuItemRole
+						.getMenuItemRoleById(group.getSerComponenetKindRoleId());
 
-			// Save
-			repository.save(component);
+				// Get existing components for this parent and role
+				List<MenuComponent> existingComponents = repository.findByParentAndRole(request.getParentMenuItemId(),
+						group.getSerComponenetKindRoleId());
 
-			return new DtoResult("Component created successfully.", null, convertToDto(component), null);
+				Map<Long, MenuComponent> existingChildMap = existingComponents.stream()
+						.filter(c -> c.getChildMenuItem() != null)
+						.collect(Collectors.toMap(c -> c.getChildMenuItem().getSerMenuItemId(), c -> c));
 
-		} catch (Exception e) {
-			LOGGER.error("Error creating menu component", e);
-			return new DtoResult("Failed to create component: " + e.getMessage(), null, null, null);
-		}
-	}
+				// Process each item in the group
+				int itemOrder = 1;
+				for (DtoMenuItem itemDto : group.getComponentItems()) {
+					MenuComponent component;
 
-	@Override
-	public DtoResult createSelectionGroup(DtoSelectionGroupRequest request) {
-		try {
-			// Validate parent
-			MenuItem parent = menuItemRepository.findById(request.getParentMenuItemId()).orElseThrow(
-					() -> new RuntimeException("Parent menu item not found with ID: " + request.getParentMenuItemId()));
+					// Check if this child item already exists in this group
+					if (itemDto.getSerMenuItemId() != null
+							&& existingChildMap.containsKey(itemDto.getSerMenuItemId())) {
+						// Update existing component
+						component = existingChildMap.get(itemDto.getSerMenuItemId());
+						component.setUpdatedDate(new Date());
+						LOGGER.debug("Updating existing component for item: {}", itemDto.getSerMenuItemId());
+					} else {
+						// Create new component
+						component = new MenuComponent();
+						component.setBlnIsDeleted(false);
+						component.setBlnIsActive(true);
+						component.setBlnIsApproved(true);
+						component.setCreatedDate(new Date());
+						component.setParentMenuItem(parentMenuItem);
 
-			// Mark parent as composite
-			if (request.getMarkAsComposite() != null && request.getMarkAsComposite()) {
-				parent.setBlnIsComposite(true);
-				menuItemRepository.save(parent);
-			}
+						// Set child menu item if provided
+						if (itemDto.getSerMenuItemId() != null) {
+							MenuItem childItem = null;
+							Optional<MenuItem> optChildItem = repositoryMenuItem
+									.getByMenuItemId(itemDto.getSerMenuItemId());
+							if (optChildItem == null || optChildItem.isEmpty()) {
+								return new DtoResult("Child menu item not found: " + itemDto.getSerMenuItemId(), null,
+										null, null);
+							} else {
+								childItem = optChildItem.get();
+							}
+							component.setChildMenuItem(childItem);
+						}
 
-			// Validate menu items
-			if (request.getMenuItemIds() == null || request.getMenuItemIds().isEmpty()) {
-				return new DtoResult("Menu item IDs list is empty.", null, null, null);
-			}
+						LOGGER.debug("Creating new component for item in group: {}", group.getTxtDisplayName());
+					}
 
-			// Get current max sequence order
-			Integer currentMaxOrder = repository.findMaxSequenceOrderByParentId(parent.getSerMenuItemId());
-			int sequenceOrder = request.getStartSequenceOrder() != null ? request.getStartSequenceOrder()
-					: (currentMaxOrder != null ? currentMaxOrder + 1 : 1);
+					// Set component properties
+					component.setComponenetKindRole(componentRole);
+					component.setTxtDisplayName(group.getTxtDisplayName());
+					component.setNumSelectionMin(group.getNumSelectionMin());
+					component.setNumSelectionMax(group.getNumSelectionMax());
+					component
+							.setNumSequenceOrder(group.getNumSequenceOrder() != null ? group.getNumSequenceOrder() : 0);
 
-			List<DtoMenuComponent> createdComponents = new ArrayList<>();
+					// Set item-specific sequence order
+					component.setNumSequenceOrder(itemOrder++);
 
-			// Create components for each item
-			for (Long itemId : request.getMenuItemIds()) {
-				MenuItem child = menuItemRepository.findById(itemId)
-						.orElseThrow(() -> new RuntimeException("Menu item not found with ID: " + itemId));
+					// Save component
+					MenuComponent savedComponent = repository.save(component);
+					allSavedComponents.add(MapperMenuComponent.toDto(savedComponent));
 
-				// Check if component already exists
-				Optional<MenuComponent> existing = repository.findByParentAndChild(parent.getSerMenuItemId(),
-						child.getSerMenuItemId());
-
-				if (existing.isPresent()) {
-					LOGGER.warn("Component already exists for parent {} and child {}", parent.getSerMenuItemId(),
-							child.getSerMenuItemId());
-					continue;
+					// Remove from existing map to track processed items
+					if (itemDto.getSerMenuItemId() != null) {
+						existingChildMap.remove(itemDto.getSerMenuItemId());
+					}
 				}
 
-				// Create new component
-				MenuComponent component = new MenuComponent();
-				component.setParentMenuItem(parent);
-				component.setChildMenuItem(child);
-				component.setTxtComponentKind(request.getTxtComponentKind());
-				component.setTxtDisplayName(request.getGroupDisplayName());
-				component.setNumSelectionMin(request.getNumSelectionMin());
-				component.setNumSelectionMax(request.getNumSelectionMax());
-				component.setNumSequenceOrder(sequenceOrder++);
-				component.setBlnIsActive(true);
-				component.setBlnIsDeleted(false);
-
-				repository.save(component);
-				createdComponents.add(convertToDto(component));
+				// Delete components for items that were removed from this group
+				for (MenuComponent componentToDelete : existingChildMap.values()) {
+					LOGGER.info("Soft deleting component for removed item: {}",
+							componentToDelete.getChildMenuItem().getSerMenuItemId());
+					componentToDelete.setBlnIsDeleted(true);
+					componentToDelete.setUpdatedDate(new Date());
+					repository.save(componentToDelete);
+				}
 			}
 
-			String message = String.format("Selection group created with %d items.", createdComponents.size());
-			return new DtoResult(message, null, createdComponents, null);
+			// Handle groups that were completely removed
+			List<MenuItemRole> remainingRoles = request.getComponents().stream()
+					.map(g -> serviceMenuItemRole.getMenuItemRoleById(g.getSerComponenetKindRoleId()))
+					.collect(Collectors.toList());
+
+			List<MenuComponent> allExistingComponents = repository
+					.findByParentMenuItemId(request.getParentMenuItemId());
+			for (MenuComponent existingComponent : allExistingComponents) {
+				if (existingComponent.getComponenetKindRole() != null
+						&& !remainingRoles.contains(existingComponent.getComponenetKindRole())
+						&& !existingComponent.getBlnIsDeleted()) {
+					LOGGER.info("Soft deleting component for removed group: {}",
+							existingComponent.getComponenetKindRole().getTxtRoleName());
+					existingComponent.setBlnIsDeleted(true);
+					existingComponent.setUpdatedDate(new Date());
+					repository.save(existingComponent);
+				}
+			}
+
+			result.setTxtMessage("Components saved successfully");
+			result.setResult(allSavedComponents);
 
 		} catch (Exception e) {
-			LOGGER.error("Error creating selection group", e);
-			return new DtoResult("Failed to create selection group: " + e.getMessage(), null, null, null);
+			LOGGER.error("Error saving components", e);
+			throw new RuntimeException("Failed to save components: " + e.getMessage());
 		}
+
+		return result;
 	}
 
 	@Override
-	public DtoResult updateComponent(DtoMenuComponent dto) {
+	public List<DtoMenuComponent> getComponentsByParentId(Long parentMenuItemId) {
+		LOGGER.info("Fetching components grouped by kind for parent: {}", parentMenuItemId);
+
 		try {
-			MenuComponent component = repository.findById(dto.getSerComponentId()).orElseThrow(
-					() -> new RuntimeException("Menu component not found with ID: " + dto.getSerComponentId()));
+			// Get distinct component kinds for this parent
+			List<MenuItemRole> componentKinds = repository.findDistinctComponentKindsByParent(parentMenuItemId);
 
-			if (Boolean.TRUE.equals(component.getBlnIsDeleted())) {
-				return new DtoResult("Component is deleted and cannot be updated.", null, null, null);
+			List<DtoMenuComponent> groups = new ArrayList<>();
+
+			for (MenuItemRole role : componentKinds) {
+				// Get all components for this parent and role
+				List<MenuComponent> components = repository.findByParentAndRole(parentMenuItemId,
+						role.getSerMenuItemRoleId());
+
+				if (!components.isEmpty()) {
+					DtoMenuComponent group = new DtoMenuComponent();
+					group.setSerComponenetKindRoleId(role.getSerMenuItemRoleId());
+
+					// Use display name from first component (should be same for all in group)
+					if (components.get(0).getTxtDisplayName() != null) {
+						group.setTxtDisplayName(components.get(0).getTxtDisplayName());
+					} else {
+						group.setTxtDisplayName(role.getTxtRoleName());
+					}
+
+					// Use selection limits from first component
+					group.setNumSelectionMin(components.get(0).getNumSelectionMin());
+					group.setNumSelectionMax(components.get(0).getNumSelectionMax());
+					group.setNumSequenceOrder(components.get(0).getNumSequenceOrder());
+
+					// Map child items
+					List<DtoMenuItem> items = components.stream().filter(c -> c.getChildMenuItem() != null)
+							.map(MenuComponent::getChildMenuItem).map(MapperMenuItem::toDto)
+							.collect(Collectors.toList());
+
+					group.setComponentItems(items);
+					groups.add(group);
+				}
 			}
 
-			// Update fields
-			if (dto.getTxtComponentKind() != null) {
-				component.setTxtComponentKind(dto.getTxtComponentKind());
-			}
+			// Sort groups by sequence order
+			groups.sort((g1, g2) -> {
+				Integer order1 = g1.getNumSequenceOrder() != null ? g1.getNumSequenceOrder() : 0;
+				Integer order2 = g2.getNumSequenceOrder() != null ? g2.getNumSequenceOrder() : 0;
+				return order1.compareTo(order2);
+			});
 
-			if (dto.getTxtDisplayName() != null) {
-				component.setTxtDisplayName(dto.getTxtDisplayName());
-			}
-
-			if (dto.getNumSelectionMin() != null) {
-				component.setNumSelectionMin(dto.getNumSelectionMin());
-			}
-
-			if (dto.getNumSelectionMax() != null) {
-				component.setNumSelectionMax(dto.getNumSelectionMax());
-			}
-
-			if (dto.getNumSequenceOrder() != null) {
-				component.setNumSequenceOrder(dto.getNumSequenceOrder());
-			}
-
-			if (dto.getBlnIsActive() != null) {
-				component.setBlnIsActive(dto.getBlnIsActive());
-			}
-
-			repository.save(component);
-
-			return new DtoResult("Component updated successfully.", null, convertToDto(component), null);
+			return groups;
 
 		} catch (Exception e) {
-			LOGGER.error("Error updating menu component", e);
-			return new DtoResult("Failed to update component: " + e.getMessage(), null, null, null);
+			LOGGER.error("Error fetching components", e);
+			throw new RuntimeException("Failed to fetch components: " + e.getMessage());
 		}
 	}
 
 	@Override
 	public DtoResult deleteComponent(Long componentId) {
+		// Same as before
+		LOGGER.info("Deleting component: {}", componentId);
+
+		DtoResult result = new DtoResult();
+
 		try {
 			MenuComponent component = repository.findById(componentId)
-					.orElseThrow(() -> new RuntimeException("Menu component not found with ID: " + componentId));
-
-			if (Boolean.TRUE.equals(component.getBlnIsDeleted())) {
-				return new DtoResult("Component is already deleted.", null, null, null);
-			}
+					.orElseThrow(() -> new RuntimeException("Component not found"));
 
 			component.setBlnIsDeleted(true);
-			component.setBlnIsActive(false);
+			component.setUpdatedDate(new Date());
 			repository.save(component);
 
-			// Check if parent still has components
-			Long parentId = component.getParentMenuItem().getSerMenuItemId();
-			Integer remainingCount = repository.countByParentMenuItemId(parentId);
-
-			if (remainingCount == 0) {
-				MenuItem parent = component.getParentMenuItem();
-				parent.setBlnIsComposite(false);
-				menuItemRepository.save(parent);
-			}
-
-			return new DtoResult("Component deleted successfully.", null, null, null);
+			result.setTxtMessage("Component deleted successfully");
+			result.setResult(true);
 
 		} catch (Exception e) {
-			LOGGER.error("Error deleting menu component", e);
-			return new DtoResult("Failed to delete component: " + e.getMessage(), null, null, null);
+			LOGGER.error("Error deleting component", e);
+			throw new RuntimeException("Failed to delete component: " + e.getMessage());
 		}
+
+		return result;
 	}
 
 	@Override
-	public DtoResult deleteComponentsByParent(Long parentMenuItemId) {
-		try {
-			List<MenuComponent> components = repository.findByParentMenuItem_SerMenuItemId(parentMenuItemId);
+	public DtoResult deleteComponentsByGroup(Long parentMenuItemId, Integer roleId) {
+		LOGGER.info("Deleting all components for parent: {} and role: {}", parentMenuItemId, roleId);
 
-			if (components.isEmpty()) {
-				return new DtoResult("No components found for this menu item.", null, null, null);
-			}
+		DtoResult result = new DtoResult();
+
+		try {
+			List<MenuComponent> components = repository.findByParentAndRole(parentMenuItemId, roleId);
 
 			for (MenuComponent component : components) {
 				component.setBlnIsDeleted(true);
-				component.setBlnIsActive(false);
+				component.setUpdatedDate(new Date());
 				repository.save(component);
 			}
 
-			// Update parent composite flag
-			MenuItem parent = menuItemRepository.findById(parentMenuItemId).orElse(null);
-			if (parent != null) {
-				parent.setBlnIsComposite(false);
-				menuItemRepository.save(parent);
-			}
-
-			return new DtoResult("Deleted " + components.size() + " components.", null, null, null);
+			result.setTxtMessage("Group components deleted successfully");
+			result.setResult(components.size());
 
 		} catch (Exception e) {
-			LOGGER.error("Error deleting components by parent", e);
-			return new DtoResult("Failed to delete components: " + e.getMessage(), null, null, null);
+			LOGGER.error("Error deleting group components", e);
+			throw new RuntimeException("Failed to delete group components: " + e.getMessage());
+		}
+
+		return result;
+	}
+
+	@Override
+	public List<DtoMenuItemRole> getAvailableComponentRoles() {
+		LOGGER.info("Fetching available component roles");
+
+		try {
+			return serviceMenuItemRole.getAllActiveCompositionRoles();
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching component roles", e);
+			throw new RuntimeException("Failed to fetch component roles: " + e.getMessage());
 		}
 	}
 
 	@Override
-	public DtoResult deleteComponentsByParentAndDisplayName(Long parentMenuItemId, String displayName) {
+	public List<DtoMenuItemRole> getUsedComponentRoles(Long parentMenuItemId) {
+		LOGGER.info("Fetching used component roles for parent: {}", parentMenuItemId);
+
 		try {
-			List<MenuComponent> components = repository
-					.findByParentMenuItem_SerMenuItemIdAndTxtDisplayName(parentMenuItemId, displayName);
-
-			if (components.isEmpty()) {
-				return new DtoResult("No components found with this display name.", null, null, null);
-			}
-
-			for (MenuComponent component : components) {
-				component.setBlnIsDeleted(true);
-				component.setBlnIsActive(false);
-				repository.save(component);
-			}
-
-			return new DtoResult("Deleted " + components.size() + " components.", null, null, null);
+			List<MenuItemRole> roles = repository.findDistinctComponentKindsByParent(parentMenuItemId);
+			return roles.stream().map(this::toRoleDto).collect(Collectors.toList());
 
 		} catch (Exception e) {
-			LOGGER.error("Error deleting components by display name", e);
-			return new DtoResult("Failed to delete components: " + e.getMessage(), null, null, null);
+			LOGGER.error("Error fetching used component roles", e);
+			throw new RuntimeException("Failed to fetch used component roles: " + e.getMessage());
 		}
 	}
 
 	@Override
-	public DtoResult getComponentById(Long componentId) {
-		try {
-			MenuComponent component = repository.findById(componentId)
-					.orElseThrow(() -> new RuntimeException("Menu component not found with ID: " + componentId));
+	public Map<String, Object> validateComponentGroup(DtoMenuComponent group) {
+		Map<String, Object> validationResult = new HashMap<>();
+		List<String> errors = new ArrayList<>();
 
-			if (Boolean.TRUE.equals(component.getBlnIsDeleted())) {
-				return new DtoResult("Component is deleted.", null, null, null);
+		// Validate role
+		if (group.getSerComponenetKindRoleId() == null) {
+			errors.add("Component role is required");
+		}
+
+		// Validate display name
+		if (group.getTxtDisplayName() == null || group.getTxtDisplayName().trim().isEmpty()) {
+			errors.add("Display name is required");
+		}
+
+		// Validate selection range
+		if (group.getNumSelectionMin() != null && group.getNumSelectionMax() != null) {
+			if (group.getNumSelectionMin() > group.getNumSelectionMax()) {
+				errors.add("Minimum selection cannot be greater than maximum selection");
 			}
-
-			return new DtoResult("Fetched successfully.", null, convertToDto(component), null);
-
-		} catch (Exception e) {
-			LOGGER.error("Error fetching menu component", e);
-			return new DtoResult("Failed to fetch component: " + e.getMessage(), null, null, null);
-		}
-	}
-
-	@Override
-	public DtoResult getComponentsByMenuItem(Long menuItemId) {
-		try {
-			List<MenuComponent> components = repository
-					.findByParentMenuItem_SerMenuItemIdOrderByNumSequenceOrderAsc(menuItemId);
-
-			List<DtoMenuComponent> dtos = components.stream().filter(c -> !Boolean.TRUE.equals(c.getBlnIsDeleted()))
-					.map(this::convertToDto).collect(Collectors.toList());
-
-			return new DtoResult("Fetched successfully.", null, dtos, null);
-
-		} catch (Exception e) {
-			LOGGER.error("Error fetching components by menu item", e);
-			return new DtoResult("Failed to fetch components: " + e.getMessage(), null, null, null);
-		}
-	}
-
-	@Override
-	public DtoResult getActiveComponentsByMenuItem(Long menuItemId) {
-		try {
-			List<MenuComponent> components = repository
-					.findByParentMenuItem_SerMenuItemIdAndBlnIsActiveTrueAndBlnIsDeletedFalseOrderByNumSequenceOrderAsc(
-							menuItemId);
-
-			List<DtoMenuComponent> dtos = components.stream().map(this::convertToDto).collect(Collectors.toList());
-
-			return new DtoResult("Fetched successfully.", null, dtos, null);
-
-		} catch (Exception e) {
-			LOGGER.error("Error fetching active components", e);
-			return new DtoResult("Failed to fetch active components: " + e.getMessage(), null, null, null);
-		}
-	}
-
-	@Override
-	public DtoResult getComponentsGrouped(Long menuItemId) {
-		try {
-			List<MenuComponent> components = repository
-					.findByParentMenuItem_SerMenuItemIdAndBlnIsActiveTrueAndBlnIsDeletedFalseOrderByNumSequenceOrderAsc(
-							menuItemId);
-
-			// Group by display name
-			Map<String, List<DtoMenuComponent>> grouped = components.stream().map(this::convertToDto)
-					.collect(Collectors.groupingBy(
-							dto -> dto.getTxtDisplayName() != null ? dto.getTxtDisplayName() : "Unnamed Group",
-							LinkedHashMap::new, // Preserve order
-							Collectors.toList()));
-
-			return new DtoResult("Fetched successfully.", null, grouped, null);
-
-		} catch (Exception e) {
-			LOGGER.error("Error fetching grouped components", e);
-			return new DtoResult("Failed to fetch grouped components: " + e.getMessage(), null, null, null);
-		}
-	}
-
-	@Override
-	public DtoResult getMenuItemWithComponents(Long menuItemId) {
-		try {
-			// Get the menu item
-			MenuItem menuItem = menuItemRepository.findById(menuItemId)
-					.orElseThrow(() -> new RuntimeException("Menu item not found with ID: " + menuItemId));
-
-			DtoMenuItemWithComponents result = new DtoMenuItemWithComponents();
-			result.setMenuItem(MapperMenuItem.toDto(menuItem));
-
-			// Get components grouped
-			List<MenuComponent> components = repository
-					.findByParentMenuItem_SerMenuItemIdAndBlnIsActiveTrueAndBlnIsDeletedFalseOrderByNumSequenceOrderAsc(
-							menuItemId);
-
-			// Group by display name and component kind
-			Map<String, List<MenuComponent>> grouped = components.stream()
-					.collect(Collectors.groupingBy(
-							c -> c.getTxtDisplayName() != null ? c.getTxtDisplayName()
-									: c.getTxtComponentKind() + "_" + c.getNumSequenceOrder(),
-							LinkedHashMap::new, Collectors.toList()));
-
-			// Convert to DTO structure
-			List<DtoComponentGroup> componentGroups = new ArrayList<>();
-
-			for (Map.Entry<String, List<MenuComponent>> entry : grouped.entrySet()) {
-				List<MenuComponent> groupComponents = entry.getValue();
-				if (groupComponents.isEmpty())
-					continue;
-
-				DtoComponentGroup groupDto = new DtoComponentGroup();
-				MenuComponent first = groupComponents.get(0);
-
-				groupDto.setDisplayName(first.getTxtDisplayName());
-				groupDto.setComponentKind(first.getTxtComponentKind());
-				groupDto.setMinSelections(first.getNumSelectionMin());
-				groupDto.setMaxSelections(first.getNumSelectionMax());
-
-				// Get child items
-				List<DtoMenuItem> items = groupComponents.stream().filter(c -> c.getChildMenuItem() != null)
-						.map(c -> MapperMenuItem.toDto(c.getChildMenuItem())).collect(Collectors.toList());
-
-				groupDto.setItems(items);
-				componentGroups.add(groupDto);
+			if (group.getNumSelectionMin() < 0) {
+				errors.add("Minimum selection cannot be negative");
 			}
-
-			result.setComponentGroups(componentGroups);
-
-			return new DtoResult("Fetched successfully.", null, result, null);
-
-		} catch (Exception e) {
-			LOGGER.error("Error fetching menu item with components", e);
-			return new DtoResult("Failed to fetch menu item with components: " + e.getMessage(), null, null, null);
 		}
+
+		// Validate items
+		if (group.getComponentItems() == null || group.getComponentItems().isEmpty()) {
+			errors.add("At least one item is required in the group");
+		} else {
+			// Check for duplicate items
+			List<Long> itemIds = group.getComponentItems().stream().filter(item -> item.getSerMenuItemId() != null)
+					.map(DtoMenuItem::getSerMenuItemId).collect(Collectors.toList());
+
+			if (itemIds.size() != new HashSet<>(itemIds).size()) {
+				errors.add("Duplicate items found in the group");
+			}
+		}
+
+		validationResult.put("isValid", errors.isEmpty());
+		validationResult.put("errors", errors);
+
+		return validationResult;
 	}
 
-	@Override
-	public DtoResult updateComponentSequence(List<Long> componentIds) {
-		try {
-			if (componentIds == null || componentIds.isEmpty()) {
-				return new DtoResult("Component IDs list is empty.", null, null, null);
-			}
-
-			List<MenuComponent> updated = new ArrayList<>();
-
-			for (int i = 0; i < componentIds.size(); i++) {
-				Long componentId = componentIds.get(i);
-				MenuComponent component = repository.findById(componentId)
-						.orElseThrow(() -> new RuntimeException("Component not found: " + componentId));
-
-				component.setNumSequenceOrder(i + 1);
-				repository.save(component);
-				updated.add(component);
-			}
-
-			List<DtoMenuComponent> dtos = updated.stream().map(this::convertToDto).collect(Collectors.toList());
-
-			return new DtoResult("Sequence updated successfully.", null, dtos, null);
-
-		} catch (Exception e) {
-			LOGGER.error("Error updating component sequence", e);
-			return new DtoResult("Failed to update sequence: " + e.getMessage(), null, null, null);
-		}
-	}
-
-	@Override
-	public DtoResult copyComponents(Long sourceMenuItemId, Long targetMenuItemId) {
-		try {
-			// Get source components
-			List<MenuComponent> sourceComponents = repository
-					.findByParentMenuItem_SerMenuItemIdAndBlnIsActiveTrueAndBlnIsDeletedFalseOrderByNumSequenceOrderAsc(
-							sourceMenuItemId);
-
-			if (sourceComponents.isEmpty()) {
-				return new DtoResult("No components found to copy.", null, null, null);
-			}
-
-			// Get target menu item
-			MenuItem target = menuItemRepository.findById(targetMenuItemId)
-					.orElseThrow(() -> new RuntimeException("Target menu item not found with ID: " + targetMenuItemId));
-
-			// Mark target as composite
-			target.setBlnIsComposite(true);
-			menuItemRepository.save(target);
-
-			// Copy components
-			List<DtoMenuComponent> copied = new ArrayList<>();
-			int sequenceOrder = repository.findMaxSequenceOrderByParentId(targetMenuItemId) + 1;
-
-			for (MenuComponent source : sourceComponents) {
-				MenuComponent copy = new MenuComponent();
-				copy.setParentMenuItem(target);
-				copy.setChildMenuItem(source.getChildMenuItem());
-				copy.setTxtComponentKind(source.getTxtComponentKind());
-				copy.setTxtDisplayName(source.getTxtDisplayName());
-				copy.setNumSelectionMin(source.getNumSelectionMin());
-				copy.setNumSelectionMax(source.getNumSelectionMax());
-				copy.setNumSequenceOrder(sequenceOrder++);
-				copy.setBlnIsActive(true);
-				copy.setBlnIsDeleted(false);
-
-				repository.save(copy);
-				copied.add(convertToDto(copy));
-			}
-
-			return new DtoResult("Copied " + copied.size() + " components.", null, copied, null);
-
-		} catch (Exception e) {
-			LOGGER.error("Error copying components", e);
-			return new DtoResult("Failed to copy components: " + e.getMessage(), null, null, null);
-		}
-	}
-
-	// Helper methods
-	private DtoMenuComponent convertToDto(MenuComponent entity) {
-		if (entity == null)
-			return null;
-
-		DtoMenuComponent dto = new DtoMenuComponent();
-		dto.setSerComponentId(entity.getSerComponentId());
-
-		// Parent info
-		if (entity.getParentMenuItem() != null) {
-			dto.setParentMenuItemId(entity.getParentMenuItem().getSerMenuItemId());
-			dto.setParentMenuItemName(entity.getParentMenuItem().getTxtName());
-			dto.setParentMenuItemCode(entity.getParentMenuItem().getTxtCode());
-		}
-
-		// Child info
-		if (entity.getChildMenuItem() != null) {
-			dto.setChildMenuItemId(entity.getChildMenuItem().getSerMenuItemId());
-			dto.setChildMenuItemName(entity.getChildMenuItem().getTxtName());
-			dto.setChildMenuItemCode(entity.getChildMenuItem().getTxtCode());
-		}
-
-		// Component fields
-		dto.setTxtComponentKind(entity.getTxtComponentKind());
-		dto.setTxtDisplayName(entity.getTxtDisplayName());
-		dto.setNumSelectionMin(entity.getNumSelectionMin());
-		dto.setNumSelectionMax(entity.getNumSelectionMax());
-		dto.setNumSequenceOrder(entity.getNumSequenceOrder());
+	private DtoMenuItemRole toRoleDto(MenuItemRole entity) {
+		DtoMenuItemRole dto = new DtoMenuItemRole();
+		dto.setSerMenuItemRoleId(entity.getSerMenuItemRoleId());
+		dto.setTxtRoleCode(entity.getTxtRoleCode());
+		dto.setTxtRoleName(entity.getTxtRoleName());
+		dto.setBlnIsCompositionRole(entity.getBlnIsCompositionRole());
 		dto.setBlnIsActive(entity.getBlnIsActive());
+
+		if (entity.getParentMenuItemRole() != null) {
+			dto.setParentMenuRoleId(entity.getParentMenuItemRole().getSerMenuItemRoleId());
+		}
 
 		return dto;
 	}

@@ -1,253 +1,173 @@
 package com.zbs.de.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.zbs.de.model.dto.*;
+import com.zbs.de.model.dto.DtoMenuComponentRequest;
+import com.zbs.de.model.dto.DtoMenuComponent;
+import com.zbs.de.model.dto.DtoMenuItemRole;
+import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceMenuComponent;
 import com.zbs.de.util.ResponseMessage;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/menu-component")
+@RequestMapping("/menu/component")
+@CrossOrigin(origins = "")
 public class ControllerMenuComponent {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerMenuComponent.class);
 
 	@Autowired
 	private ServiceMenuComponent service;
 
-	// -------------------------------------------------------------
-	// CREATE COMPONENT
-	// -------------------------------------------------------------
-	@PostMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage create(@RequestBody DtoMenuComponent request, HttpServletRequest httpRequest) {
-		try {
-			LOGGER.info("Creating menu component for parent: {}", request.getParentMenuItemId());
-			DtoResult result = service.createComponent(request);
-			if (result.getResult() != null) {
-				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-						result.getResult());
-			}
-			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, result.getTxtMessage(),
-					null);
-		} catch (Exception e) {
-			LOGGER.error("Error creating menu component", e);
-			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to create menu component: " + e.getMessage(), null);
-		}
-	}
+	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerMenuComponent.class);
 
 	// -------------------------------------------------------------
-	// CREATE SELECTION GROUP
+	// SAVE or UPDATE COMPONENTS (BULK OPERATION)
 	// -------------------------------------------------------------
-	@PostMapping(value = "/create-selection-group", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage createSelectionGroup(@RequestBody DtoSelectionGroupRequest request,
+	@PostMapping(value = "/saveOrUpdateBulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage saveOrUpdateComponents(@RequestBody DtoMenuComponentRequest request,
 			HttpServletRequest httpRequest) {
+		LOGGER.info("Saving/Updating menu components for parent: {}", request.getParentMenuItemId());
+
 		try {
-			LOGGER.info("Creating selection group for parent: {}", request.getParentMenuItemId());
-			DtoResult result = service.createSelectionGroup(request);
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+			// Validate all groups before processing
+			for (DtoMenuComponent group : request.getComponents()) {
+				Map<String, Object> validation = service.validateComponentGroup(group);
+				if (!(Boolean) validation.get("isValid")) {
+					return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+							"Validation failed for group: " + group.getTxtComponenetKindRoleName(),
+							validation.get("errors"));
+				}
+			}
+
+			DtoResult result = service.saveOrUpdateComponents(request);
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Components saved successfully",
 					result.getResult());
+
 		} catch (Exception e) {
-			LOGGER.error("Error creating selection group", e);
+			LOGGER.error("Error saving components", e);
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to create selection group: " + e.getMessage(), null);
+					e.getMessage(), null);
 		}
 	}
 
 	// -------------------------------------------------------------
-	// UPDATE COMPONENT
+	// GET COMPONENTS GROUPED BY KIND
 	// -------------------------------------------------------------
-	@PostMapping(value = "/update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage update(@RequestBody DtoMenuComponent dto, HttpServletRequest request) {
+	@PostMapping(value = "/getGroupsByParent", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getComponentsByParentId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		LOGGER.info("Fetching component groups for parent menu item: {}", dtoSearch.getIdL());
+
 		try {
-			LOGGER.info("Updating menu component ID: {}", dto.getSerComponentId());
-			DtoResult result = service.updateComponent(dto);
-			if (result.getResult() != null) {
-				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-						result.getResult());
+			List<DtoMenuComponent> groups = service.getComponentsByParentId(dtoSearch.getIdL());
+
+			if (groups != null && !groups.isEmpty()) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+						"Successfully fetched component groups", groups);
 			}
-			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, result.getTxtMessage(),
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No component groups found", groups);
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching component groups", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
+
+	// -------------------------------------------------------------
+	// DELETE COMPONENT GROUP
+	// -------------------------------------------------------------
+	@PostMapping(value = "/deleteGroup", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage deleteComponentsByGroup(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		LOGGER.info("Deleting component group for parent: {} and role: {}", dtoSearch.getIdL(), dtoSearch.getId());
+
+		try {
+			DtoResult result = service.deleteComponentsByGroup(dtoSearch.getIdL(), dtoSearch.getId());
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Component group deleted successfully",
+					result.getResult());
+
+		} catch (NumberFormatException e) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Invalid role ID format",
 					null);
 		} catch (Exception e) {
-			LOGGER.error("Error updating menu component", e);
+			LOGGER.error("Error deleting component group", e);
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to update menu component: " + e.getMessage(), null);
+					e.getMessage(), null);
 		}
 	}
 
 	// -------------------------------------------------------------
-	// DELETE COMPONENT
+	// GET AVAILABLE COMPONENT ROLES
 	// -------------------------------------------------------------
-	@PostMapping(value = "/delete", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage delete(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+	@PostMapping(value = "/getComponentRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getComponentRoles(HttpServletRequest request) {
+		LOGGER.info("Fetching available component roles");
+
 		try {
-			LOGGER.info("Deleting menu component ID: {}", dtoSearch.getIdL());
-			DtoResult result = service.deleteComponent(dtoSearch.getIdL());
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-					result.getResult());
+			List<DtoMenuItemRole> roles = service.getAvailableComponentRoles();
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully fetched component roles",
+					roles);
+
 		} catch (Exception e) {
-			LOGGER.error("Error deleting menu component", e);
+			LOGGER.error("Error fetching component roles", e);
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to delete menu component: " + e.getMessage(), null);
+					e.getMessage(), null);
 		}
 	}
 
 	// -------------------------------------------------------------
-	// DELETE ALL COMPONENTS BY PARENT
+	// GET USED COMPONENT ROLES FOR PARENT
 	// -------------------------------------------------------------
-	@PostMapping(value = "/delete-by-parent", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage deleteByParent(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+	@PostMapping(value = "/getUsedRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getUsedComponentRoles(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		LOGGER.info("Fetching used component roles for parent: {}", dtoSearch.getIdL());
+
 		try {
-			LOGGER.info("Deleting components for parent menu item ID: {}", dtoSearch.getIdL());
-			DtoResult result = service.deleteComponentsByParent(dtoSearch.getIdL());
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-					result.getResult());
+			List<DtoMenuItemRole> roles = service.getUsedComponentRoles(dtoSearch.getIdL());
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+					"Successfully fetched used component roles", roles);
+
 		} catch (Exception e) {
-			LOGGER.error("Error deleting components by parent", e);
+			LOGGER.error("Error fetching used component roles", e);
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to delete components: " + e.getMessage(), null);
+					e.getMessage(), null);
 		}
 	}
 
 	// -------------------------------------------------------------
-	// GET COMPONENT BY ID
+	// VALIDATE COMPONENT GROUP
 	// -------------------------------------------------------------
-	@PostMapping(value = "/getById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getById(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
-		try {
-			LOGGER.info("Fetching menu component by ID: {}", dtoSearch.getIdL());
-			DtoResult result = service.getComponentById(dtoSearch.getIdL());
-			if (result.getResult() != null) {
-				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-						result.getResult());
-			}
-			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, result.getTxtMessage(),
-					null);
-		} catch (Exception e) {
-			LOGGER.error("Error fetching menu component by ID", e);
-			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to fetch menu component: " + e.getMessage(), null);
-		}
-	}
+	@PostMapping(value = "/validateGroup", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage validateComponentGroup(@RequestBody DtoMenuComponent group, HttpServletRequest request) {
+		LOGGER.info("Validating component group: {}", group.getTxtComponenetKindRoleCode());
 
-	// -------------------------------------------------------------
-	// GET COMPONENTS BY MENU ITEM
-	// -------------------------------------------------------------
-	@PostMapping(value = "/get-by-menu-item", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getByMenuItem(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		try {
-			LOGGER.info("Fetching components for menu item ID: {}", dtoSearch.getIdL());
-			DtoResult result = service.getComponentsByMenuItem(dtoSearch.getIdL());
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-					result.getResult());
-		} catch (Exception e) {
-			LOGGER.error("Error fetching components by menu item", e);
-			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to fetch components: " + e.getMessage(), null);
-		}
-	}
+			Map<String, Object> validationResult = service.validateComponentGroup(group);
 
-	// -------------------------------------------------------------
-	// GET ACTIVE COMPONENTS BY MENU ITEM
-	// -------------------------------------------------------------
-	@PostMapping(value = "/get-active-by-menu-item", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getActiveByMenuItem(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
-		try {
-			LOGGER.info("Fetching active components for menu item ID: {}", dtoSearch.getIdL());
-			DtoResult result = service.getActiveComponentsByMenuItem(dtoSearch.getIdL());
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-					result.getResult());
-		} catch (Exception e) {
-			LOGGER.error("Error fetching active components", e);
-			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to fetch active components: " + e.getMessage(), null);
-		}
-	}
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Validation completed", validationResult);
 
-	// -------------------------------------------------------------
-	// GET COMPONENTS GROUPED
-	// -------------------------------------------------------------
-	@PostMapping(value = "/get-grouped", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getGrouped(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
-		try {
-			LOGGER.info("Fetching grouped components for menu item ID: {}", dtoSearch.getIdL());
-			DtoResult result = service.getComponentsGrouped(dtoSearch.getIdL());
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-					result.getResult());
 		} catch (Exception e) {
-			LOGGER.error("Error fetching grouped components", e);
+			LOGGER.error("Error validating component group", e);
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to fetch grouped components: " + e.getMessage(), null);
-		}
-	}
-
-	// -------------------------------------------------------------
-	// GET MENU ITEM WITH COMPONENTS
-	// -------------------------------------------------------------
-	@PostMapping(value = "/get-with-components", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getWithComponents(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
-		try {
-			LOGGER.info("Fetching menu item with components ID: {}", dtoSearch.getIdL());
-			DtoResult result = service.getMenuItemWithComponents(dtoSearch.getIdL());
-			if (result.getResult() != null) {
-				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-						result.getResult());
-			}
-			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, result.getTxtMessage(),
-					null);
-		} catch (Exception e) {
-			LOGGER.error("Error fetching menu item with components", e);
-			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to fetch menu item with components: " + e.getMessage(), null);
-		}
-	}
-
-	// -------------------------------------------------------------
-	// UPDATE COMPONENT SEQUENCE
-	// -------------------------------------------------------------
-	@PostMapping(value = "/update-sequence", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage updateSequence(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
-		try {
-			LOGGER.info("Updating component sequence");
-			List<Long> componentIds = dtoSearch.getListIdLs();
-			if (componentIds == null || componentIds.isEmpty()) {
-				return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
-						"Component IDs list is required", null);
-			}
-
-			DtoResult result = service.updateComponentSequence(componentIds);
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-					result.getResult());
-		} catch (Exception e) {
-			LOGGER.error("Error updating component sequence", e);
-			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to update sequence: " + e.getMessage(), null);
-		}
-	}
-
-	// -------------------------------------------------------------
-	// COPY COMPONENTS
-	// -------------------------------------------------------------
-	@PostMapping(value = "/copy", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage copyComponents(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
-		try {
-			LOGGER.info("Copying components from {} to {}", dtoSearch.getIdL(), dtoSearch.getIdL1());
-			DtoResult result = service.copyComponents(dtoSearch.getIdL(), dtoSearch.getIdL1());
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-					result.getResult());
-		} catch (Exception e) {
-			LOGGER.error("Error copying components", e);
-			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-					"Failed to copy components: " + e.getMessage(), null);
+					e.getMessage(), null);
 		}
 	}
 }

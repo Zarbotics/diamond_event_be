@@ -1,39 +1,26 @@
 package com.zbs.de.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.zbs.de.model.dto.DtoMenuComponent;
+import com.zbs.de.model.dto.DtoMenuComponentRequest;
+import com.zbs.de.model.dto.DtoMenuItemRole;
 import com.zbs.de.model.dto.DtoResult;
-import com.zbs.de.model.dto.DtoSelectionGroupRequest;
 
 public interface ServiceMenuComponent {
 
-	DtoResult createComponent(DtoMenuComponent request);
+	DtoResult saveOrUpdateComponents(DtoMenuComponentRequest request);
 
-	DtoResult updateComponent(DtoMenuComponent dto);
+	List<DtoMenuComponent> getComponentsByParentId(Long parentMenuItemId);
 
 	DtoResult deleteComponent(Long componentId);
 
-	DtoResult getComponentById(Long componentId);
+	DtoResult deleteComponentsByGroup(Long parentMenuItemId, Integer roleId);
 
-	// Group operations
-	DtoResult createSelectionGroup(DtoSelectionGroupRequest request);
+	List<DtoMenuItemRole> getAvailableComponentRoles();
 
-	DtoResult deleteComponentsByParent(Long parentMenuItemId);
+	List<DtoMenuItemRole> getUsedComponentRoles(Long parentMenuItemId);
 
-	DtoResult deleteComponentsByParentAndDisplayName(Long parentMenuItemId, String displayName);
-
-	// Queries
-	DtoResult getComponentsByMenuItem(Long menuItemId);
-
-	DtoResult getActiveComponentsByMenuItem(Long menuItemId);
-
-	DtoResult getComponentsGrouped(Long menuItemId);
-
-	DtoResult getMenuItemWithComponents(Long menuItemId);
-
-	// Bulk operations
-	DtoResult updateComponentSequence(List<Long> componentIds); // Reorder
-
-	DtoResult copyComponents(Long sourceMenuItemId, Long targetMenuItemId);
+	Map<String, Object> validateComponentGroup(DtoMenuComponent group);
 }

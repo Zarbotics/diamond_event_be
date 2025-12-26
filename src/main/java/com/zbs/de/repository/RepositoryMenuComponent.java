@@ -1,48 +1,35 @@
 package com.zbs.de.repository;
 
-import com.zbs.de.model.MenuComponent;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.zbs.de.model.MenuComponent;
+import com.zbs.de.model.MenuItemRole;
 
+@Repository
 public interface RepositoryMenuComponent extends JpaRepository<MenuComponent, Long> {
-	List<MenuComponent> findByParentMenuItem_SerMenuItemId(Long parentMenuItemId);
 
-	List<MenuComponent> findByChildMenuItem_SerMenuItemId(Long childMenuItemId);
+	// Existing methods...
 
-	// Find by parent menu item ID ordered by sequence
-	List<MenuComponent> findByParentMenuItem_SerMenuItemIdOrderByNumSequenceOrderAsc(Long parentMenuItemId);
+	@Query("SELECT DISTINCT mc.componenetKindRole FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.blnIsDeleted = false")
+	List<MenuItemRole> findDistinctComponentKindsByParent(@Param("parentId") Long parentMenuItemId);
 
-	// Find by parent and component kind
-	List<MenuComponent> findByParentMenuItem_SerMenuItemIdAndTxtComponentKind(Long parentMenuItemId,
-			String txtComponentKind);
+	@Query("SELECT mc FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.blnIsDeleted = false")
+	List<MenuComponent> findByParentMenuItemId(@Param("parentId") Long parentMenuItemId);
 
-	// Find specific component
-	@Query("SELECT mc FROM MenuComponent mc WHERE " + "mc.parentMenuItem.serMenuItemId = :parentId AND "
-			+ "mc.childMenuItem.serMenuItemId = :childId AND " + "mc.blnIsDeleted = false")
-	Optional<MenuComponent> findByParentAndChild(@Param("parentId") Long parentId, @Param("childId") Long childId);
+	@Query("SELECT mc FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.blnIsDeleted = false ORDER BY  mc.childMenuItem.txtName")
+	List<MenuComponent> findByParentAndRole(@Param("parentId") Long parentMenuItemId, @Param("roleId") Integer roleId);
 
-	// Find by parent ID and display name
-	List<MenuComponent> findByParentMenuItem_SerMenuItemIdAndTxtDisplayName(Long parentMenuItemId,
-			String txtDisplayName);
+	@Query("SELECT mc FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.childMenuItem.serMenuItemId = :childId AND mc.blnIsDeleted = false")
+	List<MenuComponent> findByParentAndChild(@Param("parentId") Long parentMenuItemId,
+			@Param("childId") Long childMenuItemId);
 
-	// Count components by parent
-	@Query("SELECT COUNT(mc) FROM MenuComponent mc WHERE " + "mc.parentMenuItem.serMenuItemId = :parentId AND "
-			+ "mc.blnIsDeleted = false")
-	Integer countByParentMenuItemId(@Param("parentId") Long parentId);
+	@Query("SELECT COUNT(mc) FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.componenetKindRole.serMenuItemRoleId = :roleId AND mc.blnIsDeleted = false")
+	Long countByParentAndRole(@Param("parentId") Long parentMenuItemId, @Param("roleId") Integer roleId);
 
-	// Find next sequence order for a parent
-	@Query("SELECT COALESCE(MAX(mc.numSequenceOrder), 0) FROM MenuComponent mc WHERE "
-			+ "mc.parentMenuItem.serMenuItemId = :parentId")
-	Integer findMaxSequenceOrderByParentId(@Param("parentId") Long parentId);
-
-	// Find non-deleted components
-	List<MenuComponent> findByBlnIsDeletedFalse();
-
-	// Find active components by parent
-	List<MenuComponent> findByParentMenuItem_SerMenuItemIdAndBlnIsActiveTrueAndBlnIsDeletedFalseOrderByNumSequenceOrderAsc(
-			Long parentMenuItemId);
+	@Query("DELETE FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.componenetKindRole.serMenuItemRoleId = :roleId")
+	void deleteByParentAndRole(@Param("parentId") Long parentMenuItemId, @Param("roleId") Integer roleId);
 }
