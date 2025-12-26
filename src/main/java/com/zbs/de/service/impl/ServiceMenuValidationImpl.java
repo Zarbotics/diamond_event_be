@@ -8,7 +8,7 @@ import com.zbs.de.service.ServiceMenuValidation;
 @Service("serviceMenuValidationImpl")
 public class ServiceMenuValidationImpl implements ServiceMenuValidation {
 	public void validateComponentDto(DtoMenuComponent dto) {
-		if ("SELECTION".equalsIgnoreCase(dto.getTxtComponentKind())) {
+		if ("SELECTION".equalsIgnoreCase(dto.getTxtComponenetKindRoleName())) {
 			if (dto.getNumSelectionMin() == null || dto.getNumSelectionMax() == null) {
 				throw new IllegalArgumentException("SELECTION components must have selectionMin and selectionMax");
 			}

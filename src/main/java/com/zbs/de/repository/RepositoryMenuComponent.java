@@ -32,4 +32,8 @@ public interface RepositoryMenuComponent extends JpaRepository<MenuComponent, Lo
 
 	@Query("DELETE FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.componenetKindRole.serMenuItemRoleId = :roleId")
 	void deleteByParentAndRole(@Param("parentId") Long parentMenuItemId, @Param("roleId") Integer roleId);
+	
+	List<MenuComponent> findByChildMenuItem_SerMenuItemId(Long childMenuItemId);
+	
+	List<MenuComponent> findByParentMenuItem_SerMenuItemId(Long parentMenuItemId);
 }
