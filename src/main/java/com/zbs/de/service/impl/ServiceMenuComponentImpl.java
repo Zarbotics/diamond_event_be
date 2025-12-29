@@ -415,10 +415,25 @@ public class ServiceMenuComponentImpl implements ServiceMenuComponent {
 	        // Create the request DTO
 	        DtoMenuComponentRequest request = new DtoMenuComponentRequest();
 	        request.setParentMenuItemId(parentMenuItemId);
+	        request.setTxtparentMenuItemCode(menuItem.getTxtCode());
+	        request.setTxtparentMenuItemName(menuItem.getTxtName());
+	        request.setTxtparentMenuItemDesc(menuItem.getTxtDescription());
 	        
 	        // Get components for this parent
 	        List<DtoMenuComponent> components = getComponentsByParentId(parentMenuItemId);
 	        request.setComponents(components);
+	        
+	        //Setting list of names of menu componenets
+	        List<String> componenetNameLst = new ArrayList<>();
+	        if(components != null && !components.isEmpty()) {
+	        	for(DtoMenuComponent component: components) {
+	        		if(component.getTxtDisplayName() != null ) {
+	        			componenetNameLst.add(component.getTxtDisplayName());
+	        		}
+	        	}
+	        }
+	        request.setTxtcomponenetNameLst(componenetNameLst);
+	        
 	        
 	        return request;
 	        
