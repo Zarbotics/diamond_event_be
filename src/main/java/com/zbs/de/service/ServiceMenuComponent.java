@@ -23,4 +23,10 @@ public interface ServiceMenuComponent {
 	List<DtoMenuItemRole> getUsedComponentRoles(Long parentMenuItemId);
 
 	Map<String, Object> validateComponentGroup(DtoMenuComponent group);
+	
+    List<DtoMenuComponentRequest> getAllCompositesWithComponents();
+    
+    List<DtoMenuComponentRequest> getAllActiveCompositesWithComponents();
+    
+    DtoMenuComponentRequest getCompositeWithComponents(Long parentMenuItemId);
 }

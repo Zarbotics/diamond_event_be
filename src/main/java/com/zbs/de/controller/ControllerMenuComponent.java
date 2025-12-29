@@ -170,4 +170,80 @@ public class ControllerMenuComponent {
 					e.getMessage(), null);
 		}
 	}
+	
+	
+	// -------------------------------------------------------------
+	// GET ALL COMPOSITES WITH COMPONENTS
+	// -------------------------------------------------------------
+	@PostMapping(value = "/getAll", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAll(HttpServletRequest request) {
+	    LOGGER.info("Fetching all composite menu items with their components");
+	    
+	    try {
+	        List<DtoMenuComponentRequest> result = service.getAllCompositesWithComponents();
+	        
+	        if (result != null && !result.isEmpty()) {
+	            return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+	                    "Successfully fetched all composites with components", result);
+	        }
+	        
+	        return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+	                "No composite items found with components", result);
+	                
+	    } catch (Exception e) {
+	        LOGGER.error("Error fetching all composites with components", e);
+	        return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+	                e.getMessage(), null);
+	    }
+	}
+
+	// -------------------------------------------------------------
+	// GET ALL ACTIVE COMPOSITES WITH COMPONENTS
+	// -------------------------------------------------------------
+	@PostMapping(value = "/getAllActive", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActive(HttpServletRequest request) {
+	    LOGGER.info("Fetching all active composite menu items with their components");
+	    
+	    try {
+	        List<DtoMenuComponentRequest> result = service.getAllActiveCompositesWithComponents();
+	        
+	        if (result != null && !result.isEmpty()) {
+	            return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+	                    "Successfully fetched all active composites with components", result);
+	        }
+	        
+	        return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+	                "No active composite items found with components", result);
+	                
+	    } catch (Exception e) {
+	        LOGGER.error("Error fetching all active composites with components", e);
+	        return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+	                e.getMessage(), null);
+	    }
+	}
+
+	// -------------------------------------------------------------
+	// GET COMPOSITE WITH COMPONENTS BY ID
+	// -------------------------------------------------------------
+	@PostMapping(value = "/getCompositeWithComponents", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getCompositeWithComponents(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+	    LOGGER.info("Fetching composite with components for ID: {}", dtoSearch.getIdL());
+	    
+	    try {
+	        DtoMenuComponentRequest result = service.getCompositeWithComponents(dtoSearch.getIdL());
+	        
+	        if (result != null) {
+	            return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+	                    "Successfully fetched composite with components", result);
+	        }
+	        
+	        return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+	                "Composite item not found or has no components", null);
+	                
+	    } catch (Exception e) {
+	        LOGGER.error("Error fetching composite with components", e);
+	        return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+	                e.getMessage(), null);
+	    }
+	}
 }

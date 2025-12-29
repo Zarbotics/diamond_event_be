@@ -370,4 +370,87 @@ public class ServiceMenuComponentImpl implements ServiceMenuComponent {
 
 		return dto;
 	}
+	
+	
+	@Override
+	public List<DtoMenuComponentRequest> getAllCompositesWithComponents() {
+	    LOGGER.info("Fetching all composite menu items with their components");
+	    
+	    try {
+	        // Get all composite menu items
+	        List<MenuItem> compositeItems = repositoryMenuItem.findAllCompositeItems();
+	        
+	        List<DtoMenuComponentRequest> result = new ArrayList<>();
+	        
+	        for (MenuItem compositeItem : compositeItems) {
+	            DtoMenuComponentRequest request = getCompositeWithComponents(compositeItem.getSerMenuItemId());
+	            if (request != null) {
+	                result.add(request);
+	            }
+	        }
+	        
+	        return result;
+	        
+	    } catch (Exception e) {
+	        LOGGER.error("Error fetching all composites with components", e);
+	        throw new RuntimeException("Failed to fetch all composites with components: " + e.getMessage());
+	    }
+	}
+
+	@Override
+	public DtoMenuComponentRequest getCompositeWithComponents(Long parentMenuItemId) {
+	    LOGGER.info("Fetching composite with components for ID: {}", parentMenuItemId);
+	    
+	    try {
+	        // Get the menu item
+	        MenuItem menuItem = repositoryMenuItem.getByMenuItemId(parentMenuItemId)
+	                .orElseThrow(() -> new RuntimeException("Menu item not found: " + parentMenuItemId));
+	        
+	        // Check if it's a composite
+	        if (!Boolean.TRUE.equals(menuItem.getBlnIsComposite())) {
+	            LOGGER.warn("Menu item {} is not a composite", parentMenuItemId);
+	            return null;
+	        }
+	        
+	        // Create the request DTO
+	        DtoMenuComponentRequest request = new DtoMenuComponentRequest();
+	        request.setParentMenuItemId(parentMenuItemId);
+	        
+	        // Get components for this parent
+	        List<DtoMenuComponent> components = getComponentsByParentId(parentMenuItemId);
+	        request.setComponents(components);
+	        
+	        return request;
+	        
+	    } catch (Exception e) {
+	        LOGGER.error("Error fetching composite with components for ID: {}", parentMenuItemId, e);
+	        throw new RuntimeException("Failed to fetch composite with components: " + e.getMessage());
+	    }
+	}
+
+	@Override
+	public List<DtoMenuComponentRequest> getAllActiveCompositesWithComponents() {
+	    LOGGER.info("Fetching all active composite menu items with their components");
+	    
+	    try {
+	        // Get all active composite menu items
+	        List<MenuItem> compositeItems = repositoryMenuItem.findAllActiveCompositeItems();
+	        
+	        List<DtoMenuComponentRequest> result = new ArrayList<>();
+	        
+	        for (MenuItem compositeItem : compositeItems) {
+	            DtoMenuComponentRequest request = getCompositeWithComponents(compositeItem.getSerMenuItemId());
+	            if (request != null) {
+	                result.add(request);
+	            }
+	        }
+	        
+	        return result;
+	        
+	    } catch (Exception e) {
+	        LOGGER.error("Error fetching all active composites with components", e);
+	        throw new RuntimeException("Failed to fetch all active composites with components: " + e.getMessage());
+	    }
+	}
+	
 }
