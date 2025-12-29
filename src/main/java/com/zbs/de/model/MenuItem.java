@@ -45,10 +45,10 @@ public class MenuItem extends BaseEntity {
 	/**
 	 * Roles: CATEGORY | ITEM | STATION | GROUP | SELECTION | BUNDLE
 	 */
-	@Column(name = "txt_role", nullable = false)
+	@Column(name = "txt_role")
 	private String txtRole;
 
-	@Column(name = "txt_type", nullable = false)
+	@Column(name = "txt_type")
 	private String txtType;
 
 	@ManyToOne

@@ -50,4 +50,6 @@ public interface ServiceMenuItem {
     DtoResult getAllActiveCompositeItems();
     
     DtoResult getAllActive();
+    
+    List<DtoMenuItem> getValidParentsByRoleID(Integer menuItemRoleId);
 }

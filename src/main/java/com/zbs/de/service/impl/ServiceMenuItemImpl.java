@@ -784,4 +784,36 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 
 	}
 
+	
+	@Override
+	public List<DtoMenuItem> getValidParentsByRoleID(Integer menuItemRoleId) {
+
+	    MenuItemRole currentRole = serivceMenuItemRole.getMenuItemRoleById(menuItemRoleId);
+
+	    if (currentRole == null) {
+	        return List.of();
+	    }
+
+	    // 1️⃣ Collect all ancestor roles
+	    List<MenuItemRole> allowedParentRoles = new ArrayList<>();
+	    collectParentRoles(currentRole.getParentMenuItemRole(), allowedParentRoles);
+
+	    if (allowedParentRoles.isEmpty()) {
+	        return List.of();
+	    }
+
+	    // 2️⃣ Fetch menu items having those roles
+	    return repo
+	            .findByMenuItemRoleInAndBlnIsDeletedFalse(allowedParentRoles)
+	            .stream()
+	            .map(MapperMenuItem::toDto)
+	            .toList();
+	}
+	private void collectParentRoles(MenuItemRole role, List<MenuItemRole> result) {
+	    if (role == null) {
+	        return;
+	    }
+	    result.add(role);
+	    collectParentRoles(role.getParentMenuItemRole(), result);
+	}
 }

@@ -1,10 +1,13 @@
 package com.zbs.de.repository;
 
 import com.zbs.de.model.MenuItem;
+import com.zbs.de.model.MenuItemRole;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,4 +49,6 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 
 	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsDeleted = false AND mi.blnIsActive = true ORDER BY mi.serMenuItemId desc")
 	List<MenuItem> getAllActiveMenuItems();
+
+	List<MenuItem> findByMenuItemRoleInAndBlnIsDeletedFalse(Collection<MenuItemRole> roles);
 }

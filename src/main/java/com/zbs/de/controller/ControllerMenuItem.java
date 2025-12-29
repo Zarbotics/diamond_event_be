@@ -266,5 +266,30 @@ public class ControllerMenuItem {
 					e.getMessage(), null);
 		}
 	}
+	
+	
+	@PostMapping(value = "/getValidParentsByRoleId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getValidParentsByRoleId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+
+		LOGGER.info("Fetching valid parent MenuItems for role: {}", dtoSearch.getId());
+
+		try {
+			List<DtoMenuItem> parents = service.getValidParentsByRoleID(dtoSearch.getId());
+
+			if (parents != null && !parents.isEmpty()) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+						"Successfully fetched valid parent menu items", parents);
+			}
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No valid parent menu items found",
+					parents);
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching valid parent MenuItems", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
+
 
 }
