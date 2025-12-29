@@ -204,6 +204,7 @@ public class ServiceMenuComponentImpl implements ServiceMenuComponent {
 					}
 
 					// Use selection limits from first component
+					group.setSerComponentId(components.get(0).getSerComponentId());
 					group.setNumSelectionMin(components.get(0).getNumSelectionMin());
 					group.setNumSelectionMax(components.get(0).getNumSelectionMax());
 					group.setNumSequenceOrder(components.get(0).getNumSequenceOrder());
