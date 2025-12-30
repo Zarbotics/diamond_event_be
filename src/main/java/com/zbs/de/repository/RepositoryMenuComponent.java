@@ -20,7 +20,7 @@ public interface RepositoryMenuComponent extends JpaRepository<MenuComponent, Lo
 	@Query("SELECT mc FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.blnIsDeleted = false")
 	List<MenuComponent> findByParentMenuItemId(@Param("parentId") Long parentMenuItemId);
 
-	@Query("SELECT mc FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.blnIsDeleted = false ORDER BY  mc.childMenuItem.txtName")
+	@Query("SELECT mc FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.componenetKindRole.serMenuItemRoleId = :roleId AND mc.blnIsDeleted = false ORDER BY  mc.childMenuItem.txtName")
 	List<MenuComponent> findByParentAndRole(@Param("parentId") Long parentMenuItemId, @Param("roleId") Integer roleId);
 
 	@Query("SELECT mc FROM MenuComponent mc WHERE mc.parentMenuItem.serMenuItemId = :parentId AND mc.childMenuItem.serMenuItemId = :childId AND mc.blnIsDeleted = false")
