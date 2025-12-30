@@ -26,6 +26,7 @@ public class MapperMenuItem {
 		dto.setMetadata(entity.getMetadata());
 		dto.setNumDefaultServingsPerGuest(entity.getNumDefaultServingsPerGuest());
 		dto.setTxtPath(entity.getTxtPath());
+		dto.setBlnIsActive(entity.getBlnIsActive());
 
 		// parentId (avoid triggering lazy load)
 		dto.setParentId(entity.getParent() != null ? entity.getParent().getSerMenuItemId() : null);

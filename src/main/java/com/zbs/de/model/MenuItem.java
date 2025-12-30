@@ -39,13 +39,16 @@ public class MenuItem extends BaseEntity {
 	@Column(name = "bln_is_selectable")
 	private Boolean blnIsSelectable = true;
 
+	@Column(name = "bln_is_composite")
+	private Boolean blnIsComposite = false;
+
 	/**
 	 * Roles: CATEGORY | ITEM | STATION | GROUP | SELECTION | BUNDLE
 	 */
-	@Column(name = "txt_role", nullable = false)
+	@Column(name = "txt_role")
 	private String txtRole;
 
-	@Column(name = "txt_type", nullable = false)
+	@Column(name = "txt_type")
 	private String txtType;
 
 	@ManyToOne
@@ -198,6 +201,14 @@ public class MenuItem extends BaseEntity {
 
 	public void setMenuItemRole(MenuItemRole menuItemRole) {
 		this.menuItemRole = menuItemRole;
+	}
+
+	public Boolean getBlnIsComposite() {
+		return blnIsComposite;
+	}
+
+	public void setBlnIsComposite(Boolean blnIsComposite) {
+		this.blnIsComposite = blnIsComposite;
 	}
 
 }
