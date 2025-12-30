@@ -1,33 +1,42 @@
 package com.zbs.de.model.dto;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DtoPriceVersion {
+
 	private Long serPriceVersionId;
+	private String txtVersionCode;
 	private String txtName;
+	private String txtDescription;
+
 	private String dteEffectiveFrom;
 	private String dteEffectiveTo;
-	private String txtStatus;
 
-	public DtoPriceVersion() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
+	private Boolean blnIsActive = true;
+	private Boolean blnIsDefault = false;
+	private Integer numPriority = 1;
+	private Map<String, Object> metadata;
 
-	public DtoPriceVersion(Long idserPriceVersionId, String txtName, String dteEffectiveFrom, String dteEffectiveTo,
-			String txtStatus) {
-		super();
-		this.serPriceVersionId = idserPriceVersionId;
-		this.txtName = txtName;
-		this.dteEffectiveFrom = dteEffectiveFrom;
-		this.dteEffectiveTo = dteEffectiveTo;
-		this.txtStatus = txtStatus;
-	}
+	private Integer totalPrices;
+	private Integer activePrices;
 
 	public Long getSerPriceVersionId() {
 		return serPriceVersionId;
 	}
 
-	public void setSerPriceVersionId(Long idserPriceVersionId) {
-		this.serPriceVersionId = idserPriceVersionId;
+	public void setSerPriceVersionId(Long serPriceVersionId) {
+		this.serPriceVersionId = serPriceVersionId;
+	}
+
+	public String getTxtVersionCode() {
+		return txtVersionCode;
+	}
+
+	public void setTxtVersionCode(String txtVersionCode) {
+		this.txtVersionCode = txtVersionCode;
 	}
 
 	public String getTxtName() {
@@ -36,6 +45,14 @@ public class DtoPriceVersion {
 
 	public void setTxtName(String txtName) {
 		this.txtName = txtName;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 	public String getDteEffectiveFrom() {
@@ -54,12 +71,52 @@ public class DtoPriceVersion {
 		this.dteEffectiveTo = dteEffectiveTo;
 	}
 
-	public String getTxtStatus() {
-		return txtStatus;
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
 	}
 
-	public void setTxtStatus(String txtStatus) {
-		this.txtStatus = txtStatus;
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
+	}
+
+	public Boolean getBlnIsDefault() {
+		return blnIsDefault;
+	}
+
+	public void setBlnIsDefault(Boolean blnIsDefault) {
+		this.blnIsDefault = blnIsDefault;
+	}
+
+	public Integer getNumPriority() {
+		return numPriority;
+	}
+
+	public void setNumPriority(Integer numPriority) {
+		this.numPriority = numPriority;
+	}
+
+	public Map<String, Object> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Map<String, Object> metadata) {
+		this.metadata = metadata;
+	}
+
+	public Integer getTotalPrices() {
+		return totalPrices;
+	}
+
+	public void setTotalPrices(Integer totalPrices) {
+		this.totalPrices = totalPrices;
+	}
+
+	public Integer getActivePrices() {
+		return activePrices;
+	}
+
+	public void setActivePrices(Integer activePrices) {
+		this.activePrices = activePrices;
 	}
 
 }

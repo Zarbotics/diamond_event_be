@@ -8,10 +8,10 @@ public class DtoMenuItem {
 	private String txtName;
 	private String txtShortName;
 	private String txtDescription;
-	
+
 	private String txtRole;
 	private Integer serMenuItemRoleId;
-	
+
 	private String txtType;
 	private Long parentId;
 	private Integer numDisplayOrder;
@@ -19,6 +19,8 @@ public class DtoMenuItem {
 	private Map<String, Object> metadata;
 	private Double numDefaultServingsPerGuest;
 	private String txtPath;
+
+	private Boolean blnIsActive;
 
 	public DtoMenuItem() {
 		super();
@@ -156,5 +158,12 @@ public class DtoMenuItem {
 		this.serMenuItemRoleId = serMenuItemRoleId;
 	}
 
-	
+	public Boolean getBlnIsActive() {
+		return blnIsActive;
+	}
+
+	public void setBlnIsActive(Boolean blnIsActive) {
+		this.blnIsActive = blnIsActive;
+	}
+
 }

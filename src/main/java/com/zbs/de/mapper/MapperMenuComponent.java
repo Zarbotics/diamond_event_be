@@ -22,7 +22,11 @@ public class MapperMenuComponent {
 		// ChildMenuItemId similarly, may be null
 		dto.setChildMenuItemId(entity.getChildMenuItem() != null ? entity.getChildMenuItem().getSerMenuItemId() : null);
 
-		dto.setTxtComponentKind(entity.getTxtComponentKind());
+		if (entity.getComponenetKindRole() != null) {
+			dto.setSerComponenetKindRoleId(entity.getComponenetKindRole().getSerMenuItemRoleId());
+			dto.setTxtComponenetKindRoleCode(entity.getComponenetKindRole().getTxtRoleCode());
+			dto.setTxtComponenetKindRoleName(entity.getComponenetKindRole().getTxtRoleName());
+		}
 		dto.setNumSelectionMin(entity.getNumSelectionMin());
 		dto.setNumSelectionMax(entity.getNumSelectionMax());
 		dto.setNumSequenceOrder(entity.getNumSequenceOrder());
@@ -57,7 +61,6 @@ public class MapperMenuComponent {
 			entity.setChildMenuItem(child);
 		}
 
-		entity.setTxtComponentKind(dto.getTxtComponentKind());
 		entity.setNumSelectionMin(dto.getNumSelectionMin());
 		entity.setNumSelectionMax(dto.getNumSelectionMax());
 		entity.setNumSequenceOrder(dto.getNumSequenceOrder());

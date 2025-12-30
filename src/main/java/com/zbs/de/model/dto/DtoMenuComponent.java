@@ -1,35 +1,23 @@
 package com.zbs.de.model.dto;
 
+import java.util.List;
 import java.util.Map;
 
 public class DtoMenuComponent {
 	private Long serComponentId;
 	private Long parentMenuItemId;
 	private Long childMenuItemId;
-	private String txtComponentKind; // INCLUDED|SELECTION|OPTIONAL|GROUP
+	private Integer serComponenetKindRoleId; // Component kind role (INCLUDED|SELECTION|OPTIONAL|GROUP)
+	private String txtComponenetKindRoleCode;
+	private String txtComponenetKindRoleName;
+	private String txtDisplayName;
 	private Integer numSelectionMin;
 	private Integer numSelectionMax;
 	private Integer numSequenceOrder;
+	private List<DtoMenuItem> componentItems;
 	private Map<String, Object> metadata;
 
-	public DtoMenuComponent() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
-
-	public DtoMenuComponent(Long serComponentId, Long parentMenuItemId, Long childMenuItemId, String txtComponentKind,
-			Integer numSelectionMin, Integer numSelectionMax, Integer numSequenceOrder, Map<String, Object> metadata) {
-		super();
-		this.serComponentId = serComponentId;
-		this.parentMenuItemId = parentMenuItemId;
-		this.childMenuItemId = childMenuItemId;
-		this.txtComponentKind = txtComponentKind;
-		this.numSelectionMin = numSelectionMin;
-		this.numSelectionMax = numSelectionMax;
-		this.numSequenceOrder = numSequenceOrder;
-		this.metadata = metadata;
-	}
-
+	// Getters and Setters
 	public Long getSerComponentId() {
 		return serComponentId;
 	}
@@ -54,12 +42,12 @@ public class DtoMenuComponent {
 		this.childMenuItemId = childMenuItemId;
 	}
 
-	public String getTxtComponentKind() {
-		return txtComponentKind;
+	public String getTxtDisplayName() {
+		return txtDisplayName;
 	}
 
-	public void setTxtComponentKind(String txtComponentKind) {
-		this.txtComponentKind = txtComponentKind;
+	public void setTxtDisplayName(String txtDisplayName) {
+		this.txtDisplayName = txtDisplayName;
 	}
 
 	public Integer getNumSelectionMin() {
@@ -92,6 +80,38 @@ public class DtoMenuComponent {
 
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
+	}
+
+	public List<DtoMenuItem> getComponentItems() {
+		return componentItems;
+	}
+
+	public void setComponentItems(List<DtoMenuItem> componentItems) {
+		this.componentItems = componentItems;
+	}
+
+	public Integer getSerComponenetKindRoleId() {
+		return serComponenetKindRoleId;
+	}
+
+	public void setSerComponenetKindRoleId(Integer serComponenetKindRoleId) {
+		this.serComponenetKindRoleId = serComponenetKindRoleId;
+	}
+
+	public String getTxtComponenetKindRoleCode() {
+		return txtComponenetKindRoleCode;
+	}
+
+	public void setTxtComponenetKindRoleCode(String txtComponenetKindRoleCode) {
+		this.txtComponenetKindRoleCode = txtComponenetKindRoleCode;
+	}
+
+	public String getTxtComponenetKindRoleName() {
+		return txtComponenetKindRoleName;
+	}
+
+	public void setTxtComponenetKindRoleName(String txtComponenetKindRoleName) {
+		this.txtComponenetKindRoleName = txtComponenetKindRoleName;
 	}
 
 }
