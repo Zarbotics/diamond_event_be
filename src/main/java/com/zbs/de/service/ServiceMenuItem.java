@@ -52,4 +52,6 @@ public interface ServiceMenuItem {
     DtoResult getAllActive();
     
     List<DtoMenuItem> getValidParentsByRoleID(Integer menuItemRoleId);
+    
+    List<DtoMenuItem> searchMenuItems(String query, String role, String type, Integer limit);
 }

@@ -1,8 +1,10 @@
 package com.zbs.de.service.impl;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,12 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.zbs.de.model.dto.DtoPriceVersion;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.price.DtoPriceVersion;
 import com.zbs.de.mapper.MapperPriceVersion;
 import com.zbs.de.model.PriceVersion;
 import com.zbs.de.repository.RepositoryPriceVersion;
 import com.zbs.de.service.ServicePriceVersion;
+import com.zbs.de.util.enums.EnmPriceVersionStatus;
 
 @Service
 @Transactional
@@ -54,6 +57,18 @@ public class ServicePriceVersionImpl implements ServicePriceVersion {
 
 			// Create entity
 			PriceVersion entity = mapper.toEntity(dto);
+			EnmPriceVersionStatus status =
+			        EnmPriceVersionStatus.of(dto.getTxtPriceVersionStatus());
+
+			if (status == null) {
+			    return new DtoResult(
+			        "Invalid Price Version Status. Allowed values are: DRAFT, PUBLISHED, RETIRED",
+			        null,
+			        null,
+			        null
+			    );
+			}
+			entity.setPriceVersionStatus(EnmPriceVersionStatus.of(dto.getTxtPriceVersionStatus()));
 			entity.setBlnIsDeleted(false);
 			entity.setBlnIsActive(dto.getBlnIsActive() != null ? dto.getBlnIsActive() : true);
 
@@ -100,6 +115,19 @@ public class ServicePriceVersionImpl implements ServicePriceVersion {
 
 			// Update entity
 			mapper.updateEntityFromDto(dto, entity);
+			EnmPriceVersionStatus status =
+			        EnmPriceVersionStatus.of(dto.getTxtPriceVersionStatus());
+
+			if (status == null) {
+			    return new DtoResult(
+			        "Invalid Price Version Status. Allowed values are: DRAFT, PUBLISHED, RETIRED",
+			        null,
+			        null,
+			        null
+			    );
+			}
+			entity.setPriceVersionStatus(EnmPriceVersionStatus.of(dto.getTxtPriceVersionStatus()));
+			
 			repository.save(entity);
 
 			return new DtoResult("Price version updated successfully.", null, mapper.toDto(entity), null);
@@ -401,5 +429,19 @@ public class ServicePriceVersionImpl implements ServicePriceVersion {
 			// Fallback: use timestamp
 			return "MPV-" + System.currentTimeMillis() % 1000;
 		}
+	}
+	
+	
+	@Override
+	public DtoResult getAllPriceVersionStatusValues() {
+
+		try {
+			List<String> status = Arrays.stream(EnmPriceVersionStatus.values()).map(Enum::name)
+					.collect(Collectors.toList());
+			return new DtoResult("Successfully Fetched.", null, status, null);
+		} catch (Exception e) {
+			return new DtoResult("Unable to Fetch Result. " + e.getMessage(), null, null, null);
+		}
+
 	}
 }

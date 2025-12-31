@@ -816,4 +816,39 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	    result.add(role);
 	    collectParentRoles(role.getParentMenuItemRole(), result);
 	}
+	
+	// 9. Search Menu Items
+	@Override
+	@Transactional(readOnly = true)
+	public List<DtoMenuItem> searchMenuItems(String query, String role, String type, Integer limit) {
+		LOGGER.info("Searching menu items: query={}, role={}, type={}", query, role, type);
+
+		List<MenuItem> items;
+
+		if (query != null && !query.isEmpty()) {
+			// Search by name or code
+			items = repo.searchByQuery(query);
+		} else {
+			// Get all active items
+			items = repo.getAllActiveMenuItems();
+		}
+
+		// Apply filters
+		if (role != null && !role.isEmpty()) {
+			items = items.stream().filter(item -> role.equals(item.getTxtRole())).collect(Collectors.toList());
+		}
+
+		if (type != null && !type.isEmpty()) {
+			items = items.stream().filter(item -> type.equals(item.getTxtType())).collect(Collectors.toList());
+		}
+
+		// Apply limit
+		if (limit != null && limit > 0 && items.size() > limit) {
+			items = items.subList(0, limit);
+		}
+
+		// Map to DTO
+		return items.stream().map(MapperMenuItem::toDto).collect(Collectors.toList());
+	}
+
 }

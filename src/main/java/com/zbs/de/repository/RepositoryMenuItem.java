@@ -51,4 +51,23 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	List<MenuItem> getAllActiveMenuItems();
 
 	List<MenuItem> findByMenuItemRoleInAndBlnIsDeletedFalse(Collection<MenuItemRole> roles);
+
+	@Query("SELECT DISTINCT m.txtType FROM MenuItem m WHERE m.txtType IS NOT NULL")
+	List<String> findDistinctTxtTypes();
+
+	List<MenuItem> findByTxtTypeAndBlnIsDeletedFalse(String txtType);
+
+	@Query("""
+			SELECT m
+			FROM MenuItem m
+			WHERE m.blnIsDeleted = false
+			  AND m.blnIsActive = true
+			  AND (
+			       LOWER(m.txtName) LIKE LOWER(CONCAT('%', :query, '%'))
+			    OR LOWER(m.txtCode) LIKE LOWER(CONCAT('%', :query, '%'))
+			  )
+			ORDER BY m.numDisplayOrder ASC
+			""")
+	List<MenuItem> searchByQuery(@Param("query") String query);
+
 }

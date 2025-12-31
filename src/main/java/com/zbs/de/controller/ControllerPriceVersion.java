@@ -9,9 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import com.zbs.de.model.dto.DtoPriceVersion;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
+import com.zbs.de.model.dto.price.DtoPriceVersion;
 import com.zbs.de.service.ServicePriceVersion;
 import com.zbs.de.util.ResponseMessage;
 
@@ -261,20 +261,36 @@ public class ControllerPriceVersion {
 					"Failed to fetch Price Version: " + e.getMessage(), null);
 		}
 	}
-	
+
 	// -------------------------------------------------------------
-		// GENERATE ASSIGNMENT CODE
-		// -------------------------------------------------------------
-		@PostMapping(value = "/generateCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-		public ResponseMessage generateCode(HttpServletRequest request) {
-			try {
-				LOGGER.info("Generating assignment code");
-				String code = service.generatePriceVersionCode();
-				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Code generated successfully", code);
-			} catch (Exception e) {
-				LOGGER.error("Error generating assignment code", e);
-				return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-						"Failed to generate assignment code: " + e.getMessage(), null);
-			}
+	// GENERATE ASSIGNMENT CODE
+	// -------------------------------------------------------------
+	@PostMapping(value = "/generateCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage generateCode(HttpServletRequest request) {
+		try {
+			LOGGER.info("Generating assignment code");
+			String code = service.generatePriceVersionCode();
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Code generated successfully", code);
+		} catch (Exception e) {
+			LOGGER.error("Error generating assignment code", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to generate assignment code: " + e.getMessage(), null);
 		}
+	}
+
+	// -------------------------------------------------------------
+	// Get Status List
+	// -------------------------------------------------------------
+	@PostMapping(value = "/getStatusList", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getStatusList(HttpServletRequest request) {
+		try {
+			DtoResult result = service.getAllPriceVersionStatusValues();
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+					result.getResult());
+		} catch (Exception e) {
+			LOGGER.error("Error fetching Price Version by code", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to fetch Price Version: " + e.getMessage(), null);
+		}
+	}
 }

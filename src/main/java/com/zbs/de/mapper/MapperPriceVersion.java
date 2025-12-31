@@ -7,10 +7,11 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.zbs.de.model.dto.DtoPriceVersion;
 import com.zbs.de.model.PriceVersion;
+import com.zbs.de.model.dto.price.DtoPriceVersion;
 import com.zbs.de.repository.RepositoryMenuItemPrice;
 import com.zbs.de.util.UtilDateAndTime;
+import com.zbs.de.util.enums.EnmPriceVersionStatus;
 
 @Component
 public class MapperPriceVersion {
@@ -62,7 +63,7 @@ public class MapperPriceVersion {
 		entity.setBlnIsDefault(dto.getBlnIsDefault() != null ? dto.getBlnIsDefault() : false);
 		entity.setNumPriority(dto.getNumPriority() != null ? dto.getNumPriority() : 1);
 		entity.setMetadata(dto.getMetadata());
-
+		
 		return entity;
 	}
 
