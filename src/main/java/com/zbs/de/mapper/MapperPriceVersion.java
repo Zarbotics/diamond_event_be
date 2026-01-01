@@ -35,6 +35,10 @@ public class MapperPriceVersion {
 		dto.setBlnIsDefault(entity.getBlnIsDefault());
 		dto.setNumPriority(entity.getNumPriority());
 		dto.setMetadata(entity.getMetadata());
+		if (entity.getPriceVersionStatus() != null) {
+			String status = entity.getPriceVersionStatus().name();
+			dto.setTxtPriceVersionStatus(status);
+		}
 
 		// Add statistics
 		if (entity.getSerPriceVersionId() != null) {
@@ -63,7 +67,7 @@ public class MapperPriceVersion {
 		entity.setBlnIsDefault(dto.getBlnIsDefault() != null ? dto.getBlnIsDefault() : false);
 		entity.setNumPriority(dto.getNumPriority() != null ? dto.getNumPriority() : 1);
 		entity.setMetadata(dto.getMetadata());
-		
+
 		return entity;
 	}
 
