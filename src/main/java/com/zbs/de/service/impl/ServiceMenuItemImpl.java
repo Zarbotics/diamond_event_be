@@ -850,5 +850,17 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		// Map to DTO
 		return items.stream().map(MapperMenuItem::toDto).collect(Collectors.toList());
 	}
+	
+	@Override
+	public List<MenuItem> getAllMenuItems() {
+		try {
+			List<MenuItem> items = repo.getAllActiveMenuItems();
+			return items;
+		} catch (Exception e) {
+			return new ArrayList<>();
+		}
+
+	}
+
 
 }

@@ -1,8 +1,6 @@
 package com.zbs.de.model.dto;
 
 import java.util.List;
-import java.util.Map;
-
 
 public class DtoEventMasterAdminPortal {
 
@@ -68,7 +66,9 @@ public class DtoEventMasterAdminPortal {
 	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
 
 //	private List<DtoEventMenuFoodSelection> foodSelections;
-	private Map<String, List<DtoMenuFoodMaster>> foodSelections;
+//	private Map<String, List<DtoMenuFoodMaster>> foodSelections;
+
+	private List<DtoMenuFoodMaster> foodSelections;
 
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
 
@@ -426,14 +426,6 @@ public class DtoEventMasterAdminPortal {
 		this.dtoEventDecorSelections = dtoEventDecorSelections;
 	}
 
-	public Map<String, List<DtoMenuFoodMaster>> getFoodSelections() {
-		return foodSelections;
-	}
-
-	public void setFoodSelections(Map<String, List<DtoMenuFoodMaster>> foodSelections) {
-		this.foodSelections = foodSelections;
-	}
-
 	public List<DtoEventDecorExtrasSelection> getExtrasSelections() {
 		return extrasSelections;
 	}
@@ -480,6 +472,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setTxtContactPersonPhoneNo(String txtContactPersonPhoneNo) {
 		this.txtContactPersonPhoneNo = txtContactPersonPhoneNo;
+	}
+
+	public List<DtoMenuFoodMaster> getFoodSelections() {
+		return foodSelections;
+	}
+
+	public void setFoodSelections(List<DtoMenuFoodMaster> foodSelections) {
+		this.foodSelections = foodSelections;
 	}
 
 }

@@ -42,9 +42,13 @@ public class EventMenuFoodSelection extends BaseEntity implements Serializable {
 	@JoinColumn(name = "ser_event_master_id", nullable = false)
 	private EventMaster eventMaster;
 
+//	@ManyToOne(fetch = FetchType.LAZY)
+//	@JoinColumn(name = "ser_menu_food_id", nullable = false)
+//	private MenuFoodMaster menuFoodMaster;
+
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ser_menu_food_id", nullable = false)
-	private MenuFoodMaster menuFoodMaster;
+	@JoinColumn(name = "ser_menu_item_id", nullable = false)
+	private MenuItem menuItem;
 
 	@Column(name = "txt_food_type") // e.g., "Dessert", "Drink", etc.
 	private String txtFoodType;
@@ -65,20 +69,20 @@ public class EventMenuFoodSelection extends BaseEntity implements Serializable {
 		this.eventMaster = eventMaster;
 	}
 
-	public MenuFoodMaster getMenuFoodMaster() {
-		return menuFoodMaster;
-	}
-
-	public void setMenuFoodMaster(MenuFoodMaster menuFoodMaster) {
-		this.menuFoodMaster = menuFoodMaster;
-	}
-
 	public String getTxtFoodType() {
 		return txtFoodType;
 	}
 
 	public void setTxtFoodType(String txtFoodType) {
 		this.txtFoodType = txtFoodType;
+	}
+
+	public MenuItem getMenuItem() {
+		return menuItem;
+	}
+
+	public void setMenuItem(MenuItem menuItem) {
+		this.menuItem = menuItem;
 	}
 
 }

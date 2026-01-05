@@ -69,5 +69,8 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 			ORDER BY m.numDisplayOrder ASC
 			""")
 	List<MenuItem> searchByQuery(@Param("query") String query);
+	
+	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsDeleted = false ORDER BY mi.serMenuItemId desc")
+	List<MenuItem> getAllMenuItems();
 
 }

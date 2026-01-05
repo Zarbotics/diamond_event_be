@@ -20,12 +20,12 @@ public class MapperEventMenuFoodSelection {
 			dto.setTxtEventMasterCode(entity.getEventMaster().getTxtEventMasterCode());
 			dto.setTxtEventMasterName(entity.getEventMaster().getTxtEventMasterName());
 		}
-		if (UtilRandomKey.isNotNull(entity.getMenuFoodMaster())) {
-			dto.setSerMenuFoodId(entity.getMenuFoodMaster().getSerMenuFoodId());
-			dto.setTxtMenuFoodCode(entity.getMenuFoodMaster().getTxtMenuFoodCode());
-			dto.setTxtMenuFoodName(entity.getMenuFoodMaster().getTxtMenuFoodName());
-			dto.setTxtFoodType(getFoodName(entity.getMenuFoodMaster()));
-		}
+//		if (UtilRandomKey.isNotNull(entity.getMenuFoodMaster())) {
+//			dto.setSerMenuFoodId(entity.getMenuFoodMaster().getSerMenuFoodId());
+//			dto.setTxtMenuFoodCode(entity.getMenuFoodMaster().getTxtMenuFoodCode());
+//			dto.setTxtMenuFoodName(entity.getMenuFoodMaster().getTxtMenuFoodName());
+//			dto.setTxtFoodType(getFoodName(entity.getMenuFoodMaster()));
+//		}
 
 		return dto;
 	}

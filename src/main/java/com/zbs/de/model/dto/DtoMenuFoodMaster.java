@@ -5,6 +5,14 @@ public class DtoMenuFoodMaster {
 	private Integer serMenuFoodId;
 	private String txtMenuFoodCode;
 	private String txtMenuFoodName;
+
+	private Long serMenuItemId;
+	private String txtCode;
+	private String txtName;
+	private String txtDescription;
+	private Boolean blnIsSelectable = true;
+	private Long serParentMenuItemId;
+
 	private Boolean blnIsMainCourse;
 	private Boolean blnIsAppetiser;
 	private Boolean blnIsStarter;
@@ -91,6 +99,54 @@ public class DtoMenuFoodMaster {
 
 	public void setBlnIsActive(Boolean blnIsActive) {
 		this.blnIsActive = blnIsActive;
+	}
+
+	public Long getSerMenuItemId() {
+		return serMenuItemId;
+	}
+
+	public void setSerMenuItemId(Long serMenuItemId) {
+		this.serMenuItemId = serMenuItemId;
+	}
+
+	public String getTxtCode() {
+		return txtCode;
+	}
+
+	public void setTxtCode(String txtCode) {
+		this.txtCode = txtCode;
+	}
+
+	public String getTxtName() {
+		return txtName;
+	}
+
+	public void setTxtName(String txtName) {
+		this.txtName = txtName;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
+	}
+
+	public Boolean getBlnIsSelectable() {
+		return blnIsSelectable;
+	}
+
+	public void setBlnIsSelectable(Boolean blnIsSelectable) {
+		this.blnIsSelectable = blnIsSelectable;
+	}
+
+	public Long getSerParentMenuItemId() {
+		return serParentMenuItemId;
+	}
+
+	public void setSerParentMenuItemId(Long serParentMenuItemId) {
+		this.serParentMenuItemId = serParentMenuItemId;
 	}
 
 }
