@@ -210,6 +210,13 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		MenuItem e = repo.findById(id).orElseThrow(() -> new NotFoundException("MenuItem not found"));
 		return MapperMenuItem.toDto(e);
 	}
+	
+	
+	@Override
+	public MenuItem getMenuItemById(Long id) {
+		MenuItem e = repo.findById(id).orElseThrow(() -> new NotFoundException("MenuItem not found"));
+		return e;
+	}
 
 	@Override
 	public List<DtoMenuItem> getTree() {

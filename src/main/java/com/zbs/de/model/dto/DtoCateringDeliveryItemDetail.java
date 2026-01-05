@@ -6,9 +6,14 @@ public class DtoCateringDeliveryItemDetail {
 	private Integer numQuantity;
 	private String txtNotes;
 
-	private Integer serMenuFoodId;
-	private String txtMenuFoodCode;
-	private String txtMenuFoodName;
+//	private Integer serMenuFoodId;
+//	private String txtMenuFoodCode;
+//	private String txtMenuFoodName;
+//	
+	private Long serMenuItemId;
+	private String txtCode;
+	private String txtName;
+	private String txtDescription;
 
 	public Integer getSerCateringDeliveryDetailId() {
 		return serCateringDeliveryDetailId;
@@ -42,28 +47,60 @@ public class DtoCateringDeliveryItemDetail {
 		this.txtNotes = txtNotes;
 	}
 
-	public Integer getSerMenuFoodId() {
-		return serMenuFoodId;
+//	public Integer getSerMenuFoodId() {
+//		return serMenuFoodId;
+//	}
+//
+//	public void setSerMenuFoodId(Integer serMenuFoodId) {
+//		this.serMenuFoodId = serMenuFoodId;
+//	}
+//
+//	public String getTxtMenuFoodCode() {
+//		return txtMenuFoodCode;
+//	}
+//
+//	public void setTxtMenuFoodCode(String txtMenuFoodCode) {
+//		this.txtMenuFoodCode = txtMenuFoodCode;
+//	}
+//
+//	public String getTxtMenuFoodName() {
+//		return txtMenuFoodName;
+//	}
+//
+//	public void setTxtMenuFoodName(String txtMenuFoodName) {
+//		this.txtMenuFoodName = txtMenuFoodName;
+//	}
+
+	public Long getSerMenuItemId() {
+		return serMenuItemId;
 	}
 
-	public void setSerMenuFoodId(Integer serMenuFoodId) {
-		this.serMenuFoodId = serMenuFoodId;
+	public void setSerMenuItemId(Long serMenuItemId) {
+		this.serMenuItemId = serMenuItemId;
 	}
 
-	public String getTxtMenuFoodCode() {
-		return txtMenuFoodCode;
+	public String getTxtCode() {
+		return txtCode;
 	}
 
-	public void setTxtMenuFoodCode(String txtMenuFoodCode) {
-		this.txtMenuFoodCode = txtMenuFoodCode;
+	public void setTxtCode(String txtCode) {
+		this.txtCode = txtCode;
 	}
 
-	public String getTxtMenuFoodName() {
-		return txtMenuFoodName;
+	public String getTxtName() {
+		return txtName;
 	}
 
-	public void setTxtMenuFoodName(String txtMenuFoodName) {
-		this.txtMenuFoodName = txtMenuFoodName;
+	public void setTxtName(String txtName) {
+		this.txtName = txtName;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }

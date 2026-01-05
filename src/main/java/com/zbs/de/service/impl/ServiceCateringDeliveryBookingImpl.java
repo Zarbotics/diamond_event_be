@@ -12,6 +12,7 @@ import com.zbs.de.mapper.MapperCateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryItemDetail;
 import com.zbs.de.model.MenuFoodMaster;
+import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
 import com.zbs.de.model.dto.DtoCateringDeliveryItemDetail;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
@@ -23,6 +24,7 @@ import com.zbs.de.repository.RepositoryEventType;
 import com.zbs.de.repository.RepositoryMenuFoodMaster;
 import com.zbs.de.service.ServiceCateringDeliveryBooking;
 import com.zbs.de.service.ServiceMenuFoodMaster;
+import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.util.UtilRandomKey;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -44,6 +46,9 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 	
 	@Autowired
 	private ServiceMenuFoodMaster serviceMenuFoodMaster;
+	
+	@Autowired
+	private ServiceMenuItem serviceMenuItem;
 
 	@Override
 	public DtoResult saveOrUpdate(DtoCateringDeliveryBooking dto) {
@@ -108,17 +113,28 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			List<CateringDeliveryItemDetail> detailList = new ArrayList<>();
 			if (dto.getCateringDeliveryItemDetails() != null) {
 				for (DtoCateringDeliveryItemDetail detailDto : dto.getCateringDeliveryItemDetails()) {
-					if (detailDto.getSerMenuFoodId() == null) {
+//					if (detailDto.getSerMenuFoodId() == null) {
+//						throw new IllegalArgumentException("Menu Food ID is required for each delivery item.");
+//					}
+					
+					if (detailDto.getSerMenuItemId() == null) {
 						throw new IllegalArgumentException("Menu Food ID is required for each delivery item.");
 					}
 
-					MenuFoodMaster food = repositoryMenuFoodMaster.findById(detailDto.getSerMenuFoodId())
-							.orElseThrow(() -> new EntityNotFoundException(
-									"Menu Food not found with ID: " + detailDto.getSerMenuFoodId()));
+//					MenuFoodMaster food = repositoryMenuFoodMaster.findById(detailDto.getSerMenuFoodId())
+//							.orElseThrow(() -> new EntityNotFoundException(
+//									"Menu Food not found with ID: " + detailDto.getSerMenuFoodId()));
+					
+					MenuItem menuItem  = serviceMenuItem.getMenuItemById(detailDto.getSerMenuItemId());
+					if(menuItem == null) {
+						 result.setTxtMessage("Menu Food not found with ID: " + detailDto.getSerMenuItemId());
+						 return result;
+					}
 
 					CateringDeliveryItemDetail detail = new CateringDeliveryItemDetail();
 					detail.setCateringDeliveryBooking(entity);
-					detail.setMenueFoodMaster(food);
+//					detail.setMenueFoodMaster(food);
+					detail.setMenuItem(menuItem);
 					detailList.add(detail);
 				}
 			}
@@ -190,8 +206,15 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 				entity.setEventType(eventType);
 			}
 			
-			List<MenuFoodMaster> dtoMenuFoodMasterLst = serviceMenuFoodMaster.getAllDataEntity();
-			if (UtilRandomKey.isNull(dtoMenuFoodMasterLst)) {
+//			List<MenuFoodMaster> dtoMenuFoodMasterLst = serviceMenuFoodMaster.getAllDataEntity();
+//			if (UtilRandomKey.isNull(dtoMenuFoodMasterLst)) {
+//				result.setTxtMessage("No Food Item Is Present In DB");
+//				return result;
+//			}
+			
+
+			List<MenuItem> menuItems = serviceMenuItem.getAllMenuItems();
+			if (UtilRandomKey.isNull(menuItems)) {
 				result.setTxtMessage("No Food Item Is Present In DB");
 				return result;
 			}
@@ -228,39 +251,76 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 //			entity.setCateringDeliveryItemDetails(detailList);
 			
+//			// Set Food Menu Selection
+//			// ***********************
+//			if (dto.getFoodSelections() != null && !dto.getFoodSelections().isEmpty()) {
+//				Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = dto.getFoodSelections();
+//				List<CateringDeliveryItemDetail> detailList = new ArrayList<>();
+//				for (Map.Entry<String, List<DtoMenuFoodMaster>> entry : foodSelectionsMap.entrySet()) {
+//					String foodType = entry.getKey(); // e.g., "MainCourse", "Starter"
+//					List<DtoMenuFoodMaster> foodList = entry.getValue();
+//
+//					for (DtoMenuFoodMaster dtoMenuFoodMaster : foodList) {
+//						if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getSerMenuFoodId())) {
+//							// Find the actual MenuFoodMaster from your list
+//							MenuFoodMaster menuFoodMaster = dtoMenuFoodMasterLst.stream()
+//									.filter(food -> food.getSerMenuFoodId() != null && food.getSerMenuFoodId()
+//											.intValue() == dtoMenuFoodMaster.getSerMenuFoodId().intValue())
+//									.findFirst().orElse(null);
+//
+//							if (UtilRandomKey.isNotNull(menuFoodMaster)) {
+//								CateringDeliveryItemDetail detail = new CateringDeliveryItemDetail();
+//								detail.setCateringDeliveryBooking(entity);
+//								detail.setMenueFoodMaster(menuFoodMaster);
+//								detailList.add(detail);
+//							} else {
+//								result.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
+//										+ dtoMenuFoodMaster.getSerMenuFoodId() + " In DB.");
+//								return result;
+//							}
+//						} else {
+//							result.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
+//							return result;
+//						}
+//					}
+//				}
+//				entity.setCateringDeliveryItemDetails(detailList);
+//
+//			}
+
 			// Set Food Menu Selection
 			// ***********************
 			if (dto.getFoodSelections() != null && !dto.getFoodSelections().isEmpty()) {
-				Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = dto.getFoodSelections();
+
+				List<DtoMenuFoodMaster> foodSelections = dto.getFoodSelections();
+
 				List<CateringDeliveryItemDetail> detailList = new ArrayList<>();
-				for (Map.Entry<String, List<DtoMenuFoodMaster>> entry : foodSelectionsMap.entrySet()) {
-					String foodType = entry.getKey(); // e.g., "MainCourse", "Starter"
-					List<DtoMenuFoodMaster> foodList = entry.getValue();
 
-					for (DtoMenuFoodMaster dtoMenuFoodMaster : foodList) {
-						if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getSerMenuFoodId())) {
-							// Find the actual MenuFoodMaster from your list
-							MenuFoodMaster menuFoodMaster = dtoMenuFoodMasterLst.stream()
-									.filter(food -> food.getSerMenuFoodId() != null && food.getSerMenuFoodId()
-											.intValue() == dtoMenuFoodMaster.getSerMenuFoodId().intValue())
-									.findFirst().orElse(null);
+				for (DtoMenuFoodMaster dtoMenuFoodMaster : foodSelections) {
+					if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getSerMenuItemId())) {
+						// Find the actual MenuFoodMaster from your list
+						MenuItem menuItem = menuItems.stream()
+								.filter(item -> item.getSerMenuItemId() != null && item.getSerMenuItemId()
+										.intValue() == dtoMenuFoodMaster.getSerMenuItemId().intValue())
+								.findFirst().orElse(null);
 
-							if (UtilRandomKey.isNotNull(menuFoodMaster)) {
-								CateringDeliveryItemDetail detail = new CateringDeliveryItemDetail();
-								detail.setCateringDeliveryBooking(entity);
-								detail.setMenueFoodMaster(menuFoodMaster);
-								detailList.add(detail);
-							} else {
-								result.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
-										+ dtoMenuFoodMaster.getSerMenuFoodId() + " In DB.");
-								return result;
-							}
+						if (UtilRandomKey.isNotNull(menuItem)) {
+							CateringDeliveryItemDetail detail = new CateringDeliveryItemDetail();
+							detail.setCateringDeliveryBooking(entity);
+//							detail.setMenueFoodMaster(menuFoodMaster);
+							detail.setMenuItem(menuItem);
+							detailList.add(detail);
 						} else {
-							result.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
+							result.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
+									+ dtoMenuFoodMaster.getSerMenuFoodId() + " In DB.");
 							return result;
 						}
+					} else {
+						result.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
+						return result;
 					}
 				}
+
 				entity.setCateringDeliveryItemDetails(detailList);
 
 			}

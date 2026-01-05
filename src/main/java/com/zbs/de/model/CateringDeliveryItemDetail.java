@@ -41,9 +41,13 @@ public class CateringDeliveryItemDetail extends BaseEntity implements Serializab
 	@Column(name = "txt_notes", length = 500)
 	private String txtNotes;
 
+//	@ManyToOne(fetch = FetchType.LAZY)
+//	@JoinColumn(name = "ser_menu_food_id")
+//	private MenuFoodMaster menueFoodMaster;
+
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ser_menu_food_id")
-	private MenuFoodMaster menueFoodMaster;
+	@JoinColumn(name = "ser_menu_item_id")
+	private MenuItem menuItem;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_delivery_booking_id")
@@ -89,12 +93,12 @@ public class CateringDeliveryItemDetail extends BaseEntity implements Serializab
 		this.txtNotes = txtNotes;
 	}
 
-	public MenuFoodMaster getMenueFoodMaster() {
-		return menueFoodMaster;
+	public MenuItem getMenuItem() {
+		return menuItem;
 	}
 
-	public void setMenueFoodMaster(MenuFoodMaster menueFoodMaster) {
-		this.menueFoodMaster = menueFoodMaster;
+	public void setMenuItem(MenuItem menuItem) {
+		this.menuItem = menuItem;
 	}
 
 }

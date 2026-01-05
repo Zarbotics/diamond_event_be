@@ -25,8 +25,10 @@ public class DtoCateringDeliveryBooking {
 	private String txtEventTypeName;
 
 	private List<DtoCateringDeliveryItemDetail> cateringDeliveryItemDetails;
-	
-	private Map<String, List<DtoMenuFoodMaster>> foodSelections;
+
+//	private Map<String, List<DtoMenuFoodMaster>> foodSelections;
+
+	private List<DtoMenuFoodMaster> foodSelections;
 
 	public Integer getSerDeliveryBookingId() {
 		return serDeliveryBookingId;
@@ -164,13 +166,12 @@ public class DtoCateringDeliveryBooking {
 		this.cateringDeliveryItemDetails = cateringDeliveryItemDetails;
 	}
 
-	public Map<String, List<DtoMenuFoodMaster>> getFoodSelections() {
+	public List<DtoMenuFoodMaster> getFoodSelections() {
 		return foodSelections;
 	}
 
-	public void setFoodSelections(Map<String, List<DtoMenuFoodMaster>> foodSelections) {
+	public void setFoodSelections(List<DtoMenuFoodMaster> foodSelections) {
 		this.foodSelections = foodSelections;
 	}
-	
 
 }

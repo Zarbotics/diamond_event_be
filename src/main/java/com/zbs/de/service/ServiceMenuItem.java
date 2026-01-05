@@ -57,4 +57,6 @@ public interface ServiceMenuItem {
     List<DtoMenuItem> searchMenuItems(String query, String role, String type, Integer limit);
     
     List<MenuItem> getAllMenuItems();
+    
+    MenuItem getMenuItemById(Long id);
 }
