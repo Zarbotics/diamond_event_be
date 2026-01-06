@@ -5,14 +5,12 @@ public class DtoMenuFoodMaster {
 	private Integer serMenuFoodId;
 	private String txtMenuFoodCode;
 	private String txtMenuFoodName;
-
 	private Long serMenuItemId;
 	private String txtCode;
 	private String txtName;
 	private String txtDescription;
 	private Boolean blnIsSelectable = true;
 	private Long serParentMenuItemId;
-
 	private Boolean blnIsMainCourse;
 	private Boolean blnIsAppetiser;
 	private Boolean blnIsStarter;
