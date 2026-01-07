@@ -821,7 +821,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	        return;
 	    }
 	    result.add(role);
-	    collectParentRoles(role.getParentMenuItemRole(), result);
+//	    collectParentRoles(role.getParentMenuItemRole(), result);
 	}
 	
 	// 9. Search Menu Items
@@ -868,6 +868,23 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}
 
 	}
+	
+	@Override
+	public DtoResult getAllNonCompositeActiveItemsByParentItemCode(String txtCode) {
+		try {
+			List<MenuItem> items = repo.getAllNonCompositeActiveItemsByParentItemCode(txtCode);
+			if (items != null && !items.isEmpty()) {
 
+				List<DtoMenuItem> dtoMenuItems = items.stream().map(MapperMenuItem::toDto).collect(Collectors.toList());
+				return new DtoResult("Active Items Fetched Successfully.", null, dtoMenuItems, null);
+			} else {
+				return new DtoResult("No Active Items Found Against This Role In Database", null, null, null);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new DtoResult(e.getMessage(), null, null, null);
+		}
+
+	}
 
 }

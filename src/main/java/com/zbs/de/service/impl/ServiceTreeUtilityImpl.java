@@ -42,24 +42,55 @@ public class ServiceTreeUtilityImpl implements ServiceTreeUtility {
 	 * Update path for node and all descendants using ltree functions. native SQL
 	 * performs the bulk update.
 	 */
+//	@Override
+//	@Transactional
+//	public void updatePathForSubtree(MenuItem node, String newPath) {
+//		// Fetch old path
+//		String oldPath = node.getTxtPath();
+//		if (oldPath == null)
+//			oldPath = node.getTxtPath(); // defensive
+//		// Update the node path and all descendants:
+//		// new_path || subpath(path, nlevel(old_path))
+//		String sql = "WITH old AS (SELECT txt_path FROM menu_item WHERE ser_menu_item_id = :id) " + "UPDATE menu_item "
+//				+ "SET txt_path = :newPath || subpath(menu_item.txt_path, nlevel(old.txt_path)) "
+//				+ "FROM old WHERE menu_item.txt_path <@ old.txt_path";
+//		Query q = em.createNativeQuery(sql);
+//		q.setParameter("id", node.getSerMenuItemId());
+//		q.setParameter("newPath", newPath);
+//		q.executeUpdate();
+//		// It's good to refresh JPA cache if needed
+//		repo.flush();
+//	}
+
 	@Override
 	@Transactional
 	public void updatePathForSubtree(MenuItem node, String newPath) {
-		// Fetch old path
-		String oldPath = node.getTxtPath();
-		if (oldPath == null)
-			oldPath = node.getTxtPath(); // defensive
-		// Update the node path and all descendants:
-		// new_path || subpath(path, nlevel(old_path))
-		String sql = "WITH old AS (SELECT txt_path FROM menu_item WHERE ser_menu_item_id = :id) " + "UPDATE menu_item "
-				+ "SET txt_path = :newPath || subpath(menu_item.txt_path, nlevel(old.txt_path)) "
-				+ "FROM old WHERE menu_item.txt_path <@ old.txt_path";
-		Query q = em.createNativeQuery(sql);
-		q.setParameter("id", node.getSerMenuItemId());
-		q.setParameter("newPath", newPath);
-		q.executeUpdate();
-		// It's good to refresh JPA cache if needed
-		repo.flush();
+
+		if (node == null || node.getSerMenuItemId() == null) {
+			throw new IllegalArgumentException("MenuItem or ID must not be null");
+		}
+
+		if (newPath == null || newPath.isBlank()) {
+			throw new IllegalArgumentException("newPath must not be null or empty");
+		}
+
+		// Keep entity state in sync with DB update
+		node.setTxtPath(newPath);
+
+		String sql = "WITH old AS ( " + "   SELECT txt_path FROM menu_item WHERE ser_menu_item_id = :id " + ") "
+				+ "UPDATE menu_item " + "SET txt_path = CASE " + "   WHEN menu_item.ser_menu_item_id = :id "
+				+ "       THEN CAST(:newPath AS ltree) " + "   ELSE " + "       CAST(:newPath AS ltree) "
+				+ "       || subpath(menu_item.txt_path, nlevel(old.txt_path)) " + "END " + "FROM old "
+				+ "WHERE menu_item.txt_path <@ old.txt_path";
+
+		Query query = em.createNativeQuery(sql);
+		query.setParameter("id", node.getSerMenuItemId());
+		query.setParameter("newPath", newPath);
+
+		query.executeUpdate();
+
+		// Force Hibernate to sync persistence context
+		em.flush();
 	}
 
 	@Override

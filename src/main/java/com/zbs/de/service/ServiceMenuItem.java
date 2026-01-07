@@ -59,4 +59,6 @@ public interface ServiceMenuItem {
     List<MenuItem> getAllMenuItems();
     
     MenuItem getMenuItemById(Long id);
+    
+    DtoResult getAllNonCompositeActiveItemsByParentItemCode(String txtCode);
 }

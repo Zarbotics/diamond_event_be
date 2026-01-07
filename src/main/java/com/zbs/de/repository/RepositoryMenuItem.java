@@ -40,6 +40,10 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 
 	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND e.blnIsDeleted = false")
 	List<MenuItem> getAllItemsByRoleId(@Param("id") Integer id);
+	
+
+	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND e.blnIsDeleted = false AND e.blnIsActive = true ORDER BY e.txtName")
+	List<MenuItem> getAllActiveItemsByRoleId(@Param("id") Integer id);
 
 	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsComposite = true AND mi.blnIsDeleted = false ORDER BY mi.txtName")
 	List<MenuItem> findAllCompositeItems();
@@ -69,8 +73,20 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 			ORDER BY m.numDisplayOrder ASC
 			""")
 	List<MenuItem> searchByQuery(@Param("query") String query);
-	
+
 	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsDeleted = false ORDER BY mi.serMenuItemId desc")
 	List<MenuItem> getAllMenuItems();
+
+	@Query("""
+			    SELECT mi
+			    FROM MenuItem mi
+			    WHERE LOWER(mi.parent.txtName) = LOWER(:code)
+			      AND mi.blnIsComposite = false
+			      AND mi.blnIsDeleted = false
+			      AND mi.blnIsActive = true
+			      AND mi.menuItemRole.serMenuItemRoleId = 3
+			    ORDER BY mi.txtName
+			""")
+	List<MenuItem> getAllNonCompositeActiveItemsByParentItemCode(@Param("code") String code);
 
 }

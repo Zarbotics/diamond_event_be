@@ -310,5 +310,28 @@ public class ControllerMenuItem {
 					e.getMessage(), null);
 		}
 	}
+	
+	
+	@PostMapping(value = "/getAllActiveItemsOfOtherSubCategory", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveItemsOfOtherSubCategory(HttpServletRequest request) {
+
+		LOGGER.info("Fetching all active Items");
+
+		try {
+			DtoResult dtoResult = service.getAllNonCompositeActiveItemsByParentItemCode("other");
+
+			if (dtoResult != null && dtoResult.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+						"Successfully fetched all active Items", dtoResult.getResult());
+			}
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, dtoResult.getTxtMessage(), null);
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching all active Items", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
 
 }
