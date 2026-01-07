@@ -64,6 +64,9 @@ public class CateringDeliveryBooking extends BaseEntity implements Serializable 
 	@Column(name = "txt_remarks")
 	private String txtRemarks;
 
+	@Column(name = "is_edit_allowed")
+	private Boolean isEditAllowed = true;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_cust_id")
 	private CustomerMaster customerMaster;
@@ -177,6 +180,14 @@ public class CateringDeliveryBooking extends BaseEntity implements Serializable 
 
 	public void setTxtDeliveryBookingCode(String txtDeliveryBookingCode) {
 		this.txtDeliveryBookingCode = txtDeliveryBookingCode;
+	}
+
+	public Boolean getIsEditAllowed() {
+		return isEditAllowed;
+	}
+
+	public void setIsEditAllowed(Boolean isEditAllowed) {
+		this.isEditAllowed = isEditAllowed;
 	}
 
 }

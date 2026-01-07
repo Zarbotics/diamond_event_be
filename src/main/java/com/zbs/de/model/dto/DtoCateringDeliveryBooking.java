@@ -1,7 +1,6 @@
 package com.zbs.de.model.dto;
 
 import java.util.List;
-import java.util.Map;
 
 public class DtoCateringDeliveryBooking {
 
@@ -23,6 +22,8 @@ public class DtoCateringDeliveryBooking {
 	private Integer serEventTypeId;
 	private String txtEventTypeCode;
 	private String txtEventTypeName;
+	
+	private Boolean isEditAllowed;
 
 	private List<DtoCateringDeliveryItemDetail> cateringDeliveryItemDetails;
 
@@ -172,6 +173,14 @@ public class DtoCateringDeliveryBooking {
 
 	public void setFoodSelections(List<DtoMenuFoodMaster> foodSelections) {
 		this.foodSelections = foodSelections;
+	}
+
+	public Boolean getIsEditAllowed() {
+		return isEditAllowed;
+	}
+
+	public void setIsEditAllowed(Boolean isEditAllowed) {
+		this.isEditAllowed = isEditAllowed;
 	}
 
 }

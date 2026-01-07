@@ -229,6 +229,9 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			entity.setTxtDeliveryTime(mapped.getTxtDeliveryTime());
 			entity.setTxtRemarks(mapped.getTxtRemarks());
 			entity.setTxtSpecialInstructions(mapped.getTxtSpecialInstructions());
+			if(dto.getIsEditAllowed() != null) {
+				entity.setIsEditAllowed(dto.getIsEditAllowed());
+			}
 
 //			// Map item details
 //			List<CateringDeliveryItemDetail> detailList = new ArrayList<>();

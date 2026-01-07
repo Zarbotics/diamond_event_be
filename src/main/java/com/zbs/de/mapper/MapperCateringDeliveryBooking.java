@@ -33,6 +33,7 @@ public class MapperCateringDeliveryBooking {
 		dto.setTxtDeliveryTime(entity.getTxtDeliveryTime());
 		dto.setTxtRemarks(entity.getTxtRemarks());
 		dto.setTxtSpecialInstructions(entity.getTxtSpecialInstructions());
+		dto.setIsEditAllowed(entity.getIsEditAllowed());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -75,6 +76,7 @@ public class MapperCateringDeliveryBooking {
 		dto.setTxtDeliveryTime(entity.getTxtDeliveryTime());
 		dto.setTxtRemarks(entity.getTxtRemarks());
 		dto.setTxtSpecialInstructions(entity.getTxtSpecialInstructions());
+		dto.setIsEditAllowed(entity.getIsEditAllowed());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -180,6 +182,7 @@ public class MapperCateringDeliveryBooking {
 		entity.setTxtDeliveryTime(dto.getTxtDeliveryTime());
 		entity.setTxtRemarks(dto.getTxtRemarks());
 		entity.setTxtSpecialInstructions(dto.getTxtSpecialInstructions());
+		entity.setIsEditAllowed(dto.getIsEditAllowed());
 
 		return entity;
 	}
