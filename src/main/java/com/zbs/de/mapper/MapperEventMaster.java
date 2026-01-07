@@ -216,6 +216,9 @@ public class MapperEventMaster {
 		dto.setTxtContactPersonPhoneNo(entity.getTxtContactPersonPhoneNo());
 		
 		dto.setIsEditAllowed(entity.getIsEditAllowed());
+		
+		dto.setNumItineraryPrice(entity.getNumItineraryPrice());
+		dto.setNumServingDishesPrice(entity.getNumServingDishesPrice());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -310,6 +313,9 @@ public class MapperEventMaster {
 		entity.setTxtContactPersonPhoneNo(dto.getTxtContactPersonPhoneNo());
 		
 		entity.setIsEditAllowed(dto.getIsEditAllowed());
+		
+		entity.setNumItineraryPrice(dto.getNumItineraryPrice());
+		entity.setNumServingDishesPrice(dto.getNumServingDishesPrice());
 
 		if (dto.getDtoEventDecorSelections() != null) {
 			List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()

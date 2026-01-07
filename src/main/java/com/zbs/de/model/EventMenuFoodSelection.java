@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import org.hibernate.annotations.DynamicInsert;
 
@@ -52,6 +53,9 @@ public class EventMenuFoodSelection extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_food_type") // e.g., "Dessert", "Drink", etc.
 	private String txtFoodType;
+	
+	@Column(name = "num_price")
+	private BigDecimal numPrice;
 
 	public Integer getSerEventMenuFoodId() {
 		return serEventMenuFoodId;
@@ -84,5 +88,15 @@ public class EventMenuFoodSelection extends BaseEntity implements Serializable {
 	public void setMenuItem(MenuItem menuItem) {
 		this.menuItem = menuItem;
 	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
+	}
+	
+	
 
 }

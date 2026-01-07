@@ -123,6 +123,7 @@ public class MapperCateringDeliveryBooking {
 					dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
 					dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
 					dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
+					dtoMenuFoodMaster.setNumPrice(detail.getNumPrice());
 
 //					String foodType = getFoodType(foodMaster);
 
@@ -148,6 +149,7 @@ public class MapperCateringDeliveryBooking {
 			dto.setSerCateringDeliveryDetailId(entity.getSerCateringDeliveryDetailId());
 			dto.setTxtCateringDeliveryDetailCode(entity.getTxtCateringDeliveryDetailCode());
 			dto.setTxtNotes(entity.getTxtCateringDeliveryDetailCode());
+			dto.setNumPrice(entity.getNumPrice());
 //			if(entity.getMenueFoodMaster() != null) {
 //				dto.setSerMenuFoodId(entity.getMenueFoodMaster().getSerMenuFoodId());
 //				dto.setTxtMenuFoodCode(entity.getMenueFoodMaster().getTxtMenuFoodCode());

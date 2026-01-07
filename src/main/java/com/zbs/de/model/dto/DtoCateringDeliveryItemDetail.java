@@ -1,5 +1,7 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
+
 public class DtoCateringDeliveryItemDetail {
 	private Integer serCateringDeliveryDetailId;
 	private String txtCateringDeliveryDetailCode;
@@ -14,6 +16,8 @@ public class DtoCateringDeliveryItemDetail {
 	private String txtCode;
 	private String txtName;
 	private String txtDescription;
+	
+	private BigDecimal numPrice;
 
 	public Integer getSerCateringDeliveryDetailId() {
 		return serCateringDeliveryDetailId;
@@ -101,6 +105,14 @@ public class DtoCateringDeliveryItemDetail {
 
 	public void setTxtDescription(String txtDescription) {
 		this.txtDescription = txtDescription;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

@@ -1952,6 +1952,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtContactPersonFirstName(dtoEventMasterAdminPortal.getTxtContactPersonFirstName());
 				entity.setTxtContactPersonLastName(dtoEventMasterAdminPortal.getTxtContactPersonLastName());
 				entity.setTxtContactPersonPhoneNo(dtoEventMasterAdminPortal.getTxtContactPersonPhoneNo());
+				entity.setNumItineraryPrice(dtoEventMasterAdminPortal.getNumItineraryPrice());
+				entity.setNumServingDishesPrice(dtoEventMasterAdminPortal.getNumServingDishesPrice());
 //				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 //					entity.setNumInfoFilledStatus(0);
 //				}
@@ -2198,6 +2200,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								eventMenuFoodSelection.setBlnIsDeleted(false);
 //									eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
 								eventMenuFoodSelection.setMenuItem(menuItem);
+								eventMenuFoodSelection.setNumPrice(dto.getNumPrice());
 //									eventMenuFoodSelection.setTxtFoodType(foodType); // Set from map key
 
 								eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
@@ -2505,6 +2508,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 									eventMenuFoodSelection.setBlnIsDeleted(false);
 //									eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
 									eventMenuFoodSelection.setMenuItem(menuItem);
+									eventMenuFoodSelection.setNumPrice(dto.getNumPrice());
 //									eventMenuFoodSelection.setTxtFoodType(foodType); // Use map key as food type (can
 																						// replace with getFoodName() if
 																						// preferred)
@@ -2729,6 +2733,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
 							dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
 							dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
+							dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
 
 //							String foodType = getFoodType(foodMaster);
 
@@ -3152,6 +3157,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
 							dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
 							dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
+							dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
 
 //							String foodType = getFoodType(foodMaster);
 //							foodSelectionsMap.computeIfAbsent(foodType, k -> new ArrayList<>()).add(dtoMenuFoodMaster);
