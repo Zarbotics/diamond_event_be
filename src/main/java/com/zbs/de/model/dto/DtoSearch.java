@@ -44,6 +44,11 @@ public class DtoSearch {
 
 	private Long idL2;
 
+	private String txtQuery;
+	private String txtRole;
+	private String txtType;
+	private Integer numlimit;
+
 	/** The ids. */
 	private List<String> ids;
 
@@ -297,6 +302,38 @@ public class DtoSearch {
 
 	public void setBlnFlag(boolean blnFlag) {
 		this.blnFlag = blnFlag;
+	}
+
+	public String getTxtRole() {
+		return txtRole;
+	}
+
+	public void setTxtRole(String txtRole) {
+		this.txtRole = txtRole;
+	}
+
+	public String getTxtType() {
+		return txtType;
+	}
+
+	public void setTxtType(String txtType) {
+		this.txtType = txtType;
+	}
+
+	public Integer getNumlimit() {
+		return numlimit;
+	}
+
+	public void setNumlimit(Integer numlimit) {
+		this.numlimit = numlimit;
+	}
+
+	public String getTxtQuery() {
+		return txtQuery;
+	}
+
+	public void setTxtQuery(String txtQuery) {
+		this.txtQuery = txtQuery;
 	}
 
 }

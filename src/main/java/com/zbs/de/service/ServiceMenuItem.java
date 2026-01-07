@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.model.dto.DtoResult;
@@ -52,4 +53,12 @@ public interface ServiceMenuItem {
     DtoResult getAllActive();
     
     List<DtoMenuItem> getValidParentsByRoleID(Integer menuItemRoleId);
+    
+    List<DtoMenuItem> searchMenuItems(String query, String role, String type, Integer limit);
+    
+    List<MenuItem> getAllMenuItems();
+    
+    MenuItem getMenuItemById(Long id);
+    
+    DtoResult getAllNonCompositeActiveItemsByParentItemCode(String txtCode);
 }

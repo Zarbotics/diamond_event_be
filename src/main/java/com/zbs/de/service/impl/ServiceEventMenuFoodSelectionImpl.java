@@ -67,8 +67,12 @@ public class ServiceEventMenuFoodSelectionImpl implements ServiceEventMenuFoodSe
 						return "EventMenueFoodSelection Don't Have EventMaster Id.";
 					}
 
-					if (UtilRandomKey.isNull(entity.getMenuFoodMaster())) {
-						return "EventMenuFoodSelection Don't Have MenuFoodMaster Id";
+//					if (UtilRandomKey.isNull(entity.getMenuFoodMaster())) {
+//						return "EventMenuFoodSelection Don't Have MenuFoodMaster Id";
+//					}
+					
+					if (UtilRandomKey.isNull(entity.getMenuItem())) {
+						return "EventMenuFoodSelection Don't Have MenuItem Id";
 					}
 				}
 

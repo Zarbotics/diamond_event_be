@@ -40,6 +40,10 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 
 	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND e.blnIsDeleted = false")
 	List<MenuItem> getAllItemsByRoleId(@Param("id") Integer id);
+	
+
+	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND LOWER(e.txtName) <> 'other' AND e.blnIsDeleted = false AND e.blnIsActive = true ORDER BY e.txtName")
+	List<MenuItem> getAllActiveItemsByRoleId(@Param("id") Integer id);
 
 	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsComposite = true AND mi.blnIsDeleted = false ORDER BY mi.txtName")
 	List<MenuItem> findAllCompositeItems();
@@ -51,4 +55,38 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	List<MenuItem> getAllActiveMenuItems();
 
 	List<MenuItem> findByMenuItemRoleInAndBlnIsDeletedFalse(Collection<MenuItemRole> roles);
+
+	@Query("SELECT DISTINCT m.txtType FROM MenuItem m WHERE m.txtType IS NOT NULL")
+	List<String> findDistinctTxtTypes();
+
+	List<MenuItem> findByTxtTypeAndBlnIsDeletedFalse(String txtType);
+
+	@Query("""
+			SELECT m
+			FROM MenuItem m
+			WHERE m.blnIsDeleted = false
+			  AND m.blnIsActive = true
+			  AND (
+			       LOWER(m.txtName) LIKE LOWER(CONCAT('%', :query, '%'))
+			    OR LOWER(m.txtCode) LIKE LOWER(CONCAT('%', :query, '%'))
+			  )
+			ORDER BY m.numDisplayOrder ASC
+			""")
+	List<MenuItem> searchByQuery(@Param("query") String query);
+
+	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsDeleted = false ORDER BY mi.serMenuItemId desc")
+	List<MenuItem> getAllMenuItems();
+
+	@Query("""
+			    SELECT mi
+			    FROM MenuItem mi
+			    WHERE LOWER(mi.parent.txtName) = LOWER(:code)
+			      AND mi.blnIsComposite = false
+			      AND mi.blnIsDeleted = false
+			      AND mi.blnIsActive = true
+			      AND mi.menuItemRole.serMenuItemRoleId = 3
+			    ORDER BY mi.txtName
+			""")
+	List<MenuItem> getAllNonCompositeActiveItemsByParentItemCode(@Param("code") String code);
+
 }

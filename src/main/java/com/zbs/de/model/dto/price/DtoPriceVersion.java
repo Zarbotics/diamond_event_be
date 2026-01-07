@@ -1,4 +1,4 @@
-package com.zbs.de.model.dto;
+package com.zbs.de.model.dto.price;
 
 import java.util.Map;
 
@@ -19,6 +19,8 @@ public class DtoPriceVersion {
 	private Boolean blnIsDefault = false;
 	private Integer numPriority = 1;
 	private Map<String, Object> metadata;
+
+	private String txtPriceVersionStatus;
 
 	private Integer totalPrices;
 	private Integer activePrices;
@@ -117,6 +119,14 @@ public class DtoPriceVersion {
 
 	public void setActivePrices(Integer activePrices) {
 		this.activePrices = activePrices;
+	}
+
+	public String getTxtPriceVersionStatus() {
+		return txtPriceVersionStatus;
+	}
+
+	public void setTxtPriceVersionStatus(String txtPriceVersionStatus) {
+		this.txtPriceVersionStatus = txtPriceVersionStatus;
 	}
 
 }
