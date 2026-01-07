@@ -42,7 +42,7 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	List<MenuItem> getAllItemsByRoleId(@Param("id") Integer id);
 	
 
-	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND e.blnIsDeleted = false AND e.blnIsActive = true ORDER BY e.txtName")
+	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND LOWER(e.txtName) <> 'other' AND e.blnIsDeleted = false AND e.blnIsActive = true ORDER BY e.txtName")
 	List<MenuItem> getAllActiveItemsByRoleId(@Param("id") Integer id);
 
 	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsComposite = true AND mi.blnIsDeleted = false ORDER BY mi.txtName")
