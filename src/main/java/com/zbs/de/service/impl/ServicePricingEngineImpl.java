@@ -2,9 +2,9 @@ package com.zbs.de.service.impl;
 
 import com.zbs.de.model.PriceEntry;
 import com.zbs.de.model.PricingRule;
-import com.zbs.de.model.dto.DtoPreviewSelection;
-import com.zbs.de.model.dto.DtoPricePreviewLine;
-import com.zbs.de.model.dto.DtoPricePreviewRequest;
+import com.zbs.de.model.dto.price.DtoPreviewSelection;
+import com.zbs.de.model.dto.price.DtoPricePreviewLine;
+import com.zbs.de.model.dto.price.DtoPricePreviewRequest;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.MenuComponent;
 import com.zbs.de.repository.RepositoryMenuItem;

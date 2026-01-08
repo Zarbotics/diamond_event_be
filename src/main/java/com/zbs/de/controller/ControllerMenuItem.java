@@ -266,8 +266,7 @@ public class ControllerMenuItem {
 					e.getMessage(), null);
 		}
 	}
-	
-	
+
 	@PostMapping(value = "/getValidParentsByRoleId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getValidParentsByRoleId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 
@@ -291,5 +290,48 @@ public class ControllerMenuItem {
 		}
 	}
 
+	// -------------------------------------------------------------
+	// SEARCH MENU ITEMS
+	// -------------------------------------------------------------
+	@PostMapping(value = "/searchMenuItems", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage searchMenuItems(@RequestBody DtoSearch dtoSearch, HttpServletRequest httpRequest) {
+		LOGGER.info("Searching menu items with query: {}", dtoSearch.getSearchKeyword());
+
+		try {
+			List<DtoMenuItem> items = service.searchMenuItems(dtoSearch.getTxtQuery(), dtoSearch.getTxtRole(), // role
+					dtoSearch.getTxtType(), // type
+					dtoSearch.getNumlimit());
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Search results", items);
+
+		} catch (Exception e) {
+			LOGGER.error("Error searching menu items", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
+	
+	
+	@PostMapping(value = "/getAllActiveItemsOfOtherSubCategory", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveItemsOfOtherSubCategory(HttpServletRequest request) {
+
+		LOGGER.info("Fetching all active Items");
+
+		try {
+			DtoResult dtoResult = service.getAllNonCompositeActiveItemsByParentItemCode("other");
+
+			if (dtoResult != null && dtoResult.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+						"Successfully fetched all active Items", dtoResult.getResult());
+			}
+
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, dtoResult.getTxtMessage(), null);
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching all active Items", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage(), null);
+		}
+	}
 
 }

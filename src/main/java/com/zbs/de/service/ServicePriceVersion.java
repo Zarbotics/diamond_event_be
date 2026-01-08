@@ -2,8 +2,8 @@ package com.zbs.de.service;
 
 import java.util.Date;
 
-import com.zbs.de.model.dto.DtoPriceVersion;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.price.DtoPriceVersion;
 import com.zbs.de.model.PriceVersion;
 
 public interface ServicePriceVersion {
@@ -45,4 +45,6 @@ public interface ServicePriceVersion {
 	PriceVersion getActivePriceVersionForDate(Date date);
 	
 	String generatePriceVersionCode();
+	
+	DtoResult getAllPriceVersionStatusValues();
 }

@@ -60,6 +60,8 @@ public class MapperEventMaster {
 		dto.setTxtContactPersonFirstName(entity.getTxtContactPersonFirstName());
 		dto.setTxtContactPersonLastName(entity.getTxtContactPersonLastName());
 		dto.setTxtContactPersonPhoneNo(entity.getTxtContactPersonPhoneNo());
+		
+		dto.setIsEditAllowed(entity.getIsEditAllowed());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -212,6 +214,8 @@ public class MapperEventMaster {
 		dto.setTxtContactPersonFirstName(entity.getTxtContactPersonFirstName());
 		dto.setTxtContactPersonLastName(entity.getTxtContactPersonLastName());
 		dto.setTxtContactPersonPhoneNo(entity.getTxtContactPersonPhoneNo());
+		
+		dto.setIsEditAllowed(entity.getIsEditAllowed());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -304,6 +308,8 @@ public class MapperEventMaster {
 		entity.setTxtContactPersonFirstName(dto.getTxtContactPersonFirstName());
 		entity.setTxtContactPersonLastName(dto.getTxtContactPersonLastName());
 		entity.setTxtContactPersonPhoneNo(dto.getTxtContactPersonPhoneNo());
+		
+		entity.setIsEditAllowed(dto.getIsEditAllowed());
 
 		if (dto.getDtoEventDecorSelections() != null) {
 			List<EventDecorCategorySelection> decorSelections = dto.getDtoEventDecorSelections().stream()

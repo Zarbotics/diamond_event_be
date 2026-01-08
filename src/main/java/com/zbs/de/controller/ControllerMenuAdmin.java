@@ -1,7 +1,9 @@
 package com.zbs.de.controller;
 
 import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
 import com.zbs.de.service.ServiceMenuItem;
+import com.zbs.de.service.ServiceMenuSelection;
 import com.zbs.de.util.ResponseMessage;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,8 +26,10 @@ public class ControllerMenuAdmin {
 
 	@Autowired
 	private ServiceMenuItem svc;
-	
-	
+
+	@Autowired
+	private ServiceMenuSelection selection;
+
 	@PostMapping(value = "/getAllRoles", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllRoles(HttpServletRequest request) {
 		LOGGER.info("Fetching Menu Roles");
@@ -38,9 +42,7 @@ public class ControllerMenuAdmin {
 					"Failed to fetch menu roles", null);
 		}
 	}
-	
-	
-	
+
 	@PostMapping(value = "/getAllTypes", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllTypes(@RequestBody String txtRole, HttpServletRequest request) {
 		LOGGER.info("Fetching Menu Types:", txtRole);
@@ -69,8 +71,7 @@ public class ControllerMenuAdmin {
 					"Failed to fetch menu items", null);
 		}
 	}
-	
-	
+
 	// ================================
 	// GET MENU ITEMS BY Type
 	// ================================
@@ -127,6 +128,22 @@ public class ControllerMenuAdmin {
 		LOGGER.info("Fetching Selectable Children for Parent ID: ", parentId);
 		try {
 			List<DtoMenuItem> list = svc.getSelectableItemsUnderParent(parentId);
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", list);
+		} catch (Exception e) {
+			LOGGER.error("Error fetching selectable children", e);
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					"Failed to fetch selectable children", null);
+		}
+	}
+
+	// ================================
+	// GET Menu For CJ
+	// ================================
+	@PostMapping(value = "/getMenu", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getMenu( HttpServletRequest request) {
+		LOGGER.info("Fetching Menu");
+		try {
+			List<DtoCustomerMenuCategory> list = selection.getCustomerMenu();
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", list);
 		} catch (Exception e) {
 			LOGGER.error("Error fetching selectable children", e);

@@ -8,6 +8,7 @@ import java.util.Map;
 import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryItemDetail;
 import com.zbs.de.model.MenuFoodMaster;
+import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
 import com.zbs.de.model.dto.DtoCateringDeliveryItemDetail;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
@@ -32,6 +33,7 @@ public class MapperCateringDeliveryBooking {
 		dto.setTxtDeliveryTime(entity.getTxtDeliveryTime());
 		dto.setTxtRemarks(entity.getTxtRemarks());
 		dto.setTxtSpecialInstructions(entity.getTxtSpecialInstructions());
+		dto.setIsEditAllowed(entity.getIsEditAllowed());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -74,6 +76,7 @@ public class MapperCateringDeliveryBooking {
 		dto.setTxtDeliveryTime(entity.getTxtDeliveryTime());
 		dto.setTxtRemarks(entity.getTxtRemarks());
 		dto.setTxtSpecialInstructions(entity.getTxtSpecialInstructions());
+		dto.setIsEditAllowed(entity.getIsEditAllowed());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -95,34 +98,44 @@ public class MapperCateringDeliveryBooking {
 //			dto.setCateringDeliveryItemDetails(details);
 			
 
-			Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = new HashMap<>();
+//			Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = new HashMap<>();
+			List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
 
 			for (CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
-				if (detail.getMenueFoodMaster() != null) {
+				if (detail.getMenuItem() != null) {
 					DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
-					MenuFoodMaster foodMaster = detail.getMenueFoodMaster();
+//					MenuFoodMaster foodMaster = detail.getMenueFoodMaster();
+					MenuItem menuItem = detail.getMenuItem();
 
-					dtoMenuFoodMaster.setSerMenuFoodId(foodMaster.getSerMenuFoodId());
-					dtoMenuFoodMaster.setTxtMenuFoodCode(foodMaster.getTxtMenuFoodCode());
-					dtoMenuFoodMaster.setTxtMenuFoodName(foodMaster.getTxtMenuFoodName());
-					dtoMenuFoodMaster.setBlnIsMainCourse(foodMaster.getBlnIsMainCourse());
-					dtoMenuFoodMaster.setBlnIsAppetiser(foodMaster.getBlnIsAppetiser());
-					dtoMenuFoodMaster.setBlnIsStarter(foodMaster.getBlnIsStarter());
-					dtoMenuFoodMaster.setBlnIsSaladAndCondiment(foodMaster.getBlnIsSaladAndCondiment());
-					dtoMenuFoodMaster.setBlnIsDessert(foodMaster.getBlnIsDessert());
-					dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
-					dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
+//					dtoMenuFoodMaster.setSerMenuFoodId(foodMaster.getSerMenuFoodId());
+//					dtoMenuFoodMaster.setTxtMenuFoodCode(foodMaster.getTxtMenuFoodCode());
+//					dtoMenuFoodMaster.setTxtMenuFoodName(foodMaster.getTxtMenuFoodName());
+//					dtoMenuFoodMaster.setBlnIsMainCourse(foodMaster.getBlnIsMainCourse());
+//					dtoMenuFoodMaster.setBlnIsAppetiser(foodMaster.getBlnIsAppetiser());
+//					dtoMenuFoodMaster.setBlnIsStarter(foodMaster.getBlnIsStarter());
+//					dtoMenuFoodMaster.setBlnIsSaladAndCondiment(foodMaster.getBlnIsSaladAndCondiment());
+//					dtoMenuFoodMaster.setBlnIsDessert(foodMaster.getBlnIsDessert());
+//					dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
+//					dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
+					
+					dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
+					dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
+					dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
+					dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
+					dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
 
-					String foodType = getFoodType(foodMaster);
+//					String foodType = getFoodType(foodMaster);
 
-					if (!foodSelectionsMap.containsKey(foodType)) {
-						foodSelectionsMap.put(foodType, new ArrayList<>());
-					}
-					foodSelectionsMap.get(foodType).add(dtoMenuFoodMaster);
+//					if (!foodSelectionsMap.containsKey(foodType)) {
+//						foodSelectionsMap.put(foodType, new ArrayList<>());
+//					}
+//					foodSelectionsMap.get(foodType).add(dtoMenuFoodMaster);
+					foodSelections.add(dtoMenuFoodMaster);
+					
 				}
 			}
 
-			dto.setFoodSelections(foodSelectionsMap);
+			dto.setFoodSelections(foodSelections);
 		}
 
 		return dto;
@@ -135,10 +148,16 @@ public class MapperCateringDeliveryBooking {
 			dto.setSerCateringDeliveryDetailId(entity.getSerCateringDeliveryDetailId());
 			dto.setTxtCateringDeliveryDetailCode(entity.getTxtCateringDeliveryDetailCode());
 			dto.setTxtNotes(entity.getTxtCateringDeliveryDetailCode());
-			if(entity.getMenueFoodMaster() != null) {
-				dto.setSerMenuFoodId(entity.getMenueFoodMaster().getSerMenuFoodId());
-				dto.setTxtMenuFoodCode(entity.getMenueFoodMaster().getTxtMenuFoodCode());
-				dto.setTxtMenuFoodName(entity.getMenueFoodMaster().getTxtMenuFoodName());
+//			if(entity.getMenueFoodMaster() != null) {
+//				dto.setSerMenuFoodId(entity.getMenueFoodMaster().getSerMenuFoodId());
+//				dto.setTxtMenuFoodCode(entity.getMenueFoodMaster().getTxtMenuFoodCode());
+//				dto.setTxtMenuFoodName(entity.getMenueFoodMaster().getTxtMenuFoodName());
+//			}
+			if(entity.getMenuItem() != null) {
+				dto.setSerMenuItemId(entity.getMenuItem().getSerMenuItemId());
+				dto.setTxtCode(entity.getMenuItem().getTxtCode());
+				dto.setTxtName(entity.getMenuItem().getTxtName());
+				dto.setTxtDescription(entity.getMenuItem().getTxtDescription());
 			}
 			return dto;
 		}
@@ -163,6 +182,7 @@ public class MapperCateringDeliveryBooking {
 		entity.setTxtDeliveryTime(dto.getTxtDeliveryTime());
 		entity.setTxtRemarks(dto.getTxtRemarks());
 		entity.setTxtSpecialInstructions(dto.getTxtSpecialInstructions());
+		entity.setIsEditAllowed(dto.getIsEditAllowed());
 
 		return entity;
 	}

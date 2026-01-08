@@ -1,4 +1,4 @@
-package com.zbs.de.model.dto;
+package com.zbs.de.model.dto.price;
 
 public class DtoPricePreviewLine {
 

@@ -210,6 +210,13 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		MenuItem e = repo.findById(id).orElseThrow(() -> new NotFoundException("MenuItem not found"));
 		return MapperMenuItem.toDto(e);
 	}
+	
+	
+	@Override
+	public MenuItem getMenuItemById(Long id) {
+		MenuItem e = repo.findById(id).orElseThrow(() -> new NotFoundException("MenuItem not found"));
+		return e;
+	}
 
 	@Override
 	public List<DtoMenuItem> getTree() {
@@ -814,6 +821,70 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	        return;
 	    }
 	    result.add(role);
-	    collectParentRoles(role.getParentMenuItemRole(), result);
+//	    collectParentRoles(role.getParentMenuItemRole(), result);
 	}
+	
+	// 9. Search Menu Items
+	@Override
+	@Transactional(readOnly = true)
+	public List<DtoMenuItem> searchMenuItems(String query, String role, String type, Integer limit) {
+		LOGGER.info("Searching menu items: query={}, role={}, type={}", query, role, type);
+
+		List<MenuItem> items;
+
+		if (query != null && !query.isEmpty()) {
+			// Search by name or code
+			items = repo.searchByQuery(query);
+		} else {
+			// Get all active items
+			items = repo.getAllActiveMenuItems();
+		}
+
+		// Apply filters
+		if (role != null && !role.isEmpty()) {
+			items = items.stream().filter(item -> role.equals(item.getTxtRole())).collect(Collectors.toList());
+		}
+
+		if (type != null && !type.isEmpty()) {
+			items = items.stream().filter(item -> type.equals(item.getTxtType())).collect(Collectors.toList());
+		}
+
+		// Apply limit
+		if (limit != null && limit > 0 && items.size() > limit) {
+			items = items.subList(0, limit);
+		}
+
+		// Map to DTO
+		return items.stream().map(MapperMenuItem::toDto).collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<MenuItem> getAllMenuItems() {
+		try {
+			List<MenuItem> items = repo.getAllActiveMenuItems();
+			return items;
+		} catch (Exception e) {
+			return new ArrayList<>();
+		}
+
+	}
+	
+	@Override
+	public DtoResult getAllNonCompositeActiveItemsByParentItemCode(String txtCode) {
+		try {
+			List<MenuItem> items = repo.getAllNonCompositeActiveItemsByParentItemCode(txtCode);
+			if (items != null && !items.isEmpty()) {
+
+				List<DtoMenuItem> dtoMenuItems = items.stream().map(MapperMenuItem::toDto).collect(Collectors.toList());
+				return new DtoResult("Active Items Fetched Successfully.", null, dtoMenuItems, null);
+			} else {
+				return new DtoResult("No Active Items Found Against This Role In Database", null, null, null);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new DtoResult(e.getMessage(), null, null, null);
+		}
+
+	}
+
 }

@@ -1,4 +1,4 @@
-package com.zbs.de.model.dto;
+package com.zbs.de.model.dto.price;
 
 import java.util.List;
 
