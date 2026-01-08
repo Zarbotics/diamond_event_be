@@ -1,5 +1,6 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class DtoEventMasterAdminPortal {
@@ -62,6 +63,9 @@ public class DtoEventMasterAdminPortal {
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
+	
+	private BigDecimal numItineraryPrice;
+	private BigDecimal numServingDishesPrice;
 
 	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
 
@@ -480,6 +484,22 @@ public class DtoEventMasterAdminPortal {
 
 	public void setFoodSelections(List<DtoMenuFoodMaster> foodSelections) {
 		this.foodSelections = foodSelections;
+	}
+
+	public BigDecimal getNumItineraryPrice() {
+		return numItineraryPrice;
+	}
+
+	public void setNumItineraryPrice(BigDecimal numItineraryPrice) {
+		this.numItineraryPrice = numItineraryPrice;
+	}
+
+	public BigDecimal getNumServingDishesPrice() {
+		return numServingDishesPrice;
+	}
+
+	public void setNumServingDishesPrice(BigDecimal numServingDishesPrice) {
+		this.numServingDishesPrice = numServingDishesPrice;
 	}
 
 }

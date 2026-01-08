@@ -1,6 +1,7 @@
 package com.zbs.de.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -148,6 +149,12 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_other_event_type")
 	private String txtOtherEventType;
+
+	@Column(name = "num_itinerary_price")
+	private BigDecimal numItineraryPrice;
+
+	@Column(name = "num_serving_dishes_price")
+	private BigDecimal numServingDishesPrice;
 
 	// This is when you need to specify which hall you selected
 	@ManyToOne
@@ -505,6 +512,22 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setTxtContactPersonPhoneNo(String txtContactPersonPhoneNo) {
 		this.txtContactPersonPhoneNo = txtContactPersonPhoneNo;
+	}
+
+	public BigDecimal getNumItineraryPrice() {
+		return numItineraryPrice;
+	}
+
+	public void setNumItineraryPrice(BigDecimal numItineraryPrice) {
+		this.numItineraryPrice = numItineraryPrice;
+	}
+
+	public BigDecimal getNumServingDishesPrice() {
+		return numServingDishesPrice;
+	}
+
+	public void setNumServingDishesPrice(BigDecimal numServingDishesPrice) {
+		this.numServingDishesPrice = numServingDishesPrice;
 	}
 
 //	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)

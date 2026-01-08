@@ -19,7 +19,7 @@ public class MapperMenuItem {
 		dto.setTxtName(entity.getTxtName());
 		dto.setTxtShortName(entity.getTxtShortName());
 		dto.setTxtDescription(entity.getTxtDescription());
-		dto.setTxtRole(entity.getTxtRole());
+//		dto.setTxtRole(entity.getTxtRole());
 		dto.setTxtType(entity.getTxtType());
 		dto.setNumDisplayOrder(entity.getNumDisplayOrder());
 		dto.setBlnIsSelectable(entity.getBlnIsSelectable());
@@ -31,6 +31,8 @@ public class MapperMenuItem {
 		// parentId (avoid triggering lazy load)
 		dto.setParentId(entity.getParent() != null ? entity.getParent().getSerMenuItemId() : null);
 		dto.setSerMenuItemRoleId(entity.getMenuItemRole() != null ? entity.getMenuItemRole().getSerMenuItemRoleId() : null);
+		dto.setTxtRole(entity.getMenuItemRole() != null ? entity.getMenuItemRole().getTxtRoleName() : null);
+
 		return dto;
 	}
 
