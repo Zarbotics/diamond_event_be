@@ -21,6 +21,7 @@ public class DtoMenuItem {
 	private String txtPath;
 
 	private Boolean blnIsActive;
+	private Boolean blnIsCompostie;
 
 	public DtoMenuItem() {
 		super();
@@ -164,6 +165,14 @@ public class DtoMenuItem {
 
 	public void setBlnIsActive(Boolean blnIsActive) {
 		this.blnIsActive = blnIsActive;
+	}
+
+	public Boolean getBlnIsCompostie() {
+		return blnIsCompostie;
+	}
+
+	public void setBlnIsCompostie(Boolean blnIsCompostie) {
+		this.blnIsCompostie = blnIsCompostie;
 	}
 
 }

@@ -142,6 +142,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		exist.setBlnIsSelectable(dto.getBlnIsSelectable());
 		exist.setMetadata(dto.getMetadata());
 		exist.setNumDefaultServingsPerGuest(dto.getNumDefaultServingsPerGuest());
+		exist.setBlnIsComposite(dto.getBlnIsCompostie());
 
 		// ---- ROLE ENUM ----
 //		EnmMenuItemRole currentRole = EnmMenuItemRole.of(dto.getTxtRole());
