@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import org.hibernate.annotations.DynamicInsert;
 
@@ -48,6 +49,9 @@ public class CateringDeliveryItemDetail extends BaseEntity implements Serializab
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_menu_item_id")
 	private MenuItem menuItem;
+
+	@Column(name = "num_price")
+	private BigDecimal numPrice;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_delivery_booking_id")
@@ -99,6 +103,14 @@ public class CateringDeliveryItemDetail extends BaseEntity implements Serializab
 
 	public void setMenuItem(MenuItem menuItem) {
 		this.menuItem = menuItem;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

@@ -135,6 +135,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 					detail.setCateringDeliveryBooking(entity);
 //					detail.setMenueFoodMaster(food);
 					detail.setMenuItem(menuItem);
+					detail.setNumPrice(detailDto.getNumPrice());
 					detailList.add(detail);
 				}
 			}
@@ -312,6 +313,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 							detail.setCateringDeliveryBooking(entity);
 //							detail.setMenueFoodMaster(menuFoodMaster);
 							detail.setMenuItem(menuItem);
+							detail.setNumPrice(dtoMenuFoodMaster.getNumPrice());
 							detailList.add(detail);
 						} else {
 							result.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
