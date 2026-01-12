@@ -659,15 +659,33 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
 						.getByEventMasterId(dto.getSerEventMasterId());
-				List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+//				List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+//				if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+//					for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
+//						DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
+//								.toDto(entity);
+//						dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+//					}
+//				}
+//				dto.setFoodSelections(dtoEventMenuFoodSelections);
+				
+				List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
 				if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
 					for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
-						DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
-								.toDto(entity);
-						dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+						if (entity.getMenuItem() != null) {
+							DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
+							MenuItem menuItem = entity.getMenuItem();
+							dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
+							dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
+							dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
+							dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
+							dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
+							dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
+							foodSelections.add(dtoMenuFoodMaster);
+						}
 					}
 				}
-				dto.setFoodSelections(dtoEventMenuFoodSelections);
+				dto.setFoodSelections(foodSelections);
 
 				dtoResult.setResult(dto);
 				dtoResult.setTxtMessage("Success");
@@ -729,15 +747,33 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 					List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
 							.getByEventMasterId(dto.getSerEventMasterId());
-					List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+//					List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+//					if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+//						for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
+//							DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
+//									.toDto(entity);
+//							dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+//						}
+//					}
+//					dto.setFoodSelections(dtoEventMenuFoodSelections);
+					
+					List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
 					if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
 						for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
-							DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
-									.toDto(entity);
-							dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+							if (entity.getMenuItem() != null) {
+								DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
+								MenuItem menuItem = entity.getMenuItem();
+								dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
+								dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
+								dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
+								dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
+								dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
+								dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
+								foodSelections.add(dtoMenuFoodMaster);
+							}
 						}
 					}
-					dto.setFoodSelections(dtoEventMenuFoodSelections);
+					dto.setFoodSelections(foodSelections);
 
 					// Fetching Event Extras Selection
 					// ***********************************
@@ -833,15 +869,32 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 					List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
 							.getByEventMasterId(dto.getSerEventMasterId());
-					List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+//					List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+//					if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+//						for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
+//							DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
+//									.toDto(entity);
+//							dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+//						}
+//					}
+					
+					List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
 					if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
 						for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
-							DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
-									.toDto(entity);
-							dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+							if (entity.getMenuItem() != null) {
+								DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
+								MenuItem menuItem = entity.getMenuItem();
+								dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
+								dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
+								dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
+								dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
+								dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
+								dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
+								foodSelections.add(dtoMenuFoodMaster);
+							}
 						}
 					}
-					dto.setFoodSelections(dtoEventMenuFoodSelections);
+					dto.setFoodSelections(foodSelections);
 
 					// Fetching Event Extras Selection
 					// ***********************************
@@ -994,11 +1047,18 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						.findByIdAndBlnIsDeletedFalse(dtoEventMaster.getSerEventMasterId());
 			}
 
-			List<MenuFoodMaster> dtoMenuFoodMasterLst = serviceMenuFoodMaster.getAllDataEntity();
-			if (UtilRandomKey.isNull(dtoMenuFoodMasterLst)) {
+//			List<MenuFoodMaster> dtoMenuFoodMasterLst = serviceMenuFoodMaster.getAllDataEntity();
+//			if (UtilRandomKey.isNull(dtoMenuFoodMasterLst)) {
+//				dtoResult.setTxtMessage("No Food Item Is Present In DB");
+//				return dtoResult;
+//			}
+			
+			List<MenuItem> menuItems = serviceMenuItem.getAllMenuItems();
+			if (UtilRandomKey.isNull(menuItems)) {
 				dtoResult.setTxtMessage("No Food Item Is Present In DB");
 				return dtoResult;
 			}
+
 
 			EventBudget eventBudget = null;
 			List<DecorCategoryPropertyMaster> decorCategoryPropertyMasterLst = serviceDecorCategoryPropertyMaster
@@ -1251,53 +1311,63 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //					entity.setNumInfoFilledStatus(70);
 				}
 
-//				// Set Food Menu Selection
-//				// ***********************
-//				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())
-//						&& !dtoEventMaster.getFoodSelections().isEmpty()) {
-////					serviceEventMenuFoodSelection.deleteByEventMasterId(entity.getSerEventMasterId());
-//					if (entity.getFoodSelections() != null) {
-//						entity.getFoodSelections().clear();
-//					}
-//					List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
+				// Set Food Menu Selection
+				// ***********************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())
+						&& !dtoEventMaster.getFoodSelections().isEmpty()) {
+//					serviceEventMenuFoodSelection.deleteByEventMasterId(entity.getSerEventMasterId());
+					if (entity.getFoodSelections() != null) {
+						entity.getFoodSelections().clear();
+					}
+					List<DtoMenuFoodMaster> foodSelections = dtoEventMaster.getFoodSelections();
+					List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
 //					for (DtoEventMenuFoodSelection dto : dtoEventMaster.getFoodSelections()) {
-//						EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
-//						eventMenuFoodSelection.setEventMaster(entity);
-//						eventMenuFoodSelection.setBlnIsActive(true);
-//						eventMenuFoodSelection.setBlnIsApproved(true);
-//						eventMenuFoodSelection.setBlnIsDeleted(false);
-//						eventMenuFoodSelection.setEventMaster(entity);
-//						if (UtilRandomKey.isNotNull(dto.getSerMenuFoodId())) {
+					for (DtoMenuFoodMaster dto : foodSelections) {
+						EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
+						eventMenuFoodSelection.setEventMaster(entity);
+						eventMenuFoodSelection.setBlnIsActive(true);
+						eventMenuFoodSelection.setBlnIsApproved(true);
+						eventMenuFoodSelection.setBlnIsDeleted(false);
+						eventMenuFoodSelection.setEventMaster(entity);
+						
+						if (UtilRandomKey.isNotNull(dto.getSerMenuItemId())) {
+							
 //							MenuFoodMaster menuFoodMaster = dtoMenuFoodMasterLst.stream()
 //									.filter(food -> food.getSerMenuFoodId() != null
 //											&& food.getSerMenuFoodId().intValue() == dto.getSerMenuFoodId().intValue())
 //									.findFirst().orElse(null);
-//							if (UtilRandomKey.isNotNull(menuFoodMaster)) {
+							MenuItem menuItem = menuItems.stream()
+									.filter(item -> item.getSerMenuItemId() != null
+											&& item.getSerMenuItemId().intValue() == dto.getSerMenuItemId().intValue())
+									.findFirst().orElse(null);
+							
+							if (UtilRandomKey.isNotNull(menuItem)) {
 //								eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
+								eventMenuFoodSelection.setMenuItem(menuItem);
 //								eventMenuFoodSelection.setTxtFoodType(getFoodName(menuFoodMaster));
-//							} else {
-//								dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
-//										+ dto.getSerMenuFoodId() + " In DB.");
-//								return dtoResult;
-//							}
-//						} else {
-//							dtoResult.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
-//							return dtoResult;
-//						}
-//
-//						eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
-//
+							} else {
+								dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
+										+ dto.getSerMenuFoodId() + " In DB.");
+								return dtoResult;
+							}
+						} else {
+							dtoResult.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
+							return dtoResult;
+						}
+
+						eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
+
+					}
+
+//					String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
+//					if (!result.equalsIgnoreCase("Success")) {
+//						dtoResult.setTxtMessage(result);
+//						return dtoResult;
 //					}
-//
-////					String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
-////					if (!result.equalsIgnoreCase("Success")) {
-////						dtoResult.setTxtMessage(result);
-////						return dtoResult;
-////					}
-//					entity.getFoodSelections().addAll(eventMenuFoodSelectionLst);
-////					entity.setNumInfoFilledStatus(90);
-//
-//				}
+					entity.getFoodSelections().addAll(eventMenuFoodSelectionLst);
+//					entity.setNumInfoFilledStatus(90);
+
+				}
 
 				// Set Vendor
 				// **********
@@ -1518,44 +1588,56 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //					entity.setNumInfoFilledStatus(70);
 				}
 
-//				// Set Food Menu Selection
-//				// ***********************
-//				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())) {
-//					List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
+				// Set Food Menu Selection
+				// ***********************
+				if (UtilRandomKey.isNotNull(dtoEventMaster.getFoodSelections())) {
+					
+					
+					List<EventMenuFoodSelection> eventMenuFoodSelectionLst = new ArrayList<>();
+					List<DtoMenuFoodMaster> foodSelections = dtoEventMaster.getFoodSelections();
+
+					
 //					for (DtoEventMenuFoodSelection dto : dtoEventMaster.getFoodSelections()) {
-//						EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
-//						eventMenuFoodSelection.setEventMaster(entity);
-//						eventMenuFoodSelection.setBlnIsActive(true);
-//						eventMenuFoodSelection.setBlnIsApproved(true);
-//						eventMenuFoodSelection.setBlnIsDeleted(false);
-//						if (UtilRandomKey.isNotNull(dto.getSerMenuFoodId())) {
+					for (DtoMenuFoodMaster dto : foodSelections) {
+						EventMenuFoodSelection eventMenuFoodSelection = new EventMenuFoodSelection();
+						eventMenuFoodSelection.setEventMaster(entity);
+						eventMenuFoodSelection.setBlnIsActive(true);
+						eventMenuFoodSelection.setBlnIsApproved(true);
+						eventMenuFoodSelection.setBlnIsDeleted(false);
+						if (UtilRandomKey.isNotNull(dto.getSerMenuItemId())) {
 //							MenuFoodMaster menuFoodMaster = dtoMenuFoodMasterLst.stream()
 //									.filter(food -> food.getSerMenuFoodId() != null
 //											&& food.getSerMenuFoodId().intValue() == dto.getSerMenuFoodId().intValue())
 //									.findFirst().orElse(null);
-//							if (UtilRandomKey.isNotNull(menuFoodMaster)) {
-//								eventMenuFoodSelection.setMenuFoodMaster(menuFoodMaster);
+							
+							MenuItem menuItem = menuItems.stream()
+									.filter(item -> item.getSerMenuItemId() != null
+											&& item.getSerMenuItemId().intValue() == dto.getSerMenuItemId().intValue())
+									.findFirst().orElse(null);
+							
+							if (UtilRandomKey.isNotNull(menuItem)) {
+								eventMenuFoodSelection.setMenuItem(menuItem);
 //								eventMenuFoodSelection.setTxtFoodType(getFoodName(menuFoodMaster));
-//							} else {
-//								dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
-//										+ dto.getSerMenuFoodId() + " In DB.");
-//								return dtoResult;
-//							}
-//						} else {
-//							dtoResult.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
-//							return dtoResult;
-//						}
-//
-//						eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
-//					}
-//
-//					String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
-//					if (!result.equalsIgnoreCase("Success")) {
-//						dtoResult.setTxtMessage(result);
-//						return dtoResult;
-//					}
-////					entity.setNumInfoFilledStatus(90);
-//				}
+							} else {
+								dtoResult.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
+										+ dto.getSerMenuFoodId() + " In DB.");
+								return dtoResult;
+							}
+						} else {
+							dtoResult.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
+							return dtoResult;
+						}
+
+						eventMenuFoodSelectionLst.add(eventMenuFoodSelection);
+					}
+
+					String result = serviceEventMenuFoodSelection.saveAll(eventMenuFoodSelectionLst);
+					if (!result.equalsIgnoreCase("Success")) {
+						dtoResult.setTxtMessage(result);
+						return dtoResult;
+					}
+//					entity.setNumInfoFilledStatus(90);
+				}
 
 				// Set Vendor
 				// **********
@@ -1777,15 +1859,32 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
 						.getByEventMasterId(dto.getSerEventMasterId());
-				List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+//				List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+//				if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+//					for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
+//						DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
+//								.toDto(entity);
+//						dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+//					}
+//				}
+//				dto.setFoodSelections(dtoEventMenuFoodSelections);
+				List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
 				if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
 					for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
-						DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
-								.toDto(entity);
-						dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+						if (entity.getMenuItem() != null) {
+							DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
+							MenuItem menuItem = entity.getMenuItem();
+							dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
+							dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
+							dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
+							dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
+							dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
+							dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
+							foodSelections.add(dtoMenuFoodMaster);
+						}
 					}
 				}
-				dto.setFoodSelections(dtoEventMenuFoodSelections);
+				dto.setFoodSelections(foodSelections);
 
 				// Fetching Event Extras Selection
 				// ***********************************
