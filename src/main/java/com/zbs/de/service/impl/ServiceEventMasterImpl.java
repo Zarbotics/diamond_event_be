@@ -2716,7 +2716,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 //				entity.setExtrasSelections(newSelections);
 //				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-				entity.getExtrasSelections().addAll(newSelections);
+				if(entity.getExtrasSelections() == null) {
+					entity.setExtrasSelections(newSelections);
+				}else {
+					entity.getExtrasSelections().addAll(newSelections);
+				}
+				
 			}
 
 			entity.setNumInfoFilledStatus(getEventCompletionPercentage(entity));
@@ -3327,4 +3332,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		return dtoPage;
 	}
 
+	@Override
+	public EventMaster getEventMasterById(Integer serEventId) {
+		try {
+
+			Optional<EventMaster> optEvent = repositoryEventMaster.findById(serEventId);
+			if (UtilRandomKey.isNotNull(optEvent)) {
+				return optEvent.get();
+			} else {
+				return null;
+			}
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
+	}
 }
