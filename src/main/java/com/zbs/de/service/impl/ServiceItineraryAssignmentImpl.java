@@ -828,5 +828,26 @@ public class ServiceItineraryAssignmentImpl implements ServiceItineraryAssignmen
 		return roles;
 	}
 
+	@Override
+	public List<ItineraryAssignment> getAssignmentsByMenuItemId(Long menuItemId) {
+		try {
+			List<ItineraryAssignment> assignments = repository
+					.findByMenuItem_SerMenuItemIdAndBlnIsDeletedFalseOrderBySerItineraryAssignmentIdDesc(menuItemId);
+			List<DtoItineraryAssignment> list = new ArrayList<>();
+			for (ItineraryAssignment assignment : assignments) {
 
+				List<ItineraryAssignmentDetail> details = detailRepository
+						.findByItineraryAssignment_SerItineraryAssignmentIdAndBlnIsDeletedFalseOrderByNumDisplayOrderAsc(
+								assignment.getSerItineraryAssignmentId());
+
+				assignment.setItineraryAssignmentDetails(details);
+			}
+
+			return assignments;
+
+		} catch (Exception e) {
+			LOGGER.error("Error fetching Itinerary Assignments by Menu Item ID", e);
+			return null;
+		}
+	}
 }
