@@ -14,6 +14,7 @@ public class MapperDecorCategoryPropertyMaster {
 		entity.setBlnIsRequired(dto.getBlnIsRequired());
 		entity.setBlnIsActive(dto.getBlnIsActive());
 		entity.setBlnIsDeleted(false);
+		entity.setNumPrice(dto.getNumPrice());
 
 		if (dto.getSerDecorCategoryId() != null) {
 			DecorCategoryMaster category = new DecorCategoryMaster();
@@ -32,7 +33,8 @@ public class MapperDecorCategoryPropertyMaster {
 		dto.setTxtRemarks(entity.getTxtRemarks());
 		dto.setBlnIsRequired(entity.getBlnIsRequired());
 		dto.setBlnIsActive(entity.getBlnIsActive());
-
+		dto.setNumPrice(entity.getNumPrice());
+		
 		if (entity.getDecorCategoryMaster() != null) {
 			dto.setSerDecorCategoryId(entity.getDecorCategoryMaster().getSerDecorCategoryId());
 			dto.setTxtDecorCategoryCode(entity.getDecorCategoryMaster().getTxtDecorCategoryCode());

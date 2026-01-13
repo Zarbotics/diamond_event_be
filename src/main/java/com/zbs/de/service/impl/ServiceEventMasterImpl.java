@@ -2204,6 +2204,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								eventDecorPropertySelection.setBlnIsDeleted(false);
 								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
 								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
+								eventDecorPropertySelection.setNumPrice(property.getNumPrice());
 
 								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
 										.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId()
@@ -2518,6 +2519,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								eventDecorPropertySelection.setBlnIsDeleted(false);
 								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
 								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
+								eventDecorPropertySelection.setNumPrice(property.getNumPrice());
 
 								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
 										.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId()
