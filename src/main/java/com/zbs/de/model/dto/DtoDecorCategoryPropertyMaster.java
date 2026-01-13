@@ -1,5 +1,6 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class DtoDecorCategoryPropertyMaster {
@@ -12,6 +13,7 @@ public class DtoDecorCategoryPropertyMaster {
 	private Integer serDecorCategoryId;
 	private String txtDecorCategoryCode;
 	private String txtDecorCategoryName;
+	private BigDecimal numPrice;
 	private List<DtoDecorCategoryPropertyValue> propertyValues;
 
 	public Integer getSerPropertyId() {
@@ -92,6 +94,14 @@ public class DtoDecorCategoryPropertyMaster {
 
 	public void setTxtDecorCategoryName(String txtDecorCategoryName) {
 		this.txtDecorCategoryName = txtDecorCategoryName;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
@@ -43,6 +44,9 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "bln_is_active")
 	private Boolean blnIsActive;
+
+	@Column(name = "num_price")
+	private BigDecimal numPrice = BigDecimal.ZERO;
 
 	@OneToMany(mappedBy = "decorCategoryMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
@@ -97,6 +101,14 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 
 	public void setReferenceDocuments(List<DecorCategoryReferenceDocument> referenceDocuments) {
 		this.referenceDocuments = referenceDocuments;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

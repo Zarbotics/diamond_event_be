@@ -24,4 +24,6 @@ public interface ServiceDecorCategoryMaster {
 	DtoResult getAllActive();
 	
 	String generateNextDecorCategoryMasterCode();
+	
+	DtoResult getAllDecorMasterDataWithPrice();
 }

@@ -70,6 +70,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 					entity.setBlnIsApproved(true);
 					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 					entity.setBlnIsRequired(dto.getBlnIsRequired());
+					entity.setNumPrice(dto.getNumPrice());
 				} else {
 					entity = optional.get();
 					List<DecorCategoryPropertyValue> existingValues = entity.getPropertyValues();
@@ -81,6 +82,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 					entity.setBlnIsActive(dto.getBlnIsActive());
 					entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 					entity.setBlnIsRequired(dto.getBlnIsRequired());
+					entity.setNumPrice(dto.getNumPrice());
 				}
 
 				repositoryDecorCategoryPropertyMaster.save(entity);
@@ -166,6 +168,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 						entity.setBlnIsApproved(true);
 						entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 						entity.setBlnIsRequired(property.getBlnIsRequired());
+						entity.setNumPrice(property.getNumPrice());
 					} else {
 						entity = optional.get();
 						List<DecorCategoryPropertyValue> existingValues = entity.getPropertyValues();
@@ -177,6 +180,7 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 						entity.setBlnIsActive(property.getBlnIsActive());
 						entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 						entity.setBlnIsRequired(property.getBlnIsRequired());
+						entity.setNumPrice(property.getNumPrice());
 					}
 
 					repositoryDecorCategoryPropertyMaster.save(entity);
