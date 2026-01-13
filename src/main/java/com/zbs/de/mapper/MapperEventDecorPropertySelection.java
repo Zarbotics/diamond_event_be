@@ -9,6 +9,7 @@ public class MapperEventDecorPropertySelection {
 	public static EventDecorPropertySelection toEntity(DtoEventDecorPropertySelection dto) {
 		EventDecorPropertySelection entity = new EventDecorPropertySelection();
 		entity.setSerEventDecorPropertyId(dto.getSerEventDecorPropertyId());
+		entity.setNumPrice(dto.getNumPrice());
 
 		if (dto.getSerPropertyId() != null) {
 			DecorCategoryPropertyMaster property = new DecorCategoryPropertyMaster();
@@ -26,6 +27,7 @@ public class MapperEventDecorPropertySelection {
 	public static DtoEventDecorPropertySelection toDto(EventDecorPropertySelection entity) {
 		DtoEventDecorPropertySelection dto = new DtoEventDecorPropertySelection();
 		dto.setSerEventDecorPropertyId(entity.getSerEventDecorPropertyId());
+		dto.setNumPrice(entity.getNumPrice());
 
 		if (entity.getProperty() != null) {
 			dto.setSerPropertyId(entity.getProperty().getSerPropertyId());

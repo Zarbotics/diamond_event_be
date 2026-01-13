@@ -94,6 +94,16 @@ public class ControllerDecorCategoryMaster {
 		}
 		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "No data found", null);
 	}
+	
+	@PostMapping(value = "/getAllDecorMasterDataWithPrice", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllDecorMasterDataWithPrice() {
+		DtoResult result = serviceDecorCategoryMaster.getAllDecorMasterDataWithPrice();
+		if (result.getResulList() != null && !result.getResulList().isEmpty()) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
+					result.getResulList());
+		}
+		return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND, "No data found", null);
+	}
 
 	@PostMapping(value = "/getAllActiveDecorMasterData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllActiveDecorMasterData() {

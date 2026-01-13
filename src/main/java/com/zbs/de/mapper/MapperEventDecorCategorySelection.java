@@ -17,6 +17,7 @@ public class MapperEventDecorCategorySelection {
 		entity.setSerEventDecorCategorySelectionId(dto.getSerEventDecorCategorySelectionId());
 		entity.setTxtEventDecorCategorySelectionCode(dto.getTxtEventDecorCategorySelectionCode());
 		entity.setTxtRemarks(dto.getTxtRemarks());
+		entity.setNumPrice(dto.getNumPrice());
 
 		if (dto.getSerDecorCategoryId() != null) {
 			DecorCategoryMaster category = new DecorCategoryMaster();
@@ -47,6 +48,7 @@ public class MapperEventDecorCategorySelection {
 		dto.setSerEventDecorCategorySelectionId(entity.getSerEventDecorCategorySelectionId());
 		dto.setTxtEventDecorCategorySelectionCode(entity.getTxtEventDecorCategorySelectionCode());
 		dto.setTxtRemarks(entity.getTxtRemarks());
+		dto.setNumPrice(entity.getNumPrice());
 
 		if (entity.getDecorCategory() != null) {
 			dto.setSerDecorCategoryId(entity.getDecorCategory().getSerDecorCategoryId());

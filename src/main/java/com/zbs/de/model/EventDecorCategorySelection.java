@@ -15,6 +15,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
@@ -48,6 +49,9 @@ public class EventDecorCategorySelection extends BaseEntity implements Serializa
 
 	@Column(name = "txt_remarks")
 	private String txtRemarks;
+
+	@Column(name = "num_price")
+	private BigDecimal numPrice = BigDecimal.ZERO;
 
 	@OneToMany(mappedBy = "eventDecorCategorySelection", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventDecorPropertySelection> selectedProperties;
@@ -109,6 +113,14 @@ public class EventDecorCategorySelection extends BaseEntity implements Serializa
 
 	public void setTxtEventDecorCategorySelectionCode(String txtEventDecorCategorySelectionCode) {
 		this.txtEventDecorCategorySelectionCode = txtEventDecorCategorySelectionCode;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import org.hibernate.annotations.DynamicInsert;
 
@@ -44,6 +45,9 @@ public class EventDecorPropertySelection extends BaseEntity implements Serializa
 	@JoinColumn(name = "ser_property_value_id")
 	private DecorCategoryPropertyValue selectedValue;
 
+	@Column(name = "num_price")
+	private BigDecimal numPrice = BigDecimal.ZERO;
+
 	public Integer getSerEventDecorPropertyId() {
 		return serEventDecorPropertyId;
 	}
@@ -74,6 +78,14 @@ public class EventDecorPropertySelection extends BaseEntity implements Serializa
 
 	public void setSelectedValue(DecorCategoryPropertyValue selectedValue) {
 		this.selectedValue = selectedValue;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

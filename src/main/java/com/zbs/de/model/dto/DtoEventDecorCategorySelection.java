@@ -1,5 +1,6 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class DtoEventDecorCategorySelection {
@@ -11,6 +12,7 @@ public class DtoEventDecorCategorySelection {
 	private String txtDecorCategoryName;
 
 	private String txtRemarks;
+	private BigDecimal numPrice;
 
 	private List<DtoEventDecorPropertySelection> selectedProperties;
 	private List<DtoEventDecorReferenceDocument> userUploadedDocuments;
@@ -77,6 +79,14 @@ public class DtoEventDecorCategorySelection {
 
 	public void setUserUploadedDocuments(List<DtoEventDecorReferenceDocument> userUploadedDocuments) {
 		this.userUploadedDocuments = userUploadedDocuments;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

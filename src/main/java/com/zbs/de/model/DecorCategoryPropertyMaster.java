@@ -15,6 +15,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
@@ -51,6 +52,9 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	@Column(name = "bln_is_required")
 	private Boolean blnIsRequired;
+
+	@Column(name = "num_price")
+	private BigDecimal numPrice = BigDecimal.ZERO;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_decor_category_id")
@@ -122,6 +126,14 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	public void setTxtPropertyCode(String txtPropertyCode) {
 		this.txtPropertyCode = txtPropertyCode;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }
