@@ -66,7 +66,8 @@ public class DtoEventMaster {
 	private DtoEventVenue dtoEventVenue;
 
 	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
-	private List<DtoEventMenuFoodSelection> foodSelections;
+//	private List<DtoEventMenuFoodSelection> foodSelections;
+	private List<DtoMenuFoodMaster> foodSelections;
 
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
 
@@ -248,13 +249,13 @@ public class DtoEventMaster {
 		this.txtVenueName = txtVenueName;
 	}
 
-	public List<DtoEventMenuFoodSelection> getFoodSelections() {
-		return foodSelections;
-	}
-
-	public void setFoodSelections(List<DtoEventMenuFoodSelection> foodSelections) {
-		this.foodSelections = foodSelections;
-	}
+//	public List<DtoEventMenuFoodSelection> getFoodSelections() {
+//		return foodSelections;
+//	}
+//
+//	public void setFoodSelections(List<DtoEventMenuFoodSelection> foodSelections) {
+//		this.foodSelections = foodSelections;
+//	}
 
 	public Integer getSerVendorId() {
 		return serVendorId;
@@ -486,6 +487,14 @@ public class DtoEventMaster {
 
 	public void setTxtContactPersonPhoneNo(String txtContactPersonPhoneNo) {
 		this.txtContactPersonPhoneNo = txtContactPersonPhoneNo;
+	}
+
+	public List<DtoMenuFoodMaster> getFoodSelections() {
+		return foodSelections;
+	}
+
+	public void setFoodSelections(List<DtoMenuFoodMaster> foodSelections) {
+		this.foodSelections = foodSelections;
 	}
 
 }

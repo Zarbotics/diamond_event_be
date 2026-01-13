@@ -45,4 +45,6 @@ public interface ServiceItineraryAssignment {
 	String generateAssignmentCode();
 	
 	List<String> getAllItineraryUnits();
+	
+	 List<ItineraryAssignment> getAssignmentsByMenuItemId(Long menuItemId);
 }
