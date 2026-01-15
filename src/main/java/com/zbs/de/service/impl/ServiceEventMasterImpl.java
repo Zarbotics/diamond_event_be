@@ -3367,17 +3367,18 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private List<EventMaster> applyCustomDateSorting(List<EventMaster> events) {
 		Date currentDate = new Date(); // Today's date
 
-		// Separate future and past events
+		// Separate future events, past events, and events with null date
 		List<EventMaster> futureEvents = new ArrayList<>();
 		List<EventMaster> pastEvents = new ArrayList<>();
+		List<EventMaster> nullDateEvents = new ArrayList<>();
 
 		for (EventMaster event : events) {
-			if (event.getDteEventDate() != null) {
-				if (event.getDteEventDate().compareTo(currentDate) >= 0) {
-					futureEvents.add(event);
-				} else {
-					pastEvents.add(event);
-				}
+			if (event.getDteEventDate() == null) {
+				nullDateEvents.add(event);
+			} else if (event.getDteEventDate().compareTo(currentDate) >= 0) {
+				futureEvents.add(event);
+			} else {
+				pastEvents.add(event);
 			}
 		}
 
@@ -3387,10 +3388,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		// Sort past events in descending order (most recent first)
 		pastEvents.sort(Comparator.comparing(EventMaster::getDteEventDate).reversed());
 
-		// Combine: future first, then past
+		// Combine: future first, then past, then null dates at the end
 		List<EventMaster> sortedEvents = new ArrayList<>();
 		sortedEvents.addAll(futureEvents);
 		sortedEvents.addAll(pastEvents);
+		sortedEvents.addAll(nullDateEvents);
 
 		return sortedEvents;
 	}
