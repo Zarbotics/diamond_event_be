@@ -69,5 +69,18 @@ public class ServiceEventDecorExtrasSelectionImpl implements ServiceEventDecorEx
 			return null;
 		}
 	}
+	
+	@Override
+	public Boolean existsByDecorExtrasOptionId(Integer id) {
+		try {
+			Boolean blnIsExist = repositoryEventDecorExtrasSelection.existsByDecorExtrasOption_SerExtraOptionId(id);
+			return blnIsExist;
+			
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(),e);
+			return false;
+		}
+		
+	}
 
 }

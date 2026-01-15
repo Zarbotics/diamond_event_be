@@ -1,9 +1,14 @@
 package com.zbs.de.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -13,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.zbs.de.controller.ControllerEventType;
 import com.zbs.de.mapper.MapperDecorExtrasMaster;
-import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.DecorExtrasMaster;
 import com.zbs.de.model.DecorExtrasOption;
 import com.zbs.de.model.DecorExtrasOptionDocument;
@@ -24,8 +28,11 @@ import com.zbs.de.repository.RepositoryDecorExtrasMaster;
 import com.zbs.de.repository.RepositoryDecorExtrasOption;
 import com.zbs.de.service.ServiceDecorExtrasMaster;
 import com.zbs.de.service.ServiceDecorExtrasOptionDocument;
+import com.zbs.de.service.ServiceEventDecorExtrasSelection;
 import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
+
+import jakarta.transaction.Transactional;
 
 @Service("serviceDecorExtrasMaster")
 public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
@@ -35,6 +42,9 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 
 	@Autowired
 	private RepositoryDecorExtrasOption repositoryDecorExtrasOption;
+	
+	@Autowired
+	private ServiceEventDecorExtrasSelection serviceEventDecorExtrasSelection;
 
 	@Autowired
 	private ServiceDecorExtrasOptionDocument serviceDecorExtrasOptionDocument;
@@ -100,76 +110,359 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 
 	}
 
+//	@Override
+//	@Transactional
+//	public DtoResult saveWithListOptions(DtoDecorExtrasMaster dto, List<MultipartFile> files) {
+//
+//	    DtoResult dtoResult = new DtoResult();
+//	    List<String> warningMessages = new ArrayList<>();
+//
+//	    try {
+//	        DecorExtrasMaster decorExtrasMaster;
+//
+//	        /* ============================
+//	           LOAD OR CREATE MASTER
+//	           ============================ */
+//	        if (dto.getSerExtrasId() != null) {
+//	            decorExtrasMaster = this.getByPk(dto.getSerExtrasId());
+//
+//	            if (decorExtrasMaster == null) {
+//	                dtoResult.setTxtMessage("Invalid Decor Extras Master");
+//	                return dtoResult;
+//	            }
+//	        } else {
+//	            decorExtrasMaster = MapperDecorExtrasMaster.toEntity(dto);
+//	            decorExtrasMaster.setBlnIsActive(true);
+//	            decorExtrasMaster.setBlnIsApproved(true);
+//	            decorExtrasMaster.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+//	        }
+//
+//	        repositoryDecorExtrasMaster.save(decorExtrasMaster);
+//
+//	        /* ============================
+//	           INDEX EXISTING OPTIONS
+//	           ============================ */
+//	        Map<Integer, DecorExtrasOption> existingOptionMap =
+//	                decorExtrasMaster.getDecorExtrasOptions()
+//	                        .stream()
+//	                        .filter(o -> o.getSerExtraOptionId() != null)
+//	                        .collect(Collectors.toMap(
+//	                                DecorExtrasOption::getSerExtraOptionId,
+//	                                Function.identity()
+//	                        ));
+//
+//	        /* ============================
+//	           INCOMING OPTION IDS
+//	           ============================ */
+//	        Set<Integer> incomingIds = dto.getDecorExtrasOptions().stream()
+//	                .map(DtoDecorExtrasOption::getSerExtraOptionId)
+//	                .filter(Objects::nonNull)
+//	                .collect(Collectors.toSet());
+//
+//	        /* ============================
+//	           HANDLE REMOVED OPTIONS
+//	           ============================ */
+//	        for (DecorExtrasOption existing : existingOptionMap.values()) {
+//
+//	            if (!incomingIds.contains(existing.getSerExtraOptionId())) {
+//
+//	                boolean isUsed = serviceEventDecorExtrasSelection.existsByDecorExtrasOptionId(existing.getSerExtraOptionId());
+//
+//	                if (isUsed) {
+//	                    existing.setBlnIsActive(false);
+//	                    warningMessages.add(
+//	                            "Option '" + existing.getTxtOptionName()
+//	                                    + "' is already used in events and cannot be deleted."
+//	                    );
+//	                } else {
+//	                    existing.setBlnIsDeleted(true);
+//	                }
+//
+//	                existing.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+//	            }
+//	        }
+//
+//	        /* ============================
+//	           FILE MAP
+//	           ============================ */
+//	        Map<String, MultipartFile> fileMap = files == null
+//	                ? Collections.emptyMap()
+//	                : files.stream().collect(Collectors.toMap(
+//	                        MultipartFile::getOriginalFilename,
+//	                        f -> f
+//	                ));
+//
+//	        /* ============================
+//	           INSERT / UPDATE OPTIONS
+//	           ============================ */
+//	        List<DecorExtrasOption> finalOptionList = new ArrayList<>();
+//
+//	        for (DtoDecorExtrasOption dtoOption : dto.getDecorExtrasOptions()) {
+//
+//	            DecorExtrasOption option;
+//
+//	            if (dtoOption.getSerExtraOptionId() != null
+//	                    && existingOptionMap.containsKey(dtoOption.getSerExtraOptionId())) {
+//
+//	                /* UPDATE */
+//	                option = existingOptionMap.get(dtoOption.getSerExtraOptionId());
+//	                option.setTxtOptionCode(dtoOption.getTxtOptionCode());
+//	                option.setTxtOptionName(dtoOption.getTxtOptionName());
+//	                option.setBlnIsActive(true);
+//	                option.setBlnIsDeleted(false);
+//	                option.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+//
+//	            } else {
+//
+//	                /* INSERT */
+//	                option = new DecorExtrasOption();
+//	                option.setTxtOptionCode(dtoOption.getTxtOptionCode());
+//	                option.setTxtOptionName(dtoOption.getTxtOptionName());
+//	                option.setDecorExtrasMaster(decorExtrasMaster);
+//	                option.setBlnIsActive(true);
+//	                option.setBlnIsApproved(true);
+//	                option.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+//	            }
+//
+//	            /* ============================
+//	               DOCUMENT HANDLING
+//	               ============================ */
+//	            if (dtoOption.getDocument() != null
+//	                    && dtoOption.getDocument().getOriginalName() != null) {
+//
+//	                MultipartFile file =
+//	                        fileMap.get(dtoOption.getDocument().getOriginalName());
+//
+//	                if (file != null) {
+//	                    String uploadPath = UtilFileStorage.saveFile(file, "extrasOption");
+//
+//	                    DecorExtrasOptionDocument doc = new DecorExtrasOptionDocument();
+//	                    doc.setDocumentName(file.getName());
+//	                    doc.setOriginalName(file.getOriginalFilename());
+//	                    doc.setDocumentType(file.getContentType());
+//	                    doc.setSize(String.valueOf(file.getSize()));
+//	                    doc.setFilePath(uploadPath);
+//
+//	                    doc = serviceDecorExtrasOptionDocument.save(doc);
+//
+//	                    option.setDocument(doc);
+//	                    option.setBlnIsDocument(true);
+//	                }
+//	            }
+//
+//	            finalOptionList.add(option);
+//	        }
+//
+//	        /* ============================
+//	           FINAL SAVE
+//	           ============================ */
+//	        decorExtrasMaster.setDecorExtrasOptions(finalOptionList);
+//	        repositoryDecorExtrasMaster.save(decorExtrasMaster);
+//
+//	        /* ============================
+//	           RESULT MESSAGE
+//	           ============================ */
+//	        if (!warningMessages.isEmpty()) {
+//	            dtoResult.setTxtMessage(
+//	                    "Saved with warnings: " + String.join(" | ", warningMessages)
+//	            );
+//	        } else {
+//	            dtoResult.setTxtMessage("Success");
+//	        }
+//
+//	    } catch (Exception e) {
+//	        LOGGER.error("Error saving Decor Extras", e);
+//	        dtoResult.setTxtMessage("Operation failed: " + e.getMessage());
+//	    }
+//
+//	    return dtoResult;
+//	}
+
 	@Override
+	@Transactional
 	public DtoResult saveWithListOptions(DtoDecorExtrasMaster dto, List<MultipartFile> files) {
-		DtoResult dtoResult = new DtoResult();
-		try {
-			DecorExtrasMaster decorExtrasMaster = null;
-			if (UtilRandomKey.isNotNull(dto) && UtilRandomKey.isNotNull(dto.getDecorExtrasOptions())
-					&& UtilRandomKey.isNotNull(dto.getSerExtrasId())) {
-				decorExtrasMaster = this.getByPk(dto.getSerExtrasId());
-				if (UtilRandomKey.isNull(decorExtrasMaster)) {
-					dtoResult.setTxtMessage("Invalid Property");
-					return dtoResult;
-				} else {
-					decorExtrasMaster.getDecorExtrasOptions().clear();
-				}
-			} else {
-				decorExtrasMaster = MapperDecorExtrasMaster.toEntity(dto);
-				decorExtrasMaster.setBlnIsActive(Boolean.TRUE);
-				decorExtrasMaster.setBlnIsApproved(Boolean.TRUE);
-			}
-			repositoryDecorExtrasMaster.save(decorExtrasMaster);
 
-			Map<String, MultipartFile> fileMap = files.stream()
-					.collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f));
-			List<DecorExtrasOption> optionList = new ArrayList<>();
-			for (DtoDecorExtrasOption value : dto.getDecorExtrasOptions()) {
-				DecorExtrasOption decorExtrasOption = new DecorExtrasOption();
-				decorExtrasOption.setSerExtraOptionId(value.getSerExtraOptionId());
-				decorExtrasOption.setTxtOptionCode(value.getTxtOptionCode());
-				decorExtrasOption.setTxtOptionName(value.getTxtOptionName());
-				decorExtrasOption.setBlnIsActive(Boolean.valueOf(true));
-				decorExtrasOption.setDecorExtrasMaster(decorExtrasMaster);
-				if (value.getSerExtraOptionId() != null) {
-					decorExtrasOption.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
-				} else {
-					decorExtrasOption.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+	    DtoResult result = new DtoResult();
+	    List<String> warnings = new ArrayList<>();
 
-				}
-				decorExtrasOption.setBlnIsApproved(true);
+	    try {
+	        DecorExtrasMaster master;
 
-				// *******Saving Document********
-				if (value.getDocument() != null && value.getDocument().getOriginalName() != null) {
-					MultipartFile file = fileMap.get(value.getDocument().getOriginalName());
-					if (file != null) {
-						String uploadPath = UtilFileStorage.saveFile(file, "extrasOption");
-						DecorExtrasOptionDocument doc = new DecorExtrasOptionDocument();
-						doc.setDocumentName(file.getName());
-						doc.setOriginalName(file.getOriginalFilename());
-						doc.setDocumentType(file.getContentType());
-						doc.setSize(String.valueOf(file.getSize()));
-						doc.setFilePath(uploadPath);
-						doc = serviceDecorExtrasOptionDocument.save(doc);
-						decorExtrasOption.setDocument(doc);
-						decorExtrasOption.setBlnIsDocument(Boolean.TRUE);
-					}
-				}
+	        /* =========================
+	           LOAD OR CREATE MASTER
+	           ========================= */
+	        if (dto.getSerExtrasId() != null) {
+	            master = this.getByPk(dto.getSerExtrasId());
+	            if (master == null) {
+	                result.setTxtMessage("Invalid Decor Extras Master");
+	                return result;
+	            }
 
-				optionList.add(decorExtrasOption);
-			}
-			decorExtrasMaster.setDecorExtrasOptions(optionList);
-			repositoryDecorExtrasMaster.save(decorExtrasMaster);
+	            master.setTxtExtrasCode(dto.getTxtExtrasCode());
+	            master.setTxtExtrasName(dto.getTxtExtrasName());
+	            master.setNumPrice(dto.getNumPrice());
+	            master.setBlnIsActive(dto.getBlnIsActive());
+	            master.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 
-			dtoResult.setTxtMessage("Success");
+	        } else {
+	            master = MapperDecorExtrasMaster.toEntity(dto);
+	            master.setBlnIsActive(true);
+	            master.setBlnIsApproved(true);
+	            master.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+	        }
 
-		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
-			dtoResult.setTxtMessage(e.getMessage());
-		}
-		return dtoResult;
+	        /* =========================
+	           EXISTING OPTIONS (BEFORE SAVE)
+	           ========================= */
+	        List<DecorExtrasOption> managedOptions = master.getDecorExtrasOptions();
+	        if (managedOptions == null) {
+	            managedOptions = new ArrayList<>();
+	            master.setDecorExtrasOptions(managedOptions);
+	        }
 
+	        /* CRITICAL: Capture IDs that existed BEFORE this save */
+	        Set<Integer> preExistingIds =
+	                managedOptions.stream()
+	                        .map(DecorExtrasOption::getSerExtraOptionId)
+	                        .filter(Objects::nonNull)
+	                        .collect(Collectors.toSet());
+
+	        repositoryDecorExtrasMaster.save(master);
+
+	        /* =========================
+	           EXISTING MAP (PRE-EXISTING ONLY)
+	           ========================= */
+	        Map<Integer, DecorExtrasOption> existingMap =
+	                managedOptions.stream()
+	                        .filter(o -> o.getSerExtraOptionId() != null
+	                                && preExistingIds.contains(o.getSerExtraOptionId()))
+	                        .collect(Collectors.toMap(
+	                                DecorExtrasOption::getSerExtraOptionId,
+	                                Function.identity()
+	                        ));
+
+	        /* =========================
+	           INCOMING IDS (DTO EXISTING ONLY)
+	           ========================= */
+	        Set<Integer> incomingIds =
+	                dto.getDecorExtrasOptions().stream()
+	                        .map(DtoDecorExtrasOption::getSerExtraOptionId)
+	                        .filter(Objects::nonNull)
+	                        .collect(Collectors.toSet());
+
+	        /* =========================
+	           FILE MAP
+	           ========================= */
+	        Map<String, MultipartFile> fileMap =
+	                files == null
+	                        ? Map.of()
+	                        : files.stream().collect(Collectors.toMap(
+	                                MultipartFile::getOriginalFilename,
+	                                Function.identity()
+	                        ));
+
+	        /* =========================
+	           INSERT / UPDATE OPTIONS
+	           ========================= */
+	        for (DtoDecorExtrasOption dtoOption : dto.getDecorExtrasOptions()) {
+
+	            DecorExtrasOption option;
+
+	            if (dtoOption.getSerExtraOptionId() != null
+	                    && existingMap.containsKey(dtoOption.getSerExtraOptionId())) {
+
+	                /* UPDATE */
+	                option = existingMap.get(dtoOption.getSerExtraOptionId());
+	                option.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+
+	            } else {
+	                /* INSERT (NEW OPTION) */
+	                option = new DecorExtrasOption();
+	                option.setDecorExtrasMaster(master);
+	                option.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+	                option.setBlnIsApproved(true);
+	                option.setBlnIsActive(true);
+	                option.setBlnIsDeleted(false);
+	                managedOptions.add(option);
+	            }
+
+	            option.setTxtOptionCode(dtoOption.getTxtOptionCode());
+	            option.setTxtOptionName(dtoOption.getTxtOptionName());
+	            option.setBlnIsActive(true);
+	            option.setBlnIsDeleted(false);
+
+	            /* =========================
+	               DOCUMENT HANDLING
+	               ========================= */
+	            if (dtoOption.getDocument() != null
+	                    && dtoOption.getDocument().getOriginalName() != null) {
+
+	                MultipartFile file =
+	                        fileMap.get(dtoOption.getDocument().getOriginalName());
+
+	                if (file != null) {
+	                    String path = UtilFileStorage.saveFile(file, "extrasOption");
+
+	                    DecorExtrasOptionDocument doc = new DecorExtrasOptionDocument();
+	                    doc.setOriginalName(file.getOriginalFilename());
+	                    doc.setDocumentName(file.getName());
+	                    doc.setDocumentType(file.getContentType());
+	                    doc.setSize(String.valueOf(file.getSize()));
+	                    doc.setFilePath(path);
+
+	                    doc = serviceDecorExtrasOptionDocument.save(doc);
+	                    option.setDocument(doc);
+	                    option.setBlnIsDocument(true);
+	                }
+	            }
+	        }
+
+	        /* =========================
+	           SOFT REMOVALS (PRE-EXISTING ONLY)
+	           ========================= */
+	        for (DecorExtrasOption existing : managedOptions) {
+
+	            Integer id = existing.getSerExtraOptionId();
+
+	            if (id != null
+	                    && preExistingIds.contains(id)
+	                    && !incomingIds.contains(id)) {
+
+	                boolean isUsed =
+	                        serviceEventDecorExtrasSelection
+	                                .existsByDecorExtrasOptionId(id);
+
+	                if (isUsed) {
+	                    existing.setBlnIsActive(false);
+	                    warnings.add(
+	                            "Option '" + existing.getTxtOptionName()
+	                                    + "' is already used and cannot be removed."
+	                    );
+	                } else {
+	                    existing.setBlnIsDeleted(true);
+	                }
+
+	                existing.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+	            }
+	        }
+
+	        repositoryDecorExtrasMaster.save(master);
+
+	        result.setTxtMessage(
+	                warnings.isEmpty()
+	                        ? "Success"
+	                        : "Saved with warnings: " + String.join(" | ", warnings)
+	        );
+
+	    } catch (Exception e) {
+	        LOGGER.error("Decor Extras save failed", e);
+	        result.setTxtMessage("Failed: " + e.getMessage());
+	    }
+
+	    return result;
 	}
+
+
 
 	@Override
 	public DtoResult getAll() {
