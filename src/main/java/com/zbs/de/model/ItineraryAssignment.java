@@ -56,7 +56,7 @@ public class ItineraryAssignment extends BaseEntity implements Serializable {
 
 	// Detail records
 	@OneToMany(mappedBy = "itineraryAssignment", cascade = CascadeType.ALL, orphanRemoval = true)
-	@OrderBy("displayOrder ASC")
+	@OrderBy("numDisplayOrder ASC")
 	private List<ItineraryAssignmentDetail> itineraryAssignmentDetails = new ArrayList<>();
 
 	public Long getSerItineraryAssignmentId() {

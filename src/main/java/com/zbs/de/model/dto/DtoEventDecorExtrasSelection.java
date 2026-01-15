@@ -1,5 +1,7 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
+
 public class DtoEventDecorExtrasSelection {
 	private Integer serExtrasSelectionId;
 	private String txtDynamicProperty1;
@@ -11,6 +13,7 @@ public class DtoEventDecorExtrasSelection {
 	private Integer serExtraOptionId;
 	private String txtOptionCode;
 	private String txtOptionName;
+	private BigDecimal numPrice;
 
 	public Integer getSerExtrasSelectionId() {
 		return serExtrasSelectionId;
@@ -90,6 +93,14 @@ public class DtoEventDecorExtrasSelection {
 
 	public void setTxtDynamicProperty2(String txtDynamicProperty2) {
 		this.txtDynamicProperty2 = txtDynamicProperty2;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

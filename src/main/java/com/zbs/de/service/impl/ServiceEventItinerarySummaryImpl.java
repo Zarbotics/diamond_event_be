@@ -60,8 +60,11 @@ public class ServiceEventItinerarySummaryImpl implements ServiceEventItinerarySu
 		}
 
 		// 🔴 Step 0: Clean previous calculations
-		eventMenuItineraryRepo.softDeleteByEventId(serEventMasterId);
-		eventItinerarySummaryRepo.softDeleteByEventId(serEventMasterId);
+//		eventMenuItineraryRepo.softDeleteByEventId(serEventMasterId);
+//		eventItinerarySummaryRepo.softDeleteByEventId(serEventMasterId);
+		
+		deleteEventMenuItineraryByEventMasterId(serEventMasterId);
+		deleteEventItinerarySummaryBySerEventMasterId(serEventMasterId);
 
 		// 🔹 Step 1: Menu-level calculation
 		List<EventMenuFoodSelection> selections = serviceEventMenuFoodSelection.getByEventMasterId(serEventMasterId);
@@ -171,10 +174,33 @@ public class ServiceEventItinerarySummaryImpl implements ServiceEventItinerarySu
 	
 	
 	private void deleteEventMenuItineraryByEventMasterId(Integer serEventMasterId) {
-		List<EventMenuItinerary> eventMenuItineraries = eventMenuItineraryRepo.findByEventMaster_SerEventMasterId(serEventMasterId);
+		try {
+			List<EventMenuItinerary> eventMenuItineraries = eventMenuItineraryRepo.findByEventMaster_SerEventMasterId(serEventMasterId);
+			for(EventMenuItinerary itinerary : eventMenuItineraries) {
+				itinerary.setBlnIsDeleted(true);
+				itinerary.setBlnIsApproved(false);
+				itinerary.setBlnIsActive(false);
+			}
+			eventMenuItineraryRepo.saveAllAndFlush(eventMenuItineraries);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(),e);
+		}
+		
 	}
 	
 	private void deleteEventItinerarySummaryBySerEventMasterId(Integer serEventMasterId) {
 		
+		try {
+			List<EventItinerarySummary> summaries = eventItinerarySummaryRepo.findByEventMaster_SerEventMasterId(serEventMasterId);
+			for(EventItinerarySummary summary: summaries) {
+				summary.setBlnIsActive(false);
+				summary.setBlnIsApproved(false);
+				summary.setBlnIsDeleted(true);
+			}
+			eventItinerarySummaryRepo.saveAllAndFlush(summaries);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(),e);
+		}
+
 	}
 }

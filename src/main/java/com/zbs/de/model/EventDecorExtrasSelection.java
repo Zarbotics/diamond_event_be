@@ -1,6 +1,7 @@
 package com.zbs.de.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import org.hibernate.annotations.DynamicInsert;
 
@@ -41,6 +42,9 @@ public class EventDecorExtrasSelection extends BaseEntity implements Serializabl
 	@ManyToOne
 	@JoinColumn(name = "ser_event_master_id")
 	private EventMaster eventMaster;
+
+	@Column(name = "num_price")
+	private BigDecimal numPrice;
 
 	@ManyToOne
 	@JoinColumn(name = "ser_extras_id")
@@ -96,6 +100,14 @@ public class EventDecorExtrasSelection extends BaseEntity implements Serializabl
 
 	public void setTxtDynamicProperty2(String txtDynamicProperty2) {
 		this.txtDynamicProperty2 = txtDynamicProperty2;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }
