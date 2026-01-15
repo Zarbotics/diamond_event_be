@@ -41,7 +41,7 @@ public class DecorExtrasMaster extends BaseEntity implements Serializable {
 	
 	private BigDecimal numPrice;
 
-	@OneToMany(mappedBy = "decorExtrasMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "decorExtrasMaster", cascade = CascadeType.ALL)
 	private List<DecorExtrasOption> decorExtrasOptions;
 
 	public Integer getSerExtrasId() {

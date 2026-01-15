@@ -21,4 +21,6 @@ public interface RepositoryDecorExtrasOption extends JpaRepository<DecorExtrasOp
 
 	@Query("SELECT DISTINCT o FROM DecorExtrasOption o LEFT JOIN o.decorExtrasMaster em WHERE (o.blnIsDeleted = false  OR o.blnIsDeleted IS NULL)")
 	List<DecorExtrasOption> findAllNotDeleted();
+
+
 }
