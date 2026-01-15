@@ -1,6 +1,7 @@
 package com.zbs.de.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.hibernate.annotations.DynamicInsert;
@@ -37,6 +38,8 @@ public class DecorExtrasMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_extras_name")
 	private String txtExtrasName;
+	
+	private BigDecimal numPrice;
 
 	@OneToMany(mappedBy = "decorExtrasMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<DecorExtrasOption> decorExtrasOptions;
@@ -71,6 +74,14 @@ public class DecorExtrasMaster extends BaseEntity implements Serializable {
 
 	public void setDecorExtrasOptions(List<DecorExtrasOption> decorExtrasOptions) {
 		this.decorExtrasOptions = decorExtrasOptions;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

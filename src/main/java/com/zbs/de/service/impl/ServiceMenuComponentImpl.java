@@ -323,10 +323,10 @@ public class ServiceMenuComponentImpl implements ServiceMenuComponent {
 			errors.add("Component role is required");
 		}
 
-		// Validate display name
-		if (group.getTxtDisplayName() == null || group.getTxtDisplayName().trim().isEmpty()) {
-			errors.add("Display name is required");
-		}
+//		// Validate display name
+//		if (group.getTxtDisplayName() == null || group.getTxtDisplayName().trim().isEmpty()) {
+//			errors.add("Display name is required");
+//		}
 
 		// Validate selection range
 		if (group.getNumSelectionMin() != null && group.getNumSelectionMax() != null) {

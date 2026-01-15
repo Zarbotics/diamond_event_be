@@ -59,6 +59,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 				decorExtrasMaster.setTxtExtrasCode(dto.getTxtExtrasCode());
 				decorExtrasMaster.setTxtExtrasName(dto.getTxtExtrasName());
 				decorExtrasMaster.setBlnIsActive(dto.getBlnIsActive());
+				decorExtrasMaster.setNumPrice(dto.getNumPrice());
 				decorExtrasMaster.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			} else {
 				decorExtrasMaster = MapperDecorExtrasMaster.toEntity(dto);
@@ -67,6 +68,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 				decorExtrasMaster.setBlnIsApproved(Boolean.TRUE);
 				decorExtrasMaster.setBlnIsDeleted(Boolean.FALSE);
 				decorExtrasMaster.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+				decorExtrasMaster.setNumPrice(dto.getNumPrice());
 			}
 
 			repositoryDecorExtrasMaster.save(decorExtrasMaster);
