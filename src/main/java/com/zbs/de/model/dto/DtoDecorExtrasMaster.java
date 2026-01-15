@@ -1,5 +1,6 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class DtoDecorExtrasMaster {
@@ -8,6 +9,7 @@ public class DtoDecorExtrasMaster {
 	private String txtExtrasCode;
 	private String txtExtrasName;
 	private Boolean blnIsActive;
+	private BigDecimal numPrice;
 	private List<DtoDecorExtrasOption> decorExtrasOptions;
 
 	public Integer getSerExtrasId() {
@@ -48,6 +50,14 @@ public class DtoDecorExtrasMaster {
 
 	public void setDecorExtrasOptions(List<DtoDecorExtrasOption> decorExtrasOptions) {
 		this.decorExtrasOptions = decorExtrasOptions;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }

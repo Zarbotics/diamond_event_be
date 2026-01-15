@@ -2723,6 +2723,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					EventDecorExtrasSelection selection = new EventDecorExtrasSelection();
 					selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
 					selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
+					selection.setNumPrice(dto.getNumPrice());
 					selection.setEventMaster(entity);
 					if (dto.getSerExtrasId() != null) {
 						selection.setDecorExtrasMaster(
@@ -2887,6 +2888,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
 						dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
 						dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+						dtoEventDecorExtrasSelection.setNumPrice(entity.getNumPrice());
 						if (entity.getDecorExtrasMaster() != null) {
 							dtoEventDecorExtrasSelection.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
 							dtoEventDecorExtrasSelection
@@ -3023,6 +3025,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
 							dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
 							dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+							dtoEventDecorExtrasSelection.setNumPrice(entity.getNumPrice());
 							if (entity.getDecorExtrasMaster() != null) {
 								dtoEventDecorExtrasSelection
 										.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
@@ -3318,6 +3321,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						e.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
 						e.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
 						e.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+						e.setNumPrice(entity.getNumPrice());
 						if (entity.getDecorExtrasMaster() != null) {
 							e.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
 							e.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());

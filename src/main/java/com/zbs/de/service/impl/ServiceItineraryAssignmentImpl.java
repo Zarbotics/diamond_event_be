@@ -37,7 +37,6 @@ import com.zbs.de.util.enums.EnmItineraryUnitType;
 import com.zbs.de.util.enums.EnmMenuItemRole;
 
 @Service
-@Transactional
 public class ServiceItineraryAssignmentImpl implements ServiceItineraryAssignment {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceItineraryAssignmentImpl.class);
@@ -833,15 +832,15 @@ public class ServiceItineraryAssignmentImpl implements ServiceItineraryAssignmen
 		try {
 			List<ItineraryAssignment> assignments = repository
 					.findByMenuItem_SerMenuItemIdAndBlnIsDeletedFalseOrderBySerItineraryAssignmentIdDesc(menuItemId);
-			List<DtoItineraryAssignment> list = new ArrayList<>();
-			for (ItineraryAssignment assignment : assignments) {
-
-				List<ItineraryAssignmentDetail> details = detailRepository
-						.findByItineraryAssignment_SerItineraryAssignmentIdAndBlnIsDeletedFalseOrderByNumDisplayOrderAsc(
-								assignment.getSerItineraryAssignmentId());
-
-				assignment.setItineraryAssignmentDetails(details);
-			}
+//			List<DtoItineraryAssignment> list = new ArrayList<>();
+//			for (ItineraryAssignment assignment : assignments) {
+//
+//				List<ItineraryAssignmentDetail> details = detailRepository
+//						.findByItineraryAssignment_SerItineraryAssignmentIdAndBlnIsDeletedFalseOrderByNumDisplayOrderAsc(
+//								assignment.getSerItineraryAssignmentId());
+//
+//				assignment.setItineraryAssignmentDetails(details);
+//			}
 
 			return assignments;
 
