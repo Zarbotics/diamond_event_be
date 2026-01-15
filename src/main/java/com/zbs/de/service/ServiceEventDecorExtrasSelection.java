@@ -9,5 +9,6 @@ public interface ServiceEventDecorExtrasSelection {
 	String deleteByEventMasterId(Integer id);
 	EventDecorExtrasSelection save(EventDecorExtrasSelection eventDecorExtrasSelection);
 	List<EventDecorExtrasSelection> getByEventMasterId(Integer serEventMasterId);
+	Boolean existsByDecorExtrasOptionId(Integer id);
 
 }

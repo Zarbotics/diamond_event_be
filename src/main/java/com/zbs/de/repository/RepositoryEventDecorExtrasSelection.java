@@ -21,4 +21,7 @@ public interface RepositoryEventDecorExtrasSelection extends JpaRepository<Event
 	List<EventDecorExtrasSelection> findByEventId(@Param("eventId") Integer eventId);
 	
 	List<EventDecorExtrasSelection> findByEventMaster_SerEventMasterId(Integer serEventMasterId);
+	
+	
+    boolean existsByDecorExtrasOption_SerExtraOptionId(Integer serExtraOptionId);
 }
