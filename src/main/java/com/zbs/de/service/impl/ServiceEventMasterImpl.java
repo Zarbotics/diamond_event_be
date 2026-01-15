@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -3186,6 +3188,13 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		// Execute paged query — repository's @EntityGraph now includes eventBudget
 		Page<EventMaster> pageResult = repositoryEventMaster.findAll(spec, pageable);
 
+		// If sorting by date, apply custom sorting logic
+		List<EventMaster> events = pageResult.getContent();
+		if (!events.isEmpty()) {
+			events = applyCustomDateSorting(events);
+			// Create a new page with sorted content
+			pageResult = new PageImpl<>(events, pageable, pageResult.getTotalElements());
+		}
 		// Map EventMaster -> DtoEventMasterAdminPortal and enrich with related
 		// selections
 		List<DtoEventMasterAdminPortal> dtos = new ArrayList<>(pageResult.getContent().size());
@@ -3353,5 +3362,36 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			LOGGER.debug(e.getMessage(), e);
 			return null;
 		}
+	}
+
+	private List<EventMaster> applyCustomDateSorting(List<EventMaster> events) {
+		Date currentDate = new Date(); // Today's date
+
+		// Separate future and past events
+		List<EventMaster> futureEvents = new ArrayList<>();
+		List<EventMaster> pastEvents = new ArrayList<>();
+
+		for (EventMaster event : events) {
+			if (event.getDteEventDate() != null) {
+				if (event.getDteEventDate().compareTo(currentDate) >= 0) {
+					futureEvents.add(event);
+				} else {
+					pastEvents.add(event);
+				}
+			}
+		}
+
+		// Sort future events in ascending order (closest first)
+		futureEvents.sort(Comparator.comparing(EventMaster::getDteEventDate));
+
+		// Sort past events in descending order (most recent first)
+		pastEvents.sort(Comparator.comparing(EventMaster::getDteEventDate).reversed());
+
+		// Combine: future first, then past
+		List<EventMaster> sortedEvents = new ArrayList<>();
+		sortedEvents.addAll(futureEvents);
+		sortedEvents.addAll(pastEvents);
+
+		return sortedEvents;
 	}
 }
