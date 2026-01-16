@@ -54,7 +54,7 @@ public class ServiceEventDecorCategorySelectionImpl implements ServiceEventDecor
 				dto.setSerDecorCategoryId(edcs.getDecorCategory().getSerDecorCategoryId());
 				dto.setTxtDecorCategoryCode(edcs.getDecorCategory().getTxtDecorCategoryCode());
 				dto.setTxtDecorCategoryName(edcs.getDecorCategory().getTxtDecorCategoryName());
-				dto.setNumPrice(edcs.getDecorCategory().getNumPrice());
+//				dto.setNumPrice(edcs.getDecorCategory().getNumPrice());
 			}
 
 			// Map selected properties
