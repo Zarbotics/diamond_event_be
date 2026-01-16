@@ -22,7 +22,7 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	@Query(value = "select * from menu_item where txt_path <@ ?1", nativeQuery = true)
 	List<MenuItem> findDescendantsByTxtPath(String ltreePath);
 
-	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId ORDER BY LOWER(txt_name)", nativeQuery = true)
+	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId ORDER BY LOWER(txt_name) asc", nativeQuery = true)
 	List<MenuItem> findByParentId(@Param("parentId")Long parentId);
 
 	MenuItem findByTxtCode(String txtCode);
@@ -42,7 +42,7 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	List<MenuItem> getAllItemsByRoleId(@Param("id") Integer id);
 	
 
-	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND LOWER(e.txtName) <> 'other' AND e.blnIsDeleted = false AND e.blnIsActive = true ORDER BY LOWER(e.txtName)")
+	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND LOWER(e.txtName) <> 'other' AND e.blnIsDeleted = false AND e.blnIsActive = true ORDER BY e.numDisplayOrder")
 	List<MenuItem> getAllActiveItemsByRoleId(@Param("id") Integer id);
 
 	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsComposite = true AND mi.blnIsDeleted = false ORDER BY mi.txtName")

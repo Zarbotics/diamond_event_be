@@ -333,5 +333,12 @@ public class ControllerMenuItem {
 					e.getMessage(), null);
 		}
 	}
+	
+	 @PostMapping(path = "/upload-subCategory", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseEntity<String> uploadsubCategories(@RequestPart("file") MultipartFile file,
+				HttpServletRequest request) {
+			String result = service.readMenuItemCsv(file);
+			return ResponseEntity.ok(result);
+		}
 
 }

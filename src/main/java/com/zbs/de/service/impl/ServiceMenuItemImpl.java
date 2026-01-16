@@ -27,9 +27,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +43,8 @@ import java.util.stream.Collectors;
 
 @Service("serviceMenuItemImpl")
 public class ServiceMenuItemImpl implements ServiceMenuItem {
+
+    private final ServiceCityMasterImpl serviceCityMaster;
 
 	@Autowired
 	private RepositoryMenuItem repo;
@@ -60,6 +64,10 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceMenuItemImpl.class);
 
 	private long autoCodeCounter = 1000;
+
+    ServiceMenuItemImpl(ServiceCityMasterImpl serviceCityMaster) {
+        this.serviceCityMaster = serviceCityMaster;
+    }
 
 	@Override
 	@Transactional
@@ -887,5 +895,80 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		}
 
 	}
+	
+	
+	@Override
+	  public String readMenuItemCsv(MultipartFile file) {
+
+
+	        try (BufferedReader reader = new BufferedReader(
+	                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+
+	            String line;
+	            boolean isHeader = true;
+
+	            while ((line = reader.readLine()) != null) {
+
+	                // Skip header row
+	                if (isHeader) {
+	                    isHeader = false;
+	                    continue;
+	                }
+
+	                String[] columns = line.split(",", -1);
+
+	                if (columns.length < 6) {
+	                    throw new IllegalArgumentException("Invalid CSV format. Expected 6 columns.");
+	                }
+
+	                DtoMenuItem dto = new DtoMenuItem();
+
+	                // CSV → DTO mapping
+	                dto.setSerMenuItemRoleId(parseInteger(columns[0]));
+	                dto.setParentId(parseLong(columns[1]));
+	                dto.setTxtName(columns[2].trim());
+	                dto.setTxtShortName(columns[3].trim());
+	                dto.setTxtDescription(columns[4].trim());
+
+	                // Derived / defaulted fields
+	                dto.setTxtCode(generateNextCode("SUBCATEGORY"));
+	                dto.setTxtRole(null); // Can be resolved later from role master
+	                dto.setTxtType("subcategory");
+
+	                dto.setNumDisplayOrder(0);
+	                dto.setBlnIsSelectable(parseBoolean(columns[5]));
+	                dto.setBlnIsActive(Boolean.TRUE);
+	                dto.setBlnIsCompostie(Boolean.FALSE);
+
+	                dto.setMetadata(new HashMap<>());
+	                dto.setNumDefaultServingsPerGuest(null);
+	                dto.setTxtPath(null);
+
+	                create(dto);
+	            }
+
+	            return "Success";
+	        } catch (Exception ex) {
+	            LOGGER.debug(ex.getMessage(), ex);
+	            return "Failure";
+	        }
+	    }
+
+	    private Long parseLong(String value) {
+	        return value == null || value.isBlank() ? null : Long.parseLong(value.trim());
+	    }
+
+	    private Integer parseInteger(String value) {
+	        return value == null || value.isBlank() ? null : Integer.parseInt(value.trim());
+	    }
+
+	    private Boolean parseBoolean(String value) {
+	        if (value == null || value.isBlank()) {
+	            return Boolean.FALSE;
+	        }
+	        return "true".equalsIgnoreCase(value.trim())
+	            || "1".equals(value.trim())
+	            || "yes".equalsIgnoreCase(value.trim());
+	    }
 
 }
