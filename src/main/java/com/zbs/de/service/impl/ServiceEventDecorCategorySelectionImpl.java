@@ -49,11 +49,12 @@ public class ServiceEventDecorCategorySelectionImpl implements ServiceEventDecor
 			dto.setSerEventDecorCategorySelectionId(edcs.getSerEventDecorCategorySelectionId());
 			dto.setTxtEventDecorCategorySelectionCode(edcs.getTxtEventDecorCategorySelectionCode());
 			dto.setTxtRemarks(edcs.getTxtRemarks());
-
+			dto.setNumPrice(edcs.getNumPrice());
 			if (edcs.getDecorCategory() != null) {
 				dto.setSerDecorCategoryId(edcs.getDecorCategory().getSerDecorCategoryId());
 				dto.setTxtDecorCategoryCode(edcs.getDecorCategory().getTxtDecorCategoryCode());
 				dto.setTxtDecorCategoryName(edcs.getDecorCategory().getTxtDecorCategoryName());
+				dto.setNumPrice(edcs.getDecorCategory().getNumPrice());
 			}
 
 			// Map selected properties
@@ -61,6 +62,7 @@ public class ServiceEventDecorCategorySelectionImpl implements ServiceEventDecor
 				dto.setSelectedProperties(edcs.getSelectedProperties().stream().map(prop -> {
 					DtoEventDecorPropertySelection propDto = new DtoEventDecorPropertySelection();
 					propDto.setSerEventDecorPropertyId(prop.getSerEventDecorPropertyId());
+					propDto.setNumPrice(prop.getNumPrice());
 
 					if (prop.getProperty() != null) {
 						propDto.setSerPropertyId(prop.getProperty().getSerPropertyId());
