@@ -61,4 +61,5 @@ public interface ServiceMenuItem {
     MenuItem getMenuItemById(Long id);
     
     DtoResult getAllNonCompositeActiveItemsByParentItemCode(String txtCode);
+    String readMenuItemCsv(MultipartFile file);
 }
