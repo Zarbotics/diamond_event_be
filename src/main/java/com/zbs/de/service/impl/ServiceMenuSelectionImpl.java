@@ -30,7 +30,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 	public List<DtoCustomerMenuCategory> getCustomerMenu() {
 
 		// 1️⃣ Fetch all active categories
-		List<MenuItem> categories = repositoryMenuItem.getAllActiveItemsByRoleId(1);
+		List<MenuItem> categories = repositoryMenuItem.getAllActiveItemsByRoleIds(1);
 
 		List<DtoCustomerMenuCategory> result = new ArrayList<>();
 
