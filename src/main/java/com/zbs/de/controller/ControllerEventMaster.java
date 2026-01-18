@@ -92,9 +92,13 @@ public class ControllerEventMaster {
 		if (result.getResulList() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
 					result.getResulList());
+		} else if (result != null) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Data Not Found", result.getResulList());
 		}
+
 		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to Fetch",
 				dtoSearch);
+
 	}
 
 	@PostMapping(value = "/getAllData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

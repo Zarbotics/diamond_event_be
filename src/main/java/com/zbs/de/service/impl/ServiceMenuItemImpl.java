@@ -146,7 +146,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		exist.setTxtDescription(dto.getTxtDescription());
 		exist.setTxtRole(dto.getTxtRole());
 		exist.setTxtType(dto.getTxtType()); // 🔴 MISSING BEFORE
-		exist.setNumDisplayOrder(dto.getNumDisplayOrder());
+//		exist.setNumDisplayOrder(dto.getNumDisplayOrder());
 		exist.setBlnIsSelectable(dto.getBlnIsSelectable());
 		exist.setMetadata(dto.getMetadata());
 		exist.setNumDefaultServingsPerGuest(dto.getNumDefaultServingsPerGuest());
@@ -897,63 +897,148 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	}
 	
 	
+//	@Override
+//	  public String readMenuItemCsv(MultipartFile file) {
+//
+//
+//	        try (BufferedReader reader = new BufferedReader(
+//	                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+//
+//	            String line;
+//	            boolean isHeader = true;
+//
+//	            while ((line = reader.readLine()) != null) {
+//
+//	                // Skip header row
+//	                if (isHeader) {
+//	                    isHeader = false;
+//	                    continue;
+//	                }
+//
+//	                String[] columns = line.split(",", -1);
+//
+//	                if (columns.length < 6) {
+//	                    throw new IllegalArgumentException("Invalid CSV format. Expected 6 columns.");
+//	                }
+//
+//	                DtoMenuItem dto = new DtoMenuItem();
+//
+//	                // CSV → DTO mapping
+//	                dto.setSerMenuItemRoleId(parseInteger(columns[0]));
+//	                dto.setParentId(parseLong(columns[1]));
+//	                dto.setTxtName(columns[2].trim());
+//	                dto.setTxtShortName(columns[3].trim());
+//	                dto.setTxtDescription(columns[4].trim());
+//
+//	                // Derived / defaulted fields
+//	                dto.setTxtCode(generateNextCode("Item"));
+//	                dto.setTxtRole(null); // Can be resolved later from role master
+//	                dto.setTxtType("subcategory");
+//
+//	                dto.setNumDisplayOrder(0);
+//	                dto.setBlnIsSelectable(parseBoolean(columns[5]));
+//	                dto.setBlnIsActive(Boolean.TRUE);
+//	                dto.setBlnIsCompostie(parseBoolean(columns[5]));
+//
+//	                dto.setMetadata(new HashMap<>());
+//	                dto.setNumDefaultServingsPerGuest(null);
+//	                dto.setTxtPath(null);
+//
+//	                create(dto);
+//	            }
+//
+//	            return "Success";
+//	        } catch (Exception ex) {
+//	            LOGGER.debug(ex.getMessage(), ex);
+//	            return "Failure";
+//	        }
+//	    }
+
 	@Override
-	  public String readMenuItemCsv(MultipartFile file) {
+	@Transactional
+	public String readMenuItemCsv(MultipartFile file) {
 
+	    if (file == null || file.isEmpty()) {
+	        return "Failure: No file uploaded";
+	    }
 
-	        try (BufferedReader reader = new BufferedReader(
-	                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+	    try (
+	        InputStream is = file.getInputStream();
+	        InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+	        CSVReader csvReader = new CSVReader(isr)
+	    ) {
 
-	            String line;
-	            boolean isHeader = true;
+	        String[] header = csvReader.readNext(); // skip header
+	        if (header == null) {
+	            return "Failure: Empty CSV";
+	        }
 
-	            while ((line = reader.readLine()) != null) {
+	        String[] row;
+	        int rowNum = 1;
 
-	                // Skip header row
-	                if (isHeader) {
-	                    isHeader = false;
-	                    continue;
+	        while ((row = csvReader.readNext()) != null) {
+	            rowNum++;
+
+	            // Expected columns:
+	            // role_id,parent_id,name,short_name,description,is_selectable
+	            final int EXPECTED_COLS = 6;
+
+	            // pad missing columns
+	            if (row.length < EXPECTED_COLS) {
+	                String[] tmp = new String[EXPECTED_COLS];
+	                System.arraycopy(row, 0, tmp, 0, row.length);
+	                for (int i = row.length; i < EXPECTED_COLS; i++) {
+	                    tmp[i] = "";
 	                }
+	                row = tmp;
+	            }
 
-	                String[] columns = line.split(",", -1);
+	            // trim safely
+	            for (int i = 0; i < row.length; i++) {
+	                row[i] = row[i] == null ? "" : row[i].trim();
+	            }
 
-	                if (columns.length < 6) {
-	                    throw new IllegalArgumentException("Invalid CSV format. Expected 6 columns.");
-	                }
-
+	            try {
 	                DtoMenuItem dto = new DtoMenuItem();
 
-	                // CSV → DTO mapping
-	                dto.setSerMenuItemRoleId(parseInteger(columns[0]));
-	                dto.setParentId(parseLong(columns[1]));
-	                dto.setTxtName(columns[2].trim());
-	                dto.setTxtShortName(columns[3].trim());
-	                dto.setTxtDescription(columns[4].trim());
+	                dto.setSerMenuItemRoleId(parseInteger(row[0]));
+	                dto.setParentId(parseLong(row[1]));
+	                dto.setTxtName(row[2]);
+	                dto.setTxtShortName(row[3]);
 
-	                // Derived / defaulted fields
-	                dto.setTxtCode(generateNextCode("SUBCATEGORY"));
-	                dto.setTxtRole(null); // Can be resolved later from role master
-	                dto.setTxtType("subcategory");
+	                // ✔ quoted commas handled automatically by CSVReader
+	                dto.setTxtDescription(row[4]);
+
+	                dto.setTxtCode(generateNextCode("Item"));
+	                dto.setTxtRole("Item");
+	                dto.setTxtType("Item");
 
 	                dto.setNumDisplayOrder(0);
-	                dto.setBlnIsSelectable(parseBoolean(columns[5]));
+	                dto.setBlnIsSelectable(parseBoolean(row[5]));
 	                dto.setBlnIsActive(Boolean.TRUE);
-	                dto.setBlnIsCompostie(Boolean.FALSE);
+	                dto.setBlnIsCompostie(parseBoolean(row[5]));
 
 	                dto.setMetadata(new HashMap<>());
 	                dto.setNumDefaultServingsPerGuest(null);
 	                dto.setTxtPath(null);
 
 	                create(dto);
+
+	            } catch (Exception rowEx) {
+	                // log row-specific failure, but continue import
+	                LOGGER.error("CSV row {} failed: {}", rowNum, rowEx.getMessage(), rowEx);
 	            }
-
-	            return "Success";
-	        } catch (Exception ex) {
-	            LOGGER.debug(ex.getMessage(), ex);
-	            return "Failure";
 	        }
-	    }
 
+	        return "Success";
+
+	    } catch (Exception ex) {
+	        LOGGER.error("CSV import failed", ex);
+	        return "Failure";
+	    }
+	}
+
+	
 	    private Long parseLong(String value) {
 	        return value == null || value.isBlank() ? null : Long.parseLong(value.trim());
 	    }
