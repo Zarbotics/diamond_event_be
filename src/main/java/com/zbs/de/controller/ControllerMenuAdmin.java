@@ -160,7 +160,7 @@ public class ControllerMenuAdmin {
 		public ResponseMessage getCateringMenu( HttpServletRequest request) {
 			LOGGER.info("Fetching Menu");
 			try {
-				List<DtoCustomerMenuCategory> list = selection.getCustomerMenu();
+				List<DtoCustomerMenuCategory> list = selection.getCustomerCateringMenu();
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", list);
 			} catch (Exception e) {
 				LOGGER.error("Error fetching selectable children", e);
