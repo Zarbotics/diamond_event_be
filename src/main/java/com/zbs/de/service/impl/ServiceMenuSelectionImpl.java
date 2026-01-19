@@ -81,5 +81,63 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 
 		return result;
 	}
+	
+	
+	@Override
+	@Transactional(readOnly = true)
+	public List<DtoCustomerMenuCategory> getCustomerCateringMenu() {
+
+		// 1️⃣ Fetch all active categories
+		List<MenuItem> categories = repositoryMenuItem.getAllActiveCateringItemsByRoleId(1);
+
+		List<DtoCustomerMenuCategory> result = new ArrayList<>();
+
+		for (MenuItem category : categories) {
+
+			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
+			catDto.setCategoryId(category.getSerMenuItemId());
+			catDto.setCategoryName(category.getTxtName());
+
+			// 2️⃣ Fetch subcategories
+			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
+
+			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
+
+			for (MenuItem sub : subCategories) {
+
+				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
+				subDto.setSubCategoryId(sub.getSerMenuItemId());
+				subDto.setSubCategoryName(sub.getTxtName());
+
+				// 3️⃣ Normal (non-composite) items
+				List<MenuItem> items = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId()).stream()
+						.filter(i -> Boolean.TRUE.equals(i.getBlnIsSelectable()))
+						.filter(i -> !Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
+
+				subDto.setItems(items.stream().map(MapperMenuItem::toDto).toList());
+
+				// 4️⃣ Composite items
+				List<MenuItem> composites = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId()).stream()
+						.filter(i -> Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
+
+				List<DtoMenuComponentRequest> compositeDtos = new ArrayList<>();
+				for (MenuItem composite : composites) {
+					DtoMenuComponentRequest comp = serviceMenuComponent
+							.getCompositeWithComponents(composite.getSerMenuItemId());
+					if (comp != null) {
+						compositeDtos.add(comp);
+					}
+				}
+
+				subDto.setCompositeItems(compositeDtos);
+				subDtos.add(subDto);
+			}
+
+			catDto.setSubCategories(subDtos);
+			result.add(catDto);
+		}
+
+		return result;
+	}
 
 }

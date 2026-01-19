@@ -24,6 +24,9 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 
 	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId ORDER BY LOWER(txt_name) asc", nativeQuery = true)
 	List<MenuItem> findByParentId(@Param("parentId")Long parentId);
+	
+	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId and e.blnIsCateringItem = true ORDER BY LOWER(txt_name) asc", nativeQuery = true)
+	List<MenuItem> findCateringItemsByParentId(@Param("parentId")Long parentId);
 
 	MenuItem findByTxtCode(String txtCode);
 
@@ -48,6 +51,9 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	
 	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND LOWER(e.txtName) <> 'other' AND e.blnIsDeleted = false AND e.blnIsActive = true ORDER BY e.numDisplayOrder asc")
 	List<MenuItem> getAllActiveItemsByRoleId(@Param("id") Integer id);
+	
+	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND LOWER(e.txtName) <> 'other' AND e.blnIsDeleted = false AND e.blnIsActive = true and e.blnIsCateringItem = true ORDER BY e.numDisplayOrder asc")
+	List<MenuItem> getAllActiveCateringItemsByRoleId(@Param("id") Integer id);
 
 	@Query("SELECT mi FROM MenuItem mi WHERE mi.blnIsComposite = true AND mi.blnIsDeleted = false ORDER BY mi.txtName")
 	List<MenuItem> findAllCompositeItems();
