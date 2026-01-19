@@ -151,5 +151,22 @@ public class ControllerMenuAdmin {
 					"Failed to fetch selectable children", null);
 		}
 	}
+	
+	
+	// ================================
+		// GET Menu For CJ
+		// ================================
+		@PostMapping(value = "/getCateringMenu", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseMessage getCateringMenu( HttpServletRequest request) {
+			LOGGER.info("Fetching Menu");
+			try {
+				List<DtoCustomerMenuCategory> list = selection.getCustomerMenu();
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", list);
+			} catch (Exception e) {
+				LOGGER.error("Error fetching selectable children", e);
+				return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+						"Failed to fetch selectable children", null);
+			}
+		}
 
 }

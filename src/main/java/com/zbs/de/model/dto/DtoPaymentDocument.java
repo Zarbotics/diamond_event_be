@@ -3,6 +3,7 @@ package com.zbs.de.model.dto;
 public class DtoPaymentDocument {
 	private Integer serEventPaymentDocumentId;
 	private Integer serEventPaymentId;
+	private String txtOriginalFileName;
 	private String txtFileName;
 	private String txtFilePath;
 	private String txtContentType;
@@ -56,4 +57,13 @@ public class DtoPaymentDocument {
 	public void setNumFileSize(Long numFileSize) {
 		this.numFileSize = numFileSize;
 	}
+
+	public String getTxtOriginalFileName() {
+		return txtOriginalFileName;
+	}
+
+	public void setTxtOriginalFileName(String txtOriginalFileName) {
+		this.txtOriginalFileName = txtOriginalFileName;
+	}
+
 }

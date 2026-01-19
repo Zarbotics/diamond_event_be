@@ -151,6 +151,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		exist.setMetadata(dto.getMetadata());
 		exist.setNumDefaultServingsPerGuest(dto.getNumDefaultServingsPerGuest());
 		exist.setBlnIsComposite(dto.getBlnIsCompostie());
+		exist.setBlnIsCateringItem(dto.getBlnIsCateringItem());
 
 		// ---- ROLE ENUM ----
 //		EnmMenuItemRole currentRole = EnmMenuItemRole.of(dto.getTxtRole());
