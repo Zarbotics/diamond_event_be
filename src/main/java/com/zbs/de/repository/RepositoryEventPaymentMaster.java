@@ -19,4 +19,8 @@ public interface RepositoryEventPaymentMaster extends JpaRepository<EventPayment
 
     @Query(value = "SELECT to_char(dte_payment_date, 'YYYY-MM') AS month, SUM(num_amount) AS totalReceived FROM event_payment WHERE bln_is_deleted = false GROUP BY to_char(dte_payment_date, 'YYYY-MM') ORDER BY 1", nativeQuery = true)
     List<Object[]> getMonthlyReceivedRaw();
+    
+    List<EventPayment> findBySerEventMasterIdAndBlnIsDeletedFalseOrderByDtePaymentDateDesc(
+            Integer serEventMasterId
+    );
 }
