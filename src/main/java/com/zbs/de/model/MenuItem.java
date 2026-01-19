@@ -50,6 +50,9 @@ public class MenuItem extends BaseEntity {
 
 	@Column(name = "txt_type")
 	private String txtType;
+	
+	@Column(name = "bln_is_catering_item")
+	private Boolean blnIsCateringItem = Boolean.FALSE;
 
 	@ManyToOne
 	@JoinColumn(name = "ser_menu_item_role_id")
@@ -209,6 +212,14 @@ public class MenuItem extends BaseEntity {
 
 	public void setBlnIsComposite(Boolean blnIsComposite) {
 		this.blnIsComposite = blnIsComposite;
+	}
+
+	public Boolean getBlnIsCateringItem() {
+		return blnIsCateringItem;
+	}
+
+	public void setBlnIsCateringItem(Boolean blnIsCateringItem) {
+		this.blnIsCateringItem = blnIsCateringItem;
 	}
 
 }

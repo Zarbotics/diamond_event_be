@@ -25,6 +25,9 @@ public class EventPaymentDocument extends BaseEntity implements Serializable {
 	@Column(name = "txt_file_name")
 	private String txtFileName;
 
+	@Column(name = "txt_original_file_name")
+	private String txtOriginalFileName;
+
 	@Column(name = "txt_file_path")
 	private String txtFilePath;
 
@@ -81,4 +84,13 @@ public class EventPaymentDocument extends BaseEntity implements Serializable {
 	public void setNumFileSize(Long numFileSize) {
 		this.numFileSize = numFileSize;
 	}
+
+	public String getTxtOriginalFileName() {
+		return txtOriginalFileName;
+	}
+
+	public void setTxtOriginalFileName(String txtOriginalFileName) {
+		this.txtOriginalFileName = txtOriginalFileName;
+	}
+
 }

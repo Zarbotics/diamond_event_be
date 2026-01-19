@@ -19,6 +19,7 @@ public class DtoMenuItem {
 	private Map<String, Object> metadata;
 	private Double numDefaultServingsPerGuest;
 	private String txtPath;
+	private Boolean blnIsCateringItem;
 
 	private Boolean blnIsActive;
 	private Boolean blnIsCompostie;
@@ -173,6 +174,14 @@ public class DtoMenuItem {
 
 	public void setBlnIsCompostie(Boolean blnIsCompostie) {
 		this.blnIsCompostie = blnIsCompostie;
+	}
+
+	public Boolean getBlnIsCateringItem() {
+		return blnIsCateringItem;
+	}
+
+	public void setBlnIsCateringItem(Boolean blnIsCateringItem) {
+		this.blnIsCateringItem = blnIsCateringItem;
 	}
 
 }

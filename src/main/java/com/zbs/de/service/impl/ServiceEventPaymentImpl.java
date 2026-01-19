@@ -2,15 +2,21 @@ package com.zbs.de.service.impl;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.zbs.de.controller.ControllerEventType;
 import com.zbs.de.mapper.MapperEventPayment;
 import com.zbs.de.model.EventBudget;
 import com.zbs.de.model.EventPayment;
@@ -21,9 +27,13 @@ import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryEventBudget;
 import com.zbs.de.repository.RepositoryEventPaymentDocument;
 import com.zbs.de.repository.RepositoryEventPaymentMaster;
+import com.zbs.de.service.ServiceEventBudget;
 import com.zbs.de.service.ServiceEventPayment;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilFileStorage;
+import com.zbs.de.util.enums.EnmItineraryUnitType;
+import com.zbs.de.util.enums.EnmPaymentMethod;
+import com.zbs.de.util.enums.EnmPaymentStatus;
 
 @Service
 public class ServiceEventPaymentImpl implements ServiceEventPayment {
@@ -37,33 +47,47 @@ public class ServiceEventPaymentImpl implements ServiceEventPayment {
 	@Autowired
 	private RepositoryEventBudget repositoryEventBudget;
 
+	@Autowired
+	private ServiceEventBudget serviceEventBudget;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
+
 	@Override
 	@Transactional
 	public DtoResult savePayment(DtoPayment dtoPayment) {
+
 		DtoResult result = new DtoResult();
-		if (dtoPayment.getSerEventBudgetId() == null) {
-			result.setTxtMessage("Budget ID is required.");
+
+		if (dtoPayment.getSerEventMasterId() == null) {
+			result.setTxtMessage("Event ID is required.");
 			return result;
 		}
 
-		Optional<EventBudget> optBudget = repositoryEventBudget.findById(dtoPayment.getSerEventBudgetId());
-		if (optBudget.isEmpty()) {
-			result.setTxtMessage("Invalid Budget ID.");
-			return result;
-		}
-		EventBudget budget = optBudget.get();
+//		EventBudget budget = repositoryEventBudget.findById(dtoPayment.getSerEventBudgetId())
+//				.orElseThrow(() -> new RuntimeException("Invalid Budget ID"));
+
+		EventBudget budget = repositoryEventBudget.findByEventMaster_SerEventMasterId(dtoPayment.getSerEventMasterId())
+				.orElseThrow(() -> new RuntimeException("Invalid Event ID"));
 
 		EventPayment payment;
+
 		if (dtoPayment.getSerEventPaymentId() != null) {
-			payment = repositoryEventPayment.findById(dtoPayment.getSerEventPaymentId()).orElse(new EventPayment());
+			payment = repositoryEventPayment.findById(dtoPayment.getSerEventPaymentId())
+					.orElseThrow(() -> new RuntimeException("Payment not found"));
+			payment.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 		} else {
 			payment = new EventPayment();
+			payment.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 		}
 
-		// map fields
+		/*
+		 * =============================== MAP PAYMENT FIELDS
+		 * ===============================
+		 */
 		payment.setEventBudget(budget);
 		payment.setSerEventMasterId(dtoPayment.getSerEventMasterId() != null ? dtoPayment.getSerEventMasterId()
-				: (budget.getEventMaster() != null ? budget.getEventMaster().getSerEventMasterId() : null));
+				: budget.getEventMaster().getSerEventMasterId());
+
 		payment.setNumAmount(dtoPayment.getNumAmount());
 		payment.setTxtPaymentMode(dtoPayment.getTxtPaymentMode());
 		payment.setTxtTransactionRef(dtoPayment.getTxtTransactionRef());
@@ -71,31 +95,13 @@ public class ServiceEventPaymentImpl implements ServiceEventPayment {
 		payment.setTxtPaymentStatus(dtoPayment.getTxtPaymentStatus());
 		payment.setTxtRemarks(dtoPayment.getTxtRemarks());
 
-		if (payment.getSerEventPaymentId() == null) {
-			payment.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
-		} else {
-			payment.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
-		}
-
 		repositoryEventPayment.save(payment);
 
-		// update budget paid amount & status
-		BigDecimal totalPaid = repositoryEventPayment.sumPaidByBudgetId(budget.getSerEventBudgetId());
-		budget.setNumPaidAmount(totalPaid == null ? BigDecimal.ZERO : totalPaid);
-		// derive status
-		if (budget.getNumTotalBudget() != null) {
-			if (budget.getNumTotalBudget().compareTo(BigDecimal.ZERO) == 0) {
-				budget.setTxtPaymentStatus("UNDEFINED");
-			} else if (totalPaid != null && totalPaid.compareTo(budget.getNumTotalBudget()) >= 0) {
-				budget.setTxtPaymentStatus("PAID");
-			} else if (totalPaid != null && totalPaid.compareTo(BigDecimal.ZERO) > 0) {
-				budget.setTxtPaymentStatus("PARTIAL");
-			} else {
-				budget.setTxtPaymentStatus("UNPAID");
-			}
-		}
-		budget.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
-		repositoryEventBudget.save(budget);
+		/*
+		 * =============================== CENTRALIZED BUDGET RECALC
+		 * ===============================
+		 */
+		serviceEventBudget.recalculateBudget(budget.getSerEventBudgetId());
 
 		result.setTxtMessage("Success");
 		result.setResult(MapperEventPayment.toDto(payment));
@@ -105,80 +111,104 @@ public class ServiceEventPaymentImpl implements ServiceEventPayment {
 	@Override
 	@Transactional
 	public DtoResult savePaymentWithFiles(DtoPayment dtoPayment, List<MultipartFile> files) {
-		// First, save payment (this also updates budget totals)
-		DtoResult baseResult = savePayment(dtoPayment);
-		if (!"Success".equalsIgnoreCase(baseResult.getTxtMessage())) {
+
+		DtoResult baseResult = new DtoResult();
+		try {
+
+			baseResult = savePayment(dtoPayment);
+			if (!"Success".equalsIgnoreCase(baseResult.getTxtMessage())) {
+				return baseResult;
+			}
+
+			DtoPayment savedDto = (DtoPayment) baseResult.getResult();
+			EventPayment payment = repositoryEventPayment.findById(savedDto.getSerEventPaymentId())
+					.orElseThrow(() -> new RuntimeException("Payment not found after save"));
+
+			/*
+			 * ========================= FILE MAP (LIKE YOUR METHOD)
+			 * =========================
+			 */
+			Map<String, MultipartFile> fileMap = files != null
+					? files.stream().collect(Collectors.toMap(MultipartFile::getOriginalFilename, f -> f, (a, b) -> a))
+					: Collections.emptyMap();
+
+			List<DtoPaymentDocument> savedDocuments = new ArrayList<>();
+
+			/*
+			 * ========================= DOCUMENT LOOP (DTO DRIVEN)
+			 * =========================
+			 */
+			if (dtoPayment.getDocuments() != null) {
+
+				for (DtoPaymentDocument docDto : dtoPayment.getDocuments()) {
+
+					if (docDto == null || docDto.getTxtOriginalFileName() == null) {
+						continue;
+					}
+
+					MultipartFile file = fileMap.get(docDto.getTxtOriginalFileName());
+					if (file == null) {
+						continue;
+					}
+
+					String uploadPath = UtilFileStorage.saveFile(file, "event-payments");
+
+					EventPaymentDocument document = new EventPaymentDocument();
+					document.setEventPayment(payment);
+					document.setTxtOriginalFileName(file.getOriginalFilename());
+					document.setTxtFileName(docDto.getTxtFileName());
+					document.setTxtFilePath(uploadPath);
+					document.setTxtContentType(file.getContentType());
+					document.setNumFileSize(file.getSize());
+					document.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+
+					repositoryEventPaymentDocument.save(document);
+
+					DtoPaymentDocument savedDoc = new DtoPaymentDocument();
+					savedDoc.setSerEventPaymentDocumentId(document.getSerEventPaymentDocumentId());
+					savedDoc.setSerEventPaymentId(payment.getSerEventPaymentId());
+					savedDoc.setTxtFileName(document.getTxtFileName());
+					savedDoc.setTxtOriginalFileName(document.getTxtOriginalFileName());
+					savedDoc.setTxtFilePath(document.getTxtFilePath());
+					savedDoc.setTxtContentType(document.getTxtContentType());
+					savedDoc.setNumFileSize(document.getNumFileSize());
+
+					savedDocuments.add(savedDoc);
+				}
+			}
+
+			savedDto.setDocuments(savedDocuments);
+
+			baseResult.setTxtMessage("Success");
+			baseResult.setResult(savedDto);
+			return baseResult;
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			baseResult.setTxtMessage(e.getMessage());
 			return baseResult;
 		}
-
-		// Payment DTO returned by savePayment
-		DtoPayment savedDto = (DtoPayment) baseResult.getResult();
-		if (savedDto == null || savedDto.getSerEventPaymentId() == null) {
-			DtoResult err = new DtoResult();
-			err.setTxtMessage("Payment save failed or returned null id.");
-			return err;
-		}
-
-		// Retrieve persisted payment entity
-		Integer paymentId = savedDto.getSerEventPaymentId();
-		Optional<EventPayment> optPayment = repositoryEventPayment.findById(paymentId);
-		if (optPayment.isEmpty()) {
-			DtoResult err = new DtoResult();
-			err.setTxtMessage("Unable to find payment after saving.");
-			return err;
-		}
-		EventPayment payment = optPayment.get();
-
-		List<DtoPaymentDocument> savedDocs = new ArrayList<>();
-		for (MultipartFile f : files) {
-			if (f == null || f.isEmpty())
-				continue;
-			try {
-				// Use your existing UtilFileStorage to save file.
-				// category will be "event-payments/{paymentId}"
-				String category = "event-payments/" + payment.getSerEventPaymentId();
-				String publicUrl = UtilFileStorage.saveFile(f, category); // returns URL as you implemented
-
-				EventPaymentDocument doc = new EventPaymentDocument();
-				doc.setEventPayment(payment);
-				doc.setTxtFileName(f.getOriginalFilename());
-				doc.setTxtFilePath(publicUrl);
-				doc.setTxtContentType(f.getContentType());
-				doc.setNumFileSize(f.getSize());
-				doc.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
-
-				repositoryEventPaymentDocument.save(doc);
-
-				// convert to DTO for response
-				DtoPaymentDocument pdto = new DtoPaymentDocument();
-				pdto.setSerEventPaymentDocumentId(doc.getSerEventPaymentDocumentId());
-				pdto.setSerEventPaymentId(payment.getSerEventPaymentId());
-				pdto.setTxtFileName(doc.getTxtFileName());
-				pdto.setTxtFilePath(doc.getTxtFilePath());
-				pdto.setTxtContentType(doc.getTxtContentType());
-				pdto.setNumFileSize(doc.getNumFileSize());
-				savedDocs.add(pdto);
-
-			} catch (Exception ex) {
-				// log error and continue with next file
-				// If you want the whole operation to rollback when any file save fails,
-				// rethrow the exception here instead of continuing.
-				ex.printStackTrace();
-			}
-		}
-
-		// Update DTO result to include documents
-		savedDto.setDocuments(savedDocs);
-		DtoResult finalResult = new DtoResult();
-		finalResult.setTxtMessage("Success");
-		finalResult.setResult(savedDto);
-		return finalResult;
 	}
 
 	@Override
 	public List<DtoPayment> getPaymentsByBudgetId(Integer serEventBudgetId) {
+
 		List<EventPayment> list = repositoryEventPayment
 				.findByEventBudget_SerEventBudgetIdAndBlnIsDeleted(serEventBudgetId, false);
+
+		List<DtoPayment> dtos = new ArrayList<>();
+		for (EventPayment p : list) {
+			dtos.add(MapperEventPayment.toDto(p));
+		}
+		return dtos;
+	}
+
+	@Override
+	public List<DtoPayment> getPaymentsByEventMasterId(Integer serEventMasterId) {
+
+		List<EventPayment> list = repositoryEventPayment
+				.findBySerEventMasterIdAndBlnIsDeletedFalseOrderByDtePaymentDateDesc(serEventMasterId);
+
 		List<DtoPayment> dtos = new ArrayList<>();
 		for (EventPayment p : list) {
 			dtos.add(MapperEventPayment.toDto(p));
@@ -189,38 +219,40 @@ public class ServiceEventPaymentImpl implements ServiceEventPayment {
 	@Override
 	@Transactional
 	public DtoResult deletePayment(Integer serEventPaymentId) {
+
 		DtoResult res = new DtoResult();
-		Optional<EventPayment> opt = repositoryEventPayment.findById(serEventPaymentId);
-		if (opt.isEmpty()) {
-			res.setTxtMessage("No payment found");
-			return res;
-		}
-		EventPayment payment = opt.get();
+
+		EventPayment payment = repositoryEventPayment.findById(serEventPaymentId)
+				.orElseThrow(() -> new RuntimeException("Payment not found"));
+
 		payment.setBlnIsDeleted(true);
 		payment.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 		repositoryEventPayment.save(payment);
 
-		// update budget totals
-		EventBudget budget = payment.getEventBudget();
-		BigDecimal totalPaid = repositoryEventPayment.sumPaidByBudgetId(budget.getSerEventBudgetId());
-		budget.setNumPaidAmount(totalPaid == null ? BigDecimal.ZERO : totalPaid);
-		if (budget.getNumTotalBudget() != null) {
-			if (totalPaid != null && totalPaid.compareTo(budget.getNumTotalBudget()) >= 0) {
-				budget.setTxtPaymentStatus("PAID");
-			} else if (totalPaid != null && totalPaid.compareTo(BigDecimal.ZERO) > 0) {
-				budget.setTxtPaymentStatus("PARTIAL");
-			} else {
-				budget.setTxtPaymentStatus("UNPAID");
-			}
-		}
-		repositoryEventBudget.save(budget);
+		/*
+		 * =============================== RECALCULATE AFTER DELETE
+		 * ===============================
+		 */
+		serviceEventBudget.recalculateBudget(payment.getEventBudget().getSerEventBudgetId());
 
-		res.setTxtMessage("Deleted (soft) successfully");
+		res.setTxtMessage("Deleted successfully");
 		return res;
 	}
 
 	@Override
 	public BigDecimal getTotalPaidByBudget(Integer serEventBudgetId) {
 		return repositoryEventPayment.sumPaidByBudgetId(serEventBudgetId);
+	}
+
+	@Override
+	public List<String> getAllPaymentMethods() {
+		List<String> roles = Arrays.stream(EnmPaymentMethod.values()).map(Enum::name).toList();
+		return roles;
+	}
+
+	@Override
+	public List<String> getAllPaymentStatuses() {
+		List<String> roles = Arrays.stream(EnmPaymentStatus.values()).map(Enum::name).toList();
+		return roles;
 	}
 }

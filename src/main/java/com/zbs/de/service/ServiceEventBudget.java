@@ -25,4 +25,6 @@ public interface ServiceEventBudget {
 	void save(EventBudget eventBudget);
 	
 	EventBudget getEventBudgetByEventId(Integer serEventMasterId);
+	
+	void recalculateBudget(Integer serEventBudgetId);
 }

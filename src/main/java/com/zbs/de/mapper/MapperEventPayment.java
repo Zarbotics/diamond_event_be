@@ -33,6 +33,7 @@ public class MapperEventPayment {
 		dto.setSerEventPaymentDocumentId(d.getSerEventPaymentDocumentId());
 		dto.setSerEventPaymentId(d.getEventPayment() != null ? d.getEventPayment().getSerEventPaymentId() : null);
 		dto.setTxtFileName(d.getTxtFileName());
+		dto.setTxtOriginalFileName(d.getTxtOriginalFileName());
 		dto.setTxtFilePath(d.getTxtFilePath());
 		dto.setTxtContentType(d.getTxtContentType());
 		dto.setNumFileSize(d.getNumFileSize());

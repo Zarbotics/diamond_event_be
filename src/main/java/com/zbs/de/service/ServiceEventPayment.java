@@ -15,4 +15,10 @@ public interface ServiceEventPayment {
 	DtoResult deletePayment(Integer serEventPaymentId);
 
 	java.math.BigDecimal getTotalPaidByBudget(Integer serEventBudgetId);
+
+	List<DtoPayment> getPaymentsByEventMasterId(Integer serEventMasterId);
+
+	List<String> getAllPaymentStatuses();
+
+	List<String> getAllPaymentMethods();
 }

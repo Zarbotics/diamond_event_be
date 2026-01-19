@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.zbs.de.mapper.MapperEventBudget;
 import com.zbs.de.model.EventBudget;
 import com.zbs.de.model.EventMaster;
@@ -17,6 +19,7 @@ import com.zbs.de.model.dto.DtoEventBudget;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryEventBudget;
 import com.zbs.de.repository.RepositoryEventMaster;
+import com.zbs.de.repository.RepositoryEventPaymentMaster;
 import com.zbs.de.service.ServiceEventBudget;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilRandomKey;
@@ -27,6 +30,9 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 	@Autowired
 	private RepositoryEventBudget repositoryEventBudget;
 
+	@Autowired
+	private RepositoryEventPaymentMaster repositoryEventPaymentMaster;
+	
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
 
@@ -170,5 +176,52 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 			LOGGER.debug(e.getMessage(),e);
 		}
 	}
+	
+	@Override
+    @Transactional
+    public void recalculateBudget(Integer serEventBudgetId) {
+
+        EventBudget budget = repositoryEventBudget.findById(serEventBudgetId)
+                .orElseThrow(() -> new RuntimeException("Budget not found"));
+
+        BigDecimal totalPaid = repositoryEventPaymentMaster.sumPaidByBudgetId(serEventBudgetId);
+        totalPaid = totalPaid == null ? BigDecimal.ZERO : totalPaid;
+
+        BigDecimal totalBudget = budget.getNumTotalBudget() == null
+                ? BigDecimal.ZERO
+                : budget.getNumTotalBudget();
+
+        BigDecimal pending = totalBudget.subtract(totalPaid);
+        if (pending.compareTo(BigDecimal.ZERO) < 0) {
+            pending = BigDecimal.ZERO;
+        }
+
+        budget.setNumPaidAmount(totalPaid);
+        budget.setNumTotalExpense(totalPaid); // assuming payments = expenses
+//        budget.setNumTotalProfit(totalBudget.subtract(totalPaid));
+        budget.setNumTotalProfit(totalPaid.subtract(budget.getNumTotalExpense()));
+        
+        // STATUS LOGIC (STRICT)
+        if (totalBudget.compareTo(BigDecimal.ZERO) == 0) {
+            budget.setTxtPaymentStatus("UNDEFINED");
+        } else if (totalPaid.compareTo(BigDecimal.ZERO) == 0) {
+            budget.setTxtPaymentStatus("UNPAID");
+        } else if (totalPaid.compareTo(totalBudget) < 0) {
+            budget.setTxtPaymentStatus("PARTIAL");
+        } else {
+            budget.setTxtPaymentStatus("PAID");
+        }
+        
+        if(totalPaid.compareTo(BigDecimal.ZERO) == 1) {
+        	budget.setTxtStatus("Confirmed");
+        }else if(budget.getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+        	budget.setTxtStatus("Quoted");
+        }else {
+        	budget.setTxtStatus("Enquiry");
+        }
+
+        budget.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+        repositoryEventBudget.save(budget);
+    }
 
 }
