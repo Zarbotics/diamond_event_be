@@ -100,6 +100,12 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 		return repositoryEventBudget.findByEventMaster_SerEventMasterId(serEventMasterId)
 				.orElse(null);
 	}
+	
+	@Override
+	public EventBudget getEventBudgetByCateringDelevieryBookingId(Integer serDeliveryBookingId) {
+		return repositoryEventBudget.findByCateringDeliveryBooking_SerDeliveryBookingId(serDeliveryBookingId)
+				.orElse(null);
+	}
 
 	@Override
 	public List<DtoEventAnalytics> getMonthlySales() {

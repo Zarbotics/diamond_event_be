@@ -7,6 +7,8 @@ public class DtoPayment {
 	private Integer serEventPaymentId;
 	private Integer serEventBudgetId;
 	private Integer serEventMasterId;
+	private Integer serDeliveryBookingId;
+
 	private BigDecimal numAmount;
 	private String txtPaymentMode;
 	private String txtTransactionRef;
@@ -95,4 +97,13 @@ public class DtoPayment {
 	public void setDocuments(List<DtoPaymentDocument> documents) {
 		this.documents = documents;
 	}
+
+	public Integer getSerDeliveryBookingId() {
+		return serDeliveryBookingId;
+	}
+
+	public void setSerDeliveryBookingId(Integer serDeliveryBookingId) {
+		this.serDeliveryBookingId = serDeliveryBookingId;
+	}
+
 }

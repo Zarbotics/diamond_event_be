@@ -29,6 +29,9 @@ public class EventPayment extends BaseEntity implements Serializable {
 	@Column(name = "ser_event_master_id")
 	private Integer serEventMasterId; // optional duplicate for faster queries
 
+	@Column(name = "ser_delivery_booking_id")
+	private Integer serDeliveryBookingId; // optional duplicate for faster queries
+
 	@Column(name = "num_amount", precision = 18, scale = 2, nullable = false)
 	private BigDecimal numAmount;
 
@@ -139,4 +142,13 @@ public class EventPayment extends BaseEntity implements Serializable {
 		this.documents.remove(doc);
 		doc.setEventPayment(null);
 	}
+
+	public Integer getSerDeliveryBookingId() {
+		return serDeliveryBookingId;
+	}
+
+	public void setSerDeliveryBookingId(Integer serDeliveryBookingId) {
+		this.serDeliveryBookingId = serDeliveryBookingId;
+	}
+
 }

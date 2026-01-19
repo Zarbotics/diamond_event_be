@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -66,6 +67,9 @@ public class CateringDeliveryBooking extends BaseEntity implements Serializable 
 
 	@Column(name = "is_edit_allowed")
 	private Boolean isEditAllowed = true;
+
+	@OneToOne(mappedBy = "cateringDeliveryBooking", fetch = FetchType.LAZY)
+	private EventBudget eventBudget;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_cust_id")
@@ -188,6 +192,14 @@ public class CateringDeliveryBooking extends BaseEntity implements Serializable 
 
 	public void setIsEditAllowed(Boolean isEditAllowed) {
 		this.isEditAllowed = isEditAllowed;
+	}
+
+	public EventBudget getEventBudget() {
+		return eventBudget;
+	}
+
+	public void setEventBudget(EventBudget eventBudget) {
+		this.eventBudget = eventBudget;
 	}
 
 }
