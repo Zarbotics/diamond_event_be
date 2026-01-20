@@ -25,8 +25,13 @@ public class EventBudget extends BaseEntity implements Serializable {
 	// owning side: FK to event_master
 	@JsonIgnore
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ser_event_master_id", nullable = false, unique = true)
+	@JoinColumn(name = "ser_event_master_id", unique = true)
 	private EventMaster eventMaster;
+
+	@JsonIgnore
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ser_delivery_booking_id", unique = true)
+	private CateringDeliveryBooking cateringDeliveryBooking;
 
 	@Column(name = "num_total_budget", precision = 18, scale = 2)
 	private BigDecimal numTotalBudget;
@@ -185,4 +190,13 @@ public class EventBudget extends BaseEntity implements Serializable {
 		this.payments.remove(p);
 		p.setEventBudget(null);
 	}
+
+	public CateringDeliveryBooking getCateringDeliveryBooking() {
+		return cateringDeliveryBooking;
+	}
+
+	public void setCateringDeliveryBooking(CateringDeliveryBooking cateringDeliveryBooking) {
+		this.cateringDeliveryBooking = cateringDeliveryBooking;
+	}
+
 }

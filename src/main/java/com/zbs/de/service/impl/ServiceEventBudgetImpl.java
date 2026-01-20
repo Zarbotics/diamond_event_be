@@ -36,7 +36,7 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventBudgetImpl.class);
 
 	@Override
 	public DtoResult saveOrUpdate(DtoEventBudget dtoEventBudget) {
@@ -98,6 +98,12 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 	@Override
 	public EventBudget getEventBudgetByEventId(Integer serEventMasterId) {
 		return repositoryEventBudget.findByEventMaster_SerEventMasterId(serEventMasterId)
+				.orElse(null);
+	}
+	
+	@Override
+	public EventBudget getEventBudgetByCateringDelevieryBookingId(Integer serDeliveryBookingId) {
+		return repositoryEventBudget.findByCateringDeliveryBooking_SerDeliveryBookingId(serDeliveryBookingId)
 				.orElse(null);
 	}
 

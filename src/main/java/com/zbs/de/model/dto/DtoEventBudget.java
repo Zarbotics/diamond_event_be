@@ -6,6 +6,7 @@ public class DtoEventBudget {
 
 	private Integer serEventBudgetId;
 	private Integer serEventMasterId;
+	private Integer serDeliveryBookingId;
 
 	private BigDecimal numTotalBudget;
 	private BigDecimal numTotalExpense;
@@ -95,6 +96,14 @@ public class DtoEventBudget {
 
 	public void setTxtRemarks(String txtRemarks) {
 		this.txtRemarks = txtRemarks;
+	}
+
+	public Integer getSerDeliveryBookingId() {
+		return serDeliveryBookingId;
+	}
+
+	public void setSerDeliveryBookingId(Integer serDeliveryBookingId) {
+		this.serDeliveryBookingId = serDeliveryBookingId;
 	}
 
 }

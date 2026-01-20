@@ -1,5 +1,6 @@
 package com.zbs.de.mapper;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,10 +8,12 @@ import java.util.Map;
 
 import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryItemDetail;
+import com.zbs.de.model.EventBudget;
 import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
 import com.zbs.de.model.dto.DtoCateringDeliveryItemDetail;
+import com.zbs.de.model.dto.DtoEventQuoteAndStatus;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilRandomKey;
@@ -54,6 +57,21 @@ public class MapperCateringDeliveryBooking {
 			
 			dto.setCateringDeliveryItemDetails(details);
 		}
+		
+		if (entity.getEventBudget() != null) {
+
+			DtoEventQuoteAndStatus quote = new DtoEventQuoteAndStatus();
+			quote.setNumQuotedPrice(entity.getEventBudget().getNumQuotedPrice());
+			quote.setNumPaidAmount(entity.getEventBudget().getNumPaidAmount());
+			quote.setTxtStatus(entity.getEventBudget().getTxtStatus());
+			if(entity.getEventBudget().getNumQuotedPrice() != null && entity.getEventBudget().getNumPaidAmount() != null) {
+				quote.setNumPendingAmount(entity.getEventBudget().getNumQuotedPrice().subtract(entity.getEventBudget().getNumPaidAmount()));
+			}else {
+				quote.setNumPendingAmount(BigDecimal.ZERO);
+			}
+			dto.setDtoEventQuoteAndStatus(quote);
+		}
+
 
 		return dto;
 	}
@@ -137,6 +155,20 @@ public class MapperCateringDeliveryBooking {
 			}
 
 			dto.setFoodSelections(foodSelections);
+		}
+		
+		if (entity.getEventBudget() != null) {
+
+			DtoEventQuoteAndStatus quote = new DtoEventQuoteAndStatus();
+			quote.setNumQuotedPrice(entity.getEventBudget().getNumQuotedPrice());
+			quote.setNumPaidAmount(entity.getEventBudget().getNumPaidAmount());
+			quote.setTxtStatus(entity.getEventBudget().getTxtStatus());
+			if(entity.getEventBudget().getNumQuotedPrice() != null && entity.getEventBudget().getNumPaidAmount() != null) {
+				quote.setNumPendingAmount(entity.getEventBudget().getNumQuotedPrice().subtract(entity.getEventBudget().getNumPaidAmount()));
+			}else {
+				quote.setNumPendingAmount(BigDecimal.ZERO);
+			}
+			dto.setDtoEventQuoteAndStatus(quote);
 		}
 
 		return dto;

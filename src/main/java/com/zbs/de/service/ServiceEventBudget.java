@@ -27,4 +27,6 @@ public interface ServiceEventBudget {
 	EventBudget getEventBudgetByEventId(Integer serEventMasterId);
 	
 	void recalculateBudget(Integer serEventBudgetId);
+	
+	EventBudget getEventBudgetByCateringDelevieryBookingId(Integer serDeliveryBookingId);
 }

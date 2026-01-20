@@ -14,6 +14,8 @@ public interface RepositoryEventBudget extends JpaRepository<EventBudget, Intege
 	List<EventBudget> findByBlnIsDeleted(Boolean blnIsDeleted);
 
 	Optional<EventBudget> findByEventMaster_SerEventMasterId(Integer serEventMasterId);
+	
+	Optional<EventBudget> findByCateringDeliveryBooking_SerDeliveryBookingId(Integer serDeliveryBookingId);
 
 	@Query(value = """
 			SELECT

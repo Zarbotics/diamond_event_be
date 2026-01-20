@@ -1,5 +1,6 @@
 package com.zbs.de.service.impl;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.zbs.de.mapper.MapperCateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryItemDetail;
+import com.zbs.de.model.EventBudget;
 import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
@@ -23,6 +25,7 @@ import com.zbs.de.repository.RepositoryCustomerMaster;
 import com.zbs.de.repository.RepositoryEventType;
 import com.zbs.de.repository.RepositoryMenuFoodMaster;
 import com.zbs.de.service.ServiceCateringDeliveryBooking;
+import com.zbs.de.service.ServiceEventBudget;
 import com.zbs.de.service.ServiceMenuFoodMaster;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.util.UtilRandomKey;
@@ -43,10 +46,13 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 	@Autowired
 	private RepositoryMenuFoodMaster repositoryMenuFoodMaster;
-	
+
 	@Autowired
 	private ServiceMenuFoodMaster serviceMenuFoodMaster;
-	
+
+	@Autowired
+	private ServiceEventBudget serviceEventBudget;
+
 	@Autowired
 	private ServiceMenuItem serviceMenuItem;
 
@@ -84,7 +90,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			if (dto.getSerDeliveryBookingId() != null) {
 				entity = repositoryCateringDeliveryBooking.findById(dto.getSerDeliveryBookingId()).orElseThrow(
 						() -> new RuntimeException("Booking not found with ID: " + dto.getSerDeliveryBookingId()));
-				
+
 				entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			} else {
 				entity = new CateringDeliveryBooking();
@@ -94,7 +100,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 			// Set master fields
 			entity.setCustomerMaster(customer);
-			if(eventType != null) {
+			if (eventType != null) {
 				entity.setEventType(eventType);
 			}
 
@@ -116,7 +122,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 //					if (detailDto.getSerMenuFoodId() == null) {
 //						throw new IllegalArgumentException("Menu Food ID is required for each delivery item.");
 //					}
-					
+
 					if (detailDto.getSerMenuItemId() == null) {
 						throw new IllegalArgumentException("Menu Food ID is required for each delivery item.");
 					}
@@ -124,11 +130,11 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 //					MenuFoodMaster food = repositoryMenuFoodMaster.findById(detailDto.getSerMenuFoodId())
 //							.orElseThrow(() -> new EntityNotFoundException(
 //									"Menu Food not found with ID: " + detailDto.getSerMenuFoodId()));
-					
-					MenuItem menuItem  = serviceMenuItem.getMenuItemById(detailDto.getSerMenuItemId());
-					if(menuItem == null) {
-						 result.setTxtMessage("Menu Food not found with ID: " + detailDto.getSerMenuItemId());
-						 return result;
+
+					MenuItem menuItem = serviceMenuItem.getMenuItemById(detailDto.getSerMenuItemId());
+					if (menuItem == null) {
+						result.setTxtMessage("Menu Food not found with ID: " + detailDto.getSerMenuItemId());
+						return result;
 					}
 
 					CateringDeliveryItemDetail detail = new CateringDeliveryItemDetail();
@@ -142,7 +148,53 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 			entity.setCateringDeliveryItemDetails(detailList);
 
+			// Setting Event Quoted Price
+			// **************************
+
+			EventBudget eventBudget = serviceEventBudget
+					.getEventBudgetByCateringDelevieryBookingId(entity.getSerDeliveryBookingId());
+			if (eventBudget != null) {
+				if (eventBudget.getNumPaidAmount() != null
+						&& eventBudget.getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
+					eventBudget.setTxtStatus("Confirmed");
+
+				} else if (dto.getDtoEventQuoteAndStatus() != null
+						&& dto.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+						&& dto.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+					eventBudget.setTxtStatus("Quoted");
+					eventBudget.setNumQuotedPrice(dto.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				} else {
+					eventBudget.setTxtStatus("Enquiry");
+					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				}
+
+			} else {
+				eventBudget = new EventBudget();
+				if (dto.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+						&& dto.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+					eventBudget.setTxtStatus("Quoted");
+					eventBudget.setNumQuotedPrice(dto.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				} else {
+					eventBudget.setTxtStatus("Enquiry");
+					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				}
+
+			}
+
 			repositoryCateringDeliveryBooking.save(entity);
+
+			if (eventBudget != null) {
+				eventBudget.setCateringDeliveryBooking(entity);
+				serviceEventBudget.save(eventBudget);
+			}
 
 			result.setTxtMessage("Success");
 			result.setResult(MapperCateringDeliveryBooking.toDto(entity));
@@ -155,9 +207,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 		return result;
 	}
-	
-	
-	
+
 	@Override
 	public DtoResult saveOrUpdateCateringAdminPortal(DtoCateringDeliveryBooking dto) {
 		DtoResult result = new DtoResult();
@@ -192,7 +242,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			if (dto.getSerDeliveryBookingId() != null) {
 				entity = repositoryCateringDeliveryBooking.findById(dto.getSerDeliveryBookingId()).orElseThrow(
 						() -> new RuntimeException("Booking not found with ID: " + dto.getSerDeliveryBookingId()));
-				
+
 				entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			} else {
 				entity = new CateringDeliveryBooking();
@@ -200,19 +250,17 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 				entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 			}
 
-			
 			// Set master fields
 			entity.setCustomerMaster(customer);
-			if(eventType != null) {
+			if (eventType != null) {
 				entity.setEventType(eventType);
 			}
-			
+
 //			List<MenuFoodMaster> dtoMenuFoodMasterLst = serviceMenuFoodMaster.getAllDataEntity();
 //			if (UtilRandomKey.isNull(dtoMenuFoodMasterLst)) {
 //				result.setTxtMessage("No Food Item Is Present In DB");
 //				return result;
 //			}
-			
 
 			List<MenuItem> menuItems = serviceMenuItem.getAllMenuItems();
 			if (UtilRandomKey.isNull(menuItems)) {
@@ -230,7 +278,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			entity.setTxtDeliveryTime(mapped.getTxtDeliveryTime());
 			entity.setTxtRemarks(mapped.getTxtRemarks());
 			entity.setTxtSpecialInstructions(mapped.getTxtSpecialInstructions());
-			if(dto.getIsEditAllowed() != null) {
+			if (dto.getIsEditAllowed() != null) {
 				entity.setIsEditAllowed(dto.getIsEditAllowed());
 			}
 
@@ -254,7 +302,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 //			}
 
 //			entity.setCateringDeliveryItemDetails(detailList);
-			
+
 //			// Set Food Menu Selection
 //			// ***********************
 //			if (dto.getFoodSelections() != null && !dto.getFoodSelections().isEmpty()) {
@@ -330,7 +378,53 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 			}
 
+			// Setting Event Quoted Price
+			// **************************
+
+			EventBudget eventBudget = serviceEventBudget
+					.getEventBudgetByCateringDelevieryBookingId(entity.getSerDeliveryBookingId());
+			if (eventBudget != null) {
+				if (eventBudget.getNumPaidAmount() != null
+						&& eventBudget.getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
+					eventBudget.setTxtStatus("Confirmed");
+
+				} else if (dto.getDtoEventQuoteAndStatus() != null
+						&& dto.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+						&& dto.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+					eventBudget.setTxtStatus("Quoted");
+					eventBudget.setNumQuotedPrice(dto.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				} else {
+					eventBudget.setTxtStatus("Enquiry");
+					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				}
+
+			} else {
+				eventBudget = new EventBudget();
+				if (dto.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+						&& dto.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+					eventBudget.setTxtStatus("Quoted");
+					eventBudget.setNumQuotedPrice(dto.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				} else {
+					eventBudget.setTxtStatus("Enquiry");
+					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				}
+
+			}
+
 			repositoryCateringDeliveryBooking.save(entity);
+
+			if (eventBudget != null) {
+				eventBudget.setCateringDeliveryBooking(entity);
+				serviceEventBudget.save(eventBudget);
+			}
 
 			result.setTxtMessage("Success");
 			result.setResult(MapperCateringDeliveryBooking.toDto(entity));
@@ -367,8 +461,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 				() -> result.setTxtMessage("Not found"));
 		return result;
 	}
-	
-	
+
 	@Override
 	public DtoResult getByPKCP(Integer id) {
 		DtoResult result = new DtoResult();
@@ -388,8 +481,6 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 		result.setTxtMessage("Fetched successfully");
 		return result;
 	}
-	
-	
 
 	@Override
 	public DtoResult getAllCP() {

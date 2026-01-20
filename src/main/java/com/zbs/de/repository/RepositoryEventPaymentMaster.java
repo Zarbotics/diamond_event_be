@@ -23,4 +23,8 @@ public interface RepositoryEventPaymentMaster extends JpaRepository<EventPayment
     List<EventPayment> findBySerEventMasterIdAndBlnIsDeletedFalseOrderByDtePaymentDateDesc(
             Integer serEventMasterId
     );
+    
+    List<EventPayment> findBySerDeliveryBookingIdAndBlnIsDeletedFalseOrderByDtePaymentDateDesc(
+            Integer serDeliveryBookingId
+    );
 }

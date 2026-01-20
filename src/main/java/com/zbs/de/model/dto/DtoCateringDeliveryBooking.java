@@ -22,8 +22,10 @@ public class DtoCateringDeliveryBooking {
 	private Integer serEventTypeId;
 	private String txtEventTypeCode;
 	private String txtEventTypeName;
-	
+
 	private Boolean isEditAllowed;
+
+	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
 
 	private List<DtoCateringDeliveryItemDetail> cateringDeliveryItemDetails;
 
@@ -181,6 +183,14 @@ public class DtoCateringDeliveryBooking {
 
 	public void setIsEditAllowed(Boolean isEditAllowed) {
 		this.isEditAllowed = isEditAllowed;
+	}
+
+	public DtoEventQuoteAndStatus getDtoEventQuoteAndStatus() {
+		return dtoEventQuoteAndStatus;
+	}
+
+	public void setDtoEventQuoteAndStatus(DtoEventQuoteAndStatus dtoEventQuoteAndStatus) {
+		this.dtoEventQuoteAndStatus = dtoEventQuoteAndStatus;
 	}
 
 }
