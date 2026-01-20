@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,11 +52,9 @@ import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
 import com.zbs.de.model.dto.DtoEventMasterSearch;
 import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
-import com.zbs.de.model.dto.DtoEventMenuFoodSelection;
 import com.zbs.de.model.dto.DtoEventQuoteAndStatus;
 import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
-import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.model.dto.DtoNotificationMaster;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
@@ -90,7 +87,6 @@ import jakarta.transaction.Transactional;
 @Service("serviceEventMaster")
 public class ServiceEventMasterImpl implements ServiceEventMaster {
 
-    private final MapperMenuItemPrice mapperMenuItemPrice;
 
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
@@ -148,9 +144,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
-    ServiceEventMasterImpl(MapperMenuItemPrice mapperMenuItemPrice) {
-        this.mapperMenuItemPrice = mapperMenuItemPrice;
-    }
 
 	public DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster) {
 		// Validate required IDs

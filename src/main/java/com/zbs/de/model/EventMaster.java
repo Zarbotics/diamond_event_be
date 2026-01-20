@@ -26,10 +26,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@DynamicInsert
-@Data
-@Getter
-@Setter
 @Table(name = "event_master")
 @NamedQuery(name = "EventMaster.findAll", query = "SELECT a FROM EventMaster a")
 public class EventMaster extends BaseEntity implements Serializable {

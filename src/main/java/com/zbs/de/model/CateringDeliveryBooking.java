@@ -13,17 +13,13 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import org.hibernate.annotations.DynamicInsert;
 
 @Entity
-@DynamicInsert
-@Data
 @Table(name = "catering_delivery_booking")
 @NamedQuery(name = "CateringDeliveryBooking.findAll", query = "SELECT a FROM CateringDeliveryBooking a")
 public class CateringDeliveryBooking extends BaseEntity implements Serializable {

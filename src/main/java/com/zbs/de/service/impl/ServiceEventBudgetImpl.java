@@ -36,7 +36,7 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventBudgetImpl.class);
 
 	@Override
 	public DtoResult saveOrUpdate(DtoEventBudget dtoEventBudget) {
