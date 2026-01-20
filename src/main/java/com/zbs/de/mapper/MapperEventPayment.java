@@ -16,6 +16,7 @@ public class MapperEventPayment {
 		dto.setSerEventPaymentId(p.getSerEventPaymentId());
 		dto.setSerEventBudgetId(p.getEventBudget() != null ? p.getEventBudget().getSerEventBudgetId() : null);
 		dto.setSerEventMasterId(p.getSerEventMasterId());
+		dto.setSerDeliveryBookingId(p.getSerDeliveryBookingId());
 		dto.setNumAmount(p.getNumAmount());
 		dto.setTxtPaymentMode(p.getTxtPaymentMode());
 		dto.setTxtTransactionRef(p.getTxtTransactionRef());
@@ -45,6 +46,7 @@ public class MapperEventPayment {
 			return null;
 		EventPayment p = new EventPayment();
 		p.setSerEventPaymentId(dto.getSerEventPaymentId());
+		p.setSerDeliveryBookingId(dto.getSerDeliveryBookingId());
 		p.setNumAmount(dto.getNumAmount());
 		p.setTxtPaymentMode(dto.getTxtPaymentMode());
 		p.setTxtTransactionRef(dto.getTxtTransactionRef());
