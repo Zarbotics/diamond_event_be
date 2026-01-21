@@ -419,6 +419,7 @@ public class ServiceMenuComponentImpl implements ServiceMenuComponent {
 	        request.setTxtparentMenuItemCode(menuItem.getTxtCode());
 	        request.setTxtparentMenuItemName(menuItem.getTxtName());
 	        request.setTxtparentMenuItemDesc(menuItem.getTxtDescription());
+	        request.setNumPrice(menuItem.getNumPrice());
 	        
 	        // Get components for this parent
 	        List<DtoMenuComponent> components = getComponentsByParentId(parentMenuItemId);

@@ -39,7 +39,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
-
+			catDto.setNumPrice(category.getNumPrice());
 			// 2️⃣ Fetch subcategories
 			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
 
@@ -50,6 +50,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
 				subDto.setSubCategoryId(sub.getSerMenuItemId());
 				subDto.setSubCategoryName(sub.getTxtName());
+				subDto.setNumPrice(sub.getNumPrice());
 
 				// 3️⃣ Normal (non-composite) items
 				List<MenuItem> items = repositoryMenuItem.findByParentId(sub.getSerMenuItemId()).stream()
@@ -97,6 +98,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
+			catDto.setNumPrice(category.getNumPrice());
 
 			// 2️⃣ Fetch subcategories
 			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
@@ -108,6 +110,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
 				subDto.setSubCategoryId(sub.getSerMenuItemId());
 				subDto.setSubCategoryName(sub.getTxtName());
+				subDto.setNumPrice(sub.getNumPrice());
 
 				// 3️⃣ Normal (non-composite) items
 				List<MenuItem> items = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId()).stream()

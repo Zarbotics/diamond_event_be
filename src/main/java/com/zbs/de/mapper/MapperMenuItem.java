@@ -29,6 +29,7 @@ public class MapperMenuItem {
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setBlnIsCompostie(entity.getBlnIsComposite());
 		dto.setBlnIsCateringItem(entity.getBlnIsCateringItem());
+		dto.setNumPrice(entity.getNumPrice());
 
 		// parentId (avoid triggering lazy load)
 		dto.setParentId(entity.getParent() != null ? entity.getParent().getSerMenuItemId() : null);
@@ -63,6 +64,7 @@ public class MapperMenuItem {
 		entity.setTxtPath(dto.getTxtPath());
 		entity.setBlnIsComposite(dto.getBlnIsCompostie());
 		entity.setBlnIsCateringItem(dto.getBlnIsCateringItem());
+		entity.setNumPrice(dto.getNumPrice());
 
 		// Parent mapping (lazy reference — NO DB fetch)
 		if (dto.getParentId() != null) {
@@ -94,6 +96,7 @@ public class MapperMenuItem {
 		entity.setTxtPath(dto.getTxtPath());
 		entity.setBlnIsComposite(dto.getBlnIsCompostie());
 		entity.setBlnIsCateringItem(dto.getBlnIsCateringItem());
+		entity.setNumPrice(dto.getNumPrice());
 
 		if (dto.getParentId() != null) {
 			MenuItem parentRef = new MenuItem();

@@ -1,5 +1,6 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 public class DtoMenuItem {
@@ -23,6 +24,7 @@ public class DtoMenuItem {
 
 	private Boolean blnIsActive;
 	private Boolean blnIsCompostie;
+	private BigDecimal numPrice;
 
 	public DtoMenuItem() {
 		super();
@@ -183,5 +185,14 @@ public class DtoMenuItem {
 	public void setBlnIsCateringItem(Boolean blnIsCateringItem) {
 		this.blnIsCateringItem = blnIsCateringItem;
 	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
+	}
+	
 
 }

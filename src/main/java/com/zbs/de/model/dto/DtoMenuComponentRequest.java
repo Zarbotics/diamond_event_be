@@ -1,5 +1,6 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class DtoMenuComponentRequest {
@@ -9,6 +10,7 @@ public class DtoMenuComponentRequest {
 	private String txtparentMenuItemDesc;
 	private List<String> txtcomponenetNameLst;
 	private List<DtoMenuComponent> components;
+	private BigDecimal numPrice;
 
 	// Getters and Setters
 	public Long getParentMenuItemId() {
@@ -58,5 +60,14 @@ public class DtoMenuComponentRequest {
 	public void setTxtparentMenuItemDesc(String txtparentMenuItemDesc) {
 		this.txtparentMenuItemDesc = txtparentMenuItemDesc;
 	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
+	}
+	
 
 }

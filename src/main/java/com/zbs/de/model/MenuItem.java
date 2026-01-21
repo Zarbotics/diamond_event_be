@@ -1,5 +1,6 @@
 package com.zbs.de.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,8 @@ public class MenuItem extends BaseEntity {
 	@Column(name = "bln_is_composite")
 	private Boolean blnIsComposite = false;
 
+	@Column(name = "num_price")
+	private BigDecimal numPrice;
 	/**
 	 * Roles: CATEGORY | ITEM | STATION | GROUP | SELECTION | BUNDLE
 	 */
@@ -50,7 +53,7 @@ public class MenuItem extends BaseEntity {
 
 	@Column(name = "txt_type")
 	private String txtType;
-	
+
 	@Column(name = "bln_is_catering_item")
 	private Boolean blnIsCateringItem = Boolean.FALSE;
 
@@ -220,6 +223,14 @@ public class MenuItem extends BaseEntity {
 
 	public void setBlnIsCateringItem(Boolean blnIsCateringItem) {
 		this.blnIsCateringItem = blnIsCateringItem;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
 	}
 
 }
