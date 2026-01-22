@@ -24,7 +24,9 @@ public class DtoMenuItem {
 
 	private Boolean blnIsActive;
 	private Boolean blnIsCompostie;
-	private BigDecimal numPrice;
+	private BigDecimal numPrice; // it's unit price
+	private BigDecimal numCalculatedPrice;
+	private BigDecimal numFinalPrice;
 
 	public DtoMenuItem() {
 		super();
@@ -193,6 +195,21 @@ public class DtoMenuItem {
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
 	}
-	
+
+	public BigDecimal getNumCalculatedPrice() {
+		return numCalculatedPrice;
+	}
+
+	public void setNumCalculatedPrice(BigDecimal numCalculatedPrice) {
+		this.numCalculatedPrice = numCalculatedPrice;
+	}
+
+	public BigDecimal getNumFinalPrice() {
+		return numFinalPrice;
+	}
+
+	public void setNumFinalPrice(BigDecimal numFinalPrice) {
+		this.numFinalPrice = numFinalPrice;
+	}
 
 }

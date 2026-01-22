@@ -7,6 +7,7 @@ public class DtoCustomerMenuCategory {
 	private Long categoryId;
 	private String categoryName;
 	private BigDecimal numPrice;
+	private BigDecimal numFinalPrice;
 	private List<DtoCustomerMenuSubCategory> subCategories;
 
 	public Long getCategoryId() {
@@ -39,6 +40,14 @@ public class DtoCustomerMenuCategory {
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public BigDecimal getNumFinalPrice() {
+		return numFinalPrice;
+	}
+
+	public void setNumFinalPrice(BigDecimal numFinalPrice) {
+		this.numFinalPrice = numFinalPrice;
 	}
 
 }

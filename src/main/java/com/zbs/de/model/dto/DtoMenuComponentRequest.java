@@ -11,6 +11,8 @@ public class DtoMenuComponentRequest {
 	private List<String> txtcomponenetNameLst;
 	private List<DtoMenuComponent> components;
 	private BigDecimal numPrice;
+	private BigDecimal numCalculatedPrice;
+	private BigDecimal numFinalPrice;
 
 	// Getters and Setters
 	public Long getParentMenuItemId() {
@@ -68,6 +70,21 @@ public class DtoMenuComponentRequest {
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
 	}
-	
+
+	public BigDecimal getNumCalculatedPrice() {
+		return numCalculatedPrice;
+	}
+
+	public void setNumCalculatedPrice(BigDecimal numCalculatedPrice) {
+		this.numCalculatedPrice = numCalculatedPrice;
+	}
+
+	public BigDecimal getNumFinalPrice() {
+		return numFinalPrice;
+	}
+
+	public void setNumFinalPrice(BigDecimal numFinalPrice) {
+		this.numFinalPrice = numFinalPrice;
+	}
 
 }
