@@ -18,6 +18,7 @@ import com.zbs.de.service.ServiceMenuItemRole;
 import com.zbs.de.service.ServiceTreeUtility;
 import com.zbs.de.util.enums.EnmMenuItemRole;
 import com.zbs.de.util.enums.EnmMenuItemType;
+import com.zbs.de.util.enums.EnmPriceMultiplierType;
 import com.zbs.de.util.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -27,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,8 +43,6 @@ import java.util.stream.Collectors;
 
 @Service("serviceMenuItemImpl")
 public class ServiceMenuItemImpl implements ServiceMenuItem {
-
-    private final ServiceCityMasterImpl serviceCityMaster;
 
 	@Autowired
 	private RepositoryMenuItem repo;
@@ -64,10 +62,6 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceMenuItemImpl.class);
 
 	private long autoCodeCounter = 1000;
-
-    ServiceMenuItemImpl(ServiceCityMasterImpl serviceCityMaster) {
-        this.serviceCityMaster = serviceCityMaster;
-    }
 
 	@Override
 	@Transactional
@@ -154,6 +148,8 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		exist.setBlnIsCateringItem(dto.getBlnIsCateringItem());
 		exist.setBlnIsActive(dto.getBlnIsActive());
 		exist.setNumPrice(dto.getNumPrice());
+		exist.setEnmPriceMultiplierType(dto.getTxtPriceMultiplierType() != null ? EnmPriceMultiplierType.valueOf(dto.getTxtPriceMultiplierType()) : null);
+
 
 		// ---- ROLE ENUM ----
 //		EnmMenuItemRole currentRole = EnmMenuItemRole.of(dto.getTxtRole());
@@ -1057,6 +1053,11 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 	        return "true".equalsIgnoreCase(value.trim())
 	            || "1".equals(value.trim())
 	            || "yes".equalsIgnoreCase(value.trim());
-	    }
+		}
 
-}
+		@Override
+		public List<String> getAllPriceUnitTypes() {
+			List<String> roles = Arrays.stream(EnmPriceMultiplierType.values()).map(Enum::name).toList();
+			return roles;
+		}
+	}

@@ -2,6 +2,7 @@ package com.zbs.de.mapper;
 
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.util.enums.EnmPriceMultiplierType;
 
 public class MapperMenuItem {
 
@@ -65,6 +66,7 @@ public class MapperMenuItem {
 		entity.setBlnIsComposite(dto.getBlnIsCompostie());
 		entity.setBlnIsCateringItem(dto.getBlnIsCateringItem());
 		entity.setNumPrice(dto.getNumPrice());
+		entity.setEnmPriceMultiplierType(dto.getTxtPriceMultiplierType() != null ? EnmPriceMultiplierType.valueOf(dto.getTxtPriceMultiplierType()) : null);
 
 		// Parent mapping (lazy reference — NO DB fetch)
 		if (dto.getParentId() != null) {
@@ -97,6 +99,8 @@ public class MapperMenuItem {
 		entity.setBlnIsComposite(dto.getBlnIsCompostie());
 		entity.setBlnIsCateringItem(dto.getBlnIsCateringItem());
 		entity.setNumPrice(dto.getNumPrice());
+		entity.setEnmPriceMultiplierType(dto.getTxtPriceMultiplierType() != null ? EnmPriceMultiplierType.valueOf(dto.getTxtPriceMultiplierType()) : null);
+
 
 		if (dto.getParentId() != null) {
 			MenuItem parentRef = new MenuItem();

@@ -9,6 +9,8 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.zbs.de.util.enums.EnmPriceMultiplierType;
+
 import org.hibernate.annotations.Type;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLLTreeType;
 
@@ -78,6 +80,10 @@ public class MenuItem extends BaseEntity {
 
 	@Column(name = "num_default_servings_per_guest")
 	private Double numDefaultServingsPerGuest;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "enm_price_multiplier_type")
+	private EnmPriceMultiplierType enmPriceMultiplierType = EnmPriceMultiplierType.PER_GUEST;
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "metadata", columnDefinition = "jsonb")
@@ -232,5 +238,14 @@ public class MenuItem extends BaseEntity {
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
 	}
+
+	public EnmPriceMultiplierType getEnmPriceMultiplierType() {
+		return enmPriceMultiplierType;
+	}
+
+	public void setEnmPriceMultiplierType(EnmPriceMultiplierType enmPriceMultiplierType) {
+		this.enmPriceMultiplierType = enmPriceMultiplierType;
+	}
+	
 
 }

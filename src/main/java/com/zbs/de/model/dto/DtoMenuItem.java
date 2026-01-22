@@ -22,11 +22,13 @@ public class DtoMenuItem {
 	private String txtPath;
 	private Boolean blnIsCateringItem;
 
+
 	private Boolean blnIsActive;
 	private Boolean blnIsCompostie;
 	private BigDecimal numPrice; // it's unit price
 	private BigDecimal numCalculatedPrice;
 	private BigDecimal numFinalPrice;
+	private String txtPriceMultiplierType;
 
 	public DtoMenuItem() {
 		super();
@@ -211,5 +213,14 @@ public class DtoMenuItem {
 	public void setNumFinalPrice(BigDecimal numFinalPrice) {
 		this.numFinalPrice = numFinalPrice;
 	}
+
+	public String getTxtPriceMultiplierType() {
+		return txtPriceMultiplierType;
+	}
+
+	public void setTxtPriceMultiplierType(String txtPriceMultiplierType) {
+		this.txtPriceMultiplierType = txtPriceMultiplierType;
+	}
+	
 
 }
