@@ -2679,8 +2679,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			//*********************************************************************************************
 			//************************ Food Menu Categories and Sub Categories ****************************
 			//*********************************************************************************************
-			if (dtoEventMasterAdminPortal.getFoodSelections() != null
-					&& !dtoEventMasterAdminPortal.getFoodSelections().isEmpty()) {
+			if (dtoEventMasterAdminPortal.getMenuCategoriesSelection() != null
+					&& !dtoEventMasterAdminPortal.getMenuCategoriesSelection().isEmpty()) {
 
 				// 🔥 CLEAR OLD MENU SELECTIONS (EDIT SAFE)
 				entity.getMenuCategorySelections().clear();
