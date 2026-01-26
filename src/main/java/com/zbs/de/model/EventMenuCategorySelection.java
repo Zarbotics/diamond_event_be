@@ -16,8 +16,12 @@ public class EventMenuCategorySelection extends BaseEntity {
 	private Integer serEventMenuCategoryId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ser_event_master_id", nullable = false)
+	@JoinColumn(name = "ser_event_master_id")
 	private EventMaster eventMaster;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ser_delivery_booking_id")
+	private CateringDeliveryBooking cateringDeliveryBooking;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_menu_category_id", nullable = false)
@@ -78,6 +82,14 @@ public class EventMenuCategorySelection extends BaseEntity {
 
 	public void setSubCategories(List<EventMenuSubCategorySelection> subCategories) {
 		this.subCategories = subCategories;
+	}
+
+	public CateringDeliveryBooking getCateringDeliveryBooking() {
+		return cateringDeliveryBooking;
+	}
+
+	public void setCateringDeliveryBooking(CateringDeliveryBooking cateringDeliveryBooking) {
+		this.cateringDeliveryBooking = cateringDeliveryBooking;
 	}
 
 }

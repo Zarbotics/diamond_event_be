@@ -3,7 +3,6 @@ package com.zbs.de.service.impl;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,24 +12,26 @@ import com.zbs.de.mapper.MapperCateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryItemDetail;
 import com.zbs.de.model.EventBudget;
-import com.zbs.de.model.MenuFoodMaster;
+import com.zbs.de.model.EventMenuCategorySelection;
+import com.zbs.de.model.EventMenuFoodSelection;
+import com.zbs.de.model.EventMenuSubCategorySelection;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
 import com.zbs.de.model.dto.DtoCateringDeliveryItemDetail;
+import com.zbs.de.model.dto.DtoMenuComponentRequest;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
+import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
+import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
+import com.zbs.de.model.dto.menu.DtoCustomerMenuSubCategory;
 import com.zbs.de.repository.RepositoryCateringDeliveryBooking;
 import com.zbs.de.repository.RepositoryCustomerMaster;
 import com.zbs.de.repository.RepositoryEventType;
-import com.zbs.de.repository.RepositoryMenuFoodMaster;
 import com.zbs.de.service.ServiceCateringDeliveryBooking;
 import com.zbs.de.service.ServiceEventBudget;
-import com.zbs.de.service.ServiceMenuFoodMaster;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.util.UtilRandomKey;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Service("serviceCateringDeliveryBookingImpl")
 public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDeliveryBooking {
@@ -43,12 +44,6 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 	@Autowired
 	private RepositoryEventType repositoryEventType;
-
-	@Autowired
-	private RepositoryMenuFoodMaster repositoryMenuFoodMaster;
-
-	@Autowired
-	private ServiceMenuFoodMaster serviceMenuFoodMaster;
 
 	@Autowired
 	private ServiceEventBudget serviceEventBudget;
@@ -340,41 +335,124 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 //
 //			}
 
-			// Set Food Menu Selection
-			// ***********************
-			if (dto.getFoodSelections() != null && !dto.getFoodSelections().isEmpty()) {
+//			// Set Food Menu Selection
+//			// ***********************
+//			if (dto.getFoodSelections() != null && !dto.getFoodSelections().isEmpty()) {
+//
+//				List<DtoMenuFoodMaster> foodSelections = dto.getFoodSelections();
+//
+//				List<CateringDeliveryItemDetail> detailList = new ArrayList<>();
+//
+//				for (DtoMenuFoodMaster dtoMenuFoodMaster : foodSelections) {
+//					if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getSerMenuItemId())) {
+//						// Find the actual MenuFoodMaster from your list
+//						MenuItem menuItem = menuItems.stream()
+//								.filter(item -> item.getSerMenuItemId() != null && item.getSerMenuItemId()
+//										.intValue() == dtoMenuFoodMaster.getSerMenuItemId().intValue())
+//								.findFirst().orElse(null);
+//
+//						if (UtilRandomKey.isNotNull(menuItem)) {
+//							CateringDeliveryItemDetail detail = new CateringDeliveryItemDetail();
+//							detail.setCateringDeliveryBooking(entity);
+////							detail.setMenueFoodMaster(menuFoodMaster);
+//							detail.setMenuItem(menuItem);
+//							detail.setNumPrice(dtoMenuFoodMaster.getNumPrice());
+//							detailList.add(detail);
+//						} else {
+//							result.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
+//									+ dtoMenuFoodMaster.getSerMenuFoodId() + " In DB.");
+//							return result;
+//						}
+//					} else {
+//						result.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
+//						return result;
+//					}
+//				}
+//
+//				entity.setCateringDeliveryItemDetails(detailList);
+//
+//			}
+			
+			//*********************************************************************************************
+			//************************ Food Menu Categories and Sub Categories ****************************
+			//*********************************************************************************************
+			if (dto.getMenuCategoriesSelection() != null
+					&& !dto.getMenuCategoriesSelection().isEmpty()) {
 
-				List<DtoMenuFoodMaster> foodSelections = dto.getFoodSelections();
+				// 🔥 CLEAR OLD MENU SELECTIONS (EDIT SAFE)
+				entity.getMenuCategorySelections().clear();
 
-				List<CateringDeliveryItemDetail> detailList = new ArrayList<>();
-
-				for (DtoMenuFoodMaster dtoMenuFoodMaster : foodSelections) {
-					if (UtilRandomKey.isNotNull(dtoMenuFoodMaster.getSerMenuItemId())) {
-						// Find the actual MenuFoodMaster from your list
-						MenuItem menuItem = menuItems.stream()
-								.filter(item -> item.getSerMenuItemId() != null && item.getSerMenuItemId()
-										.intValue() == dtoMenuFoodMaster.getSerMenuItemId().intValue())
-								.findFirst().orElse(null);
-
-						if (UtilRandomKey.isNotNull(menuItem)) {
-							CateringDeliveryItemDetail detail = new CateringDeliveryItemDetail();
-							detail.setCateringDeliveryBooking(entity);
-//							detail.setMenueFoodMaster(menuFoodMaster);
-							detail.setMenuItem(menuItem);
-							detail.setNumPrice(dtoMenuFoodMaster.getNumPrice());
-							detailList.add(detail);
-						} else {
-							result.setTxtMessage("Food Selection Item Does Not Have Food Menu With Id: "
-									+ dtoMenuFoodMaster.getSerMenuFoodId() + " In DB.");
-							return result;
-						}
-					} else {
-						result.setTxtMessage("Food Selection Item Does Not Have The Id OF Food Menu");
-						return result;
-					}
+				if (dto.getMenuCategoriesSelection() == null) {
+					result.setTxtMessage("Event saved without menu");
+					return result;
 				}
 
-				entity.setCateringDeliveryItemDetails(detailList);
+				for (DtoCustomerMenuCategory catDto : dto.getMenuCategoriesSelection()) {
+
+					MenuItem category = menuItems.stream()
+							.filter(item -> item.getSerMenuItemId() != null
+									&& item.getSerMenuItemId().intValue() == catDto.getCategoryId().intValue())
+							.findFirst().orElse(null);
+
+					EventMenuCategorySelection catEntity = new EventMenuCategorySelection();
+					catEntity.setCateringDeliveryBooking(entity);
+					catEntity.setCategory(category);
+					catEntity.setNumTotalPrice(catDto.getNumPrice());
+					catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
+
+					for (DtoCustomerMenuSubCategory subDto : catDto.getSubCategories()) {
+
+						MenuItem subCategory = menuItems.stream().filter(item -> item.getSerMenuItemId() != null
+								&& item.getSerMenuItemId().intValue() == subDto.getSubCategoryId().intValue())
+								.findFirst().orElse(null);
+
+						EventMenuSubCategorySelection subEntity = new EventMenuSubCategorySelection();
+						subEntity.setEventCategory(catEntity);
+						subEntity.setSubCategory(subCategory);
+						subEntity.setNumTotalPrice(subDto.getNumPrice());
+						subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
+
+						//Simple Items
+						for (DtoMenuItem itemDto : subDto.getItems()) {
+
+							MenuItem menuItem = menuItems.stream().filter(item -> item.getSerMenuItemId() != null
+									&& item.getSerMenuItemId().intValue() == itemDto.getSerMenuItemId().intValue())
+									.findFirst().orElse(null);
+
+							EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
+//							itemEntity.setEventMaster(entity);
+							itemEntity.setEventSubCategory(subEntity);
+							itemEntity.setMenuItem(menuItem);
+							itemEntity.setNumPrice(itemDto.getNumPrice()); // unit price
+							itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
+							itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
+
+							subEntity.getItems().add(itemEntity);
+						}
+
+						//Composite Items If Exists
+						for (DtoMenuComponentRequest itemDto : subDto.getCompositeItems()) {
+
+							MenuItem menuItem = menuItems.stream().filter(item -> item.getSerMenuItemId() != null
+									&& item.getSerMenuItemId().intValue() == itemDto.getParentMenuItemId().intValue())
+									.findFirst().orElse(null);
+
+							EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
+//							itemEntity.setEventMaster(entity);
+							itemEntity.setEventSubCategory(subEntity);
+							itemEntity.setMenuItem(menuItem);
+							itemEntity.setNumPrice(itemDto.getNumPrice()); // unit price
+							itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
+							itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
+
+							subEntity.getItems().add(itemEntity);
+						}
+
+						catEntity.getSubCategories().add(subEntity);
+					}
+
+					entity.getMenuCategorySelections().add(catEntity);
+				}
 
 			}
 
