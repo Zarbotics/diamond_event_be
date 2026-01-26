@@ -78,7 +78,7 @@ public class CateringDeliveryBooking extends BaseEntity implements Serializable 
 	@OneToMany(mappedBy = "cateringDeliveryBooking", cascade = CascadeType.ALL)
 	private List<CateringDeliveryItemDetail> cateringDeliveryItemDetails;
 
-	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "cateringDeliveryBooking", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventMenuCategorySelection> menuCategorySelections = new ArrayList<>();
 
 	public Integer getSerDeliveryBookingId() {
