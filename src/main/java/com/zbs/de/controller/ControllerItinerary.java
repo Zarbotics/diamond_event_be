@@ -1,5 +1,6 @@
 package com.zbs.de.controller;
 
+import com.zbs.de.model.dto.DtoItineraryCsvImportResult;
 import com.zbs.de.model.dto.DtoItineraryItem;
 import com.zbs.de.model.dto.DtoMenuItemItineraryMap;
 import com.zbs.de.model.dto.DtoResult;
@@ -15,7 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -220,5 +223,13 @@ public class ControllerItinerary {
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
 					"Failed to delete", null);
 		}
+	}
+	
+
+	@PostMapping(path = "/item/uploadcsv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<DtoItineraryCsvImportResult> importCsv(@RequestPart("file") MultipartFile file,
+			HttpServletRequest request) {
+		DtoItineraryCsvImportResult result = itemService.importCsv(file);
+		return ResponseEntity.ok(result);
 	}
 }

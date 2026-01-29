@@ -11,20 +11,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import org.hibernate.annotations.DynamicInsert;
-
 @Entity
-@DynamicInsert
-@Data
-@Getter
-@Setter
 @Table(name = "event_menu_food_selection")
 @NamedQuery(name = "EventMenuFoodSelection.findAll", query = "SELECT a FROM EventMenuFoodSelection a")
 public class EventMenuFoodSelection extends BaseEntity implements Serializable {
@@ -43,19 +34,25 @@ public class EventMenuFoodSelection extends BaseEntity implements Serializable {
 	@JoinColumn(name = "ser_event_master_id", nullable = false)
 	private EventMaster eventMaster;
 
-//	@ManyToOne(fetch = FetchType.LAZY)
-//	@JoinColumn(name = "ser_menu_food_id", nullable = false)
-//	private MenuFoodMaster menuFoodMaster;
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_menu_item_id")
 	private MenuItem menuItem;
 
 	@Column(name = "txt_food_type") // e.g., "Dessert", "Drink", etc.
 	private String txtFoodType;
-	
+
 	@Column(name = "num_price")
 	private BigDecimal numPrice;
+
+	@Column(name = "num_calculated_price")
+	private BigDecimal numCalculatedPrice;
+
+	@Column(name = "num_final_price")
+	private BigDecimal numFinalPrice;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ser_event_menu_sub_category_id")
+	private EventMenuSubCategorySelection eventSubCategory;
 
 	public Integer getSerEventMenuFoodId() {
 		return serEventMenuFoodId;
@@ -96,7 +93,29 @@ public class EventMenuFoodSelection extends BaseEntity implements Serializable {
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
 	}
-	
-	
+
+	public EventMenuSubCategorySelection getEventSubCategory() {
+		return eventSubCategory;
+	}
+
+	public void setEventSubCategory(EventMenuSubCategorySelection eventSubCategory) {
+		this.eventSubCategory = eventSubCategory;
+	}
+
+	public BigDecimal getNumCalculatedPrice() {
+		return numCalculatedPrice;
+	}
+
+	public void setNumCalculatedPrice(BigDecimal numCalculatedPrice) {
+		this.numCalculatedPrice = numCalculatedPrice;
+	}
+
+	public BigDecimal getNumFinalPrice() {
+		return numFinalPrice;
+	}
+
+	public void setNumFinalPrice(BigDecimal numFinalPrice) {
+		this.numFinalPrice = numFinalPrice;
+	}
 
 }

@@ -1,15 +1,18 @@
 package com.zbs.de.model.dto.menu;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.zbs.de.model.dto.DtoMenuComponentRequest;
 import com.zbs.de.model.dto.DtoMenuItem;
 
 public class DtoCustomerMenuSubCategory {
-	Long subCategoryId;
-	String subCategoryName;
-	List<DtoMenuItem> items;
-	List<DtoMenuComponentRequest> compositeItems;
+	private Long subCategoryId;
+	private String subCategoryName;
+	private BigDecimal numPrice;
+	private BigDecimal numFinalPrice;
+	private List<DtoMenuItem> items;
+	private List<DtoMenuComponentRequest> compositeItems;
 
 	public Long getSubCategoryId() {
 		return subCategoryId;
@@ -41,6 +44,22 @@ public class DtoCustomerMenuSubCategory {
 
 	public void setCompositeItems(List<DtoMenuComponentRequest> compositeItems) {
 		this.compositeItems = compositeItems;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
+	}
+
+	public BigDecimal getNumFinalPrice() {
+		return numFinalPrice;
+	}
+
+	public void setNumFinalPrice(BigDecimal numFinalPrice) {
+		this.numFinalPrice = numFinalPrice;
 	}
 
 }

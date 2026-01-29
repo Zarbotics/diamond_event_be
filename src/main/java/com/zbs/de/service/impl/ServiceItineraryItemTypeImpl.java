@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,6 +73,17 @@ public class ServiceItineraryItemTypeImpl implements ServiceItineraryItemType {
 		} catch (Exception e) {
 			LOGGER.error("Error in getAll ItineraryItemType", e);
 			return new DtoResult(e.getMessage(), null, null, null);
+		}
+	}
+	
+	@Override
+	public List<ItineraryItemType> findAll() {
+		try {
+			List<ItineraryItemType> list = repository.findByBlnIsDeletedFalseOrderBySerItineraryItemTypeIdDesc();
+			return list;
+		} catch (Exception e) {
+			LOGGER.error("Error in getAll ItineraryItemType", e);
+			return new ArrayList<>();
 		}
 	}
 

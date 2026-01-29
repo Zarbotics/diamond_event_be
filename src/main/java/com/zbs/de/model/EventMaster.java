@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.hibernate.annotations.DynamicInsert;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,9 +19,6 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Entity
 @Table(name = "event_master")
@@ -171,6 +166,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventMenuFoodSelection> foodSelections = new ArrayList<>();
+
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<EventMenuCategorySelection> menuCategorySelections = new ArrayList<>();
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
@@ -526,22 +524,12 @@ public class EventMaster extends BaseEntity implements Serializable {
 		this.numServingDishesPrice = numServingDishesPrice;
 	}
 
-//	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-//	private List<EventType> eventTypeLst = new ArrayList<>();
-//
-//	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-//	private List<VendorMaster> vendorMasterLst = new ArrayList<>();
-//
-//	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-//	private List<MenuFoodMaster> menu = new ArrayList<>();
-//
-////    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-////    private List<EventService> services = new ArrayList<>();
-//
-//	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-//	private List<DecorItemMaster> decorItemMasterLst = new ArrayList<>();
-//
-//	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-//	private List<PaymentTransaction> paymentTransactionLst = new ArrayList<>();
+	public List<EventMenuCategorySelection> getMenuCategorySelections() {
+		return menuCategorySelections;
+	}
+
+	public void setMenuCategorySelections(List<EventMenuCategorySelection> menuCategorySelections) {
+		this.menuCategorySelections = menuCategorySelections;
+	}
 
 }

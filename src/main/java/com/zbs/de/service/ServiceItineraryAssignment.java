@@ -43,8 +43,11 @@ public interface ServiceItineraryAssignment {
 	ItineraryAssignment getAssignmentEntityById(Long id);
 
 	String generateAssignmentCode();
-	
+
 	List<String> getAllItineraryUnits();
-	
-	 List<ItineraryAssignment> getAssignmentsByMenuItemId(Long menuItemId);
+
+	List<ItineraryAssignment> getAssignmentsByMenuItemId(Long menuItemId);
+
+	void autoAssignRandomItineraryItems(int itemsPerMenuItem // e.g. 3 or 5
+	);
 }

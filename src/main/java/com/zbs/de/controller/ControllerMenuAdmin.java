@@ -1,6 +1,7 @@
 package com.zbs.de.controller;
 
 import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.model.dto.DtoMenuPriceCalulationFields;
 import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.service.ServiceMenuSelection;
@@ -161,6 +162,40 @@ public class ControllerMenuAdmin {
 			LOGGER.info("Fetching Menu");
 			try {
 				List<DtoCustomerMenuCategory> list = selection.getCustomerCateringMenu();
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", list);
+			} catch (Exception e) {
+				LOGGER.error("Error fetching selectable children", e);
+				return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+						"Failed to fetch selectable children", null);
+			}
+		}
+		
+		
+		// ================================
+		// GET Menu For CP With Pricing
+		// ================================
+		@PostMapping(value = "/getMenuWithPrices", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseMessage getMenuWithPrices( @RequestBody DtoMenuPriceCalulationFields dto, HttpServletRequest request) {
+			LOGGER.info("Fetching Menu");
+			try {
+				List<DtoCustomerMenuCategory> list = selection.getCustomerMenuWithPricing(dto);
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", list);
+			} catch (Exception e) {
+				LOGGER.error("Error fetching selectable children", e);
+				return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+						"Failed to fetch selectable children", null);
+			}
+		}
+
+		
+		// ================================
+		// GET Menu For CP With Pricing
+		// ================================
+		@PostMapping(value = "/getCateringMenuWithPricing", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseMessage getCateringMenuWithPricing( @RequestBody DtoMenuPriceCalulationFields dto, HttpServletRequest request) {
+			LOGGER.info("Fetching Menu");
+			try {
+				List<DtoCustomerMenuCategory> list = selection.getCustomerCateringMenuWithPricing(dto);
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", list);
 			} catch (Exception e) {
 				LOGGER.error("Error fetching selectable children", e);

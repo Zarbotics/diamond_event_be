@@ -62,4 +62,6 @@ public interface ServiceMenuItem {
     
     DtoResult getAllNonCompositeActiveItemsByParentItemCode(String txtCode);
     String readMenuItemCsv(MultipartFile file);
+    
+    List<String> getAllPriceUnitTypes();
 }
