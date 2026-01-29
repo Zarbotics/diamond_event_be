@@ -51,15 +51,66 @@ public class MapperCateringDeliveryBooking {
 			dto.setTxtEventTypeCode(entity.getEventType().getTxtEventTypeCode());
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
-		if(entity.getCateringDeliveryItemDetails() != null && !entity.getCateringDeliveryItemDetails().isEmpty()) {
-			List<DtoCateringDeliveryItemDetail> details = new ArrayList<>();
-			for(CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
-				DtoCateringDeliveryItemDetail detailDto = toDtoCateringDeliveryItemDetail(detail);
-				details.add(detailDto);
+//		if(entity.getCateringDeliveryItemDetails() != null && !entity.getCateringDeliveryItemDetails().isEmpty()) {
+//			List<DtoCateringDeliveryItemDetail> details = new ArrayList<>();
+//			for(CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
+//				DtoCateringDeliveryItemDetail detailDto = toDtoCateringDeliveryItemDetail(detail);
+//				details.add(detailDto);
+//			}
+//			
+//			dto.setCateringDeliveryItemDetails(details);
+//		}
+
+		// **********************************************************************************************
+		// ************************ Food Selections Category and SubCategory Pricing ********************
+		// **********************************************************************************************
+		List<DtoCustomerMenuCategory> catDtos = new ArrayList<>();
+
+		for (EventMenuCategorySelection cat : entity.getMenuCategorySelections()) {
+
+			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
+			catDto.setCategoryId(cat.getCategory().getSerMenuItemId().longValue());
+			catDto.setCategoryName(cat.getCategory().getTxtName());
+			catDto.setNumPrice(cat.getNumTotalPrice());
+			catDto.setNumFinalPrice(cat.getNumFinalPrice());
+
+			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
+
+			for (EventMenuSubCategorySelection sub : cat.getSubCategories()) {
+
+				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
+				subDto.setSubCategoryId(sub.getSubCategory().getSerMenuItemId().longValue());
+				subDto.setSubCategoryName(sub.getSubCategory().getTxtName());
+				subDto.setNumPrice(sub.getNumTotalPrice());
+				subDto.setNumFinalPrice(sub.getNumFinalPrice());
+
+				List<DtoMenuItem> itemDtos = new ArrayList<>();
+
+				for (EventMenuFoodSelection item : sub.getItems()) {
+
+					MenuItem mi = item.getMenuItem();
+
+					DtoMenuItem itemDto = new DtoMenuItem();
+					itemDto.setSerMenuItemId(mi.getSerMenuItemId().longValue());
+					itemDto.setTxtCode(mi.getTxtCode());
+					itemDto.setTxtName(mi.getTxtName());
+					itemDto.setTxtShortName(mi.getTxtShortName());
+					itemDto.setTxtDescription(mi.getTxtDescription());
+					itemDto.setNumPrice(item.getNumPrice());
+					itemDto.setNumCalculatedPrice(item.getNumCalculatedPrice());
+					itemDto.setNumFinalPrice(item.getNumFinalPrice());
+
+					itemDtos.add(itemDto);
+				}
+
+				subDto.setItems(itemDtos);
+				subDtos.add(subDto);
 			}
-			
-			dto.setCateringDeliveryItemDetails(details);
+
+			catDto.setSubCategories(subDtos);
+			catDtos.add(catDto);
 		}
+		dto.setMenuCategoriesSelection(catDtos);
 		
 		if (entity.getEventBudget() != null) {
 
@@ -109,56 +160,56 @@ public class MapperCateringDeliveryBooking {
 			dto.setTxtEventTypeCode(entity.getEventType().getTxtEventTypeCode());
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
-		if(entity.getCateringDeliveryItemDetails() != null && !entity.getCateringDeliveryItemDetails().isEmpty()) {
-//			List<DtoCateringDeliveryItemDetail> details = new ArrayList<>();
-//			for(CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
-//				DtoCateringDeliveryItemDetail detailDto = toDtoCateringDeliveryItemDetail(detail);
-//				details.add(detailDto);
-//			}
+//		if(entity.getCateringDeliveryItemDetails() != null && !entity.getCateringDeliveryItemDetails().isEmpty()) {
+////			List<DtoCateringDeliveryItemDetail> details = new ArrayList<>();
+////			for(CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
+////				DtoCateringDeliveryItemDetail detailDto = toDtoCateringDeliveryItemDetail(detail);
+////				details.add(detailDto);
+////			}
+////			
+////			dto.setCateringDeliveryItemDetails(details);
 //			
-//			dto.setCateringDeliveryItemDetails(details);
-			
-
-//			Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = new HashMap<>();
-			List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
-
-			for (CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
-				if (detail.getMenuItem() != null) {
-					DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
-//					MenuFoodMaster foodMaster = detail.getMenueFoodMaster();
-					MenuItem menuItem = detail.getMenuItem();
-
-//					dtoMenuFoodMaster.setSerMenuFoodId(foodMaster.getSerMenuFoodId());
-//					dtoMenuFoodMaster.setTxtMenuFoodCode(foodMaster.getTxtMenuFoodCode());
-//					dtoMenuFoodMaster.setTxtMenuFoodName(foodMaster.getTxtMenuFoodName());
-//					dtoMenuFoodMaster.setBlnIsMainCourse(foodMaster.getBlnIsMainCourse());
-//					dtoMenuFoodMaster.setBlnIsAppetiser(foodMaster.getBlnIsAppetiser());
-//					dtoMenuFoodMaster.setBlnIsStarter(foodMaster.getBlnIsStarter());
-//					dtoMenuFoodMaster.setBlnIsSaladAndCondiment(foodMaster.getBlnIsSaladAndCondiment());
-//					dtoMenuFoodMaster.setBlnIsDessert(foodMaster.getBlnIsDessert());
-//					dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
-//					dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
-					
-					dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
-					dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
-					dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
-					dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
-					dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
-					dtoMenuFoodMaster.setNumPrice(detail.getNumPrice());
-
-//					String foodType = getFoodType(foodMaster);
-
-//					if (!foodSelectionsMap.containsKey(foodType)) {
-//						foodSelectionsMap.put(foodType, new ArrayList<>());
-//					}
-//					foodSelectionsMap.get(foodType).add(dtoMenuFoodMaster);
-					foodSelections.add(dtoMenuFoodMaster);
-					
-				}
-			}
-
-			dto.setFoodSelections(foodSelections);
-		}
+//
+////			Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = new HashMap<>();
+//			List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
+//
+//			for (CateringDeliveryItemDetail detail : entity.getCateringDeliveryItemDetails()) {
+//				if (detail.getMenuItem() != null) {
+//					DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
+////					MenuFoodMaster foodMaster = detail.getMenueFoodMaster();
+//					MenuItem menuItem = detail.getMenuItem();
+//
+////					dtoMenuFoodMaster.setSerMenuFoodId(foodMaster.getSerMenuFoodId());
+////					dtoMenuFoodMaster.setTxtMenuFoodCode(foodMaster.getTxtMenuFoodCode());
+////					dtoMenuFoodMaster.setTxtMenuFoodName(foodMaster.getTxtMenuFoodName());
+////					dtoMenuFoodMaster.setBlnIsMainCourse(foodMaster.getBlnIsMainCourse());
+////					dtoMenuFoodMaster.setBlnIsAppetiser(foodMaster.getBlnIsAppetiser());
+////					dtoMenuFoodMaster.setBlnIsStarter(foodMaster.getBlnIsStarter());
+////					dtoMenuFoodMaster.setBlnIsSaladAndCondiment(foodMaster.getBlnIsSaladAndCondiment());
+////					dtoMenuFoodMaster.setBlnIsDessert(foodMaster.getBlnIsDessert());
+////					dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
+////					dtoMenuFoodMaster.setBlnIsActive(foodMaster.getBlnIsActive());
+//					
+//					dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
+//					dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
+//					dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
+//					dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
+//					dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
+//					dtoMenuFoodMaster.setNumPrice(detail.getNumPrice());
+//
+////					String foodType = getFoodType(foodMaster);
+//
+////					if (!foodSelectionsMap.containsKey(foodType)) {
+////						foodSelectionsMap.put(foodType, new ArrayList<>());
+////					}
+////					foodSelectionsMap.get(foodType).add(dtoMenuFoodMaster);
+//					foodSelections.add(dtoMenuFoodMaster);
+//					
+//				}
+//			}
+//
+//			dto.setFoodSelections(foodSelections);
+//		}
 		
 		// **********************************************************************************************
 		// ************************ Food Selections Category and SubCategory Pricing ********************
