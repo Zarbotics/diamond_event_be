@@ -1,5 +1,6 @@
 package com.zbs.de.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,8 @@ import java.util.Map;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+
+import com.zbs.de.util.enums.EnmPriceMultiplierType;
 
 import org.hibernate.annotations.Type;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLLTreeType;
@@ -42,6 +45,8 @@ public class MenuItem extends BaseEntity {
 	@Column(name = "bln_is_composite")
 	private Boolean blnIsComposite = false;
 
+	@Column(name = "num_price")
+	private BigDecimal numPrice;
 	/**
 	 * Roles: CATEGORY | ITEM | STATION | GROUP | SELECTION | BUNDLE
 	 */
@@ -50,7 +55,7 @@ public class MenuItem extends BaseEntity {
 
 	@Column(name = "txt_type")
 	private String txtType;
-	
+
 	@Column(name = "bln_is_catering_item")
 	private Boolean blnIsCateringItem = Boolean.FALSE;
 
@@ -75,6 +80,10 @@ public class MenuItem extends BaseEntity {
 
 	@Column(name = "num_default_servings_per_guest")
 	private Double numDefaultServingsPerGuest;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "enm_price_multiplier_type")
+	private EnmPriceMultiplierType enmPriceMultiplierType = EnmPriceMultiplierType.PER_GUEST;
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "metadata", columnDefinition = "jsonb")
@@ -221,5 +230,22 @@ public class MenuItem extends BaseEntity {
 	public void setBlnIsCateringItem(Boolean blnIsCateringItem) {
 		this.blnIsCateringItem = blnIsCateringItem;
 	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
+	}
+
+	public EnmPriceMultiplierType getEnmPriceMultiplierType() {
+		return enmPriceMultiplierType;
+	}
+
+	public void setEnmPriceMultiplierType(EnmPriceMultiplierType enmPriceMultiplierType) {
+		this.enmPriceMultiplierType = enmPriceMultiplierType;
+	}
+	
 
 }

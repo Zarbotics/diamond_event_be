@@ -1,5 +1,6 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 public class DtoMenuItem {
@@ -21,8 +22,13 @@ public class DtoMenuItem {
 	private String txtPath;
 	private Boolean blnIsCateringItem;
 
+
 	private Boolean blnIsActive;
 	private Boolean blnIsCompostie;
+	private BigDecimal numPrice; // it's unit price
+	private BigDecimal numCalculatedPrice;
+	private BigDecimal numFinalPrice;
+	private String txtPriceMultiplierType;
 
 	public DtoMenuItem() {
 		super();
@@ -183,5 +189,38 @@ public class DtoMenuItem {
 	public void setBlnIsCateringItem(Boolean blnIsCateringItem) {
 		this.blnIsCateringItem = blnIsCateringItem;
 	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
+	}
+
+	public BigDecimal getNumCalculatedPrice() {
+		return numCalculatedPrice;
+	}
+
+	public void setNumCalculatedPrice(BigDecimal numCalculatedPrice) {
+		this.numCalculatedPrice = numCalculatedPrice;
+	}
+
+	public BigDecimal getNumFinalPrice() {
+		return numFinalPrice;
+	}
+
+	public void setNumFinalPrice(BigDecimal numFinalPrice) {
+		this.numFinalPrice = numFinalPrice;
+	}
+
+	public String getTxtPriceMultiplierType() {
+		return txtPriceMultiplierType;
+	}
+
+	public void setTxtPriceMultiplierType(String txtPriceMultiplierType) {
+		this.txtPriceMultiplierType = txtPriceMultiplierType;
+	}
+	
 
 }

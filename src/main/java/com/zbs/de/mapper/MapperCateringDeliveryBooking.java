@@ -2,19 +2,22 @@ package com.zbs.de.mapper;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.CateringDeliveryItemDetail;
-import com.zbs.de.model.EventBudget;
+import com.zbs.de.model.EventMenuCategorySelection;
+import com.zbs.de.model.EventMenuFoodSelection;
+import com.zbs.de.model.EventMenuSubCategorySelection;
 import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
 import com.zbs.de.model.dto.DtoCateringDeliveryItemDetail;
 import com.zbs.de.model.dto.DtoEventQuoteAndStatus;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
+import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
+import com.zbs.de.model.dto.menu.DtoCustomerMenuSubCategory;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilRandomKey;
 
@@ -157,15 +160,68 @@ public class MapperCateringDeliveryBooking {
 			dto.setFoodSelections(foodSelections);
 		}
 		
+		// **********************************************************************************************
+		// ************************ Food Selections Category and SubCategory Pricing ********************
+		// **********************************************************************************************
+		List<DtoCustomerMenuCategory> catDtos = new ArrayList<>();
+
+		for (EventMenuCategorySelection cat : entity.getMenuCategorySelections()) {
+
+			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
+			catDto.setCategoryId(cat.getCategory().getSerMenuItemId().longValue());
+			catDto.setCategoryName(cat.getCategory().getTxtName());
+			catDto.setNumPrice(cat.getNumTotalPrice());
+			catDto.setNumFinalPrice(cat.getNumFinalPrice());
+
+			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
+
+			for (EventMenuSubCategorySelection sub : cat.getSubCategories()) {
+
+				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
+				subDto.setSubCategoryId(sub.getSubCategory().getSerMenuItemId().longValue());
+				subDto.setSubCategoryName(sub.getSubCategory().getTxtName());
+				subDto.setNumPrice(sub.getNumTotalPrice());
+				subDto.setNumFinalPrice(sub.getNumFinalPrice());
+
+				List<DtoMenuItem> itemDtos = new ArrayList<>();
+
+				for (EventMenuFoodSelection item : sub.getItems()) {
+
+					MenuItem mi = item.getMenuItem();
+
+					DtoMenuItem itemDto = new DtoMenuItem();
+					itemDto.setSerMenuItemId(mi.getSerMenuItemId().longValue());
+					itemDto.setTxtCode(mi.getTxtCode());
+					itemDto.setTxtName(mi.getTxtName());
+					itemDto.setTxtShortName(mi.getTxtShortName());
+					itemDto.setTxtDescription(mi.getTxtDescription());
+					itemDto.setNumPrice(item.getNumPrice());
+					itemDto.setNumCalculatedPrice(item.getNumCalculatedPrice());
+					itemDto.setNumFinalPrice(item.getNumFinalPrice());
+
+					itemDtos.add(itemDto);
+				}
+
+				subDto.setItems(itemDtos);
+				subDtos.add(subDto);
+			}
+
+			catDto.setSubCategories(subDtos);
+			catDtos.add(catDto);
+		}
+		dto.setMenuCategoriesSelection(catDtos);
+
 		if (entity.getEventBudget() != null) {
 
 			DtoEventQuoteAndStatus quote = new DtoEventQuoteAndStatus();
 			quote.setNumQuotedPrice(entity.getEventBudget().getNumQuotedPrice());
 			quote.setNumPaidAmount(entity.getEventBudget().getNumPaidAmount());
 			quote.setTxtStatus(entity.getEventBudget().getTxtStatus());
-			if(entity.getEventBudget().getNumQuotedPrice() != null && entity.getEventBudget().getNumPaidAmount() != null) {
-				quote.setNumPendingAmount(entity.getEventBudget().getNumQuotedPrice().subtract(entity.getEventBudget().getNumPaidAmount()));
-			}else {
+			if (entity.getEventBudget().getNumQuotedPrice() != null
+					&& entity.getEventBudget().getNumPaidAmount() != null) {
+				quote.setNumPendingAmount(entity.getEventBudget().getNumQuotedPrice()
+						.subtract(entity.getEventBudget().getNumPaidAmount()));
+			} else {
 				quote.setNumPendingAmount(BigDecimal.ZERO);
 			}
 			dto.setDtoEventQuoteAndStatus(quote);

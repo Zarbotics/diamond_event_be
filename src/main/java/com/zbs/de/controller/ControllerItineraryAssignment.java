@@ -331,4 +331,20 @@ public class ControllerItineraryAssignment {
 					"Failed to generate assignment code: " + e.getMessage(), null);
 		}
 	}
+	
+
+	// -------------------------------------------------------------
+	// GET ALL
+	// -------------------------------------------------------------
+	@PostMapping(value = "/autoAssignItineraryItems", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage autoAssignItineraryItems(HttpServletRequest request) {
+		try {
+			service.autoAssignRandomItineraryItems(3);
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Success", null);
+		} catch (Exception e) {
+			LOGGER.error("Error fetching all Itinerary Assignments", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Failed to fetch Itinerary Assignments: " + e.getMessage(), null);
+		}
+	}
 }

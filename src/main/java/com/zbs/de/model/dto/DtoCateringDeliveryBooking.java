@@ -2,6 +2,8 @@ package com.zbs.de.model.dto;
 
 import java.util.List;
 
+import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
+
 public class DtoCateringDeliveryBooking {
 
 	private Integer serDeliveryBookingId;
@@ -32,6 +34,8 @@ public class DtoCateringDeliveryBooking {
 //	private Map<String, List<DtoMenuFoodMaster>> foodSelections;
 
 	private List<DtoMenuFoodMaster> foodSelections;
+
+	private List<DtoCustomerMenuCategory> menuCategoriesSelection;
 
 	public Integer getSerDeliveryBookingId() {
 		return serDeliveryBookingId;
@@ -191,6 +195,14 @@ public class DtoCateringDeliveryBooking {
 
 	public void setDtoEventQuoteAndStatus(DtoEventQuoteAndStatus dtoEventQuoteAndStatus) {
 		this.dtoEventQuoteAndStatus = dtoEventQuoteAndStatus;
+	}
+
+	public List<DtoCustomerMenuCategory> getMenuCategoriesSelection() {
+		return menuCategoriesSelection;
+	}
+
+	public void setMenuCategoriesSelection(List<DtoCustomerMenuCategory> menuCategoriesSelection) {
+		this.menuCategoriesSelection = menuCategoriesSelection;
 	}
 
 }

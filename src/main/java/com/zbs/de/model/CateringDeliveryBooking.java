@@ -15,9 +15,9 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 
 @Entity
 @Table(name = "catering_delivery_booking")
@@ -77,6 +77,9 @@ public class CateringDeliveryBooking extends BaseEntity implements Serializable 
 
 	@OneToMany(mappedBy = "cateringDeliveryBooking", cascade = CascadeType.ALL)
 	private List<CateringDeliveryItemDetail> cateringDeliveryItemDetails;
+
+	@OneToMany(mappedBy = "cateringDeliveryBooking", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<EventMenuCategorySelection> menuCategorySelections = new ArrayList<>();
 
 	public Integer getSerDeliveryBookingId() {
 		return serDeliveryBookingId;
@@ -196,6 +199,14 @@ public class CateringDeliveryBooking extends BaseEntity implements Serializable 
 
 	public void setEventBudget(EventBudget eventBudget) {
 		this.eventBudget = eventBudget;
+	}
+
+	public List<EventMenuCategorySelection> getMenuCategorySelections() {
+		return menuCategorySelections;
+	}
+
+	public void setMenuCategorySelections(List<EventMenuCategorySelection> menuCategorySelections) {
+		this.menuCategorySelections = menuCategorySelections;
 	}
 
 }

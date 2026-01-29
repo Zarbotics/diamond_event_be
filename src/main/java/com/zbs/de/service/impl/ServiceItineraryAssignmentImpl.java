@@ -3,11 +3,13 @@ package com.zbs.de.service.impl;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -849,4 +851,91 @@ public class ServiceItineraryAssignmentImpl implements ServiceItineraryAssignmen
 			return null;
 		}
 	}
+	
+	
+	@Transactional
+	@Override
+	public void autoAssignRandomItineraryItems(
+	        int itemsPerMenuItem   // e.g. 3 or 5
+	) {
+
+	    List<MenuItem> menuItems = menuItemRepository.getAllActiveItemsByRoleId(3);
+
+	    if (menuItems.isEmpty()) {
+	        throw new RuntimeException("No menu items found with role_id = 3");
+	    }
+
+	    List<ItineraryItem> itineraryItems = itineraryItemRepository.findByBlnIsActiveTrueAndBlnIsDeletedFalseOrderBySerItineraryItemIdDesc();
+
+	    if (itineraryItems.isEmpty()) {
+	        throw new RuntimeException("No itinerary items available");
+	    }
+
+	    Random random = new Random();
+
+	    for (MenuItem menuItem : menuItems) {
+
+	        // ---- Create Assignment ----
+	        ItineraryAssignment assignment = new ItineraryAssignment();
+	        assignment.setMenuItem(menuItem);
+	        assignment.setTxtAssignmentCode(generateAssignmentCode());
+	        assignment.setTxtAssignmentName("Auto Assignment - " + menuItem.getTxtName());
+	        assignment.setNumPriority(1);
+	        assignment.setNumTotalItineraries(0);
+	        assignment.setBlnIsActive(true);
+	        assignment.setBlnIsDeleted(false);
+	        assignment.setBlnIsApproved(true);
+
+	        repository.save(assignment);
+
+	        // ---- Shuffle & Pick Random Items ----
+	        Collections.shuffle(itineraryItems);
+
+	        int displayOrder = 1;
+
+	        for (int i = 0; i < Math.min(itemsPerMenuItem, itineraryItems.size()); i++) {
+
+	            ItineraryItem item = itineraryItems.get(i);
+
+	            ItineraryAssignmentDetail detail = new ItineraryAssignmentDetail();
+	            detail.setItineraryAssignment(assignment);
+	            detail.setItineraryItem(item);
+	            detail.setNumDisplayOrder(displayOrder++);
+	            applyRandomMultiplier(detail, random); 
+	            detail.setBlnIsRequired(false);
+	            detail.setBlnIsActive(true);
+	            detail.setBlnIsDeleted(false);
+
+	            detailRepository.save(detail);
+	        }
+
+	        assignment.setNumTotalItineraries(displayOrder - 1);
+	        repository.save(assignment);
+	    }
+	}
+	
+	private static final List<BigDecimal> PER_TABLE_VALUES = List.of(
+	        new BigDecimal("0.5"),
+	        new BigDecimal("0.2"),
+	        BigDecimal.ONE
+	);
+	
+	private void applyRandomMultiplier(ItineraryAssignmentDetail detail, Random random) {
+
+	    boolean perGuest = random.nextBoolean();
+
+	    if (perGuest) {
+	        detail.setEnmMultiplierType(EnmItineraryUnitType.PER_GUEST);
+	        detail.setNumMultiplierValue(BigDecimal.ONE);
+	    } else {
+	        detail.setEnmMultiplierType(EnmItineraryUnitType.PER_TABLE);
+
+	        BigDecimal value = PER_TABLE_VALUES.get(
+	                random.nextInt(PER_TABLE_VALUES.size())
+	        );
+
+	        detail.setNumMultiplierValue(value);
+	    }
+	}
+
 }

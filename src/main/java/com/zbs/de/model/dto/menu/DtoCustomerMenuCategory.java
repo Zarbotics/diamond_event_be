@@ -1,11 +1,14 @@
 package com.zbs.de.model.dto.menu;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class DtoCustomerMenuCategory {
-	Long categoryId;
-	String categoryName;
-	List<DtoCustomerMenuSubCategory> subCategories;
+	private Long categoryId;
+	private String categoryName;
+	private BigDecimal numPrice;
+	private BigDecimal numFinalPrice;
+	private List<DtoCustomerMenuSubCategory> subCategories;
 
 	public Long getCategoryId() {
 		return categoryId;
@@ -29,6 +32,22 @@ public class DtoCustomerMenuCategory {
 
 	public void setSubCategories(List<DtoCustomerMenuSubCategory> subCategories) {
 		this.subCategories = subCategories;
+	}
+
+	public BigDecimal getNumPrice() {
+		return numPrice;
+	}
+
+	public void setNumPrice(BigDecimal numPrice) {
+		this.numPrice = numPrice;
+	}
+
+	public BigDecimal getNumFinalPrice() {
+		return numFinalPrice;
+	}
+
+	public void setNumFinalPrice(BigDecimal numFinalPrice) {
+		this.numFinalPrice = numFinalPrice;
 	}
 
 }
