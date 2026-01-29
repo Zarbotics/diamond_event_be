@@ -22,7 +22,7 @@ public class ItineraryAssignmentDetail extends BaseEntity implements Serializabl
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.TABLE, generator = "detail_seq")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "ser_itinerary_assignment_detail_id")
 	private Long serItineraryAssignmentDetailId;
 

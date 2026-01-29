@@ -1,16 +1,30 @@
 package com.zbs.de.service.impl;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.opencsv.CSVReader;
 import com.zbs.de.mapper.MapperItinerary;
 import com.zbs.de.model.ItineraryItem;
 import com.zbs.de.model.ItineraryItemType;
+import com.zbs.de.model.dto.DtoItineraryCsvImportResult;
+import com.zbs.de.model.dto.DtoItineraryCsvRowResult;
 import com.zbs.de.model.dto.DtoItineraryItem;
+import com.zbs.de.model.dto.DtoItineraryItemType;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryItineraryItem;
 import com.zbs.de.service.ServiceItineraryItem;
@@ -217,5 +231,125 @@ public class ServiceItineraryItemImpl implements ServiceItineraryItem {
 			return null;
 		}
 	}
+	
+	@Override
+	@Transactional
+	public DtoItineraryCsvImportResult importCsv(MultipartFile file) {
+
+	    List<DtoItineraryCsvRowResult> errors = new ArrayList<>();
+	    int total = 0;
+	    int success = 0;
+
+	    if (file == null || file.isEmpty()) {
+	        return new DtoItineraryCsvImportResult(
+	                0, 0, 1,
+	                List.of(new DtoItineraryCsvRowResult(0, null, null, "No file uploaded", ""))
+	        );
+	    }
+
+	    try (
+	            InputStream is = file.getInputStream();
+	            InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+	            CSVReader reader = new CSVReader(isr)
+	    ) {
+
+	        String[] header = reader.readNext();
+	        if (header == null) {
+	            return new DtoItineraryCsvImportResult(0, 0, 0, errors);
+	        }
+
+	        int rowNum = 1;
+	        String[] row;
+
+	        // Cache TYPE CODE → TYPE ENTITY
+	        Map<String, ItineraryItemType> typeCache = new HashMap<>();
+
+	        // Preload DB types
+	        for (ItineraryItemType t : serviceItineraryItemType.findAll()) {
+	            if (t.getTxtCode() != null)
+	                typeCache.put(t.getTxtCode(), t);
+	        }
+
+	        while ((row = reader.readNext()) != null) {
+	            rowNum++;
+	            total++;
+
+	            // Normalize length
+	            if (row.length < 3) {
+	                row = Arrays.copyOf(row, 3);
+	            }
+
+	            for (int i = 0; i < row.length; i++) {
+	                row[i] = row[i] == null ? "" : row[i].trim();
+	            }
+
+	            String typeCode = row[0];
+	            String typeName = row[1];
+	            String itemName = row[2];
+
+	            String rawRow = String.join(",", row);
+
+	            // Validations
+	            if (typeCode.isBlank()) {
+	                errors.add(new DtoItineraryCsvRowResult(
+	                        rowNum, null, itemName, "Missing TYPE CODE", rawRow));
+	                continue;
+	            }
+
+	            if (typeName.isBlank()) {
+	                errors.add(new DtoItineraryCsvRowResult(
+	                        rowNum, typeCode, itemName, "Missing TYPE NAME", rawRow));
+	                continue;
+	            }
+
+	            if (itemName.isBlank()) {
+	                errors.add(new DtoItineraryCsvRowResult(
+	                        rowNum, typeCode, null, "Missing ITEM NAME", rawRow));
+	                continue;
+	            }
+
+	            try {
+	                // Resolve or create Item Type
+	                ItineraryItemType type = typeCache.get(typeCode);
+
+	                if (type == null) {
+	                    DtoItineraryItemType typeDto = new DtoItineraryItemType();
+	                    typeDto.setTxtCode(typeCode);
+	                    typeDto.setTxtName(typeName);
+
+	                    DtoResult typeResult = serviceItineraryItemType.create(typeDto);
+	                    type = serviceItineraryItemType
+	                            .getItineraryItemTypeById(typeDto.getSerItineraryItemTypeId());
+
+	                    typeCache.put(typeCode, type);
+	                }
+
+	                // Create Item
+	                DtoItineraryItem itemDto = new DtoItineraryItem();
+	                itemDto.setTxtName(itemName);
+	                itemDto.setSerItineraryItemTypeId(type.getSerItineraryItemTypeId());
+
+	                this.create(itemDto); // reuse your existing logic
+	                success++;
+
+	            } catch (Exception ex) {
+	                errors.add(new DtoItineraryCsvRowResult(
+	                        rowNum, typeCode, itemName, ex.getMessage(), rawRow));
+	            }
+	        }
+
+	    } catch (Exception ex) {
+	        return new DtoItineraryCsvImportResult(
+	                0, 0, 1,
+	                List.of(new DtoItineraryCsvRowResult(
+	                        0, null, null, "CSV read error: " + ex.getMessage(), ""))
+	        );
+	    }
+
+	    return new DtoItineraryCsvImportResult(
+	            total, success, total - success, errors
+	    );
+	}
+
 
 }
