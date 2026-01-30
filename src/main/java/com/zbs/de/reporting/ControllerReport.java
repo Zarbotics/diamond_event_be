@@ -18,9 +18,17 @@ public class ControllerReport {
 	@Autowired
 	private ServiceReport reportService;
 
+//	@GetMapping("/event/{eventId}")
+//	public ResponseEntity<byte[]> getEventReport(@PathVariable Integer eventId) throws Exception {
+//		byte[] pdfBytes = reportService.generateEventReport(eventId);
+//
+//		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_report.pdf")
+//				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
+//	}
+	
 	@GetMapping("/event/{eventId}")
 	public ResponseEntity<byte[]> getEventReport(@PathVariable Integer eventId) throws Exception {
-		byte[] pdfBytes = reportService.generateEventReport(eventId);
+		byte[] pdfBytes = reportService.generateNewEventReport(eventId);
 
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_report.pdf")
 				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);

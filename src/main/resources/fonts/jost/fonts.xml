@@ -1,0 +1,8 @@
+<fontFamily name="Jost">
+    <normal><![CDATA[Jost-Regular.ttf]]></normal>
+    <bold><![CDATA[Jost-Bold.ttf]]></bold>
+    <italic><![CDATA[Jost-Regular.ttf]]></italic>
+    <boldItalic><![CDATA[Jost-Bold.ttf]]></boldItalic>
+    <pdfEncoding><![CDATA[Identity-H]]></pdfEncoding>
+    <pdfEmbedded><![CDATA[true]]></pdfEmbedded>
+</fontFamily>

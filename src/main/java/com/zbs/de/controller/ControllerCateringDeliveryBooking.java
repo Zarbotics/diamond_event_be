@@ -1,6 +1,7 @@
 package com.zbs.de.controller;
 
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
+import com.zbs.de.model.dto.DtoCateringDeliveryBookingSearch;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceCateringDeliveryBooking;
@@ -8,7 +9,10 @@ import com.zbs.de.util.ResponseMessage;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +25,9 @@ public class ControllerCateringDeliveryBooking {
 
 	@Autowired
 	private ServiceCateringDeliveryBooking service;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerCateringDeliveryBooking.class);
+
 
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> saveOrUpdate(@RequestBody DtoCateringDeliveryBooking dto,
@@ -109,4 +116,33 @@ public class ControllerCateringDeliveryBooking {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Code generated",
 				service.generateAutoCode()));
 	}
+	
+	@PostMapping(value = "/searchInCateringAndEventBudget", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage searchInCateringAndEventBudget(
+			@RequestBody DtoCateringDeliveryBookingSearch dtoCateringDeliveryBookingSearch,
+			HttpServletRequest request) {
+		LOGGER.info("Searching Catering Delievery  with filters: {}", dtoCateringDeliveryBookingSearch);
+		try {
+			// call service (expects Page<DtoEventMasterTableView>)
+			Page<DtoCateringDeliveryBooking> page = service
+					.searchCateringDeliveryBookings(dtoCateringDeliveryBookingSearch);
+
+			// If service returns null, treat as empty page (safer for clients)
+			if (page == null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No records found", Page.empty());
+			}
+
+			if (page.hasContent()) {
+				// return the full Page so front-end can access content + paging metadata
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", page);
+			} else {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No records found", page);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error while searching Catering Delievery", e);
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error while searching events: " + e.getMessage(), null);
+		}
+	}
+
 }

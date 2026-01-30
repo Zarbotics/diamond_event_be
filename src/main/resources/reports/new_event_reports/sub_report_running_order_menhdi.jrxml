@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_report_event_running_order" pageWidth="595" pageHeight="140" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="10" bottomMargin="10" uuid="e91f3e4d-6b5f-4a6e-b8b3-9a8b4a01f111">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="ahmad_dbDataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[103]]></defaultValueExpression>
+	</parameter>
+	<queryString language="plsql">
+		<![CDATA[SELECT
+            em.ser_event_master_id,
+            et.ser_event_type_id,
+            et.txt_event_type_name,
+
+            ero.txt_guest_arrival,
+            ero.txt_bride_entrance,
+            ero.txt_groom_entrance,
+            ero.txt_dance,
+            ero.txt_meal,
+            ero.dte_end_of_night
+
+        FROM event_master em
+        JOIN event_type et
+            ON em.ser_event_type_id = et.ser_event_type_id
+        JOIN event_running_order ero
+            ON em.ser_event_running_order_id = ero.ser_event_running_order_id
+        WHERE em.ser_event_master_id = $P{P_EVENT_MASTER_ID}]]>
+	</queryString>
+	<field name="ser_event_master_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="ser_event_master_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_master"/>
+	</field>
+	<field name="ser_event_type_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="ser_event_type_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_type"/>
+	</field>
+	<field name="txt_event_type_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_event_type_name"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_type"/>
+	</field>
+	<field name="txt_guest_arrival" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_guest_arrival"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_bride_entrance" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_bride_entrance"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_groom_entrance" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_groom_entrance"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_dance" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_dance"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_meal" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_meal"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="dte_end_of_night" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="dte_end_of_night"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<detail>
+		<band height="120">
+			<staticText>
+				<reportElement x="0" y="0" width="300" height="20" forecolor="#404040" uuid="a6339fd4-8942-4fae-b16a-f74fc48cc665">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Event Running Order]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="25" width="555" height="80" forecolor="#F1F2F6" backcolor="#FFFFFF" uuid="a8600195-cfc6-42dd-9556-9ae98e6db74d">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="30" y="30" width="90" height="15" forecolor="#0033B0" uuid="4d34c790-c7d0-4d0f-bd6b-164ddc8a50bb">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Guest Arrival]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="120" y="30" width="90" height="15" forecolor="#0033B0" uuid="aadab37d-6b51-4a96-bf36-c1034bd07496">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Bride Entrance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="210" y="30" width="90" height="15" forecolor="#0033B0" uuid="3e7fab9f-ada2-4681-9884-87a15b7d21f2">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Groom Entrance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="300" y="30" width="70" height="15" forecolor="#0033B0" uuid="555e4bdb-0708-42d8-bdb1-0161df1ff23b">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Dance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="370" y="30" width="90" height="15" forecolor="#0033B0" uuid="c2779bfb-9457-4c8e-8eba-3f8ddcfaae80">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Meal]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="460" y="30" width="90" height="15" forecolor="#0033B0" uuid="2a0eabb8-5597-4a09-aac3-1bec5590b59c">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="0"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[End of Night]]></text>
+			</staticText>
+			<line>
+				<reportElement x="28" y="50" width="525" height="1" uuid="e5d5757e-ecf7-482a-9303-fa736479576b">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="30" y="65" width="90" height="20" uuid="8ab75324-3318-4add-bdd3-c758ead17ecc">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_guest_arrival}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="65" width="90" height="20" uuid="c69520c6-6eaf-4b91-8f97-508109b906c6">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_bride_entrance}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="210" y="65" width="90" height="20" uuid="e3285194-5e7a-472b-bb86-a6ac2667bad5">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 3]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_groom_entrance}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="300" y="65" width="70" height="20" uuid="dd50fe68-6ea7-4ef5-a5fb-60bec6b3fd4a">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 3]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_dance}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="370" y="65" width="90" height="20" uuid="8ce4fb40-18d1-403d-9177-ddca23d4e9be">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_meal}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="460" y="65" width="90" height="20" uuid="62a9cc65-082f-4de3-8342-4d991840a04b">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dte_end_of_night}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>
