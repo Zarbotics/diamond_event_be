@@ -1150,6 +1150,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
+				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
+
+				if(newDate.compareTo(entity.getDteEventDate()) != 0) {
+					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+					if(isalreadyBooked) {
+						dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMaster.getDteEventDate());
+						return dtoResult;
+					}
+				}
 				entity.setDteEventDate(UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate()));
 				entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
@@ -1486,6 +1495,14 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				blnIsNewEvent = true;
 				entity = MapperEventMaster.toEntity(dtoEventMaster);
+				Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
+
+				Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+				if (isalreadyBooked) {
+					dtoResult.setTxtMessage("An event is already booked against this date.");
+					return dtoResult;
+				}
+
 				entity.setEventRunningOrder(null);
 				entity.setEventType(null);
 				entity.setDecorSelections(null);
@@ -2274,8 +2291,16 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMasterAdminPortal.getTxtEventMasterName());
-				entity.setDteEventDate(
-						UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate()));
+				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
+
+				if(newDate.compareTo(entity.getDteEventDate()) != 0) {
+					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+					if(isalreadyBooked) {
+						dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMasterAdminPortal.getDteEventDate());
+						return dtoResult;
+					}
+				}
+				entity.setDteEventDate(newDate);
 				entity.setNumNumberOfGuests(dtoEventMasterAdminPortal.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMasterAdminPortal.getNumNumberOfTables());
 				entity.setTxtBrideName(dtoEventMasterAdminPortal.getTxtBrideName());
@@ -2592,6 +2617,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				blnIsNewEvent = true;
 				entity = MapperEventMaster.dtoEventMasterAdminPortalToEntity(dtoEventMasterAdminPortal);
+
+				Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
+
+				Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+				if (isalreadyBooked) {
+					dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMasterAdminPortal.getDteEventDate());
+					return dtoResult;
+				}
+				
 				entity.setEventRunningOrder(null);
 				entity.setEventType(null);
 				entity.setDecorSelections(null);
