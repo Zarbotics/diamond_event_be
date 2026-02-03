@@ -1,6 +1,7 @@
 package com.zbs.de.controller;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilRandomKey;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -276,6 +278,53 @@ public class ControllerEventMaster {
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
 					"Error while searching events: " + e.getMessage(), null);
 		}
+	}
+	
+	@PostMapping(value = "/getAlreadyBookedDates", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAlreadyBookedDates(HttpServletRequest request) {
+		try {
+			LOGGER.info("getAlreadyBookedDates");
+			DtoResult result = serviceEventMaster.getAlreadyBookedDates();
+			if (result != null && result.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			} else if (result != null && !result.getTxtMessage().equalsIgnoreCase("Success")) {
+				return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+						result.getTxtMessage(), null);
+			} else {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Unable To Fetch Dates",
+					null);
+		}
+
+	}
+	
+	@PostMapping(value = "/isDateAlreadyBooked", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage isDateAlreadyBooked(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		try {
+			LOGGER.info("getAlreadyBookedDates");
+			Date dteDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoSearch.getSearchKeyword());
+			DtoResult result = serviceEventMaster
+					.validateEventDateAvailability(dteDate);
+			if (result != null && result.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			} else if (result != null && result.getTxtMessage() != null
+					&& result.getTxtMessage().equalsIgnoreCase("No event is registered at this date.")) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
+			} else {
+				return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+						result.getTxtMessage(), null);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Unable To Validate Date",
+					null);
+		}
+
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.zbs.de.service;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -49,4 +50,8 @@ public interface ServiceEventMaster {
 	Page<DtoEventMasterAdminPortal> searchInEntityAndEventBudget(DtoEventMasterSearch dto);
 	
 	EventMaster getEventMasterById(Integer serEventMasterId);
+	
+	DtoResult validateEventDateAvailability(Date eventDate);
+	
+	DtoResult getAlreadyBookedDates();
 }

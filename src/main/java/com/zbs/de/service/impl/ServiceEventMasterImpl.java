@@ -3735,4 +3735,47 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 		return sortedEvents;
 	}
+	
+	@Transactional
+	public DtoResult validateEventDateAvailability(Date eventDate) {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			 boolean alreadyBooked =
+			            repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(eventDate);
+
+			    if (alreadyBooked) {
+			        dtoResult.setTxtMessage("An event is already registered at this date.");
+			        dtoResult.setResult(alreadyBooked);
+			    }else {
+			        dtoResult.setTxtMessage("No event is registered at this date.");
+			        dtoResult.setResult(alreadyBooked);
+			    }
+			    return dtoResult;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
+		}
+	   
+	}
+
+	@Override
+	public DtoResult getAlreadyBookedDates() {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			List<Date> dates = repositoryEventMaster.getAlreadyBookedDates();
+			List<String> strDates =new ArrayList<>();
+			for(Date date : dates) {
+				String strdate = UtilDateAndTime.mmddyyyyDateToString(date);
+				strDates.add(strdate);
+			}
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(strDates);
+			return dtoResult;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
+		}
+	}
 }
