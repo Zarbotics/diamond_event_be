@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -41,7 +43,10 @@ import com.zbs.de.service.ServiceCateringDeliveryBooking;
 import com.zbs.de.service.ServiceEventBudget;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.spec.SpecificationsCateringDeliveryBooking;
+import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilRandomKey;
+
+import jakarta.transaction.Transactional;
 
 @Service("serviceCateringDeliveryBookingImpl")
 public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDeliveryBooking {
@@ -60,6 +65,8 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 	@Autowired
 	private ServiceMenuItem serviceMenuItem;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCateringDeliveryBookingImpl.class);
 
 	@Override
 	public DtoResult saveOrUpdate(DtoCateringDeliveryBooking dto) {
@@ -125,6 +132,26 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			entity.setTxtDeliveryTime(mapped.getTxtDeliveryTime());
 			entity.setTxtRemarks(mapped.getTxtRemarks());
 			entity.setTxtSpecialInstructions(mapped.getTxtSpecialInstructions());
+			entity.setNumNumberOfGuests(mapped.getNumNumberOfGuests());
+			entity.setNumNumberOfTables(mapped.getNumNumberOfGuests());
+			
+			// *** Validate Duplicate Date Check ***
+			Boolean isalreadyBooked = false;
+
+			if (mapped.getDteDeliveryDate() != null && entity.getDteDeliveryDate() != null
+					&& mapped.getDteDeliveryDate().compareTo(entity.getDteDeliveryDate()) != 0) {
+				isalreadyBooked = repositoryCateringDeliveryBooking
+						.existsByDteDeliveryDateAndBlnIsDeletedFalse(mapped.getDteDeliveryDate());
+
+			} else if (mapped.getDteDeliveryDate() != null && entity.getDteDeliveryDate() == null) {
+				isalreadyBooked = repositoryCateringDeliveryBooking
+						.existsByDteDeliveryDateAndBlnIsDeletedFalse(mapped.getDteDeliveryDate());
+
+			}
+			if (isalreadyBooked) {
+				result.setTxtMessage("An event is already booked against this date." + mapped.getDteDeliveryDate());
+				return result;
+			}
 
 //			// Map item details
 //			List<CateringDeliveryItemDetail> detailList = new ArrayList<>();
@@ -457,6 +484,28 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			entity.setTxtDeliveryTime(mapped.getTxtDeliveryTime());
 			entity.setTxtRemarks(mapped.getTxtRemarks());
 			entity.setTxtSpecialInstructions(mapped.getTxtSpecialInstructions());
+			entity.setNumNumberOfGuests(mapped.getNumNumberOfGuests());
+			entity.setNumNumberOfTables(mapped.getNumNumberOfGuests());
+	
+			// *** Validate Duplicate Date Check ***
+			Boolean isalreadyBooked = false;
+
+			if (mapped.getDteDeliveryDate() != null && entity.getDteDeliveryDate() != null
+					&& mapped.getDteDeliveryDate().compareTo(entity.getDteDeliveryDate()) != 0) {
+				isalreadyBooked = repositoryCateringDeliveryBooking
+						.existsByDteDeliveryDateAndBlnIsDeletedFalse(mapped.getDteDeliveryDate());
+
+			} else if (mapped.getDteDeliveryDate() != null && entity.getDteDeliveryDate() == null) {
+				isalreadyBooked = repositoryCateringDeliveryBooking
+						.existsByDteDeliveryDateAndBlnIsDeletedFalse(mapped.getDteDeliveryDate());
+
+			}
+			if (isalreadyBooked) {
+				result.setTxtMessage("An catering event is already booked against this date." + mapped.getDteDeliveryDate());
+				return result;
+			}
+
+			
 			if (dto.getIsEditAllowed() != null) {
 				entity.setIsEditAllowed(dto.getIsEditAllowed());
 			}
@@ -915,6 +964,49 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 		out.addAll(past);
 		out.addAll(noDate);
 		return out;
+	}
+	
+	@Transactional
+	public DtoResult validateEventDateAvailability(Date eventDate) {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			boolean alreadyBooked = repositoryCateringDeliveryBooking
+					.existsByDteDeliveryDateAndBlnIsDeletedFalse(eventDate);
+
+			if (alreadyBooked) {
+				dtoResult.setTxtMessage("A catering is already registered at this date.");
+				dtoResult.setResult(alreadyBooked);
+			} else {
+				dtoResult.setTxtMessage("No catering is registered at this date.");
+				dtoResult.setResult(alreadyBooked);
+			}
+			return dtoResult;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
+		}
+
+	}
+
+	@Override
+	public DtoResult getAlreadyBookedDates() {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			List<Date> dates = repositoryCateringDeliveryBooking.getAlreadyBookedDates();
+			List<String> strDates = new ArrayList<>();
+			for (Date date : dates) {
+				String strdate = UtilDateAndTime.mmddyyyyDateToString(date);
+				strDates.add(strdate);
+			}
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(strDates);
+			return dtoResult;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
+		}
 	}
 
 }

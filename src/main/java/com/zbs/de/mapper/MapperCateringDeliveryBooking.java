@@ -40,6 +40,8 @@ public class MapperCateringDeliveryBooking {
 		dto.setTxtRemarks(entity.getTxtRemarks());
 		dto.setTxtSpecialInstructions(entity.getTxtSpecialInstructions());
 		dto.setIsEditAllowed(entity.getIsEditAllowed());
+		dto.setNumNumberOfGuests(entity.getNumNumberOfGuests());
+		dto.setNumNumberOfTables(entity.getNumNumberOfTables());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -149,6 +151,8 @@ public class MapperCateringDeliveryBooking {
 		dto.setTxtRemarks(entity.getTxtRemarks());
 		dto.setTxtSpecialInstructions(entity.getTxtSpecialInstructions());
 		dto.setIsEditAllowed(entity.getIsEditAllowed());
+		dto.setNumNumberOfGuests(entity.getNumNumberOfGuests());
+		dto.setNumNumberOfTables(entity.getNumNumberOfTables());
 
 		if (entity.getCustomerMaster() != null) {
 			dto.setSerCustId(entity.getCustomerMaster().getSerCustId());
@@ -316,6 +320,9 @@ public class MapperCateringDeliveryBooking {
 		entity.setTxtDeliveryBookingCode(dto.getTxtDeliveryBookingCode());
 		entity.setBlnBookingStatus(dto.getBlnBookingStatus());
 		entity.setBlnRequestMeeting(dto.getBlnRequestMeeting());
+		entity.setNumNumberOfGuests(dto.getNumNumberOfGuests());
+		entity.setNumNumberOfTables(dto.getNumNumberOfTables());
+		
 		if (UtilRandomKey.isNotNull(dto.getDteDeliveryDate())) {
 			entity.setDteDeliveryDate(UtilDateAndTime.ddMMyyyyDashedStringToDate(dto.getDteDeliveryDate()));
 		}

@@ -1,5 +1,7 @@
 package com.zbs.de.service;
 
+import java.util.Date;
+
 import org.springframework.data.domain.Page;
 
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
@@ -29,4 +31,8 @@ public interface ServiceCateringDeliveryBooking {
 	DtoResult getByPKCP(Integer id);
 
 	Page<DtoCateringDeliveryBooking> searchCateringDeliveryBookings(DtoCateringDeliveryBookingSearch dto);
+	
+	DtoResult validateEventDateAvailability(Date eventDate);
+	
+	DtoResult getAlreadyBookedDates();
 }

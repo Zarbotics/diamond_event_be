@@ -1,5 +1,6 @@
 package com.zbs.de.repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,4 +41,9 @@ public interface RepositoryCateringDeliveryBooking extends JpaRepository<Caterin
 	
 	@EntityGraph(attributePaths = { "customerMaster", "eventType", "eventBudget" })
 	Page<CateringDeliveryBooking> findAll(Specification<CateringDeliveryBooking> spec, Pageable pageable);
+	
+	boolean existsByDteDeliveryDateAndBlnIsDeletedFalse(Date dteDeliveryDate);
+
+	@Query("select distinct(e.dteDeliveryDate) from CateringDeliveryBooking e where e.blnIsDeleted = false order by e.dteDeliveryDate asc")
+	List<Date> getAlreadyBookedDates();
 }

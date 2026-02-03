@@ -6,8 +6,11 @@ import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.service.ServiceCateringDeliveryBooking;
 import com.zbs.de.util.ResponseMessage;
+import com.zbs.de.util.UtilDateAndTime;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,40 +28,38 @@ public class ControllerCateringDeliveryBooking {
 
 	@Autowired
 	private ServiceCateringDeliveryBooking service;
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerCateringDeliveryBooking.class);
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerCateringDeliveryBooking.class);
 
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> saveOrUpdate(@RequestBody DtoCateringDeliveryBooking dto,
 			HttpServletRequest request) {
-		
+
 		DtoResult result = service.saveOrUpdate(dto);
-		if(result != null && result.getTxtMessage().equalsIgnoreCase("Success") && result.getResult() != null) {
+		if (result != null && result.getTxtMessage().equalsIgnoreCase("Success") && result.getResult() != null) {
 			return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully",
 					result.getResult()));
-		}else {
+		} else {
 			return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
 					result.getResult()));
 		}
 
 	}
-	
+
 	@PostMapping(value = "/saveOrUpdateAdminPortal", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> saveOrUpdateAdminPortal(@RequestBody DtoCateringDeliveryBooking dto,
 			HttpServletRequest request) {
-		
+
 		DtoResult result = service.saveOrUpdateCateringAdminPortal(dto);
-		if(result != null && result.getTxtMessage().equalsIgnoreCase("Success") && result.getResult() != null) {
+		if (result != null && result.getTxtMessage().equalsIgnoreCase("Success") && result.getResult() != null) {
 			return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully",
 					result.getResult()));
-		}else {
+		} else {
 			return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
 					result.getResult()));
 		}
 
 	}
-	
 
 	@PostMapping(value = "/getById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> getById(@RequestBody DtoCateringDeliveryBooking dto,
@@ -67,7 +68,7 @@ public class ControllerCateringDeliveryBooking {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
 				service.getByPK(id).getResult()));
 	}
-	
+
 	@PostMapping(value = "/getByIdCP", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> getByIdCP(@RequestBody DtoCateringDeliveryBooking dto,
 			HttpServletRequest request) {
@@ -82,17 +83,16 @@ public class ControllerCateringDeliveryBooking {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
 				service.getAll().getResulList()));
 	}
-	
+
 	@PostMapping(value = "/getAllAdminPortal", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> getAllAdminPortal(@RequestBody DtoCateringDeliveryBooking dto,
 			HttpServletRequest request) {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
 				service.getAllCP().getResulList()));
 	}
-	
+
 	@PostMapping(value = "/getByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseMessage> getByCustomerId(@RequestBody DtoSearch dto,
-			HttpServletRequest request) {
+	public ResponseEntity<ResponseMessage> getByCustomerId(@RequestBody DtoSearch dto, HttpServletRequest request) {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
 				service.getByCustId(dto).getResulList()));
 	}
@@ -116,7 +116,7 @@ public class ControllerCateringDeliveryBooking {
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Code generated",
 				service.generateAutoCode()));
 	}
-	
+
 	@PostMapping(value = "/searchInCateringAndEventBudget", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage searchInCateringAndEventBudget(
 			@RequestBody DtoCateringDeliveryBookingSearch dtoCateringDeliveryBookingSearch,
@@ -143,6 +143,52 @@ public class ControllerCateringDeliveryBooking {
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
 					"Error while searching events: " + e.getMessage(), null);
 		}
+	}
+
+	@PostMapping(value = "/getAlreadyBookedDates", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAlreadyBookedDates(HttpServletRequest request) {
+		try {
+			LOGGER.info("getAlreadyBookedDates");
+			DtoResult result = service.getAlreadyBookedDates();
+			if (result != null && result.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			} else if (result != null && !result.getTxtMessage().equalsIgnoreCase("Success")) {
+				return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+						result.getTxtMessage(), null);
+			} else {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Unable To Fetch Dates",
+					null);
+		}
+
+	}
+
+	@PostMapping(value = "/isDateAlreadyBooked", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage isDateAlreadyBooked(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		try {
+			LOGGER.info("getAlreadyBookedDates");
+			Date dteDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoSearch.getSearchKeyword());
+			DtoResult result = service.validateEventDateAvailability(dteDate);
+			if (result != null && result.getResult() != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			} else if (result != null && result.getTxtMessage() != null
+					&& result.getTxtMessage().equalsIgnoreCase("No catering is registered at this date.")) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
+			} else {
+				return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+						result.getTxtMessage(), null);
+			}
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					"Unable To Validate Date", null);
+		}
+
 	}
 
 }
