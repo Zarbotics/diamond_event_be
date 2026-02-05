@@ -1,5 +1,6 @@
 package com.zbs.de.repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +31,7 @@ public interface RepositoryEventMaster
 
 	@Query("SELECT e FROM EventMaster e WHERE e.customerMaster.serCustId = :custId AND e.blnIsDeleted = false")
 	List<EventMaster> findByCustomerId(@Param("custId") Integer custId);
-	
+
 	@Query("SELECT e FROM EventMaster e WHERE e.customerMaster.serCustId = :custId AND e.blnIsDeleted = false and e.blnIsActive = true")
 	List<EventMaster> findActiveEventMasterByCustomerId(@Param("custId") Integer custId);
 
@@ -75,5 +76,10 @@ public interface RepositoryEventMaster
 
 	@Query("SELECT MAX(e.txtEventMasterCode) FROM EventMaster e WHERE e.txtEventMasterCode LIKE CONCAT('DE-', :year, '-%')")
 	String findMaxEventCodeForYear(@Param("year") int year);
+
+	boolean existsByDteEventDateAndBlnIsDeletedFalse(Date dteEventDate);
+
+	@Query("select distinct(e.dteEventDate) from EventMaster e where e.blnIsDeleted = false order by e.dteEventDate asc")
+	List<Date> getAlreadyBookedDates();
 
 }

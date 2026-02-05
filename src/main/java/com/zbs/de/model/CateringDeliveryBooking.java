@@ -61,6 +61,12 @@ public class CateringDeliveryBooking extends BaseEntity implements Serializable 
 	@Column(name = "txt_remarks")
 	private String txtRemarks;
 
+	@Column(name = "num_number_of_guests")
+	private Integer numNumberOfGuests;
+
+	@Column(name = "num_number_of_tables")
+	private Integer numNumberOfTables;
+
 	@Column(name = "is_edit_allowed")
 	private Boolean isEditAllowed = true;
 
@@ -207,6 +213,22 @@ public class CateringDeliveryBooking extends BaseEntity implements Serializable 
 
 	public void setMenuCategorySelections(List<EventMenuCategorySelection> menuCategorySelections) {
 		this.menuCategorySelections = menuCategorySelections;
+	}
+
+	public Integer getNumNumberOfGuests() {
+		return numNumberOfGuests;
+	}
+
+	public void setNumNumberOfGuests(Integer numNumberOfGuests) {
+		this.numNumberOfGuests = numNumberOfGuests;
+	}
+
+	public Integer getNumNumberOfTables() {
+		return numNumberOfTables;
+	}
+
+	public void setNumNumberOfTables(Integer numNumberOfTables) {
+		this.numNumberOfTables = numNumberOfTables;
 	}
 
 }

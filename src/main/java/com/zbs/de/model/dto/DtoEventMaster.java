@@ -2,6 +2,8 @@ package com.zbs.de.model.dto;
 
 import java.util.List;
 
+import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
+
 public class DtoEventMaster {
 	private Integer serEventMasterId;
 	private String txtEventMasterCode;
@@ -68,6 +70,7 @@ public class DtoEventMaster {
 	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
 //	private List<DtoEventMenuFoodSelection> foodSelections;
 	private List<DtoMenuFoodMaster> foodSelections;
+	private List<DtoCustomerMenuCategory> menuCategoriesSelection;
 
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
 
@@ -495,6 +498,14 @@ public class DtoEventMaster {
 
 	public void setFoodSelections(List<DtoMenuFoodMaster> foodSelections) {
 		this.foodSelections = foodSelections;
+	}
+
+	public List<DtoCustomerMenuCategory> getMenuCategoriesSelection() {
+		return menuCategoriesSelection;
+	}
+
+	public void setMenuCategoriesSelection(List<DtoCustomerMenuCategory> menuCategoriesSelection) {
+		this.menuCategoriesSelection = menuCategoriesSelection;
 	}
 
 }

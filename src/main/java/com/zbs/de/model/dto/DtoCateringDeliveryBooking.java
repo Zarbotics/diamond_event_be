@@ -25,6 +25,9 @@ public class DtoCateringDeliveryBooking {
 	private String txtEventTypeCode;
 	private String txtEventTypeName;
 
+	private Integer numNumberOfGuests;
+	private Integer numNumberOfTables;
+
 	private Boolean isEditAllowed;
 
 	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
@@ -203,6 +206,22 @@ public class DtoCateringDeliveryBooking {
 
 	public void setMenuCategoriesSelection(List<DtoCustomerMenuCategory> menuCategoriesSelection) {
 		this.menuCategoriesSelection = menuCategoriesSelection;
+	}
+
+	public Integer getNumNumberOfGuests() {
+		return numNumberOfGuests;
+	}
+
+	public void setNumNumberOfGuests(Integer numNumberOfGuests) {
+		this.numNumberOfGuests = numNumberOfGuests;
+	}
+
+	public Integer getNumNumberOfTables() {
+		return numNumberOfTables;
+	}
+
+	public void setNumNumberOfTables(Integer numNumberOfTables) {
+		this.numNumberOfTables = numNumberOfTables;
 	}
 
 }

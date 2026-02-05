@@ -134,6 +134,16 @@ public class ServiceReportImpl implements ServiceReport {
 	public byte[] generateEventReportClientSide(Integer eventId) throws Exception {
 		return generateReport("/reports/event/event_master_summary_client.jasper", eventId);
 	}
+	
+	@Override
+	public byte[] generateNewItineraryReport(Integer eventId) throws Exception {
+		return generateNewReport("/reports/new_event_reports/master_event_master.jasper", eventId);
+	}
+	
+	@Override
+	public byte[] generateNewCustomeReport(Integer eventId) throws Exception {
+		return generateNewReport("/reports/new_customer_report/master_event_master.jasper", eventId);
+	}
 
 	/**
 	 * Core report generation: loads the compiled .jasper from classpath, loads
@@ -186,6 +196,59 @@ public class ServiceReportImpl implements ServiceReport {
 		}
 	}
 
+	private byte[] generateNewReport(String jasperClasspathLocation, Integer eventId) {
+		// parameters for report
+		Map<String, Object> params = new HashMap<>();
+		params.put("EVENT_ID", eventId);
+		params.put(
+			    "SUBREPORT_DIR",
+			    getClass()
+			        .getResource("/reports/new_event_reports/")
+			        .toString()
+			);
+
+//		// load images and put into params (java.awt.Image)
+//		Image coverImage = loadImageFromClasspathOrFolder(CLASSPATH_COVER, "cover.jpg");
+//		Image logoImage = loadImageFromClasspathOrFolder(CLASSPATH_LOGO, "de_logo.png");
+//
+//		if (coverImage != null) {
+//			params.put("REPORT_COVER_IMAGE", coverImage);
+//		} else {
+//			LOGGER.warn("Cover image not found on classpath or configured folder.");
+//		}
+//
+//		if (logoImage != null) {
+//			params.put("REPORT_LOGO_IMAGE", logoImage);
+//		} else {
+//			LOGGER.warn("Logo image not found on classpath or configured folder.");
+//		}
+
+		// load compiled jasper and fill report
+		try (InputStream reportStream = getClass().getResourceAsStream(jasperClasspathLocation)) {
+			if (reportStream == null) {
+				LOGGER.error("Compiled report not found in classpath at: {}", jasperClasspathLocation);
+				return null;
+			}
+
+			JasperReport jasperReport = (JasperReport) JRLoader.loadObject(reportStream);
+
+			// get DB connection from DataSource; ensure it's closed after fill
+			try (Connection conn = dataSource.getConnection()) {
+				JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, conn);
+
+				// export to PDF bytes
+				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+					JasperExportManager.exportReportToPdfStream(jasperPrint, baos);
+					return baos.toByteArray();
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to generate report {} for event {} : {}", jasperClasspathLocation, eventId,
+					e.getMessage(), e);
+			return null;
+		}
+	}
+	
 	/**
 	 * Try to load image first from classpathPath (e.g.
 	 * "/static/images/de_logo.png"). If not found, try to load from configured

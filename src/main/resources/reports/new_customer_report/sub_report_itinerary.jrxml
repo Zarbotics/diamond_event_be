@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_report_itinerary" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="4f9ebcc5-fbaa-40c1-9422-46cf78aa4073">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="serverdb_dataadapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[103]]></defaultValueExpression>
+	</parameter>
+	<queryString language="plsql">
+		<![CDATA[WITH menu_selections AS (
+    -- Get all food selections for the event with quantities
+    SELECT 
+        emfs.ser_event_menu_food_id,
+        emfs.ser_event_master_id,
+        emfs.ser_menu_item_id,
+        emfs.txt_food_type,
+        emfs.num_price,
+        emfs.num_calculated_price,
+        emfs.num_final_price,
+        emc.ser_event_menu_category_id,
+        emsc.ser_event_menu_sub_category_id,
+        -- Calculate quantity based on business logic
+        1 as quantity -- This is a placeholder - adjust based on your actual quantity logic
+    FROM event_menu_food_selection emfs
+    INNER JOIN event_menu_subcategory_selection emsc 
+        ON emfs.ser_event_menu_sub_category_id = emsc.ser_event_menu_sub_category_id
+    INNER JOIN event_menu_category_selection emc 
+        ON emsc.ser_event_menu_category_id = emc.ser_event_menu_category_id
+		
+    WHERE emfs.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+        AND emfs.ser_menu_item_id IS NOT NULL
+),
+itinerary_assignments AS (
+    -- Get all itinerary assignments for the menu items
+    SELECT 
+        ia.ser_itinerary_assignment_id,
+        ia.ser_menu_item_id,
+        ia.txt_assignment_name,
+        iad.ser_itinerary_assignment_detail_id,
+        iad.ser_itinerary_item_id,
+        iad.num_display_order,
+        iad.enm_multiplier_type,
+        iad.num_multiplier_value,
+        iad.bnl_is_required,
+        iad.num_override_price,
+        ii.txt_name,
+        ii.txt_code,
+		 -- Include itinerary item type details
+		iit.ser_itinerary_item_type_id,
+        iit.txt_code as item_type_code,
+        iit.txt_name as item_type_name
+    FROM itinerary_assignment ia
+    INNER JOIN itinerary_assignment_detail iad 
+        ON ia.ser_itinerary_assignment_id = iad.ser_itinerary_assignment_id
+    INNER JOIN itinerary_item ii 
+        ON iad.ser_itinerary_item_id = ii.ser_itinerary_item_id
+	LEFT JOIN itinerary_item_type iit 
+        ON ii.ser_itinerary_item_type_id = iit.ser_itinerary_item_type_id
+    WHERE ia.ser_menu_item_id IN (
+        SELECT DISTINCT ser_menu_item_id 
+        FROM menu_selections
+    )
+    AND (
+        ia.dte_valid_from IS NULL 
+        OR ia.dte_valid_from <= CURRENT_DATE
+    )
+    AND (
+        ia.dte_valid_to IS NULL 
+        OR ia.dte_valid_to >= CURRENT_DATE
+    )
+    ORDER BY ia.num_priority DESC, iad.num_display_order ASC
+),
+calculated_quantities AS (
+    -- Calculate quantities based on multiplier type
+    SELECT 
+        ms.ser_event_master_id,
+        ms.ser_menu_item_id,
+        ms.txt_food_type,
+        ms.quantity as menu_item_quantity,
+        ia.ser_itinerary_assignment_id,
+        ia.txt_assignment_name,
+        ia.ser_itinerary_assignment_detail_id,
+        ia.ser_itinerary_item_id,
+        ia.txt_name,
+        ia.txt_code,
+        ia.ser_itinerary_item_type_id,
+        ia.item_type_code,
+        ia.item_type_name,
+        ia.enm_multiplier_type,
+        ia.num_multiplier_value,
+        ia.bnl_is_required,
+        ia.num_override_price,
+        -- Calculate itinerary item quantity based on multiplier type
+        CASE 
+            -- If multiplier type is PER_GUEST, multiply by guest count
+            WHEN ia.enm_multiplier_type = 'PER_GUEST' THEN 
+                -- Get guest count from event_master and multiply
+                (SELECT em.num_number_of_guests FROM event_master em WHERE em.ser_event_master_id = ms.ser_event_master_id) 
+                * ia.num_multiplier_value
+                * ms.quantity
+
+			 WHEN ia.enm_multiplier_type = 'PER_TABLE' THEN 
+                -- Get guest count from event_master and multiply
+                (SELECT em.num_number_of_tables FROM event_master em WHERE em.ser_event_master_id = ms.ser_event_master_id) 
+                * ia.num_multiplier_value
+                * ms.quantity
+            
+            -- If multiplier type is PER_ITEM, multiply by menu item quantity
+            WHEN ia.enm_multiplier_type = 'PER_ITEM' THEN 
+                ia.num_multiplier_value * ms.quantity
+            
+            -- If multiplier type is FIXED, use the multiplier value directly
+            WHEN ia.enm_multiplier_type = 'FIXED' THEN 
+                ia.num_multiplier_value
+            
+            -- If multiplier type is PER_CATEGORY, get category count
+            WHEN ia.enm_multiplier_type = 'PER_CATEGORY' THEN 
+                (SELECT COUNT(DISTINCT emc.ser_menu_category_id) 
+                 FROM event_menu_category_selection emc
+                 WHERE emc.ser_event_master_id = ms.ser_event_master_id)
+                * ia.num_multiplier_value
+                * ms.quantity
+            
+            -- If multiplier type is PER_SUB_CATEGORY, get sub-category count
+            WHEN ia.enm_multiplier_type = 'PER_SUB_CATEGORY' THEN 
+                (SELECT COUNT(DISTINCT emsc.ser_menu_sub_category_id) 
+                 FROM event_menu_subcategory_selection emsc
+                 INNER JOIN event_menu_category_selection emc 
+                    ON emsc.ser_event_menu_category_id = emc.ser_event_menu_category_id
+                 WHERE emc.ser_event_master_id = ms.ser_event_master_id)
+                * ia.num_multiplier_value
+                * ms.quantity
+            
+            -- Default to 1 if no multiplier type specified
+            ELSE 1 * ms.quantity
+        END as calculated_quantity,
+        
+        -- Calculate total price if override price exists
+        CASE 
+            WHEN ia.num_override_price IS NOT NULL THEN 
+                CASE 
+                    WHEN ia.enm_multiplier_type = 'PER_GUEST' THEN 
+                        ia.num_override_price * 
+                        (SELECT em.num_number_of_guests FROM event_master em WHERE em.ser_event_master_id = ms.ser_event_master_id)
+                        * ms.quantity
+                    WHEN ia.enm_multiplier_type = 'PER_ITEM' THEN 
+                        ia.num_override_price * ms.quantity
+                    WHEN ia.enm_multiplier_type = 'FIXED' THEN 
+                        ia.num_override_price
+                    ELSE ia.num_override_price * ms.quantity
+                END
+            ELSE NULL
+        END as override_total_price
+    FROM menu_selections ms
+    INNER JOIN itinerary_assignments ia 
+        ON ms.ser_menu_item_id = ia.ser_menu_item_id
+)
+-- Final aggregated result
+SELECT 
+    ser_event_master_id,
+    ser_itinerary_item_id,
+    txt_name,
+    txt_code,
+    ser_itinerary_item_type_id,
+	item_type_code as itinerary_item_type_code,
+    item_type_name as itinerary_item_type_name,
+    enm_multiplier_type,
+    MAX(num_multiplier_value) as multiplier_value,
+    SUM(calculated_quantity) as total_quantity,
+    COUNT(DISTINCT ser_menu_item_id) as number_of_menu_items,
+    COUNT(DISTINCT txt_food_type) as number_of_food_types,
+    SUM(CASE WHEN bnl_is_required = true THEN 1 ELSE 0 END) as required_assignments_count,
+    SUM(override_total_price) as total_override_price,
+    -- Group assignment names
+    STRING_AGG(DISTINCT txt_assignment_name, ', ') as assignment_names
+FROM calculated_quantities
+GROUP BY 
+    ser_event_master_id,
+    ser_itinerary_item_id,
+    txt_name,
+    txt_code,
+    ser_itinerary_item_type_id,
+	item_type_code,
+    item_type_name,
+    enm_multiplier_type
+ORDER BY 
+    item_type_name,  -- Order by itinerary item type name
+    txt_name;]]>
+	</queryString>
+	<field name="ser_event_master_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="ser_event_master_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_menu_food_selection"/>
+	</field>
+	<field name="ser_itinerary_item_id" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.label" value="ser_itinerary_item_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="itinerary_assignment_detail"/>
+	</field>
+	<field name="txt_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_name"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="itinerary_item"/>
+	</field>
+	<field name="txt_code" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_code"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="itinerary_item"/>
+	</field>
+	<field name="ser_itinerary_item_type_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="ser_itinerary_item_type_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="itinerary_item_type"/>
+	</field>
+	<field name="itinerary_item_type_code" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="itinerary_item_type_code"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="itinerary_item_type"/>
+	</field>
+	<field name="itinerary_item_type_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="itinerary_item_type_name"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="itinerary_item_type"/>
+	</field>
+	<field name="enm_multiplier_type" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="enm_multiplier_type"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="itinerary_assignment_detail"/>
+	</field>
+	<field name="multiplier_value" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="multiplier_value"/>
+	</field>
+	<field name="total_quantity" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="total_quantity"/>
+	</field>
+	<field name="number_of_menu_items" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.label" value="number_of_menu_items"/>
+	</field>
+	<field name="number_of_food_types" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.label" value="number_of_food_types"/>
+	</field>
+	<field name="required_assignments_count" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.label" value="required_assignments_count"/>
+	</field>
+	<field name="total_override_price" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="total_override_price"/>
+	</field>
+	<field name="assignment_names" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="assignment_names"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="35" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="200" height="20" forecolor="#404040" uuid="7ad77b1a-2d52-44a6-bc3b-e8b798b140ce"/>
+				<textElement>
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Itinerary Summary]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="42" splitType="Stretch">
+			<staticText>
+				<reportElement x="90" y="3" width="145" height="25" forecolor="#0033B0" uuid="47a19099-826b-4d9d-8805-a3ae4b7eacbe"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Item Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="245" y="3" width="200" height="25" forecolor="#0033B0" uuid="56d5dccd-e274-4fbe-b962-7d6bf568b4ae"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Item Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="455" y="3" width="70" height="25" forecolor="#0033B0" uuid="0baf66e4-6668-4ca4-97f2-0c194e2ba837"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Qty]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="30" y="3" width="50" height="25" forecolor="#0033B0" uuid="63d1730d-543b-4c3a-b601-32ef6eecae2c"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[#]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="25" splitType="Stretch">
+			<textField>
+				<reportElement x="30" y="0" width="50" height="25" forecolor="#0033B0" uuid="67663028-bf88-408d-8af6-c5b349e3c5ab"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="90" y="0" width="145" height="25" forecolor="#747474" uuid="0e3a70ad-1a2c-4a39-916b-150aa08ddb59"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{itinerary_item_type_name}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" isPrintRepeatedValues="false" x="0" y="-9" width="555" height="1" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" uuid="c3116819-9605-412a-b2a3-eb45014aa5be"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="245" y="0" width="200" height="25" forecolor="#747474" uuid="401eb2cf-12c1-49e3-87e6-4ba024f3c4a7"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="455" y="0" width="70" height="25" forecolor="#747474" uuid="65066db2-8324-4555-af99-123fd88415f3"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{total_quantity}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

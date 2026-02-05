@@ -31,7 +31,7 @@ public class EventMenuFoodSelection extends BaseEntity implements Serializable {
 	private Integer serEventMenuFoodId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ser_event_master_id", nullable = false)
+	@JoinColumn(name = "ser_event_master_id")
 	private EventMaster eventMaster;
 
 	@ManyToOne(fetch = FetchType.LAZY)

@@ -751,38 +751,91 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							.getSelectionsWithChosenValues(dto.getSerEventMasterId());
 					dto.setDtoEventDecorSelections(eventDecorCategorySelections);
 
-					// Fetching Event Menu Food Selection
-					// ***********************************
-
-					List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
-							.getByEventMasterId(dto.getSerEventMasterId());
-//					List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+//					// Fetching Event Menu Food Selection
+//					// ***********************************
+//
+//					List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
+//							.getByEventMasterId(dto.getSerEventMasterId());
+////					List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
+////					if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
+////						for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
+////							DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
+////									.toDto(entity);
+////							dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+////						}
+////					}
+////					dto.setFoodSelections(dtoEventMenuFoodSelections);
+//					
+//					List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
 //					if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
 //						for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
-//							DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
-//									.toDto(entity);
-//							dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
+//							if (entity.getMenuItem() != null) {
+//								DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
+//								MenuItem menuItem = entity.getMenuItem();
+//								dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
+//								dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
+//								dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
+//								dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
+//								dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
+//								dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
+//								foodSelections.add(dtoMenuFoodMaster);
+//							}
 //						}
 //					}
-//					dto.setFoodSelections(dtoEventMenuFoodSelections);
+//					dto.setFoodSelections(foodSelections);
 					
-					List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
-					if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
-						for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
-							if (entity.getMenuItem() != null) {
-								DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
-								MenuItem menuItem = entity.getMenuItem();
-								dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
-								dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
-								dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
-								dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
-								dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
-								dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
-								foodSelections.add(dtoMenuFoodMaster);
+					
+					
+					// **********************************************************************************************
+					// ************************ Food Selections Category and SubCategory Pricing ********************
+					// **********************************************************************************************
+					List<DtoCustomerMenuCategory> catDtos = new ArrayList<>();
+
+					for (EventMenuCategorySelection cat : eventMaster.getMenuCategorySelections()) {
+
+						DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
+						catDto.setCategoryId(cat.getCategory().getSerMenuItemId().longValue());
+						catDto.setCategoryName(cat.getCategory().getTxtName());
+						catDto.setNumPrice(cat.getNumTotalPrice());
+						catDto.setNumFinalPrice(cat.getNumFinalPrice());
+
+						List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
+
+						for (EventMenuSubCategorySelection sub : cat.getSubCategories()) {
+
+							DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
+							subDto.setSubCategoryId(sub.getSubCategory().getSerMenuItemId().longValue());
+							subDto.setSubCategoryName(sub.getSubCategory().getTxtName());
+							subDto.setNumPrice(sub.getNumTotalPrice());
+							subDto.setNumFinalPrice(sub.getNumFinalPrice());
+
+							List<DtoMenuItem> itemDtos = new ArrayList<>();
+
+							for (EventMenuFoodSelection item : sub.getItems()) {
+
+								MenuItem mi = item.getMenuItem();
+
+								DtoMenuItem itemDto = new DtoMenuItem();
+								itemDto.setSerMenuItemId(mi.getSerMenuItemId().longValue());
+								itemDto.setTxtCode(mi.getTxtCode());
+								itemDto.setTxtName(mi.getTxtName());
+								itemDto.setTxtShortName(mi.getTxtShortName());
+								itemDto.setTxtDescription(mi.getTxtDescription());
+								itemDto.setNumPrice(item.getNumPrice());
+								itemDto.setNumCalculatedPrice(item.getNumCalculatedPrice());
+								itemDto.setNumFinalPrice(item.getNumFinalPrice());
+
+								itemDtos.add(itemDto);
 							}
+
+							subDto.setItems(itemDtos);
+							subDtos.add(subDto);
 						}
+
+						catDto.setSubCategories(subDtos);
+						catDtos.add(catDto);
 					}
-					dto.setFoodSelections(foodSelections);
+					dto.setMenuCategoriesSelection(catDtos);
 
 					// Fetching Event Extras Selection
 					// ***********************************
@@ -1105,6 +1158,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
+				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
+
+				if(newDate != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
+					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+					if(isalreadyBooked) {
+						dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMaster.getDteEventDate());
+						return dtoResult;
+					}
+				}
 				entity.setDteEventDate(UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate()));
 				entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
@@ -1445,6 +1507,14 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				blnIsNewEvent = true;
 				entity = MapperEventMaster.toEntity(dtoEventMaster);
+				Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
+
+				Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+				if (newDate != null && isalreadyBooked) {
+					dtoResult.setTxtMessage("An event is already booked against this date.");
+					return dtoResult;
+				}
+
 				entity.setEventRunningOrder(null);
 				entity.setEventType(null);
 				entity.setDecorSelections(null);
@@ -1691,6 +1761,177 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				}
 			}
+			
+			
+			//*********************************************************************************************
+			//************************ Food Menu Categories and Sub Categories ****************************
+			//*********************************************************************************************
+			if (dtoEventMaster.getMenuCategoriesSelection() != null
+			    && !dtoEventMaster.getMenuCategoriesSelection().isEmpty()) {
+
+			    // 🔥 FIX: PROPERLY CLEAR OLD MENU SELECTIONS WITH SESSION MANAGEMENT
+			    if (entity.getMenuCategorySelections() != null && !entity.getMenuCategorySelections().isEmpty()) {
+			        // Before clearing, we need to break the bidirectional relationships
+			        // This helps orphanRemoval work correctly
+			        List<EventMenuCategorySelection> categoriesToClear = new ArrayList<>(entity.getMenuCategorySelections());
+			        
+			        for (EventMenuCategorySelection category : categoriesToClear) {
+			            // Break relationship with EventMaster
+			            category.setEventMaster(null);
+			            
+			            if (category.getSubCategories() != null) {
+			                List<EventMenuSubCategorySelection> subCategoriesToClear = 
+			                    new ArrayList<>(category.getSubCategories());
+			                
+			                for (EventMenuSubCategorySelection subCategory : subCategoriesToClear) {
+			                    // Break relationship with parent category
+			                    subCategory.setEventCategory(null);
+			                    
+			                    if (subCategory.getItems() != null) {
+			                        List<EventMenuFoodSelection> itemsToClear = new ArrayList<>(subCategory.getItems());
+			                        
+			                        for (EventMenuFoodSelection item : itemsToClear) {
+			                            // Break relationships with EventMaster and SubCategory
+			                            item.setEventMaster(null);
+			                            item.setEventSubCategory(null);
+			                        }
+			                        
+			                        // Clear the items collection
+			                        subCategory.getItems().clear();
+			                    }
+			                }
+			                
+			                // Clear the subcategories collection
+			                category.getSubCategories().clear();
+			            }
+			        }
+			        
+			        // Now clear the main collection - orphanRemoval will delete from DB
+			        entity.getMenuCategorySelections().clear();
+			        
+			        // 🔥 CRITICAL: Save immediately to persist deletions and clear session state
+			        // This flushes the deletions to DB and clears deleted entities from session
+			        entity = repositoryEventMaster.saveAndFlush(entity);
+			        
+			    } else if (entity.getMenuCategorySelections() == null) {
+			        entity.setMenuCategorySelections(new ArrayList<>());
+			    }
+
+			    // CREATE NEW MENU SELECTIONS
+			    for (DtoCustomerMenuCategory catDto : dtoEventMaster.getMenuCategoriesSelection()) {
+
+			        MenuItem category = menuItems.stream()
+			            .filter(item -> item.getSerMenuItemId() != null
+			                && item.getSerMenuItemId().intValue() == catDto.getCategoryId().intValue())
+			            .findFirst().orElse(null);
+
+			        EventMenuCategorySelection catEntity = new EventMenuCategorySelection();
+			        catEntity.setEventMaster(entity);
+			        catEntity.setCategory(category);
+			        catEntity.setNumTotalPrice(catDto.getNumPrice());
+			        catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
+
+			        // Initialize collections
+			        if (catEntity.getSubCategories() == null) {
+			            catEntity.setSubCategories(new ArrayList<>());
+			        }
+
+			        for (DtoCustomerMenuSubCategory subDto : catDto.getSubCategories()) {
+
+			            MenuItem subCategory = menuItems.stream()
+			                .filter(item -> item.getSerMenuItemId() != null
+			                    && item.getSerMenuItemId().intValue() == subDto.getSubCategoryId().intValue())
+			                .findFirst().orElse(null);
+
+			            EventMenuSubCategorySelection subEntity = new EventMenuSubCategorySelection();
+			            subEntity.setEventCategory(catEntity);
+			            subEntity.setSubCategory(subCategory);
+			            subEntity.setNumTotalPrice(subDto.getNumPrice());
+			            subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
+
+			            // Initialize items collection
+			            if (subEntity.getItems() == null) {
+			                subEntity.setItems(new ArrayList<>());
+			            }
+
+			            // Simple Items
+			            for (DtoMenuItem itemDto : subDto.getItems()) {
+
+			                MenuItem menuItem = menuItems.stream()
+			                    .filter(item -> item.getSerMenuItemId() != null
+			                        && item.getSerMenuItemId().intValue() == itemDto.getSerMenuItemId().intValue())
+			                    .findFirst().orElse(null);
+
+			                EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
+			                itemEntity.setEventMaster(entity);
+			                itemEntity.setEventSubCategory(subEntity);
+			                itemEntity.setMenuItem(menuItem);
+			                itemEntity.setNumPrice(itemDto.getNumPrice());
+			                itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
+			                itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
+
+			                subEntity.getItems().add(itemEntity);
+			            }
+
+			            // Composite Items If Exists
+			            for (DtoMenuComponentRequest itemDto : subDto.getCompositeItems()) {
+
+			                MenuItem menuItem = menuItems.stream()
+			                    .filter(item -> item.getSerMenuItemId() != null
+			                        && item.getSerMenuItemId().intValue() == itemDto.getParentMenuItemId().intValue())
+			                    .findFirst().orElse(null);
+
+			                EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
+			                itemEntity.setEventMaster(entity);
+			                itemEntity.setEventSubCategory(subEntity);
+			                itemEntity.setMenuItem(menuItem);
+			                itemEntity.setNumPrice(itemDto.getNumPrice());
+			                itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
+			                itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
+
+			                subEntity.getItems().add(itemEntity);
+			            }
+
+			            catEntity.getSubCategories().add(subEntity);
+			        }
+
+			        entity.getMenuCategorySelections().add(catEntity);
+			    }
+
+			}
+
+			// Handle case when no menu selections in DTO but editing existing event
+			else if (entity.getSerEventMasterId() != null && entity.getMenuCategorySelections() != null 
+			         && !entity.getMenuCategorySelections().isEmpty()) {
+			    
+			    // User removed all menu selections - clear them properly
+			    List<EventMenuCategorySelection> categoriesToClear = new ArrayList<>(entity.getMenuCategorySelections());
+			    
+			    for (EventMenuCategorySelection category : categoriesToClear) {
+			        category.setEventMaster(null);
+			        if (category.getSubCategories() != null) {
+			            for (EventMenuSubCategorySelection subCategory : category.getSubCategories()) {
+			                subCategory.setEventCategory(null);
+			                if (subCategory.getItems() != null) {
+			                    for (EventMenuFoodSelection item : subCategory.getItems()) {
+			                        item.setEventMaster(null);
+			                        item.setEventSubCategory(null);
+			                    }
+			                    subCategory.getItems().clear();
+			                }
+			            }
+			            category.getSubCategories().clear();
+			        }
+			    }
+			    
+			    entity.getMenuCategorySelections().clear();
+			    entity = repositoryEventMaster.saveAndFlush(entity);
+			}
+			//*********************************************************************************************
+			//*********************************************************************************************
+			//*********************************************************************************************
+
+			
 
 			// ****** Setting Event Decor Extras ******
 			if (entity.getExtrasSelections() != null) {
@@ -1869,37 +2110,59 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						.getSelectionsWithChosenValues(dto.getSerEventMasterId());
 				dto.setDtoEventDecorSelections(eventDecorCategorySelections);
 
-				// Fetching Event Menu Food Selection
-				// ***********************************
+				
+				
+				// **********************************************************************************************
+				// ************************ Food Selections Category and SubCategory Pricing ********************
+				// **********************************************************************************************
+				List<DtoCustomerMenuCategory> catDtos = new ArrayList<>();
 
-				List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
-						.getByEventMasterId(dto.getSerEventMasterId());
-//				List<DtoEventMenuFoodSelection> dtoEventMenuFoodSelections = new ArrayList<>();
-//				if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
-//					for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
-//						DtoEventMenuFoodSelection dtoEventMenuFoodSelection = MapperEventMenuFoodSelection
-//								.toDto(entity);
-//						dtoEventMenuFoodSelections.add(dtoEventMenuFoodSelection);
-//					}
-//				}
-//				dto.setFoodSelections(dtoEventMenuFoodSelections);
-				List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
-				if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
-					for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
-						if (entity.getMenuItem() != null) {
-							DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
-							MenuItem menuItem = entity.getMenuItem();
-							dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
-							dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
-							dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
-							dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
-							dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
-							dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
-							foodSelections.add(dtoMenuFoodMaster);
+				for (EventMenuCategorySelection cat : event.getMenuCategorySelections()) {
+
+					DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
+					catDto.setCategoryId(cat.getCategory().getSerMenuItemId().longValue());
+					catDto.setCategoryName(cat.getCategory().getTxtName());
+					catDto.setNumPrice(cat.getNumTotalPrice());
+					catDto.setNumFinalPrice(cat.getNumFinalPrice());
+
+					List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
+
+					for (EventMenuSubCategorySelection sub : cat.getSubCategories()) {
+
+						DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
+						subDto.setSubCategoryId(sub.getSubCategory().getSerMenuItemId().longValue());
+						subDto.setSubCategoryName(sub.getSubCategory().getTxtName());
+						subDto.setNumPrice(sub.getNumTotalPrice());
+						subDto.setNumFinalPrice(sub.getNumFinalPrice());
+
+						List<DtoMenuItem> itemDtos = new ArrayList<>();
+
+						for (EventMenuFoodSelection item : sub.getItems()) {
+
+							MenuItem mi = item.getMenuItem();
+
+							DtoMenuItem itemDto = new DtoMenuItem();
+							itemDto.setSerMenuItemId(mi.getSerMenuItemId().longValue());
+							itemDto.setTxtCode(mi.getTxtCode());
+							itemDto.setTxtName(mi.getTxtName());
+							itemDto.setTxtShortName(mi.getTxtShortName());
+							itemDto.setTxtDescription(mi.getTxtDescription());
+							itemDto.setNumPrice(item.getNumPrice());
+							itemDto.setNumCalculatedPrice(item.getNumCalculatedPrice());
+							itemDto.setNumFinalPrice(item.getNumFinalPrice());
+
+							itemDtos.add(itemDto);
 						}
+
+						subDto.setItems(itemDtos);
+						subDtos.add(subDto);
 					}
+
+					catDto.setSubCategories(subDtos);
+					catDtos.add(catDto);
 				}
-				dto.setFoodSelections(foodSelections);
+				dto.setMenuCategoriesSelection(catDtos);
+
 
 				// Fetching Event Extras Selection
 				// ***********************************
@@ -2043,8 +2306,16 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMasterAdminPortal.getTxtEventMasterName());
-				entity.setDteEventDate(
-						UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate()));
+				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
+
+				if(newDate != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
+					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+					if(isalreadyBooked) {
+						dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMasterAdminPortal.getDteEventDate());
+						return dtoResult;
+					}
+				}
+				entity.setDteEventDate(newDate);
 				entity.setNumNumberOfGuests(dtoEventMasterAdminPortal.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMasterAdminPortal.getNumNumberOfTables());
 				entity.setTxtBrideName(dtoEventMasterAdminPortal.getTxtBrideName());
@@ -2365,6 +2636,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				blnIsNewEvent = true;
 				entity = MapperEventMaster.dtoEventMasterAdminPortalToEntity(dtoEventMasterAdminPortal);
+
+				Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
+
+				Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+				if (newDate != null && isalreadyBooked) {
+					dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMasterAdminPortal.getDteEventDate());
+					return dtoResult;
+				}
+				
 				entity.setEventRunningOrder(null);
 				entity.setEventType(null);
 				entity.setDecorSelections(null);
@@ -2876,50 +3156,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						.getSelectionsWithChosenValues(dto.getSerEventMasterId());
 				dto.setDtoEventDecorSelections(eventDecorCategorySelections);
 
-//				// Fetching Event Menu Food Selection
-//				// ***********************************
-//
-//				List<EventMenuFoodSelection> eventMenuFoodSelections = serviceEventMenuFoodSelection
-//						.getByEventMasterId(dto.getSerEventMasterId());
-//
-////				Map<String, List<DtoMenuFoodMaster>> foodSelectionsMap = new HashMap<>();
-//				List<DtoMenuFoodMaster> foodSelections = new ArrayList<>();
-//				if (UtilRandomKey.isNotNull(eventMenuFoodSelections)) {
-//					for (EventMenuFoodSelection entity : eventMenuFoodSelections) {
-////						if (entity.getMenuFoodMaster() != null) {
-//							if (entity.getMenuItem() != null) {
-//							DtoMenuFoodMaster dtoMenuFoodMaster = new DtoMenuFoodMaster();
-//							MenuItem menuItem = entity.getMenuItem();
-//
-////							dtoMenuFoodMaster.setSerMenuFoodId(foodMaster.getSerMenuFoodId());
-////							dtoMenuFoodMaster.setTxtMenuFoodCode(foodMaster.getTxtMenuFoodCode());
-////							dtoMenuFoodMaster.setTxtMenuFoodName(foodMaster.getTxtMenuFoodName());
-////							dtoMenuFoodMaster.setBlnIsMainCourse(foodMaster.getBlnIsMainCourse());
-////							dtoMenuFoodMaster.setBlnIsAppetiser(foodMaster.getBlnIsAppetiser());
-////							dtoMenuFoodMaster.setBlnIsStarter(foodMaster.getBlnIsStarter());
-////							dtoMenuFoodMaster.setBlnIsSaladAndCondiment(foodMaster.getBlnIsSaladAndCondiment());
-////							dtoMenuFoodMaster.setBlnIsDessert(foodMaster.getBlnIsDessert());
-////							dtoMenuFoodMaster.setBlnIsDrink(foodMaster.getBlnIsDrink());
-//							dtoMenuFoodMaster.setBlnIsActive(menuItem.getBlnIsActive());
-//							dtoMenuFoodMaster.setSerMenuItemId(menuItem.getSerMenuItemId());
-//							dtoMenuFoodMaster.setTxtName(menuItem.getTxtName());
-//							dtoMenuFoodMaster.setTxtCode(menuItem.getTxtCode());
-//							dtoMenuFoodMaster.setTxtDescription(menuItem.getTxtDescription());
-//							dtoMenuFoodMaster.setNumPrice(entity.getNumPrice());
-//
-////							String foodType = getFoodType(foodMaster);
-//
-////							if (!foodSelectionsMap.containsKey(foodType)) {
-////								foodSelectionsMap.put(foodType, new ArrayList<>());
-////							}
-////							foodSelectionsMap.get(foodType).add(dtoMenuFoodMaster);
-//							foodSelections.add(dtoMenuFoodMaster);
-//						}
-//					}
-//				}
-//
-////				dto.setFoodSelections(foodSelectionsMap);
-//				dto.setFoodSelections(foodSelections);
 				
 				// **********************************************************************************************
 				// ************************ Food Selections Category and SubCategory Pricing ********************
@@ -3560,5 +3796,48 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		sortedEvents.addAll(nullDateEvents);
 
 		return sortedEvents;
+	}
+	
+	@Transactional
+	public DtoResult validateEventDateAvailability(Date eventDate) {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			 boolean alreadyBooked =
+			            repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(eventDate);
+
+			    if (alreadyBooked) {
+			        dtoResult.setTxtMessage("An event is already registered at this date.");
+			        dtoResult.setResult(alreadyBooked);
+			    }else {
+			        dtoResult.setTxtMessage("No event is registered at this date.");
+			        dtoResult.setResult(alreadyBooked);
+			    }
+			    return dtoResult;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
+		}
+	   
+	}
+
+	@Override
+	public DtoResult getAlreadyBookedDates() {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			List<Date> dates = repositoryEventMaster.getAlreadyBookedDates();
+			List<String> strDates =new ArrayList<>();
+			for(Date date : dates) {
+				String strdate = UtilDateAndTime.mmddyyyyDateToString(date);
+				strDates.add(strdate);
+			}
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(strDates);
+			return dtoResult;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage(e.getMessage());
+			return dtoResult;
+		}
 	}
 }
