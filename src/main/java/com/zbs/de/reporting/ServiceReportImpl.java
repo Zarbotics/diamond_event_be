@@ -136,8 +136,13 @@ public class ServiceReportImpl implements ServiceReport {
 	}
 	
 	@Override
-	public byte[] generateNewEventReport(Integer eventId) throws Exception {
+	public byte[] generateNewItineraryReport(Integer eventId) throws Exception {
 		return generateNewReport("/reports/new_event_reports/master_event_master.jasper", eventId);
+	}
+	
+	@Override
+	public byte[] generateNewCustomeReport(Integer eventId) throws Exception {
+		return generateNewReport("/reports/new_customer_report/master_event_master.jasper", eventId);
 	}
 
 	/**
@@ -195,6 +200,12 @@ public class ServiceReportImpl implements ServiceReport {
 		// parameters for report
 		Map<String, Object> params = new HashMap<>();
 		params.put("EVENT_ID", eventId);
+		params.put(
+			    "SUBREPORT_DIR",
+			    getClass()
+			        .getResource("/reports/new_event_reports/")
+			        .toString()
+			);
 
 //		// load images and put into params (java.awt.Image)
 //		Image coverImage = loadImageFromClasspathOrFolder(CLASSPATH_COVER, "cover.jpg");

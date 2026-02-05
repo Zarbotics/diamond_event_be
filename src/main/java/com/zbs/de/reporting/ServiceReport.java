@@ -8,5 +8,7 @@ public interface ServiceReport {
 	
 	 byte[] generateEventReportClientSide(Integer eventId) throws Exception;
 	 
-	 byte[] generateNewEventReport(Integer eventId) throws Exception;
+	 byte[] generateNewItineraryReport(Integer eventId) throws Exception;
+	 
+	 byte[] generateNewCustomeReport(Integer eventId) throws Exception;
 }

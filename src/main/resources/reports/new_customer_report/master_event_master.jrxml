@@ -8,7 +8,11 @@
 	</parameter>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String"/>
 	<queryString language="plsql">
-		<![CDATA[SELECT e.dte_event_date AS event_date, COALESCE(
+		<![CDATA[SELECT 
+COALESCE (e.txt_event_master_name || ''
+) AS event_namm,
+e.dte_event_date AS event_date, 
+COALESCE(
         c.txt_first_name || 
         CASE 
             WHEN c.txt_last_name IS NOT NULL THEN ' ' || c.txt_last_name 
@@ -52,10 +56,12 @@ LEFT JOIN event_type et
        ON e.ser_event_type_id = et.ser_event_type_id
 LEFT JOIN event_running_order r 
        ON e.ser_event_running_order_id = r.ser_event_running_order_id
-
 WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
   AND e.bln_is_deleted = FALSE]]>
 	</queryString>
+	<field name="event_namm" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="event_namm"/>
+	</field>
 	<field name="event_date" class="java.sql.Timestamp">
 		<property name="com.jaspersoft.studio.field.label" value="event_date"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="event_master"/>
@@ -75,6 +81,10 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 	<field name="groom_name" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="groom_name"/>
 	</field>
+	<field name="ser_event_type_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="ser_event_type_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_type"/>
+	</field>
 	<field name="venue_name" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="venue_name"/>
 	</field>
@@ -83,9 +93,6 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 	</field>
 	<field name="running_order_code" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="running_order_code"/>
-	</field>
-	<field name="ser_event_type_id" class="java.lang.Integer">
-		<property name="com.jaspersoft.studio.field.label" value="ser_event_type_id"/>
 	</field>
 	<background>
 		<band splitType="Stretch"/>
@@ -96,25 +103,29 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 				<reportElement mode="Opaque" x="0" y="0" width="555" height="100" isPrintInFirstWholeBand="true" backcolor="#03267B" uuid="911cf467-4cac-4ed7-8139-4a5ac4fce658">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
-				<staticText>
-					<reportElement x="235" y="30" width="90" height="30" forecolor="#FFFFFF" uuid="d6388f77-5a9c-414c-9ced-e22d08c6e2f9"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font fontName="Butler" size="22"/>
-					</textElement>
-					<text><![CDATA[Itinerary]]></text>
-				</staticText>
 				<textField>
 					<reportElement x="185" y="60" width="190" height="30" forecolor="#FFFFFF" uuid="4b85ab8a-27f9-4ccb-b5b9-3699910df80a"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
 						<font fontName="Butler"/>
 					</textElement>
-					<textFieldExpression><![CDATA["DATE OF MEETING : " + $F{event_date}]]></textFieldExpression>
+					<textFieldExpression><![CDATA["Event Date : " + $F{event_date}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="215" y="28" width="130" height="30" forecolor="#FFFFFF" uuid="86c3ae05-77b3-4fd0-8f89-e1cecb9c8e93">
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="Butler" size="22"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{event_namm}]]></textFieldExpression>
 				</textField>
 			</frame>
 		</band>
 	</title>
 	<detail>
-		<band height="503" splitType="Stretch">
+		<band height="395" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<staticText>
 				<reportElement x="0" y="10" width="200" height="20" forecolor="#404040" uuid="b8c505aa-5b02-46c6-90e9-2b0f71502a9a"/>
@@ -325,6 +336,16 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_decor_selection.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="600">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="580" uuid="52b4f7cf-3f40-4289-ba4d-c5298ea2f775"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_summary.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</detail>

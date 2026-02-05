@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_report_summary" pageWidth="555" pageHeight="580" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="51f9eb0c-4cf3-4d48-9663-948621e68779">
+	<property name="com.jaspersoft.studio.whenNoDataType" value="NoPages"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="serverdb_dataadapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[103]]></defaultValueExpression>
+	</parameter>
+	<queryString language="plsql">
+		<![CDATA[SELECT num_qouted_price, num_paid_amount
+        FROM event_budget
+        WHERE ser_event_master_id = $P{P_EVENT_MASTER_ID}]]>
+	</queryString>
+	<field name="num_qouted_price" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="num_qouted_price"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_budget"/>
+	</field>
+	<field name="num_paid_amount" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="num_paid_amount"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_budget"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="560" splitType="Prevent">
+			<rectangle>
+				<reportElement x="67" y="20" width="401" height="76" backcolor="#F5F5FD" uuid="a7598ca9-c85e-4e1e-8e05-c13a67cd986b"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement x="100" y="40" width="150" height="36" forecolor="#404040" uuid="ccf98975-f72e-40dd-9846-e1feee6f5605"/>
+				<textElement textAlignment="Left">
+					<font fontName="Butler" size="17"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Package Total £" + $F{num_qouted_price}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="319" y="30" width="107" height="17" forecolor="#222222" uuid="6af54a69-5167-42ad-8dd1-c86f9161f4f3">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="11"/>
+				</textElement>
+				<text><![CDATA[Payment Information
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="319" y="48" width="107" height="35" forecolor="#747474" uuid="3732a174-79d4-41bd-97e9-573638c2ec37">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="7.68"/>
+				</textElement>
+				<text><![CDATA[Diamond Shaadi Glasgow limited Sort Code - 83 16 15 Account Number - 10206266]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="226" y="125" width="82" height="20" forecolor="#222222" uuid="a425dca8-bfc4-41fc-ab00-973b8ef9a027">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Jost" size="11"/>
+				</textElement>
+				<text><![CDATA[Payment Terms]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="81" y="145" width="373" height="30" forecolor="#747474" uuid="ce89f48e-e0eb-4ce8-96e0-b81208ab27e4">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[PLEASE NOTE, YOUR QUOTE IS VALID FOR 14 DAYS, IF YOU DO NOT SECURE THE EVENT BY PAYING A DEPOSIT BY THIS TIME, WE ARE NOT OBLIGED TO HONOUR THE ORIGINAL QUOTE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="195" width="501" height="20" uuid="bf1c4f84-ea12-4197-9023-45c8aac3861d">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="11"/>
+				</textElement>
+				<text><![CDATA[Booking Terms]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="215" width="501" height="15" forecolor="#747474" uuid="6d680749-34dd-4c7a-b8f2-7f27fe850ea9">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[To secure your date - £1000. (Remaining amount paid 4 weeks before the event)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="230" width="71" height="15" forecolor="#747474" uuid="618e098f-5e1b-4e2d-a795-35bdd6909fa3">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Deposit payment to:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="103" y="230" width="427" height="15" forecolor="#3C3C3C" uuid="9db3634e-25dd-432d-a5f6-a2c928d1222a">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Diamond Shaadi Glasgow Limited]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="245" width="40" height="15" forecolor="#747474" uuid="65549b24-17d7-4ee0-8ea9-9f43f84991fa">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Sort Code:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="69" y="245" width="488" height="15" forecolor="#3C3C3C" uuid="8cdce496-0419-4f14-87fc-5376eec10b55">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[83 16 15]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="260" width="62" height="15" forecolor="#747474" uuid="02caee38-d908-4066-901e-19f74ea734b8">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Account Number: ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="91" y="260" width="439" height="15" forecolor="#3C3C3C" uuid="9737603d-989c-438d-89e3-96294d400a6f">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[ 10206266]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="303" width="501" height="20" uuid="16316c55-3cbe-4a32-908f-47ac83bb6939">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Jost" size="11"/>
+				</textElement>
+				<text><![CDATA[Full Terms & Payment Policy]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="330" width="501" height="70" forecolor="#747474" uuid="9d96095c-c705-4dc6-9eea-f50c0d58e3ac">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Justified">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Person responsible for paying the bill must be present at the first meeting. Initial costing will be agreed in principle. A formal quotation will be sent out to this nominated person. Any subsequent amendments, additions, changes of dates or cancellation can only be authorised by this person, who will also be ultimately responsible for ensuring payments are made on time as agreed on the quotation. The £1000 confirmation deposit is non-refundable but is taken off your balance. The remainder of the balance is payable 4 weeks before the event date. Please note provisional bookings are not confirmed until a deposit has been paid and accepted. We may release your dates to other clients without notice unless your booking is confirmed with a deposit.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="407" width="501" height="82" forecolor="#747474" uuid="38389205-fec3-45ce-8971-375e2835ab50">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Justified">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Once a deposit has been paid, the price will not later be increased due to escalating costs or artificially inflated. This is regardless of costs incurred towards us. If the client wishes to amend their design, any price differences will be fully discussed and agreed. A new written quote will be produced to confirm this. The quote we send will include everything discussed, if anything is missing, please advise so it can be rectified and added to your order. If something was requested but wasn’t present on the invoice it is the client’s duty to inform us, we will not take responsibility for anything not included on the invoice. Once the final copy of the order form has been sent no subsequent changes or alterations can be made.
+As a policy we do not work with any third-party décor/catering companies. We reserve the right to cancel your event and withhold your deposit if such an instance was to occur.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="498" width="501" height="22" forecolor="#747474" uuid="971658ae-2da4-4136-b548-6efe355f1b55">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Justified">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Please note all changes must be submitted by email only and up until 4 weeks before your event. All changes must be sent to - info@diamondevents.uk]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="527" width="501" height="22" forecolor="#747474" uuid="a091abe0-acd5-4b16-9221-ce847d206530">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Justified">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[As a matter of policy, we do not work on a credit or pay monthly basis. Any such request will be refused]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<pageFooter>
+		<band/>
+	</pageFooter>
+	<summary>
+		<band/>
+	</summary>
+</jasperReport>

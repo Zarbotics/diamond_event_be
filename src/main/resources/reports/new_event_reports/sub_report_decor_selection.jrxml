@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_report_decor_selection" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="ca5cbc7d-bb58-4189-95b4-cdc2844bc3da">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<subDataset name="CategoryDataset" uuid="0b83351f-53b6-4c7f-9893-42f27fd7d640">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="291"/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="709"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+		<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer"/>
+		<queryString language="SQL">
+			<![CDATA[SELECT edcs.ser_event_decor_category_selection_id, dcm.txt_decor_category_name, edcs.num_price FROM event_decor_category_selection edcs JOIN decor_category_master dcm ON dcm.ser_decor_category_id = edcs.ser_decor_category_id WHERE edcs.ser_event_master_id = $P{P_EVENT_MASTER_ID} ORDER BY dcm.txt_decor_category_name DESC]]>
+		</queryString>
+		<field name="ser_event_decor_category_selection_id" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.label" value="ser_event_decor_category_selection_id"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_decor_category_selection"/>
+		</field>
+		<field name="txt_decor_category_name" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.label" value="txt_decor_category_name"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="decor_category_master"/>
+		</field>
+		<field name="num_price" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.label" value="num_price"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_decor_category_selection"/>
+		</field>
+	</subDataset>
+	<subDataset name="DecorPropertyDataset" uuid="cf5ce5d2-a040-42f9-9546-d8d743ef67fa">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="244"/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="745"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+		<parameter name="P_EVENT_DECOR_CATEGORY_SELECTION_ID" class="java.lang.Integer"/>
+		<queryString language="SQL">
+			<![CDATA[SELECT edps.ser_event_decor_property_id, edps.num_price, dpm.txt_property_name, dpm.txt_input_type, dpv.txt_property_value, dpvd.file_path FROM event_decor_property_selection edps JOIN decor_category_property_master dpm ON dpm.ser_property_id = edps.ser_property_id LEFT JOIN decor_category_property_value dpv ON dpv.ser_property_value_id = edps.ser_property_value_id LEFT JOIN decor_category_property_value_document dpvd ON dpvd.ser_document_id = dpv.ser_document_id WHERE edps.ser_event_decor_category_selection_id = $P{P_EVENT_DECOR_CATEGORY_SELECTION_ID} ORDER BY dpm.txt_property_name]]>
+		</queryString>
+		<field name="ser_event_decor_property_id" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.label" value="ser_event_decor_property_id"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_decor_property_selection"/>
+		</field>
+		<field name="num_price" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.label" value="num_price"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_decor_property_selection"/>
+		</field>
+		<field name="txt_property_name" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.label" value="txt_property_name"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="decor_category_property_master"/>
+		</field>
+		<field name="txt_input_type" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.label" value="txt_input_type"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="decor_category_property_master"/>
+		</field>
+		<field name="txt_property_value" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.label" value="txt_property_value"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="decor_category_property_value"/>
+		</field>
+		<field name="file_path" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.label" value="file_path"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="decor_category_property_value_document"/>
+		</field>
+	</subDataset>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[103]]></defaultValueExpression>
+	</parameter>
+	<queryString language="plsql">
+		<![CDATA[SELECT 
+    COALESCE(category_total, 0) + COALESCE(property_total, 0) AS total_decor_price
+FROM (
+    -- Sum of all category prices
+    SELECT SUM(num_price) AS category_total
+    FROM event_decor_category_selection
+    WHERE ser_event_master_id = $P{P_EVENT_MASTER_ID}
+) cat_sum,
+(
+    -- Sum of all property prices linked to categories of this event
+    SELECT SUM(edps.num_price) AS property_total
+    FROM event_decor_category_selection edcs
+    JOIN event_decor_property_selection edps
+        ON edps.ser_event_decor_category_selection_id = edcs.ser_event_decor_category_selection_id
+    WHERE edcs.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+) prop_sum;
+]]>
+	</queryString>
+	<field name="total_decor_price" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="total_decor_price"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="68" splitType="Stretch">
+			<staticText>
+				<reportElement x="10" y="30" width="100" height="30" forecolor="#404040" uuid="f9bb8386-cee1-449f-b9a0-fd34721de848"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Decor]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="95" splitType="Stretch">
+			<frame>
+				<reportElement x="11" y="2" width="574" height="92" uuid="e145f5e9-5fb9-4f9f-ac79-7668c1193fca">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+				</box>
+				<componentElement>
+					<reportElement x="-1" y="2" width="571" height="80" uuid="d929f92c-9d82-4286-a4a8-ca9f7d30e060">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					</reportElement>
+					<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+						<datasetRun subDataset="CategoryDataset" uuid="f1c510d9-3152-44bc-a108-062f76b42f5c">
+							<datasetParameter name="P_EVENT_MASTER_ID">
+								<datasetParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+						<jr:listContents height="80" width="571">
+							<textField>
+								<reportElement x="29" y="3" width="135" height="18" forecolor="#0033B0" uuid="d7db446e-4c31-408e-bff7-f6519a23396e">
+									<property name="com.jaspersoft.studio.unit.height" value="px"/>
+								</reportElement>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Jost" size="8" isBold="false"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{txt_decor_category_name}]]></textFieldExpression>
+							</textField>
+							<componentElement>
+								<reportElement x="29" y="35" width="525" height="25" uuid="0aa3820c-f3e7-48ee-85ac-88f1450d3861">
+									<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+								</reportElement>
+								<jr:list printOrder="Vertical">
+									<datasetRun subDataset="DecorPropertyDataset" uuid="dd637cf3-cb12-483b-8f75-3b720ed40695">
+										<datasetParameter name="P_EVENT_DECOR_CATEGORY_SELECTION_ID">
+											<datasetParameterExpression><![CDATA[$F{ser_event_decor_category_selection_id}]]></datasetParameterExpression>
+										</datasetParameter>
+										<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+									</datasetRun>
+									<jr:listContents height="25" width="525">
+										<textField>
+											<reportElement x="0" y="5" width="150" height="20" forecolor="#747474" uuid="c35d6c50-3908-45bb-a8a8-468e8479eedb">
+												<property name="com.jaspersoft.studio.unit.x" value="px"/>
+											</reportElement>
+											<textElement>
+												<font fontName="Jost" size="9"/>
+											</textElement>
+											<textFieldExpression><![CDATA[$F{txt_property_name}]]></textFieldExpression>
+										</textField>
+										<textField>
+											<reportElement x="160" y="5" width="140" height="20" forecolor="#747474" uuid="7b2eefc5-036e-4147-8c00-d61bc0e4e243">
+												<property name="com.jaspersoft.studio.unit.x" value="px"/>
+											</reportElement>
+											<textFieldExpression><![CDATA[$F{txt_property_value}]]></textFieldExpression>
+										</textField>
+										<textField>
+											<reportElement x="450" y="5" width="75" height="20" forecolor="#747474" uuid="0a65a8b9-ac74-4120-98af-25c513f2adc7">
+												<property name="com.jaspersoft.studio.unit.y" value="px"/>
+												<property name="com.jaspersoft.studio.unit.x" value="px"/>
+												<property name="com.jaspersoft.studio.unit.width" value="px"/>
+											</reportElement>
+											<textElement>
+												<font fontName="Jost" size="8" isBold="false"/>
+											</textElement>
+											<textFieldExpression><![CDATA[$F{num_price}]]></textFieldExpression>
+										</textField>
+									</jr:listContents>
+								</jr:list>
+							</componentElement>
+							<line>
+								<reportElement x="0" y="31" width="566" height="1" uuid="a100cf79-a725-4825-af77-57b0fe68668c">
+									<property name="com.jaspersoft.studio.unit.y" value="px"/>
+									<property name="com.jaspersoft.studio.unit.x" value="px"/>
+									<property name="com.jaspersoft.studio.unit.width" value="px"/>
+								</reportElement>
+								<graphicElement>
+									<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+								</graphicElement>
+							</line>
+							<textField>
+								<reportElement x="480" y="3" width="70" height="18" forecolor="#0033B0" uuid="06ac8491-f034-4b35-b4a1-b47b0651a2e2">
+									<property name="com.jaspersoft.studio.unit.height" value="px"/>
+								</reportElement>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Jost" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{num_price}]]></textFieldExpression>
+							</textField>
+						</jr:listContents>
+					</jr:list>
+				</componentElement>
+			</frame>
+		</band>
+		<band height="108" splitType="Stretch">
+			<frame>
+				<reportElement x="11" y="0" width="574" height="36" forecolor="#F1F2F6" uuid="7027d758-3591-4482-962b-89e71ac99724">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<rectangle>
+					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="574" height="36" forecolor="#F1F2F6" backcolor="#F9F5FD" uuid="a7f02ae7-73bc-4c65-91fd-aead6aaaee81">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+				</rectangle>
+				<staticText>
+					<reportElement x="30" y="10" width="100" height="17" forecolor="#0033B0" uuid="15216f3c-f37d-419e-a21f-4d7267a1b533"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Jost" size="8"/>
+					</textElement>
+					<text><![CDATA[Decor Sub Total]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="480" y="10" width="80" height="17" forecolor="#0033B0" uuid="6614f1d1-4b3c-4b18-897d-361d601eed23"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Jost" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{total_decor_price}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement x="11" y="36" width="574" height="36" forecolor="#F1F2F6" uuid="b13ea7d0-cb37-41c3-915c-c72b1feda150">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<rectangle>
+					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="574" height="36" forecolor="#F1F2F6" backcolor="#F4ECFB" uuid="57d8a71f-2fe7-4779-9f3e-04c9a4db95a1">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+				</rectangle>
+			</frame>
+			<frame>
+				<reportElement x="11" y="72" width="574" height="36" forecolor="#F1F2F6" uuid="d2041541-d092-428e-ab4d-3a8706a0259e">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<rectangle>
+					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="574" height="36" forecolor="#F1F2F6" backcolor="#ECE0F8" uuid="50a27216-bcc1-466c-ac04-42d3479e7060">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+				</rectangle>
+			</frame>
+		</band>
+	</detail>
+</jasperReport>

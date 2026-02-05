@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="fontFamilies">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="fontFamily">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="normal" />
+							<xs:element name="bold" />
+							<xs:element name="italic" />
+							<xs:element name="boldItalic" />
+							<xs:element name="pdfEncoding" type="xs:string" />
+							<xs:element name="pdfEmbedded" type="xs:string" />
+						</xs:sequence>
+						<xs:attribute name="name" use="required" />
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

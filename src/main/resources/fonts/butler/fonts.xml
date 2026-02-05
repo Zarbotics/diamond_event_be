@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<fontFamilies>
-    <fontFamily name="Butler">
-        <normal><![CDATA[Butler_Regular.ttf]]></normal>
-        <bold><![CDATA[Butler_Bold.ttf]]></bold>
-        <italic><![CDATA[Butler_Regular.ttf]]></italic>
-        <boldItalic><![CDATA[Butler_Bold.ttf]]></boldItalic>
-        <pdfEncoding><![CDATA[Identity-H]]></pdfEncoding>
-        <pdfEmbedded><![CDATA[true]]></pdfEmbedded>
-    </fontFamily>
+<fontFamilies xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="fonts.xsd">
+	<fontFamily name="Butler">
+		<normal><![CDATA[fonts/butler/Butler_Regular.ttf]]></normal>
+		<bold><![CDATA[fonts/butler/Butler_Bold.ttf]]></bold>
+
+		<pdfEncoding>Identity-H</pdfEncoding>
+		<pdfEmbedded>true</pdfEmbedded>
+	</fontFamily>
 </fontFamilies>
