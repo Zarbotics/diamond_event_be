@@ -1152,7 +1152,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
 				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
 
-				if(newDate.compareTo(entity.getDteEventDate()) != 0) {
+				if(newDate != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
 					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
 					if(isalreadyBooked) {
 						dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMaster.getDteEventDate());
@@ -1498,7 +1498,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
 
 				Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
-				if (isalreadyBooked) {
+				if (newDate != null && isalreadyBooked) {
 					dtoResult.setTxtMessage("An event is already booked against this date.");
 					return dtoResult;
 				}
@@ -2293,7 +2293,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtEventMasterName(dtoEventMasterAdminPortal.getTxtEventMasterName());
 				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
 
-				if(newDate.compareTo(entity.getDteEventDate()) != 0) {
+				if(newDate != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
 					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
 					if(isalreadyBooked) {
 						dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMasterAdminPortal.getDteEventDate());
@@ -2621,7 +2621,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
 
 				Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
-				if (isalreadyBooked) {
+				if (newDate != null && isalreadyBooked) {
 					dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMasterAdminPortal.getDteEventDate());
 					return dtoResult;
 				}

@@ -148,7 +148,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 						.existsByDteDeliveryDateAndBlnIsDeletedFalse(mapped.getDteDeliveryDate());
 
 			}
-			if (isalreadyBooked) {
+			if (mapped.getDteDeliveryDate() != null && isalreadyBooked) {
 				result.setTxtMessage("An event is already booked against this date." + mapped.getDteDeliveryDate());
 				return result;
 			}
@@ -500,7 +500,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 						.existsByDteDeliveryDateAndBlnIsDeletedFalse(mapped.getDteDeliveryDate());
 
 			}
-			if (isalreadyBooked) {
+			if (mapped.getDteDeliveryDate() != null && isalreadyBooked) {
 				result.setTxtMessage("An catering event is already booked against this date." + mapped.getDteDeliveryDate());
 				return result;
 			}
