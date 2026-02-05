@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="master_event_master" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="55d783f5-5130-4e4d-b02c-7fa8f9d27356">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[97]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String"/>
+	<queryString language="plsql">
+		<![CDATA[SELECT 
+COALESCE (e.txt_event_master_name || ''
+) AS event_namm,
+e.dte_event_date AS event_date, 
+COALESCE(
+        c.txt_first_name || 
+        CASE 
+            WHEN c.txt_last_name IS NOT NULL THEN ' ' || c.txt_last_name 
+            ELSE '' 
+        END,
+        '' 
+    ) AS client_name,
+
+    COALESCE(c.txt_email, '') AS email,
+    COALESCE(c.txt_phone_number_1, '') AS contact_no,
+
+    COALESCE(
+        e.txt_bride_first_name ||
+        CASE 
+            WHEN e.txt_bride_last_name IS NOT NULL THEN ' ' || e.txt_bride_last_name 
+            ELSE '' 
+        END,
+        ''
+    ) AS bride_name,
+
+    COALESCE(
+        e.txt_groom_first_name ||
+        CASE 
+            WHEN e.txt_groom_last_name IS NOT NULL THEN ' ' || e.txt_groom_last_name 
+            ELSE '' 
+        END,
+        ''
+    ) AS groom_name,
+    et.ser_event_type_id,
+
+    COALESCE(v.txt_venue_name, '') AS venue_name,
+    COALESCE(et.txt_event_type_name, '') AS event_type_name,
+    COALESCE(r.txt_event_running_order_code, '') AS running_order_code
+
+FROM event_master e
+LEFT JOIN customer_master c 
+       ON e.ser_cust_id = c.ser_cust_id
+LEFT JOIN venue_master v 
+       ON e.ser_venue_master_id = v.ser_venue_master_id
+LEFT JOIN event_type et 
+       ON e.ser_event_type_id = et.ser_event_type_id
+LEFT JOIN event_running_order r 
+       ON e.ser_event_running_order_id = r.ser_event_running_order_id
+WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+  AND e.bln_is_deleted = FALSE]]>
+	</queryString>
+	<field name="event_namm" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="event_namm"/>
+	</field>
+	<field name="event_date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="event_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_master"/>
+	</field>
+	<field name="client_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="client_name"/>
+	</field>
+	<field name="email" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="email"/>
+	</field>
+	<field name="contact_no" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="contact_no"/>
+	</field>
+	<field name="bride_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="bride_name"/>
+	</field>
+	<field name="groom_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="groom_name"/>
+	</field>
+	<field name="ser_event_type_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="ser_event_type_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_type"/>
+	</field>
+	<field name="venue_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="venue_name"/>
+	</field>
+	<field name="event_type_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="event_type_name"/>
+	</field>
+	<field name="running_order_code" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="running_order_code"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="100">
+			<frame borderSplitType="NoBorders">
+				<reportElement mode="Opaque" x="0" y="0" width="555" height="100" isPrintInFirstWholeBand="true" backcolor="#03267B" uuid="911cf467-4cac-4ed7-8139-4a5ac4fce658">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textField>
+					<reportElement x="185" y="60" width="190" height="30" forecolor="#FFFFFF" uuid="4b85ab8a-27f9-4ccb-b5b9-3699910df80a"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Butler"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Event Date : " + $F{event_date}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="215" y="28" width="130" height="30" forecolor="#FFFFFF" uuid="86c3ae05-77b3-4fd0-8f89-e1cecb9c8e93">
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="Butler" size="22"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{event_namm}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</title>
+	<detail>
+		<band height="395" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement x="0" y="10" width="200" height="20" forecolor="#404040" uuid="b8c505aa-5b02-46c6-90e9-2b0f71502a9a"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Client Details]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="35" width="555" height="80" forecolor="#F1F2F6" backcolor="#FFFFFF" uuid="a8600195-cfc6-42dd-9556-9ae98e6db74d"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="10" y="40" width="90" height="15" forecolor="#0033B0" uuid="49c44bfb-7eb7-46b1-8023-e97460c78406"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="110" y="40" width="120" height="15" forecolor="#0033B0" uuid="ae71e365-4721-4eb6-af07-a9429a9543a6"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Email]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="240" y="40" width="90" height="15" forecolor="#0033B0" uuid="6dcc870b-fbd2-400d-9cf6-7c7a88bd82e4"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Contact]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="340" y="40" width="100" height="15" forecolor="#0033B0" uuid="824362bf-c7c2-4e84-bed4-01d4a111142c"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Bride]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="450" y="40" width="100" height="15" forecolor="#0033B0" uuid="c690a50f-0449-4ab5-8212-fbf5c469e91a"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Groom]]></text>
+			</staticText>
+			<line>
+				<reportElement x="15" y="60" width="525" height="1" uuid="e5d5757e-ecf7-482a-9303-fa736479576b"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="10" y="75" width="90" height="15" forecolor="#747474" uuid="ea2a0f1f-e8f6-4123-b0df-713951165f7e"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{client_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="110" y="75" width="120" height="15" forecolor="#747474" uuid="dd9bc23d-50e4-45bd-8353-4b6835874e11"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{email}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="240" y="75" width="90" height="15" forecolor="#747474" uuid="a5474b75-91ea-4ba7-ac09-95cd18e97f30"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{contact_no}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="340" y="75" width="100" height="15" forecolor="#747474" uuid="e457dee5-2c4c-427c-a84f-37f09bc47b73"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bride_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="450" y="75" width="100" height="15" forecolor="#747474" uuid="eaaf6af9-7f17-4e75-8eb4-81f52e783e11"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{groom_name}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="263" width="555" height="132" backcolor="#F7F8FB" uuid="4dfed8e9-2ef0-4a0e-b247-76b5df480f9a"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="15" y="301" width="525" height="80" backcolor="#FFFFFF" uuid="b225e8f7-0f0f-496b-83e0-d384442f51da"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="15" y="278" width="80" height="20" forecolor="#404040" uuid="b3f29b85-13e3-448c-86e6-78d71f94a400"/>
+				<textElement>
+					<font fontName="Jost" size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Notes]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="375" y="278" width="165" height="20" forecolor="#404040" uuid="4ada96c0-2bc5-4aff-8598-3756e29116bc"/>
+				<textElement textAlignment="Right">
+					<font fontName="Jost" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[To be sent no later than 4 weeks before event]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="30" y="313" width="120" height="20" forecolor="#0033B0" uuid="c0b67af1-84b9-4d80-a19d-8f61017c42ee"/>
+				<textElement>
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Table Plan]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="215" y="313" width="120" height="20" forecolor="#0033B0" uuid="4886a9a3-37e0-47f5-897b-46c37915ba75"/>
+				<textElement>
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Room layout]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="380" y="313" width="150" height="20" forecolor="#0033B0" uuid="4eac6115-7180-463d-b01c-d1cbea28d6af"/>
+				<textElement textAlignment="Right">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[Final payment to be made by]]></text>
+			</staticText>
+			<line>
+				<reportElement x="15" y="333" width="525" height="1" uuid="1e47b9a8-18dc-45a1-b997-cb1c800b2fa7"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="30" y="348" width="120" height="20" forecolor="#747474" uuid="999ebf74-82fd-48e2-b613-4fcaf3ca8061"/>
+				<textElement>
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[To be confirmed]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="215" y="348" width="120" height="20" forecolor="#747474" uuid="8b433fc7-05be-4c62-aba5-d880383f4931"/>
+				<textElement>
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[To be confirmed]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="380" y="348" width="150" height="20" forecolor="#747474" uuid="608af42d-6993-4b6e-9b0e-8445d275a1c2"/>
+				<textElement textAlignment="Right">
+					<font fontName="Jost" size="8"/>
+				</textElement>
+				<text><![CDATA[To be confirmed]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="0" y="130" width="550" height="90" uuid="bf890def-b1d5-457d-b524-5c707ed24edb">
+					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 2]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_running_order_engagement.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="130" width="550" height="90" uuid="bf890def-b1d5-457d-b524-5c707ed24edb">
+					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 3]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_running_order_menhdi.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="130" width="550" height="90" uuid="837ab55c-8724-40da-9595-999064794803">
+					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 4]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_running_order_nikah.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="130" width="550" height="90" uuid="7ac4117f-d88f-4807-8b1b-4fb622893888">
+					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 5]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_running_order_walima.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="600">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="580" uuid="52b4f7cf-3f40-4289-ba4d-c5298ea2f775"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_decor_selection.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="600">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="580" uuid="52b4f7cf-3f40-4289-ba4d-c5298ea2f775"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_summary.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="60" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="0" y="0" width="555" height="60" backcolor="#03267B" uuid="bcfc624f-019c-4df9-829a-36e0154174f1">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<staticText>
+					<reportElement x="10" y="15" width="200" height="15" forecolor="#FFFFFF" uuid="6f406f55-39e9-4ddc-83bb-7c6cb1202d79">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Butler" size="8"/>
+					</textElement>
+					<text><![CDATA[T: 01355 574 852]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="10" y="30" width="200" height="15" forecolor="#FFFFFF" uuid="942e4119-bed5-4874-b075-cc3090aa53f9"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Butler" size="8"/>
+					</textElement>
+					<text><![CDATA[E: INFO@DIAMONDEVENTS.UK]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="345" y="15" width="200" height="15" forecolor="#FFFFFF" uuid="ef37322e-a9e5-48c0-bf91-2306173c5883">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Butler" size="8"/>
+					</textElement>
+					<text><![CDATA[18 MILTON ROAD, EAST KILBRIDE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="345" y="30" width="200" height="15" forecolor="#FFFFFF" uuid="a42838a6-4fae-4469-b3fb-ef3ab48138aa"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Butler" size="8"/>
+					</textElement>
+					<text><![CDATA[GLASGOW, G74 5BU]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="30" splitType="Stretch"/>
+	</summary>
+</jasperReport>

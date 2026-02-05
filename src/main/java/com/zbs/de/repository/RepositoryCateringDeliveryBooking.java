@@ -1,8 +1,13 @@
 package com.zbs.de.repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,4 +38,12 @@ public interface RepositoryCateringDeliveryBooking extends JpaRepository<Caterin
 			    ABS(EXTRACT(EPOCH FROM (dte_delivery_date - CURRENT_DATE)))
 			""", nativeQuery = true)
 	List<CateringDeliveryBooking> findAllSortedByClosestDeliveryDate();
+	
+	@EntityGraph(attributePaths = { "customerMaster", "eventType", "eventBudget" })
+	Page<CateringDeliveryBooking> findAll(Specification<CateringDeliveryBooking> spec, Pageable pageable);
+	
+	boolean existsByDteDeliveryDateAndBlnIsDeletedFalse(Date dteDeliveryDate);
+
+	@Query("select distinct(e.dteDeliveryDate) from CateringDeliveryBooking e where e.blnIsDeleted = false order by e.dteDeliveryDate asc")
+	List<Date> getAlreadyBookedDates();
 }

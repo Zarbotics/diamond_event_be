@@ -18,17 +18,33 @@ public class ControllerReport {
 	@Autowired
 	private ServiceReport reportService;
 
+//	@GetMapping("/event/{eventId}")
+//	public ResponseEntity<byte[]> getEventReport(@PathVariable Integer eventId) throws Exception {
+//		byte[] pdfBytes = reportService.generateEventReport(eventId);
+//
+//		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_report.pdf")
+//				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
+//	}
+	
 	@GetMapping("/event/{eventId}")
 	public ResponseEntity<byte[]> getEventReport(@PathVariable Integer eventId) throws Exception {
-		byte[] pdfBytes = reportService.generateEventReport(eventId);
+		byte[] pdfBytes = reportService.generateNewItineraryReport(eventId);
 
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_report.pdf")
 				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
 	}
 	
+//	@GetMapping("/eventClientSide/{eventId}")
+//	public ResponseEntity<byte[]> getEventReportClientSide(@PathVariable Integer eventId) throws Exception {
+//		byte[] pdfBytes = reportService.generateEventReportClientSide(eventId);
+//
+//		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_summary_client_side.pdf")
+//				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
+//	}
+
 	@GetMapping("/eventClientSide/{eventId}")
 	public ResponseEntity<byte[]> getEventReportClientSide(@PathVariable Integer eventId) throws Exception {
-		byte[] pdfBytes = reportService.generateEventReportClientSide(eventId);
+		byte[] pdfBytes = reportService.generateNewCustomeReport(eventId);
 
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_summary_client_side.pdf")
 				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
