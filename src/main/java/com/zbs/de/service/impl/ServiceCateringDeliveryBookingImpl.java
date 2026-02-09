@@ -380,7 +380,8 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 
 			} else {
 				eventBudget = new EventBudget();
-				if (dto.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+				if (dto.getDtoEventQuoteAndStatus() != null
+						&& dto.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
 						&& dto.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
 					eventBudget.setTxtStatus("Quoted");
 					eventBudget.setNumQuotedPrice(dto.getDtoEventQuoteAndStatus().getNumQuotedPrice());

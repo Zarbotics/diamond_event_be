@@ -103,8 +103,17 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 	
 	@Override
 	public EventBudget getEventBudgetByCateringDelevieryBookingId(Integer serDeliveryBookingId) {
-		return repositoryEventBudget.findByCateringDeliveryBooking_SerDeliveryBookingId(serDeliveryBookingId)
-				.orElse(null);
+		try {
+			if(serDeliveryBookingId == null) {
+				return null;
+			}
+			return repositoryEventBudget.findByCateringDeliveryBooking_SerDeliveryBookingId(serDeliveryBookingId)
+					.orElse(null);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(),e);
+			return null;
+		}
+		
 	}
 
 	@Override
