@@ -125,7 +125,7 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 		</band>
 	</title>
 	<detail>
-		<band height="395" splitType="Stretch">
+		<band height="620" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<staticText>
 				<reportElement x="0" y="10" width="200" height="20" forecolor="#404040" uuid="b8c505aa-5b02-46c6-90e9-2b0f71502a9a"/>
@@ -288,7 +288,7 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 				<text><![CDATA[To be confirmed]]></text>
 			</staticText>
 			<subreport>
-				<reportElement x="0" y="130" width="550" height="90" uuid="bf890def-b1d5-457d-b524-5c707ed24edb">
+				<reportElement x="0" y="125" width="550" height="90" uuid="bf890def-b1d5-457d-b524-5c707ed24edb">
 					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 2]]></printWhenExpression>
 				</reportElement>
 				<subreportParameter name="P_EVENT_MASTER_ID">
@@ -298,7 +298,7 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_running_order_engagement.jasper"]]></subreportExpression>
 			</subreport>
 			<subreport>
-				<reportElement x="0" y="130" width="550" height="90" uuid="bf890def-b1d5-457d-b524-5c707ed24edb">
+				<reportElement x="0" y="125" width="550" height="90" uuid="bf890def-b1d5-457d-b524-5c707ed24edb">
 					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 3]]></printWhenExpression>
 				</reportElement>
 				<subreportParameter name="P_EVENT_MASTER_ID">
@@ -308,7 +308,7 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_running_order_menhdi.jasper"]]></subreportExpression>
 			</subreport>
 			<subreport>
-				<reportElement x="0" y="130" width="550" height="90" uuid="837ab55c-8724-40da-9595-999064794803">
+				<reportElement x="0" y="125" width="550" height="90" uuid="837ab55c-8724-40da-9595-999064794803">
 					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 4]]></printWhenExpression>
 				</reportElement>
 				<subreportParameter name="P_EVENT_MASTER_ID">
@@ -318,7 +318,7 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_running_order_nikah.jasper"]]></subreportExpression>
 			</subreport>
 			<subreport>
-				<reportElement x="0" y="130" width="550" height="90" uuid="7ac4117f-d88f-4807-8b1b-4fb622893888">
+				<reportElement x="0" y="125" width="550" height="90" uuid="7ac4117f-d88f-4807-8b1b-4fb622893888">
 					<printWhenExpression><![CDATA[$F{ser_event_type_id} == 5]]></printWhenExpression>
 				</reportElement>
 				<subreportParameter name="P_EVENT_MASTER_ID">
@@ -326,6 +326,23 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_running_order_walima.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="0" y="402" width="550" height="90" uuid="7ac4117f-d88f-4807-8b1b-4fb622893888"/>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_vendor_list.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="200" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="550" height="200" uuid="7ac4117f-d88f-4807-8b1b-4fb622893888">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_report_food_menu.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 		<band height="600">
