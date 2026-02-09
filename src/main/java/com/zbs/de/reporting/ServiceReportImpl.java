@@ -203,7 +203,7 @@ public class ServiceReportImpl implements ServiceReport {
 		params.put(
 			    "SUBREPORT_DIR",
 			    getClass()
-			        .getResource("/reports/new_event_reports/")
+			        .getResource("/reports/new_customer_report/")
 			        .toString()
 			);
 
