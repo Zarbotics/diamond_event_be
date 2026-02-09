@@ -25,12 +25,12 @@ public class EventBudget extends BaseEntity implements Serializable {
 	// owning side: FK to event_master
 	@JsonIgnore
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ser_event_master_id", unique = true)
+	@JoinColumn(name = "ser_event_master_id")
 	private EventMaster eventMaster;
 
 	@JsonIgnore
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ser_delivery_booking_id", unique = true)
+	@JoinColumn(name = "ser_delivery_booking_id")
 	private CateringDeliveryBooking cateringDeliveryBooking;
 
 	@Column(name = "num_total_budget", precision = 18, scale = 2)
