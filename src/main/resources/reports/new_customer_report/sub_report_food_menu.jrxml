@@ -103,7 +103,7 @@ ORDER BY mi.txt_name]]>
 		<band height="35" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<staticText>
-				<reportElement x="10" y="3" width="100" height="30" forecolor="#404040" uuid="0430f455-19e3-4bbf-80d1-b0e2f0096752"/>
+				<reportElement x="-15" y="3" width="100" height="30" forecolor="#404040" uuid="0430f455-19e3-4bbf-80d1-b0e2f0096752"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="Jost" size="8"/>
 				</textElement>
@@ -114,7 +114,7 @@ ORDER BY mi.txt_name]]>
 	<detail>
 		<band height="210" splitType="Stretch">
 			<frame>
-				<reportElement x="0" y="10" width="555" height="150" forecolor="#803B39" uuid="964a0e5b-54c8-402f-8a64-526eb90cf32b">
+				<reportElement x="-15" y="10" width="555" height="150" forecolor="#803B39" uuid="964a0e5b-54c8-402f-8a64-526eb90cf32b">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
