@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_report_decor_selection" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="ca5cbc7d-bb58-4189-95b4-cdc2844bc3da">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_report_decor_selection" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="10" bottomMargin="10" uuid="ca5cbc7d-bb58-4189-95b4-cdc2844bc3da">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<subDataset name="CategoryDataset" uuid="0b83351f-53b6-4c7f-9893-42f27fd7d640">
@@ -89,7 +89,7 @@ FROM (
 	<columnHeader>
 		<band height="68" splitType="Stretch">
 			<staticText>
-				<reportElement x="10" y="30" width="100" height="30" forecolor="#404040" uuid="f9bb8386-cee1-449f-b9a0-fd34721de848"/>
+				<reportElement x="-15" y="30" width="100" height="30" forecolor="#404040" uuid="f9bb8386-cee1-449f-b9a0-fd34721de848"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="Jost" size="8"/>
 				</textElement>
@@ -100,28 +100,28 @@ FROM (
 	<detail>
 		<band height="95" splitType="Stretch">
 			<frame>
-				<reportElement x="11" y="2" width="574" height="92" uuid="e145f5e9-5fb9-4f9f-ac79-7668c1193fca">
-					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				<reportElement x="-15" y="2" width="555" height="92" uuid="e145f5e9-5fb9-4f9f-ac79-7668c1193fca">
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5" lineColor="#F1F2F6"/>
 				</box>
 				<componentElement>
-					<reportElement x="-1" y="2" width="571" height="80" uuid="d929f92c-9d82-4286-a4a8-ca9f7d30e060">
+					<reportElement x="0" y="7" width="550" height="80" uuid="0683c355-fb3e-459f-a96e-c6258950a940">
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
-						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					</reportElement>
 					<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
-						<datasetRun subDataset="CategoryDataset" uuid="f1c510d9-3152-44bc-a108-062f76b42f5c">
+						<datasetRun subDataset="CategoryDataset" uuid="adf19c08-16bc-4dab-beee-9e41b2638f84">
 							<datasetParameter name="P_EVENT_MASTER_ID">
 								<datasetParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></datasetParameterExpression>
 							</datasetParameter>
 							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 						</datasetRun>
-						<jr:listContents height="80" width="571">
+						<jr:listContents height="80" width="550">
 							<textField>
-								<reportElement x="29" y="3" width="135" height="18" forecolor="#0033B0" uuid="d7db446e-4c31-408e-bff7-f6519a23396e">
+								<reportElement x="24" y="3" width="135" height="18" forecolor="#0033B0" uuid="74417d20-1cc1-4f34-b8ae-c358fa5c86d9">
 									<property name="com.jaspersoft.studio.unit.height" value="px"/>
 								</reportElement>
 								<textElement verticalAlignment="Middle">
@@ -130,19 +130,21 @@ FROM (
 								<textFieldExpression><![CDATA[$F{txt_decor_category_name}]]></textFieldExpression>
 							</textField>
 							<componentElement>
-								<reportElement x="29" y="35" width="525" height="25" uuid="0aa3820c-f3e7-48ee-85ac-88f1450d3861">
+								<reportElement x="25" y="35" width="520" height="25" uuid="13af0fd4-7b38-4b43-99f9-3376f543381d">
 									<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+									<property name="com.jaspersoft.studio.unit.width" value="px"/>
+									<property name="com.jaspersoft.studio.unit.x" value="px"/>
 								</reportElement>
 								<jr:list printOrder="Vertical">
-									<datasetRun subDataset="DecorPropertyDataset" uuid="dd637cf3-cb12-483b-8f75-3b720ed40695">
+									<datasetRun subDataset="DecorPropertyDataset" uuid="65511408-1be5-48f2-8c23-9bca5f79d1c9">
 										<datasetParameter name="P_EVENT_DECOR_CATEGORY_SELECTION_ID">
 											<datasetParameterExpression><![CDATA[$F{ser_event_decor_category_selection_id}]]></datasetParameterExpression>
 										</datasetParameter>
 										<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 									</datasetRun>
-									<jr:listContents height="25" width="525">
+									<jr:listContents height="25" width="520">
 										<textField>
-											<reportElement x="0" y="5" width="150" height="20" forecolor="#747474" uuid="c35d6c50-3908-45bb-a8a8-468e8479eedb">
+											<reportElement x="0" y="5" width="150" height="20" forecolor="#747474" uuid="bd9d9365-7e03-4cf9-b22b-0b42283dc86a">
 												<property name="com.jaspersoft.studio.unit.x" value="px"/>
 											</reportElement>
 											<textElement>
@@ -151,13 +153,13 @@ FROM (
 											<textFieldExpression><![CDATA[$F{txt_property_name}]]></textFieldExpression>
 										</textField>
 										<textField>
-											<reportElement x="160" y="5" width="140" height="20" forecolor="#747474" uuid="7b2eefc5-036e-4147-8c00-d61bc0e4e243">
+											<reportElement x="160" y="5" width="140" height="20" forecolor="#747474" uuid="c0d01824-f5df-420c-9ad0-14e3cbc8f2fe">
 												<property name="com.jaspersoft.studio.unit.x" value="px"/>
 											</reportElement>
 											<textFieldExpression><![CDATA[$F{txt_property_value}]]></textFieldExpression>
 										</textField>
 										<textField>
-											<reportElement x="450" y="5" width="75" height="20" forecolor="#747474" uuid="0a65a8b9-ac74-4120-98af-25c513f2adc7">
+											<reportElement x="450" y="5" width="70" height="20" forecolor="#747474" uuid="24da3390-54d9-48b3-b537-05328f66754e">
 												<property name="com.jaspersoft.studio.unit.y" value="px"/>
 												<property name="com.jaspersoft.studio.unit.x" value="px"/>
 												<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -171,7 +173,7 @@ FROM (
 								</jr:list>
 							</componentElement>
 							<line>
-								<reportElement x="0" y="31" width="566" height="1" uuid="a100cf79-a725-4825-af77-57b0fe68668c">
+								<reportElement x="0" y="31" width="550" height="1" uuid="ff92a4f5-004c-4cae-8c0e-4801e2c1a6bc">
 									<property name="com.jaspersoft.studio.unit.y" value="px"/>
 									<property name="com.jaspersoft.studio.unit.x" value="px"/>
 									<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -181,7 +183,7 @@ FROM (
 								</graphicElement>
 							</line>
 							<textField>
-								<reportElement x="480" y="3" width="70" height="18" forecolor="#0033B0" uuid="06ac8491-f034-4b35-b4a1-b47b0651a2e2">
+								<reportElement x="475" y="3" width="70" height="18" forecolor="#0033B0" uuid="176fa5a7-deb4-4a2c-ac7d-200c7827267a">
 									<property name="com.jaspersoft.studio.unit.height" value="px"/>
 								</reportElement>
 								<textElement verticalAlignment="Middle">
@@ -196,26 +198,26 @@ FROM (
 		</band>
 		<band height="108" splitType="Stretch">
 			<frame>
-				<reportElement x="11" y="0" width="574" height="36" forecolor="#F1F2F6" uuid="7027d758-3591-4482-962b-89e71ac99724">
+				<reportElement x="-15" y="0" width="555" height="36" forecolor="#F1F2F6" uuid="7027d758-3591-4482-962b-89e71ac99724">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<rectangle>
-					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="574" height="36" forecolor="#F1F2F6" backcolor="#F9F5FD" uuid="a7f02ae7-73bc-4c65-91fd-aead6aaaee81">
+					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="555" height="36" forecolor="#F1F2F6" backcolor="#F9F5FD" uuid="a7f02ae7-73bc-4c65-91fd-aead6aaaee81">
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
 				</rectangle>
 				<staticText>
-					<reportElement x="30" y="10" width="100" height="17" forecolor="#0033B0" uuid="15216f3c-f37d-419e-a21f-4d7267a1b533"/>
+					<reportElement x="26" y="10" width="100" height="17" forecolor="#0033B0" uuid="15216f3c-f37d-419e-a21f-4d7267a1b533"/>
 					<textElement textAlignment="Left" verticalAlignment="Middle">
 						<font fontName="Jost" size="8"/>
 					</textElement>
 					<text><![CDATA[Decor Sub Total]]></text>
 				</staticText>
 				<textField>
-					<reportElement x="480" y="10" width="80" height="17" forecolor="#0033B0" uuid="6614f1d1-4b3c-4b18-897d-361d601eed23"/>
+					<reportElement x="476" y="10" width="70" height="17" forecolor="#0033B0" uuid="6614f1d1-4b3c-4b18-897d-361d601eed23"/>
 					<textElement verticalAlignment="Middle">
 						<font fontName="Jost" size="8"/>
 					</textElement>
@@ -223,13 +225,13 @@ FROM (
 				</textField>
 			</frame>
 			<frame>
-				<reportElement x="11" y="36" width="574" height="36" forecolor="#F1F2F6" uuid="b13ea7d0-cb37-41c3-915c-c72b1feda150">
+				<reportElement x="-15" y="36" width="555" height="36" forecolor="#F1F2F6" uuid="b13ea7d0-cb37-41c3-915c-c72b1feda150">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<rectangle>
-					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="574" height="36" forecolor="#F1F2F6" backcolor="#F4ECFB" uuid="57d8a71f-2fe7-4779-9f3e-04c9a4db95a1">
+					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="555" height="36" forecolor="#F1F2F6" backcolor="#F4ECFB" uuid="57d8a71f-2fe7-4779-9f3e-04c9a4db95a1">
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -237,15 +239,15 @@ FROM (
 				</rectangle>
 			</frame>
 			<frame>
-				<reportElement x="11" y="72" width="574" height="36" forecolor="#F1F2F6" uuid="d2041541-d092-428e-ab4d-3a8706a0259e">
+				<reportElement x="-15" y="72" width="555" height="36" forecolor="#F1F2F6" uuid="d2041541-d092-428e-ab4d-3a8706a0259e">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<rectangle>
-					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="574" height="36" forecolor="#F1F2F6" backcolor="#ECE0F8" uuid="50a27216-bcc1-466c-ac04-42d3479e7060">
-						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="555" height="36" forecolor="#F1F2F6" backcolor="#ECE0F8" uuid="50a27216-bcc1-466c-ac04-42d3479e7060">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					</reportElement>
 				</rectangle>
 			</frame>

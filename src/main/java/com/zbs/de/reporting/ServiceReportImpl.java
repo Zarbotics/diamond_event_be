@@ -199,7 +199,7 @@ public class ServiceReportImpl implements ServiceReport {
 	private byte[] generateNewReport(String jasperClasspathLocation, Integer eventId) {
 		// parameters for report
 		Map<String, Object> params = new HashMap<>();
-		params.put("EVENT_ID", eventId);
+		params.put("P_EVENT_MASTER_ID", eventId);
 		params.put(
 			    "SUBREPORT_DIR",
 			    getClass()
