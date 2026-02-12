@@ -108,7 +108,7 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 					<textElement textAlignment="Center" verticalAlignment="Middle">
 						<font fontName="Butler"/>
 					</textElement>
-					<textFieldExpression><![CDATA["Event Date : " + $F{event_date}]]></textFieldExpression>
+					<textFieldExpression><![CDATA["Event Date : " + new java.text.SimpleDateFormat("yyyy-MM-dd").format($F{event_date})]]></textFieldExpression>
 				</textField>
 				<textField>
 					<reportElement x="215" y="28" width="130" height="30" forecolor="#FFFFFF" uuid="86c3ae05-77b3-4fd0-8f89-e1cecb9c8e93">
