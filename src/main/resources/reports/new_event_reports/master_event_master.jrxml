@@ -407,7 +407,4 @@ WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 			</frame>
 		</band>
 	</pageFooter>
-	<summary>
-		<band height="30" splitType="Stretch"/>
-	</summary>
 </jasperReport>
