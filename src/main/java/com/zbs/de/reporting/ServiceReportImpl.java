@@ -145,6 +145,13 @@ public class ServiceReportImpl implements ServiceReport {
 		return generateNewReport("/reports/new_customer_report/master_event_master.jasper", eventId);
 	}
 
+	
+	@Override
+	public byte[] generateKitchenItineraryReport(Integer eventId) throws Exception {
+		return generateNewReport("/reports/kitchen_itinerary/master_event_master.jasper", eventId);
+	}
+
+	
 	/**
 	 * Core report generation: loads the compiled .jasper from classpath, loads
 	 * images, sets parameters, fills the report and returns PDF bytes.
