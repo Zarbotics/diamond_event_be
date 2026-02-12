@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_report_vendor_list" pageWidth="595" pageHeight="150" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="e4a52315-419f-4936-88c4-5333b64b28c3">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+	<subDataset name="Dataset1" uuid="ab53a344-4de3-4030-bfbb-7aa0a164f251">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<queryString language="plsql">
+			<![CDATA[SELECT enm_vendor_type
+FROM public.vendor_master
+WHERE bln_is_deleted = false
+GROUP BY enm_vendor_type
+ORDER BY 
+    CASE 
+        WHEN LOWER(enm_vendor_type) = 'other' THEN 1 
+        ELSE 0 
+    END,
+    LOWER(enm_vendor_type) DESC;]]>
+		</queryString>
+		<field name="enm_vendor_type" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.label" value="enm_vendor_type"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="vendor_master"/>
+		</field>
+	</subDataset>
+	<queryString language="plsql">
+		<![CDATA[select 1;]]>
+	</queryString>
+	<field name="?column?" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="?column?"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="100" splitType="Stretch">
+			<staticText>
+				<reportElement x="-15" y="5" width="300" height="20" forecolor="#404040" uuid="3ff0e908-e502-4e49-a73b-2bfe64fb1398">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Jost" size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Event Running Order]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement x="-15" y="30" width="550" height="70" forecolor="#F1F2F6" uuid="96359b56-4df1-448c-acca-52655ff72080">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+			</rectangle>
+			<componentElement>
+				<reportElement x="-15" y="35" width="110" height="55" uuid="66acf3e0-1c51-443b-87eb-9d8bd28b393f">
+					<property name="com.jaspersoft.studio.layout"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Horizontal" ignoreWidth="true">
+					<datasetRun subDataset="Dataset1" uuid="0dc9bd81-c9a8-4b59-a5df-da0227eefe68">
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:listContents height="55" width="110">
+						<staticText>
+							<reportElement x="0" y="37" width="110" height="18" forecolor="#747474" uuid="0a26405b-76b0-4600-8522-1276b02251d8">
+								<property name="com.jaspersoft.studio.unit.height" value="px"/>
+								<property name="com.jaspersoft.studio.unit.width" value="px"/>
+								<property name="com.jaspersoft.studio.unit.y" value="px"/>
+							</reportElement>
+							<box leftPadding="15"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Jost" size="8"/>
+							</textElement>
+							<text><![CDATA[tbc]]></text>
+						</staticText>
+						<textField>
+							<reportElement x="0" y="4" width="110" height="18" forecolor="#0033B0" uuid="6ef1691b-8c61-47b2-b446-1898f11840a9">
+								<property name="com.jaspersoft.studio.unit.height" value="px"/>
+								<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							</reportElement>
+							<box leftPadding="15"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Jost" size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{enm_vendor_type}]]></textFieldExpression>
+						</textField>
+						<line>
+							<reportElement x="0" y="24" width="110" height="1" uuid="5722a06e-f910-4679-a5e4-70f162c0f5ab">
+								<property name="com.jaspersoft.studio.unit.y" value="px"/>
+								<property name="com.jaspersoft.studio.unit.width" value="px"/>
+								<property name="com.jaspersoft.studio.unit.x" value="px"/>
+							</reportElement>
+							<graphicElement>
+								<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+							</graphicElement>
+						</line>
+					</jr:listContents>
+				</jr:list>
+			</componentElement>
+		</band>
+	</detail>
+</jasperReport>
