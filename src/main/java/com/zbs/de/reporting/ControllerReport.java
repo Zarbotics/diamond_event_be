@@ -49,5 +49,14 @@ public class ControllerReport {
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_summary_client_side.pdf")
 				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
 	}
+	
+	
+	@GetMapping("/kitchen_itinerary/{eventId}")
+	public ResponseEntity<byte[]> getEventReportKitchenItinerary(@PathVariable Integer eventId) throws Exception {
+		byte[] pdfBytes = reportService.generateKitchenItineraryReport(eventId);
+
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_summary_client_side.pdf")
+				.contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
+	}
 
 }

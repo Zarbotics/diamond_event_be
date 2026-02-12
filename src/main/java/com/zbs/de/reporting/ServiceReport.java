@@ -11,4 +11,6 @@ public interface ServiceReport {
 	 byte[] generateNewItineraryReport(Integer eventId) throws Exception;
 	 
 	 byte[] generateNewCustomeReport(Integer eventId) throws Exception;
+	 
+	 byte[] generateKitchenItineraryReport(Integer eventId) throws Exception;
 }
