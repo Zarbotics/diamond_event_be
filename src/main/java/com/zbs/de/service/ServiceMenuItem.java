@@ -2,12 +2,14 @@ package com.zbs.de.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.menu.DtoMenuItemSearch;
 
 public interface ServiceMenuItem {
 	DtoMenuItem create(DtoMenuItem dto);
@@ -64,4 +66,5 @@ public interface ServiceMenuItem {
     String readMenuItemCsv(MultipartFile file);
     
     List<String> getAllPriceUnitTypes();
+    Page<DtoMenuItem> searchMenuITems(DtoMenuItemSearch dto);
 }

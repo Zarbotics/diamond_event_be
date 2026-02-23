@@ -3,19 +3,26 @@ package com.zbs.de.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import com.zbs.de.mapper.MapperCateringDeliveryBooking;
 import com.zbs.de.mapper.MapperMenuItem;
+import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.MenuComponent;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.MenuItemRole;
+import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
+import com.zbs.de.model.dto.DtoCateringDeliveryBookingSearch;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuCsvRowResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.dto.menu.DtoMenuItemSearch;
 import com.zbs.de.repository.RepositoryMenuComponent;
 import com.zbs.de.repository.RepositoryMenuItem;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.service.ServiceMenuItemRole;
 import com.zbs.de.service.ServiceTreeUtility;
+import com.zbs.de.spec.SpecificationsCateringDeliveryBooking;
+import com.zbs.de.spec.SpecificationsMenuItem;
 import com.zbs.de.util.enums.EnmMenuItemRole;
 import com.zbs.de.util.enums.EnmMenuItemType;
 import com.zbs.de.util.enums.EnmPriceMultiplierType;
@@ -24,6 +31,12 @@ import com.zbs.de.util.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -1060,4 +1073,27 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 			List<String> roles = Arrays.stream(EnmPriceMultiplierType.values()).map(Enum::name).toList();
 			return roles;
 		}
+		
+		@Override
+		public Page<DtoMenuItem> searchMenuITems(DtoMenuItemSearch dto) {
+			int page = dto.getPage() != null && dto.getPage() >= 0 ? dto.getPage() : 0;
+			int size = dto.getSize() != null && dto.getSize() > 0 ? Math.min(dto.getSize(), 200) : 20;
+
+			String sortBy = dto.getSortBy() != null ? dto.getSortBy() : "dteDeliveryDate";
+
+			Sort.Direction dir = "ASC".equalsIgnoreCase(dto.getSortDir()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+			Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
+
+			Specification<MenuItem> spec = SpecificationsMenuItem.fromDto(dto);
+
+			Page<MenuItem> pageResult = repo.findAll(spec, pageable);
+
+			List<MenuItem> sorted =pageResult.getContent();
+
+			List<DtoMenuItem> dtos = sorted.stream().map(MapperMenuItem::toDto).toList();
+
+			return new PageImpl<>(dtos, pageable, pageResult.getTotalElements());
+		
 	}
+}
