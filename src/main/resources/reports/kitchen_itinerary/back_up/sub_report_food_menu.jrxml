@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_report_food_menu" columnCount="3" pageWidth="595" pageHeight="842" columnWidth="175" columnSpacing="15" leftMargin="20" rightMargin="20" topMargin="0" bottomMargin="0" uuid="321d9635-a67e-4d8f-be57-b2b042078e60">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<subDataset name="MenuCategoryDataset" uuid="540a71c7-55d1-48b9-b899-4ae3956cfab2">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer"/>
+		<queryString language="plsql">
+			<![CDATA[SELECT
+    emcs.ser_event_menu_category_id,
+    mi.txt_name AS category_name,
+    emcs.num_final_price
+FROM event_menu_category_selection emcs
+JOIN menu_item mi
+    ON mi.ser_menu_item_id = emcs.ser_menu_category_id
+WHERE emcs.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+ORDER BY mi.num_display_order ASC NULLS LAST]]>
+		</queryString>
+		<field name="ser_event_menu_category_id" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.label" value="ser_event_menu_category_id"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_menu_category_selection"/>
+		</field>
+		<field name="category_name" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.label" value="category_name"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="menu_item"/>
+		</field>
+		<field name="num_final_price" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.label" value="num_final_price"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_menu_category_selection"/>
+		</field>
+	</subDataset>
+	<subDataset name="MenuSubCategoryDataset" uuid="7071ffd6-5eac-4f02-8263-7f75c635c6cb">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+		<parameter name="P_EVENT_MENU_CATEGORY_ID" class="java.lang.Integer"/>
+		<queryString language="plsql">
+			<![CDATA[SELECT
+    emscs.ser_event_menu_sub_category_id,
+    mi.txt_name AS sub_category_name,
+    emscs.num_final_price
+FROM event_menu_subcategory_selection emscs
+JOIN menu_item mi
+    ON mi.ser_menu_item_id = emscs.ser_menu_sub_category_id
+WHERE emscs.ser_event_menu_category_id = $P{P_EVENT_MENU_CATEGORY_ID}
+ORDER BY mi.txt_name]]>
+		</queryString>
+		<field name="ser_event_menu_sub_category_id" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.label" value="ser_event_menu_sub_category_id"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_menu_subcategory_selection"/>
+		</field>
+		<field name="sub_category_name" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.label" value="sub_category_name"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="menu_item"/>
+		</field>
+		<field name="num_final_price" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.label" value="num_final_price"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_menu_subcategory_selection"/>
+		</field>
+	</subDataset>
+	<subDataset name="MenuFoodItemDataset" uuid="8a653309-87d2-44e3-b46b-101a5eb839ec">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<parameter name="P_EVENT_MENU_SUB_CATEGORY_ID" class="java.lang.Integer"/>
+		<queryString language="plsql">
+			<![CDATA[SELECT
+    emf.ser_event_menu_food_id,
+    mi.txt_name AS food_name,
+    emf.num_final_price
+FROM event_menu_food_selection emf
+JOIN menu_item mi
+    ON mi.ser_menu_item_id = emf.ser_menu_item_id
+WHERE emf.ser_event_menu_sub_category_id = $P{P_EVENT_MENU_SUB_CATEGORY_ID}
+ORDER BY mi.txt_name]]>
+		</queryString>
+		<field name="ser_event_menu_food_id" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.label" value="ser_event_menu_food_id"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_menu_food_selection"/>
+		</field>
+		<field name="food_name" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.label" value="food_name"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="menu_item"/>
+		</field>
+		<field name="num_final_price" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.label" value="num_final_price"/>
+			<property name="com.jaspersoft.studio.field.tree.path" value="event_menu_food_selection"/>
+		</field>
+	</subDataset>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[103]]></defaultValueExpression>
+	</parameter>
+	<queryString language="plsql">
+		<![CDATA[select 1;]]>
+	</queryString>
+	<field name="?column?" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="?column?"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="91" splitType="Stretch">
+			<frame borderSplitType="DrawBorders">
+				<reportElement x="-15" y="1" width="175" height="90" forecolor="#803B39" uuid="964a0e5b-54c8-402f-8a64-526eb90cf32b">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+				</box>
+				<componentElement>
+					<reportElement x="0" y="1" width="170" height="84" uuid="f7c4a767-3ec0-468f-8aad-d0160dc4df66">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+						<datasetRun subDataset="MenuCategoryDataset" uuid="2cac6905-ff3e-4026-838a-6e86b8190fc4">
+							<datasetParameter name="P_EVENT_MASTER_ID">
+								<datasetParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="ORACLE_REF_CURSOR">
+								<datasetParameterExpression><![CDATA[$P{ORACLE_REF_CURSOR}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+						<jr:listContents height="84" width="170">
+							<textField>
+								<reportElement x="10" y="5" width="135" height="18" forecolor="#0033B0" uuid="13d4e9da-7ed7-44b9-ae3e-4f48c5f8fc6c">
+									<property name="com.jaspersoft.studio.unit.height" value="px"/>
+									<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+								</reportElement>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Jost" size="8" isBold="false"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{category_name}]]></textFieldExpression>
+							</textField>
+							<componentElement>
+								<reportElement x="8" y="37" width="162" height="47" uuid="2323b2ca-a047-4a19-95a4-73f5acd058f7">
+									<property name="com.jaspersoft.studio.unit.height" value="px"/>
+									<property name="com.jaspersoft.studio.unit.y" value="px"/>
+									<property name="com.jaspersoft.studio.unit.width" value="px"/>
+									<property name="com.jaspersoft.studio.unit.x" value="px"/>
+								</reportElement>
+								<jr:list printOrder="Vertical">
+									<datasetRun subDataset="MenuSubCategoryDataset" uuid="caa0b9af-8a15-4be5-9d25-9e062abcd9dc">
+										<datasetParameter name="P_EVENT_MENU_CATEGORY_ID">
+											<datasetParameterExpression><![CDATA[$F{ser_event_menu_category_id}]]></datasetParameterExpression>
+										</datasetParameter>
+										<datasetParameter name="ORACLE_REF_CURSOR">
+											<datasetParameterExpression><![CDATA[$P{ORACLE_REF_CURSOR}]]></datasetParameterExpression>
+										</datasetParameter>
+										<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+									</datasetRun>
+									<jr:listContents height="47" width="162">
+										<textField>
+											<reportElement x="14" y="7" width="124" height="15" forecolor="#0033B0" uuid="1ff1ee02-1427-4051-b0a8-9992ff7e7be2">
+												<property name="com.jaspersoft.studio.unit.height" value="px"/>
+												<property name="com.jaspersoft.studio.unit.y" value="px"/>
+											</reportElement>
+											<textElement verticalAlignment="Middle">
+												<font fontName="Jost" size="8"/>
+											</textElement>
+											<textFieldExpression><![CDATA[$F{sub_category_name}]]></textFieldExpression>
+										</textField>
+										<componentElement>
+											<reportElement x="3" y="27" width="144" height="15" forecolor="#C26C6B" uuid="9af5281e-6a02-4a7a-9d0a-fc52e92b81fc">
+												<property name="com.jaspersoft.studio.unit.height" value="px"/>
+												<property name="com.jaspersoft.studio.unit.y" value="px"/>
+												<property name="com.jaspersoft.studio.unit.x" value="px"/>
+												<property name="com.jaspersoft.studio.unit.width" value="px"/>
+											</reportElement>
+											<jr:list printOrder="Vertical">
+												<datasetRun subDataset="MenuFoodItemDataset" uuid="4b52ef98-07c7-48d0-b76d-b2d56614c177">
+													<datasetParameter name="P_EVENT_MENU_SUB_CATEGORY_ID">
+														<datasetParameterExpression><![CDATA[$F{ser_event_menu_sub_category_id}]]></datasetParameterExpression>
+													</datasetParameter>
+													<datasetParameter name="ORACLE_REF_CURSOR">
+														<datasetParameterExpression><![CDATA[$P{ORACLE_REF_CURSOR}]]></datasetParameterExpression>
+													</datasetParameter>
+													<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+												</datasetRun>
+												<jr:listContents height="15" width="144">
+													<textField>
+														<reportElement x="24" y="0" width="120" height="15" forecolor="#747474" uuid="8bc3b809-4012-4941-8818-91c3b7038b0c">
+															<property name="com.jaspersoft.studio.unit.height" value="px"/>
+															<property name="com.jaspersoft.studio.unit.x" value="px"/>
+															<property name="com.jaspersoft.studio.unit.y" value="px"/>
+														</reportElement>
+														<textElement verticalAlignment="Middle">
+															<font fontName="Jost" size="8"/>
+														</textElement>
+														<textFieldExpression><![CDATA[$F{food_name}]]></textFieldExpression>
+													</textField>
+													<staticText>
+														<reportElement x="9" y="0" width="14" height="15" forecolor="#747474" uuid="5b6b760d-6fa2-4ce6-9424-7ffff8c113ab"/>
+														<textElement textAlignment="Center" verticalAlignment="Middle"/>
+														<text><![CDATA[‣]]></text>
+													</staticText>
+												</jr:listContents>
+											</jr:list>
+										</componentElement>
+									</jr:listContents>
+								</jr:list>
+							</componentElement>
+							<line>
+								<reportElement x="0" y="33" width="170" height="1" uuid="3b9bf82d-8386-4be1-bbba-79f54ca788a5">
+									<property name="com.jaspersoft.studio.unit.y" value="px"/>
+									<property name="com.jaspersoft.studio.unit.x" value="px"/>
+									<property name="com.jaspersoft.studio.unit.width" value="px"/>
+								</reportElement>
+								<graphicElement>
+									<pen lineWidth="0.5" lineColor="#F1F2F6"/>
+								</graphicElement>
+							</line>
+						</jr:listContents>
+					</jr:list>
+				</componentElement>
+			</frame>
+		</band>
+	</detail>
+</jasperReport>
