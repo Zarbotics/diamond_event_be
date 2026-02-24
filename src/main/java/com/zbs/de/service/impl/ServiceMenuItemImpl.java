@@ -1079,7 +1079,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 			int page = dto.getPage() != null && dto.getPage() >= 0 ? dto.getPage() : 0;
 			int size = dto.getSize() != null && dto.getSize() > 0 ? Math.min(dto.getSize(), 200) : 20;
 
-			String sortBy = dto.getSortBy() != null ? dto.getSortBy() : "dteDeliveryDate";
+			String sortBy = dto.getSortBy() != null ? dto.getSortBy() : "serMenuItemId";
 
 			Sort.Direction dir = "ASC".equalsIgnoreCase(dto.getSortDir()) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
