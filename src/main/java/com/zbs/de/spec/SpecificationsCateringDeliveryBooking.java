@@ -105,6 +105,8 @@ public final class SpecificationsCateringDeliveryBooking {
 
                 Join<CateringDeliveryBooking, CustomerMaster> cust =
                         root.join("customerMaster", JoinType.LEFT);
+                
+                Join<CateringDeliveryBooking, EventType> event =  root.join("eventType", JoinType.LEFT);
 
                 Expression<String> dateStr = cb.function(
                         "TO_CHAR",
@@ -116,8 +118,11 @@ public final class SpecificationsCateringDeliveryBooking {
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("txtDeliveryBookingCode")), q),
                         cb.like(cb.lower(root.get("txtDeliveryLocation")), q),
+                        cb.like(cb.lower(root.get("txtRemarks")), q),
                         cb.like(cb.lower(root.get("txtBookingStatus")), q),
                         cb.like(cb.lower(cust.get("txtCustName")), q),
+                        cb.like(cb.lower(event.get("txtEventTypeName")), q),
+                        cb.like(cb.lower(event.get("txtEventTypeCode")), q),
                         cb.like(cb.lower(dateStr), q)
                 ));
             }
