@@ -5,16 +5,20 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
+import com.zbs.de.model.dto.DtoCateringDeliveryBookingSearch;
 import com.zbs.de.model.dto.DtoMenuCsvImportResult;
 import com.zbs.de.model.dto.DtoMenuItem;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
+import com.zbs.de.model.dto.menu.DtoMenuItemSearch;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.util.ResponseMessage;
 
@@ -354,6 +358,33 @@ public class ControllerMenuItem {
 				LOGGER.error("Error generating assignment code", e);
 				return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
 						"Failed to generate assignment code: " + e.getMessage(), null);
+			}
+		}
+		
+		@PostMapping(value = "/searchMenuItem", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseMessage searchMenuItem(
+				@RequestBody DtoMenuItemSearch dtoMenuItemSearch,
+				HttpServletRequest request) {
+			LOGGER.info("Searching Menu Item  with filters: {}", dtoMenuItemSearch);
+			try {
+				// call service (expects Page<DtoEventMasterTableView>)
+				Page<DtoMenuItem> page = service.searchMenuITems(dtoMenuItemSearch);
+
+				// If service returns null, treat as empty page (safer for clients)
+				if (page == null) {
+					return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No records found", Page.empty());
+				}
+
+				if (page.hasContent()) {
+					// return the full Page so front-end can access content + paging metadata
+					return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", page);
+				} else {
+					return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "No records found", page);
+				}
+			} catch (Exception e) {
+				LOGGER.error("Error while searching Menu Item", e);
+				return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+						"Error while searching Menu Items: " + e.getMessage(), null);
 			}
 		}
 

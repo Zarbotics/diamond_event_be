@@ -1,8 +1,13 @@
 package com.zbs.de.repository;
 
+import com.zbs.de.model.CateringDeliveryBooking;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.MenuItemRole;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -98,5 +103,8 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 			    ORDER BY mi.txtName
 			""")
 	List<MenuItem> getAllNonCompositeActiveItemsByParentItemCode(@Param("code") String code);
+
+	@EntityGraph(attributePaths = { "menuItemRole" })
+	Page<MenuItem> findAll(Specification<MenuItem> spec, Pageable pageable);
 
 }
