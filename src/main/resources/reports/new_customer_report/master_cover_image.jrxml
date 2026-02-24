@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="master_cover_image" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="957b0b63-d75d-422f-b6c2-e497cfc17934">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer"/>
+	<parameter name="REPORT_COVER_IMAGE" class="java.awt.Image"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String"/>
+	<queryString language="plsql">
+		<![CDATA[SELECT 
+COALESCE (e.txt_event_master_name || ''
+) AS event_namm,
+e.dte_event_date AS event_date, 
+COALESCE(
+        c.txt_first_name || 
+        CASE 
+            WHEN c.txt_last_name IS NOT NULL THEN ' ' || c.txt_last_name 
+            ELSE '' 
+        END,
+        '' 
+    ) AS client_name,
+
+    COALESCE(c.txt_email, '') AS email,
+    COALESCE(c.txt_phone_number_1, '') AS contact_no,
+
+    COALESCE(
+        e.txt_bride_first_name ||
+        CASE 
+            WHEN e.txt_bride_last_name IS NOT NULL THEN ' ' || e.txt_bride_last_name 
+            ELSE '' 
+        END,
+        ''
+    ) AS bride_name,
+
+    COALESCE(
+        e.txt_groom_first_name ||
+        CASE 
+            WHEN e.txt_groom_last_name IS NOT NULL THEN ' ' || e.txt_groom_last_name 
+            ELSE '' 
+        END,
+        ''
+    ) AS groom_name,
+    et.ser_event_type_id,
+
+    COALESCE(v.txt_venue_name, '') AS venue_name,
+    COALESCE(et.txt_event_type_name, '') AS event_type_name,
+    COALESCE(r.txt_event_running_order_code, '') AS running_order_code
+
+FROM event_master e
+LEFT JOIN customer_master c 
+       ON e.ser_cust_id = c.ser_cust_id
+LEFT JOIN venue_master v 
+       ON e.ser_venue_master_id = v.ser_venue_master_id
+LEFT JOIN event_type et 
+       ON e.ser_event_type_id = et.ser_event_type_id
+LEFT JOIN event_running_order r 
+       ON e.ser_event_running_order_id = r.ser_event_running_order_id
+WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+  AND e.bln_is_deleted = FALSE]]>
+	</queryString>
+	<field name="event_namm" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="event_namm"/>
+	</field>
+	<field name="event_date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="event_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_master"/>
+	</field>
+	<field name="client_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="client_name"/>
+	</field>
+	<field name="email" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="email"/>
+	</field>
+	<field name="contact_no" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="contact_no"/>
+	</field>
+	<field name="bride_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="bride_name"/>
+	</field>
+	<field name="groom_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="groom_name"/>
+	</field>
+	<field name="ser_event_type_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="ser_event_type_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_type"/>
+	</field>
+	<field name="venue_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="venue_name"/>
+	</field>
+	<field name="event_type_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="event_type_name"/>
+	</field>
+	<field name="running_order_code" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="running_order_code"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="842" splitType="Stretch">
+			<image>
+				<reportElement x="0" y="0" width="595" height="842" uuid="e4618265-416c-46e5-8414-98005aad4745"/>
+				<imageExpression><![CDATA[$P{REPORT_COVER_IMAGE}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="151" y="418" width="300" height="30" forecolor="#FFFFFF" uuid="41b3749e-f66c-481c-8b95-dcd2e96f85f2"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Arial" size="20" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{event_namm}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="151" y="458" width="300" height="25" forecolor="#FFFFFF" uuid="e568b00f-fbbf-4730-b0c5-d43ad1720ced"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="16" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{event_type_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="151" y="493" width="300" height="20" forecolor="#FFFFFF" uuid="69b3fe5b-5b3a-4cab-b2f0-b5b76a4f58db"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="14" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{event_date} == null ? "-----------" : new java.text.SimpleDateFormat("dd MMMM yyyy").format($F{event_date})]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="120" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="3" width="560" height="115" uuid="7728836e-f4e9-4821-8a7b-2b515fdea6c2">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "master_event_master.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>
