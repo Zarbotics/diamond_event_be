@@ -159,7 +159,11 @@ public class ControllerEventMaster {
 			LOGGER.info("Saving Event Master: {}", eventMaster);
 			dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMasterAdminPortal.class);
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dtoEventMaster, files);
-			if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
+			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
+				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
+						"An event is already booked against date :" + dtoEventMaster.getDteEventDate(),
+						result.getResult());
+			} else if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
 						result.getResult());
 			} else {
