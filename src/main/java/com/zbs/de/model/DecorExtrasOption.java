@@ -38,6 +38,9 @@ public class DecorExtrasOption extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_option_name")
 	private String txtOptionName;
+	
+	@Column(name = "txt_description")
+	private String txtDescription;
 
 	@Column(name = "bln_is_document")
 	private Boolean blnIsDocument;
@@ -96,6 +99,14 @@ public class DecorExtrasOption extends BaseEntity implements Serializable {
 
 	public void setDecorExtrasMaster(DecorExtrasMaster decorExtrasMaster) {
 		this.decorExtrasMaster = decorExtrasMaster;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }

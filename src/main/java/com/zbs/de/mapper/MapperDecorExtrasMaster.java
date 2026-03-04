@@ -27,6 +27,7 @@ public class MapperDecorExtrasMaster {
 		dto.setTxtExtrasName(entity.getTxtExtrasName());
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setNumPrice(entity.getNumPrice());
+		dto.setTxtDescription(entity.getTxtDescription());
 
 		if (entity.getDecorExtrasOptions() != null) {
 			List<DtoDecorExtrasOption> options = entity.getDecorExtrasOptions().stream()
@@ -49,6 +50,7 @@ public class MapperDecorExtrasMaster {
 		entity.setTxtExtrasName(dto.getTxtExtrasName());
 		entity.setBlnIsActive(dto.getBlnIsActive());
 		entity.setNumPrice(dto.getNumPrice());
+		entity.setTxtDescription(dto.getTxtDescription());
 
 
 		return entity;
@@ -68,6 +70,7 @@ public class MapperDecorExtrasMaster {
 		dto.setTxtOptionName(entity.getTxtOptionName());
 		dto.setBlnIsDocument(entity.getBlnIsDocument());
 		dto.setBlnIsActive(entity.getBlnIsActive());
+		dto.setTxtDescription(entity.getTxtDescription());
 
 		if (entity.getDocument() != null) {
 			dto.setDocument(toDto(entity.getDocument()));
@@ -86,6 +89,7 @@ public class MapperDecorExtrasMaster {
 		entity.setTxtOptionName(dto.getTxtOptionName());
 		entity.setBlnIsDocument(dto.getBlnIsDocument());
 		entity.setBlnIsActive(dto.getBlnIsActive());
+		entity.setTxtDescription(dto.getTxtDescription());
 
 		return entity;
 	}
@@ -105,6 +109,7 @@ public class MapperDecorExtrasMaster {
 		dto.setOriginalName(entity.getOriginalName());
 		dto.setSize(entity.getSize());
 		dto.setTxtDocumentUrl(entity.getFilePath());
+		dto.setTxtDescription(entity.getTxtDescription());
 
 		return dto;
 	}
@@ -120,7 +125,7 @@ public class MapperDecorExtrasMaster {
 		entity.setOriginalName(dto.getOriginalName());
 		entity.setSize(dto.getSize());
 		entity.setFilePath(dto.getTxtDocumentUrl());
-
+		entity.setTxtDescription(dto.getTxtDescription());
 		return entity;
 	}
 

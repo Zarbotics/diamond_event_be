@@ -39,6 +39,9 @@ public class DecorExtrasMaster extends BaseEntity implements Serializable {
 	@Column(name = "txt_extras_name")
 	private String txtExtrasName;
 	
+	@Column(name = "txt_description")
+	private String txtDescription;
+	
 	private BigDecimal numPrice;
 
 	@OneToMany(mappedBy = "decorExtrasMaster", cascade = CascadeType.ALL)
@@ -82,6 +85,14 @@ public class DecorExtrasMaster extends BaseEntity implements Serializable {
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }

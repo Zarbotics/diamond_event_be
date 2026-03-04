@@ -36,6 +36,9 @@ public class DecorExtrasOptionDocument extends BaseEntity implements Serializabl
 
 	@Column(name = "txt_original_name")
 	private String originalName;
+	
+	@Column(name = "txt_description")
+	private String txtDescription;
 
 	@Column(name = "txt_size")
 	private String size;
@@ -89,6 +92,14 @@ public class DecorExtrasOptionDocument extends BaseEntity implements Serializabl
 
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }
