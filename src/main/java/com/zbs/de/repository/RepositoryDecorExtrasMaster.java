@@ -18,6 +18,10 @@ public interface RepositoryDecorExtrasMaster extends JpaRepository<DecorExtrasMa
 			+ "WHERE m.blnIsDeleted = false AND (o.blnIsDeleted = false OR o IS NULL)")
 	List<DecorExtrasMaster> findAllWithOptionsWhereNotDeleted();
 	
+	@Query("SELECT DISTINCT m FROM DecorExtrasMaster m " + "LEFT JOIN FETCH m.decorExtrasOptions o "
+			+ "WHERE m.blnIsDeleted = false AND (o.blnIsDeleted = false OR o IS NULL) ORDER BY numDisplayOrder asc")
+	List<DecorExtrasMaster> findAllWithOptionsWhereNotDeletedByDisplayOrder();
+	
 	@Query("SELECT e FROM DecorExtrasMaster e WHERE e.serExtrasId = :id AND e.blnIsDeleted = false")
 	Optional<DecorExtrasMaster> findByIdAndNotDeleted(@Param("id") Integer id);
 	

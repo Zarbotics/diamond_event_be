@@ -13,6 +13,17 @@ import com.zbs.de.model.DecorCategoryMaster;
 public interface RepositoryDecorCategoryMaster extends JpaRepository<DecorCategoryMaster, Integer> {
 
 	List<DecorCategoryMaster> findByBlnIsDeletedFalse();
+	
+    @Query("""
+            SELECT c 
+            FROM DecorCategoryMaster c
+            WHERE c.blnIsDeleted = false
+            ORDER BY 
+                CASE WHEN c.numDisplayOrder IS NULL THEN 1 ELSE 0 END,
+                c.numDisplayOrder ASC
+            """)
+     List<DecorCategoryMaster> findByBlnIsDeletedFalseOrderByDisplayOrder();
+    
 
 	Optional<DecorCategoryMaster> findBySerDecorCategoryIdAndBlnIsDeletedFalse(int serDecorCategoryId);
 

@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -56,6 +57,7 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 
 	@OneToMany(mappedBy = "decorCategoryMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
+	@OrderBy("numDisplayOrder")
 	private List<DecorCategoryPropertyMaster> categoryProperties;
 
 	@OneToMany(mappedBy = "decorCategoryMaster", cascade = CascadeType.ALL, orphanRemoval = true)
