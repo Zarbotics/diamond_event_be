@@ -29,7 +29,7 @@ public class MapperDecorCategoryPropertyValue {
 		dto.setTxtPropertyValue(entity.getTxtPropertyValue());
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setBlnIsDocument(entity.getBlnIsDocument());
-		entity.setTxtDescription(dto.getTxtDescription());
+		dto.setTxtDescription(entity.getTxtDescription());
 
 		if (entity.getDecorCategoryProperty() != null) {
 			dto.setSerPropertyId(entity.getDecorCategoryProperty().getSerPropertyId());
