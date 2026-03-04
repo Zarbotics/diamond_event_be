@@ -30,8 +30,14 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId ORDER BY LOWER(txt_name) asc", nativeQuery = true)
 	List<MenuItem> findByParentId(@Param("parentId")Long parentId);
 	
+	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId ORDER BY num_display_order asc", nativeQuery = true)
+	List<MenuItem> findByParentIdByDisplayOrder(@Param("parentId")Long parentId);
+	
 	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId and bln_is_catering_item = true ORDER BY LOWER(txt_name) asc", nativeQuery = true)
 	List<MenuItem> findCateringItemsByParentId(@Param("parentId")Long parentId);
+	
+	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId and bln_is_catering_item = true ORDER BY num_display_order asc", nativeQuery = true)
+	List<MenuItem> findCateringItemsByParentIdByDisplayOrder(@Param("parentId")Long parentId);
 
 	MenuItem findByTxtCode(String txtCode);
 

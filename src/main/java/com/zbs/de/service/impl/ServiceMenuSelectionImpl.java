@@ -44,7 +44,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			catDto.setCategoryName(category.getTxtName());
 			catDto.setNumPrice(category.getNumPrice());
 			// 2️⃣ Fetch subcategories
-			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
+//			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
+			List<MenuItem> subCategories = repositoryMenuItem.findByParentIdByDisplayOrder(category.getSerMenuItemId());
 
 			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
 
@@ -103,7 +104,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			catDto.setNumPrice(category.getNumPrice());
 
 			// 2️⃣ Fetch subcategories
-			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
+//			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
+			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentIdByDisplayOrder(category.getSerMenuItemId());
 
 			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
 
@@ -158,7 +160,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
 
-			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
+//			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
+			List<MenuItem> subCategories = repositoryMenuItem.findByParentIdByDisplayOrder(category.getSerMenuItemId());
 
 			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
 
@@ -230,7 +233,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
 
-			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
+//			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
+			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentIdByDisplayOrder(category.getSerMenuItemId());
 
 			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
 
