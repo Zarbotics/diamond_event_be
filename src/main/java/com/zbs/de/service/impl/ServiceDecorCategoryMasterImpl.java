@@ -183,6 +183,8 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 				entity.setTxtDecorCategoryName(dto.getTxtDecorCategoryName());
 				entity.setBlnIsActive(dto.getBlnIsActive());
 				entity.setNumPrice(dto.getNumPrice());
+				entity.setTxtDescription(dto.getTxtDescription());
+				entity.setNumDisplayOrder(dto.getNumDisplayOrder());
 			}
 			List<DecorCategoryReferenceDocument> docEntities = new ArrayList<>();
 

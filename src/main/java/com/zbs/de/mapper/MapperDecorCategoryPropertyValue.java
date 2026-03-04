@@ -11,6 +11,7 @@ public class MapperDecorCategoryPropertyValue {
 		entity.setSerPropertyValueId(dto.getSerPropertyValueId());
 		entity.setTxtPropertyValue(dto.getTxtPropertyValue());
 		entity.setBlnIsActive(dto.getBlnIsActive());
+		entity.setTxtDescription(dto.getTxtDescription());
 		entity.setBlnIsDeleted(false);
 
 		if (dto.getSerPropertyId() != null) {
@@ -28,6 +29,7 @@ public class MapperDecorCategoryPropertyValue {
 		dto.setTxtPropertyValue(entity.getTxtPropertyValue());
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setBlnIsDocument(entity.getBlnIsDocument());
+		dto.setTxtDescription(entity.getTxtDescription());
 
 		if (entity.getDecorCategoryProperty() != null) {
 			dto.setSerPropertyId(entity.getDecorCategoryProperty().getSerPropertyId());
@@ -43,6 +45,7 @@ public class MapperDecorCategoryPropertyValue {
 			dtoDoc.setSize(entity.getDecorCategoryPropertyValueDocument().getSize());
 			dtoDoc.setSerPropertyValueId(entity.getSerPropertyValueId());
 			dtoDoc.setTxtPropertyValue(entity.getTxtPropertyValue());
+			dtoDoc.setTxtDescription(entity.getDecorCategoryPropertyValueDocument().getTxtDescription());
 			dto.setDocument(dtoDoc);
 		}
 

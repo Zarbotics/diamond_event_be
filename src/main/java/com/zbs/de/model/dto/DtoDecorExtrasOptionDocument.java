@@ -11,6 +11,8 @@ public class DtoDecorExtrasOptionDocument {
 	private Integer serExtraOptionId;
 	private String txtOptionCode;
 	private String txtOptionName;
+	private String txtDescription;
+
 
 	public Integer getDocumentId() {
 		return documentId;
@@ -90,6 +92,14 @@ public class DtoDecorExtrasOptionDocument {
 
 	public void setTxtOptionName(String txtOptionName) {
 		this.txtOptionName = txtOptionName;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }

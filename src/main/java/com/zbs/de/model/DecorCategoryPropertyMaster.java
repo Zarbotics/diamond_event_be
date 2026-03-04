@@ -43,6 +43,9 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	@Column(name = "txt_property_name")
 	private String txtPropertyName;
+	
+	@Column(name = "txt_description")
+	private String txtDescription;
 
 	@Column(name = "txt_input_type") // dropdown, color, text, etc
 	private String txtInputType;
@@ -55,6 +58,10 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	@Column(name = "num_price")
 	private BigDecimal numPrice = BigDecimal.ZERO;
+	
+	@Column(name = "num_display_order")
+	private Integer numDisplayOrder;
+
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_decor_category_id")
@@ -63,6 +70,16 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	@OneToMany(mappedBy = "decorCategoryProperty", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<DecorCategoryPropertyValue> propertyValues;
+	
+	
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
+	}
 
 	public Integer getSerPropertyId() {
 		return serPropertyId;
@@ -134,6 +151,14 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public Integer getNumDisplayOrder() {
+		return numDisplayOrder;
+	}
+
+	public void setNumDisplayOrder(Integer numDisplayOrder) {
+		this.numDisplayOrder = numDisplayOrder;
 	}
 
 }

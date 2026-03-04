@@ -69,6 +69,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 					entity.setBlnIsActive(value.getBlnIsActive());
 					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 					entity.setBlnIsApproved(true);
+					entity.setTxtDescription(value.getTxtDescription());
 					repositoryDecorCategoryPropertyValue.save(entity);
 				}
 				dtoResult.setTxtMessage("Success");
@@ -122,6 +123,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 						entity.setBlnIsApproved(true);
 						entity.setBlnIsDeleted(false);
 						entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+						entity.setTxtDescription(value.getTxtDescription());
 
 					} else {
 						entity = optional.get();
@@ -129,6 +131,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 						entity.setTxtPropertyValue(value.getTxtPropertyValue());
 						entity.setBlnIsActive(value.getBlnIsActive());
 						entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+						entity.setTxtDescription(value.getTxtDescription());
 					}
 
 					// *******Saving Document********
@@ -142,6 +145,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 							doc.setDocumentType(file.getContentType());
 							doc.setSize(String.valueOf(file.getSize()));
 							doc.setFilePath(uploadPath);
+							doc.setTxtDescription(value.getDocument().getTxtDescription());
 							doc = serviceDecorCategoryPropertyValueDocument.save(doc);
 							entity.setDecorCategoryPropertyValueDocument(doc);
 							entity.setBlnIsDocument(Boolean.TRUE);

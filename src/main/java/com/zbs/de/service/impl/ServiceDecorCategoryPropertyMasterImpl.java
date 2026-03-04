@@ -70,7 +70,9 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 					entity.setBlnIsApproved(true);
 					entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 					entity.setBlnIsRequired(dto.getBlnIsRequired());
+					entity.setTxtDescription(dto.getTxtDescription());
 					entity.setNumPrice(dto.getNumPrice());
+					entity.setNumDisplayOrder(dto.getNumDisplayOrder());
 				} else {
 					entity = optional.get();
 					List<DecorCategoryPropertyValue> existingValues = entity.getPropertyValues();
@@ -82,7 +84,9 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 					entity.setBlnIsActive(dto.getBlnIsActive());
 					entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 					entity.setBlnIsRequired(dto.getBlnIsRequired());
+					entity.setTxtDescription(dto.getTxtDescription());
 					entity.setNumPrice(dto.getNumPrice());
+					entity.setNumDisplayOrder(dto.getNumDisplayOrder());
 				}
 
 				repositoryDecorCategoryPropertyMaster.save(entity);
@@ -169,6 +173,8 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 						entity.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 						entity.setBlnIsRequired(property.getBlnIsRequired());
 						entity.setNumPrice(property.getNumPrice());
+						entity.setTxtDescription(property.getTxtDescription());
+						entity.setNumDisplayOrder(property.getNumDisplayOrder());
 					} else {
 						entity = optional.get();
 						List<DecorCategoryPropertyValue> existingValues = entity.getPropertyValues();
@@ -181,6 +187,8 @@ public class ServiceDecorCategoryPropertyMasterImpl implements ServiceDecorCateg
 						entity.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 						entity.setBlnIsRequired(property.getBlnIsRequired());
 						entity.setNumPrice(property.getNumPrice());
+						entity.setTxtDescription(property.getTxtDescription());
+						entity.setNumDisplayOrder(property.getNumDisplayOrder());
 					}
 
 					repositoryDecorCategoryPropertyMaster.save(entity);

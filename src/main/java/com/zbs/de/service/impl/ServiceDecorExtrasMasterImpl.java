@@ -70,6 +70,8 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 				decorExtrasMaster.setTxtExtrasName(dto.getTxtExtrasName());
 				decorExtrasMaster.setBlnIsActive(dto.getBlnIsActive());
 				decorExtrasMaster.setNumPrice(dto.getNumPrice());
+				decorExtrasMaster.setTxtDescription(dto.getTxtDescription());
+				decorExtrasMaster.setNumDisplayOrder(dto.getNumDisplayOrder());
 				decorExtrasMaster.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			} else {
 				decorExtrasMaster = MapperDecorExtrasMaster.toEntity(dto);
@@ -79,6 +81,8 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 				decorExtrasMaster.setBlnIsDeleted(Boolean.FALSE);
 				decorExtrasMaster.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 				decorExtrasMaster.setNumPrice(dto.getNumPrice());
+				decorExtrasMaster.setNumDisplayOrder(dto.getNumDisplayOrder());
+				decorExtrasMaster.setTxtDescription(dto.getTxtDescription());
 			}
 
 			repositoryDecorExtrasMaster.save(decorExtrasMaster);
@@ -303,6 +307,8 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 	            master.setNumPrice(dto.getNumPrice());
 	            master.setBlnIsActive(dto.getBlnIsActive());
 	            master.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+	            master.setTxtDescription(dto.getTxtDescription());
+	            master.setNumDisplayOrder(dto.getNumDisplayOrder());
 
 	        } else {
 	            master = MapperDecorExtrasMaster.toEntity(dto);
@@ -409,6 +415,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 	                    doc.setDocumentType(file.getContentType());
 	                    doc.setSize(String.valueOf(file.getSize()));
 	                    doc.setFilePath(path);
+	                    doc.setTxtDescription(dtoOption.getDocument().getTxtDescription());
 
 	                    doc = serviceDecorExtrasOptionDocument.save(doc);
 	                    option.setDocument(doc);

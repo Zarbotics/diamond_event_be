@@ -41,12 +41,18 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_decor_category_name")
 	private String txtDecorCategoryName;
-
+	
+	@Column(name = "txt_description")
+	private String txtDescription;
+	
 	@Column(name = "bln_is_active")
 	private Boolean blnIsActive;
 
 	@Column(name = "num_price")
 	private BigDecimal numPrice = BigDecimal.ZERO;
+	
+	@Column(name = "num_display_order")
+	private Integer numDisplayOrder;
 
 	@OneToMany(mappedBy = "decorCategoryMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
@@ -110,5 +116,22 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
 	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
+	}
+
+	public Integer getNumDisplayOrder() {
+		return numDisplayOrder;
+	}
+
+	public void setNumDisplayOrder(Integer numDisplayOrder) {
+		this.numDisplayOrder = numDisplayOrder;
+	}
+	
 
 }

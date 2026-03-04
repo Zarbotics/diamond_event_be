@@ -7,6 +7,7 @@ public class DtoDecorExtrasOption {
 	private String txtOptionName;
 	private Boolean blnIsDocument;
 	private Boolean blnIsActive;
+	private String txtDescription;
 	private DtoDecorExtrasOptionDocument document;
 	private Integer serExtrasId;
 	private String txtExtrasCode;
@@ -82,6 +83,14 @@ public class DtoDecorExtrasOption {
 
 	public void setTxtExtrasName(String txtExtrasName) {
 		this.txtExtrasName = txtExtrasName;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }
