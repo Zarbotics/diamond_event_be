@@ -7,6 +7,7 @@ public class DtoDecorCategoryPropertyValue {
 	private String txtPropertyName;
 	private Boolean blnIsActive;
 	private Boolean blnIsDocument;
+	private String txtDescription;
 	private DtoDecorCategoryPropertyValueDocument document;
 
 	public Integer getSerPropertyValueId() {
@@ -63,6 +64,14 @@ public class DtoDecorCategoryPropertyValue {
 
 	public void setBlnIsDocument(Boolean blnIsDocument) {
 		this.blnIsDocument = blnIsDocument;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }

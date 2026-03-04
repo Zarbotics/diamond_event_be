@@ -33,6 +33,9 @@ public class DecorCategoryPropertyValueDocument extends BaseEntity implements Se
 
 	@Column(name = "txt_document_type")
 	private String documentType;
+	
+	@Column(name = "txt_description")
+	private String txtDescription;
 
 	@Column(name = "txt_original_name")
 	private String originalName;
@@ -90,5 +93,14 @@ public class DecorCategoryPropertyValueDocument extends BaseEntity implements Se
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
 	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
+	}
+	
 
 }

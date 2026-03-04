@@ -41,7 +41,10 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_decor_category_name")
 	private String txtDecorCategoryName;
-
+	
+	@Column(name = "txt_description")
+	private String txtDescription;
+	
 	@Column(name = "bln_is_active")
 	private Boolean blnIsActive;
 
@@ -109,6 +112,14 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }

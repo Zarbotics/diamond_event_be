@@ -43,6 +43,9 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	@Column(name = "txt_property_name")
 	private String txtPropertyName;
+	
+	@Column(name = "txt_description")
+	private String txtDescription;
 
 	@Column(name = "txt_input_type") // dropdown, color, text, etc
 	private String txtInputType;
@@ -63,6 +66,16 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	@OneToMany(mappedBy = "decorCategoryProperty", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<DecorCategoryPropertyValue> propertyValues;
+	
+	
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
+	}
 
 	public Integer getSerPropertyId() {
 		return serPropertyId;

@@ -10,6 +10,7 @@ public class DtoDecorCategoryMaster {
 	private String txtDecorCategoryName;
 	private Boolean blnIsActive;
 	private BigDecimal numPrice;
+	private String txtDescription;
 	private List<DtoDecorCategoryPropertyMaster> categoryProperties;
 	private List<DtoDecorCategoryReferenceDocument> referenceDocuments;
 
@@ -67,6 +68,14 @@ public class DtoDecorCategoryMaster {
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }
