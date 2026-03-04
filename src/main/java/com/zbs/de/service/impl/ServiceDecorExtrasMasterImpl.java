@@ -475,7 +475,8 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 	public DtoResult getAll() {
 		DtoResult dtoResult = new DtoResult();
 		try {
-			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllWithOptionsWhereNotDeleted();
+//			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllWithOptionsWhereNotDeleted();
+			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllWithOptionsWhereNotDeletedByDisplayOrder();
 			List<DtoDecorExtrasMaster> dtoList = extras.stream().map(MapperDecorExtrasMaster::toDto)
 					.collect(Collectors.toList());
 			dtoResult.setTxtMessage("Success");
