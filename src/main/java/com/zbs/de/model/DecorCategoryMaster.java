@@ -50,6 +50,9 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "num_price")
 	private BigDecimal numPrice = BigDecimal.ZERO;
+	
+	@Column(name = "num_display_order")
+	private Integer numDisplayOrder;
 
 	@OneToMany(mappedBy = "decorCategoryMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
@@ -121,5 +124,14 @@ public class DecorCategoryMaster extends BaseEntity implements Serializable {
 	public void setTxtDescription(String txtDescription) {
 		this.txtDescription = txtDescription;
 	}
+
+	public Integer getNumDisplayOrder() {
+		return numDisplayOrder;
+	}
+
+	public void setNumDisplayOrder(Integer numDisplayOrder) {
+		this.numDisplayOrder = numDisplayOrder;
+	}
+	
 
 }

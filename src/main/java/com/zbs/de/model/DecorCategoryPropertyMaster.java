@@ -58,6 +58,10 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	@Column(name = "num_price")
 	private BigDecimal numPrice = BigDecimal.ZERO;
+	
+	@Column(name = "num_display_order")
+	private Integer numDisplayOrder;
+
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ser_decor_category_id")
@@ -147,6 +151,14 @@ public class DecorCategoryPropertyMaster extends BaseEntity implements Serializa
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public Integer getNumDisplayOrder() {
+		return numDisplayOrder;
+	}
+
+	public void setNumDisplayOrder(Integer numDisplayOrder) {
+		this.numDisplayOrder = numDisplayOrder;
 	}
 
 }

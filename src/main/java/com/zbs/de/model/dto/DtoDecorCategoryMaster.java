@@ -3,6 +3,7 @@ package com.zbs.de.model.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
+
 public class DtoDecorCategoryMaster {
 
 	private Integer serDecorCategoryId;
@@ -11,6 +12,7 @@ public class DtoDecorCategoryMaster {
 	private Boolean blnIsActive;
 	private BigDecimal numPrice;
 	private String txtDescription;
+	private Integer numDisplayOrder;
 	private List<DtoDecorCategoryPropertyMaster> categoryProperties;
 	private List<DtoDecorCategoryReferenceDocument> referenceDocuments;
 
@@ -76,6 +78,14 @@ public class DtoDecorCategoryMaster {
 
 	public void setTxtDescription(String txtDescription) {
 		this.txtDescription = txtDescription;
+	}
+
+	public Integer getNumDisplayOrder() {
+		return numDisplayOrder;
+	}
+
+	public void setNumDisplayOrder(Integer numDisplayOrder) {
+		this.numDisplayOrder = numDisplayOrder;
 	}
 
 }

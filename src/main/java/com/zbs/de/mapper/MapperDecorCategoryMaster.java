@@ -22,6 +22,7 @@ public class MapperDecorCategoryMaster {
 		entity.setBlnIsActive(dto.getBlnIsActive());
 		entity.setTxtDescription(dto.getTxtDescription());
 		entity.setNumPrice(dto.getNumPrice());
+		entity.setNumDisplayOrder(dto.getNumDisplayOrder());
 		return entity;
 	}
 
@@ -33,6 +34,7 @@ public class MapperDecorCategoryMaster {
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setNumPrice(entity.getNumPrice());
 		dto.setTxtDescription(entity.getTxtDescription());
+		dto.setNumDisplayOrder(entity.getNumDisplayOrder());
 		List<DtoDecorCategoryReferenceDocument> dtoDocLst = new ArrayList<>();
 		if (UtilRandomKey.isNotNull(entity.getReferenceDocuments())) {
 			for (DecorCategoryReferenceDocument doc : entity.getReferenceDocuments()) {
@@ -55,6 +57,7 @@ public class MapperDecorCategoryMaster {
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setNumPrice(entity.getNumPrice());
 		dto.setTxtDescription(entity.getTxtDescription());
+		dto.setNumDisplayOrder(entity.getNumDisplayOrder());
 		List<DtoDecorCategoryReferenceDocument> dtoDocLst = new ArrayList<>();
 		if (UtilRandomKey.isNotNull(entity.getReferenceDocuments())) {
 			for (DecorCategoryReferenceDocument doc : entity.getReferenceDocuments()) {

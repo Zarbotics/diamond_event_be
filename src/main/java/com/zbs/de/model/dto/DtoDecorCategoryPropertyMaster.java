@@ -15,6 +15,7 @@ public class DtoDecorCategoryPropertyMaster {
 	private String txtDecorCategoryCode;
 	private String txtDecorCategoryName;
 	private BigDecimal numPrice;
+	private Integer numDisplayOrder;
 	private List<DtoDecorCategoryPropertyValue> propertyValues;
 
 	public Integer getSerPropertyId() {
@@ -111,6 +112,14 @@ public class DtoDecorCategoryPropertyMaster {
 
 	public void setTxtDescription(String txtDescription) {
 		this.txtDescription = txtDescription;
+	}
+
+	public Integer getNumDisplayOrder() {
+		return numDisplayOrder;
+	}
+
+	public void setNumDisplayOrder(Integer numDisplayOrder) {
+		this.numDisplayOrder = numDisplayOrder;
 	}
 	
 
