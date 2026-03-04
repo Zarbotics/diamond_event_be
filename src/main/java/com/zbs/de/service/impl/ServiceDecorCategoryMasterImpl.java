@@ -235,35 +235,37 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 		return String.format("DC-%03d", nextNumber);
 	}
 
-	
 	@Override
 	public DtoResult getAllDecorMasterDataWithPrice() {
-		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.findByBlnIsDeletedFalse().stream()
-				.map(MapperDecorCategoryMaster::toMasterDto).collect(Collectors.toList());
+//		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.findByBlnIsDeletedFalse().stream()
+//				.map(MapperDecorCategoryMaster::toMasterDto).collect(Collectors.toList());
+
+		List<DtoDecorCategoryMaster> list = repositoryDecorCategoryMaster.findByBlnIsDeletedFalseOrderByDisplayOrder()
+				.stream().map(MapperDecorCategoryMaster::toMasterDto).collect(Collectors.toList());
 
 		// **** Logic For Pricing in Event Master ***
-		Boolean setPropertyZero=false;
+		Boolean setPropertyZero = false;
 		for (DtoDecorCategoryMaster category : list) {
 
-			if(category.getNumPrice() != null && category.getNumPrice().compareTo(BigDecimal.ZERO) == 1) {
+			if (category.getNumPrice() != null && category.getNumPrice().compareTo(BigDecimal.ZERO) == 1) {
 				setPropertyZero = true;
 			}
-			
+
 			BigDecimal numPropertyTotal = BigDecimal.ZERO;
 			for (DtoDecorCategoryPropertyMaster property : category.getCategoryProperties()) {
-				if(setPropertyZero == true) {
+				if (setPropertyZero == true) {
 					property.setNumPrice(BigDecimal.ZERO);
-				}else if (property.getNumPrice() != null && property.getNumPrice().compareTo(BigDecimal.ZERO) == 1) {
-					numPropertyTotal.add(property.getNumPrice());
+				} else if (property.getNumPrice() != null && property.getNumPrice().compareTo(BigDecimal.ZERO) == 1) {
+					numPropertyTotal = numPropertyTotal.add(property.getNumPrice());
 				}
 			}
-			
+
 			if (numPropertyTotal.compareTo(BigDecimal.ZERO) == 1) {
 				category.setNumPrice(null);
 			}
 			setPropertyZero = false;
 		}
-		
+
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
 	}
 }
