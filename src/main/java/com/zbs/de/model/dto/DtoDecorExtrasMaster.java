@@ -10,6 +10,8 @@ public class DtoDecorExtrasMaster {
 	private String txtExtrasName;
 	private Boolean blnIsActive;
 	private BigDecimal numPrice;
+	private String txtDescription;
+	private Integer numDisplayOrder;
 	private List<DtoDecorExtrasOption> decorExtrasOptions;
 
 	public Integer getSerExtrasId() {
@@ -58,6 +60,22 @@ public class DtoDecorExtrasMaster {
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
+	}
+
+	public Integer getNumDisplayOrder() {
+		return numDisplayOrder;
+	}
+
+	public void setNumDisplayOrder(Integer numDisplayOrder) {
+		this.numDisplayOrder = numDisplayOrder;
 	}
 
 }

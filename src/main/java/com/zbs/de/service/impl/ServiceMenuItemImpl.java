@@ -153,7 +153,7 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		exist.setTxtDescription(dto.getTxtDescription());
 		exist.setTxtRole(dto.getTxtRole());
 		exist.setTxtType(dto.getTxtType()); // 🔴 MISSING BEFORE
-//		exist.setNumDisplayOrder(dto.getNumDisplayOrder());
+		exist.setNumDisplayOrder(dto.getNumDisplayOrder());
 		exist.setBlnIsSelectable(dto.getBlnIsSelectable());
 		exist.setMetadata(dto.getMetadata());
 		exist.setNumDefaultServingsPerGuest(dto.getNumDefaultServingsPerGuest());

@@ -10,6 +10,7 @@ public class DtoDecorCategoryPropertyValueDocument {
 	private String txtDocumentUrl;
 	private Integer serPropertyValueId;
 	private String txtPropertyValue;
+	private String txtDescription;
 
 	public Integer getDocumentId() {
 		return documentId;
@@ -81,6 +82,14 @@ public class DtoDecorCategoryPropertyValueDocument {
 
 	public void setTxtPropertyValue(String txtPropertyValue) {
 		this.txtPropertyValue = txtPropertyValue;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }

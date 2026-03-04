@@ -36,6 +36,7 @@ public class MapperMenuItem {
 		dto.setParentId(entity.getParent() != null ? entity.getParent().getSerMenuItemId() : null);
 		dto.setSerMenuItemRoleId(entity.getMenuItemRole() != null ? entity.getMenuItemRole().getSerMenuItemRoleId() : null);
 		dto.setTxtRole(entity.getMenuItemRole() != null ? entity.getMenuItemRole().getTxtRoleName() : null);
+		dto.setTxtPriceMultiplierType(entity.getEnmPriceMultiplierType() != null ? entity.getEnmPriceMultiplierType().toString() : null);
 
 		return dto;
 	}

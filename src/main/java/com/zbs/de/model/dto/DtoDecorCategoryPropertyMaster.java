@@ -7,6 +7,7 @@ public class DtoDecorCategoryPropertyMaster {
 	private Integer serPropertyId;
 	private String txtPropertyName;
 	private String txtInputType;
+	private String txtDescription;
 	private String txtRemarks;
 	private Boolean blnIsRequired;
 	private Boolean blnIsActive;
@@ -14,6 +15,7 @@ public class DtoDecorCategoryPropertyMaster {
 	private String txtDecorCategoryCode;
 	private String txtDecorCategoryName;
 	private BigDecimal numPrice;
+	private Integer numDisplayOrder;
 	private List<DtoDecorCategoryPropertyValue> propertyValues;
 
 	public Integer getSerPropertyId() {
@@ -103,5 +105,22 @@ public class DtoDecorCategoryPropertyMaster {
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
 	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
+	}
+
+	public Integer getNumDisplayOrder() {
+		return numDisplayOrder;
+	}
+
+	public void setNumDisplayOrder(Integer numDisplayOrder) {
+		this.numDisplayOrder = numDisplayOrder;
+	}
+	
 
 }

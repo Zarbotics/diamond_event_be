@@ -36,6 +36,9 @@ public class DecorCategoryPropertyValue extends BaseEntity implements Serializab
 	@Column(name = "txt_property_value")
 	private String txtPropertyValue;
 
+	@Column(name = "txt_description")
+	private String txtDescription;
+
 	@Column(name = "bln_is_document")
 	private Boolean blnIsDocument;
 
@@ -86,6 +89,18 @@ public class DecorCategoryPropertyValue extends BaseEntity implements Serializab
 
 	public void setBlnIsDocument(Boolean blnIsDocument) {
 		this.blnIsDocument = blnIsDocument;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
+	public String getTxtDescription() {
+		return txtDescription;
+	}
+
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
 	}
 
 }

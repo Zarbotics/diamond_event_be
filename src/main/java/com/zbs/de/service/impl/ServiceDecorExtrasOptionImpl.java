@@ -83,6 +83,7 @@ public class ServiceDecorExtrasOptionImpl implements ServiceDecorExtrasOption {
 				decorExtrasOption.setDecorExtrasMaster(decorExtrasMaster);
 				decorExtrasOption.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
 				decorExtrasOption.setBlnIsApproved(true);
+				decorExtrasOption.setTxtDescription(dto.getTxtDescription());
 				decorExtrasMaster.setBlnIsDeleted(false);
 
 			} else {
@@ -91,7 +92,9 @@ public class ServiceDecorExtrasOptionImpl implements ServiceDecorExtrasOption {
 				decorExtrasOption.setTxtOptionName(dto.getTxtOptionName());
 				decorExtrasOption.setBlnIsActive(dto.getBlnIsActive());
 				decorExtrasOption.setDecorExtrasMaster(decorExtrasMaster);
+				decorExtrasOption.setTxtDescription(dto.getTxtDescription());
 				decorExtrasOption.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+				
 			}
 
 			// *******Saving Document********
@@ -105,6 +108,7 @@ public class ServiceDecorExtrasOptionImpl implements ServiceDecorExtrasOption {
 					doc.setDocumentType(file.getContentType());
 					doc.setSize(String.valueOf(file.getSize()));
 					doc.setFilePath(uploadPath);
+					doc.setTxtDescription(dto.getDocument().getTxtDescription());
 					doc = serviceDecorExtrasOptionDocument.save(doc);
 					decorExtrasOption.setDocument(doc);
 					decorExtrasOption.setBlnIsDocument(Boolean.TRUE);
