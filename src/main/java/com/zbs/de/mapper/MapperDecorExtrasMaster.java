@@ -28,6 +28,7 @@ public class MapperDecorExtrasMaster {
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setNumPrice(entity.getNumPrice());
 		dto.setTxtDescription(entity.getTxtDescription());
+		dto.setNumDisplayOrder(entity.getNumDisplayOrder());
 
 		if (entity.getDecorExtrasOptions() != null) {
 			List<DtoDecorExtrasOption> options = entity.getDecorExtrasOptions().stream()
@@ -51,7 +52,7 @@ public class MapperDecorExtrasMaster {
 		entity.setBlnIsActive(dto.getBlnIsActive());
 		entity.setNumPrice(dto.getNumPrice());
 		entity.setTxtDescription(dto.getTxtDescription());
-
+		entity.setNumDisplayOrder(dto.getNumDisplayOrder());
 
 		return entity;
 	}
