@@ -12,9 +12,18 @@ public class DtoCustomerMenuSubCategory {
 	private BigDecimal numPrice;
 	private BigDecimal numFinalPrice;
 	private List<DtoMenuItem> items;
+    private String txtDescription;
 	private List<DtoMenuComponentRequest> compositeItems;
 
-	public Long getSubCategoryId() {
+    public String getTxtDescription() {
+        return txtDescription;
+    }
+
+    public void setTxtDescription(String txtDescription) {
+        this.txtDescription = txtDescription;
+    }
+
+    public Long getSubCategoryId() {
 		return subCategoryId;
 	}
 
