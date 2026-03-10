@@ -324,7 +324,7 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 					detail.setNumCapacity(detailDto.getNumCapacity());
 					detail.setNumPrice(detailDto.getNumPrice());
 
-					if (fileMap != null && !fileMap.isEmpty()) {
+					if (fileMap != null && !fileMap.isEmpty() && detailDto.getDocuments() != null) {
 						List<VenueMasterDetailDocument> documents = new ArrayList<>();
 						for (DtoVenueMasterDetailDocument docDto : detailDto.getDocuments()) {
 							MultipartFile file = fileMap.get(docDto.getOriginalName());

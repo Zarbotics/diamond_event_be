@@ -387,5 +387,13 @@ public class ControllerMenuItem {
 						"Error while searching Menu Items: " + e.getMessage(), null);
 			}
 		}
+		
+		
+		@PostMapping(path = "/upload-items-under-subcategory", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseEntity<String> uploadItemsUnderSubCategories(@RequestPart("file") MultipartFile file,
+				HttpServletRequest request) {
+			String result = service.readMenuItemsUnderSubCategoryCsv(file);
+			return ResponseEntity.ok(result);
+		}
 
 }
