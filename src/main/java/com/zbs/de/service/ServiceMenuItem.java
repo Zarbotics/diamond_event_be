@@ -67,4 +67,6 @@ public interface ServiceMenuItem {
     
     List<String> getAllPriceUnitTypes();
     Page<DtoMenuItem> searchMenuITems(DtoMenuItemSearch dto);
+    
+    String readMenuItemsUnderSubCategoryCsv(MultipartFile file);
 }

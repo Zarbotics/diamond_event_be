@@ -1096,4 +1096,88 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 			return new PageImpl<>(dtos, pageable, pageResult.getTotalElements());
 		
 	}
+
+	@Override
+	@Transactional
+	public String readMenuItemsUnderSubCategoryCsv(MultipartFile file) {
+
+		if (file == null || file.isEmpty()) {
+			return "Failure: No file uploaded";
+		}
+
+		try (InputStream is = file.getInputStream();
+				InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+				CSVReader csvReader = new CSVReader(isr)) {
+
+			String[] header = csvReader.readNext(); // skip header
+			if (header == null) {
+				return "Failure: Empty CSV";
+			}
+
+			String[] row;
+			int rowNum = 1;
+
+			while ((row = csvReader.readNext()) != null) {
+				rowNum++;
+
+				// Expected columns:
+				// role_id,parent_id,name,short_name,description,is_selectable
+				final int EXPECTED_COLS = 3;
+
+				// pad missing columns
+				if (row.length < EXPECTED_COLS) {
+					String[] tmp = new String[EXPECTED_COLS];
+					System.arraycopy(row, 0, tmp, 0, row.length);
+					for (int i = row.length; i < EXPECTED_COLS; i++) {
+						tmp[i] = "";
+					}
+					row = tmp;
+				}
+
+				// trim safely
+				for (int i = 0; i < row.length; i++) {
+					row[i] = row[i] == null ? "" : row[i].trim();
+				}
+
+				try {
+					DtoMenuItem dto = new DtoMenuItem();
+
+					dto.setSerMenuItemRoleId(3);
+					dto.setParentId(parseLong(row[0]));
+					dto.setTxtName(row[1]);
+					dto.setTxtShortName(row[1]);
+
+					// ✔ quoted commas handled automatically by CSVReader
+					dto.setTxtDescription(row[2]);
+
+					dto.setTxtCode(generateNextCode("Item"));
+					dto.setTxtRole("Item");
+					dto.setTxtType("Item");
+
+					dto.setNumDisplayOrder(0);
+					dto.setBlnIsSelectable(true);
+					dto.setBlnIsActive(Boolean.TRUE);
+					dto.setBlnIsCompostie(false);
+					dto.setBlnIsCateringItem(true);
+					dto.setTxtPriceMultiplierType("PER_GUEST");
+
+					dto.setMetadata(new HashMap<>());
+					dto.setNumDefaultServingsPerGuest(null);
+					dto.setTxtPath(null);
+
+					create(dto);
+
+				} catch (Exception rowEx) {
+					// log row-specific failure, but continue import
+					LOGGER.error("CSV row {} failed: {}", rowNum, rowEx.getMessage(), rowEx);
+				}
+			}
+
+			return "Success";
+
+		} catch (Exception ex) {
+			LOGGER.error("CSV import failed", ex);
+			return "Failure";
+		}
+	}
 }
