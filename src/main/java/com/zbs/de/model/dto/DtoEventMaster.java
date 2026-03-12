@@ -1,5 +1,6 @@
 package com.zbs.de.model.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
@@ -63,6 +64,9 @@ public class DtoEventMaster {
 	private Boolean isEditAllowed;
 
 	private Integer numFormState;
+	
+	private BigDecimal numItineraryPrice;
+	private BigDecimal numServingDishesPrice;
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
@@ -507,5 +511,23 @@ public class DtoEventMaster {
 	public void setMenuCategoriesSelection(List<DtoCustomerMenuCategory> menuCategoriesSelection) {
 		this.menuCategoriesSelection = menuCategoriesSelection;
 	}
+
+	public BigDecimal getNumItineraryPrice() {
+		return numItineraryPrice;
+	}
+
+	public void setNumItineraryPrice(BigDecimal numItineraryPrice) {
+		this.numItineraryPrice = numItineraryPrice;
+	}
+
+	public BigDecimal getNumServingDishesPrice() {
+		return numServingDishesPrice;
+	}
+
+	public void setNumServingDishesPrice(BigDecimal numServingDishesPrice) {
+		this.numServingDishesPrice = numServingDishesPrice;
+	}
+	
+	
 
 }
