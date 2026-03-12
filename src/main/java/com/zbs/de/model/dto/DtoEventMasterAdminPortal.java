@@ -63,6 +63,8 @@ public class DtoEventMasterAdminPortal {
 
 	private Boolean isEditAllowed;
 
+	private Integer numFormState;
+
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
 
@@ -511,6 +513,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setMenuCategoriesSelection(List<DtoCustomerMenuCategory> menuCategoriesSelection) {
 		this.menuCategoriesSelection = menuCategoriesSelection;
+	}
+
+	public Integer getNumFormState() {
+		return numFormState;
+	}
+
+	public void setNumFormState(Integer numFormState) {
+		this.numFormState = numFormState;
 	}
 
 }
