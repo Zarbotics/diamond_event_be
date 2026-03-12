@@ -60,13 +60,24 @@ public class ControllerEventMaster {
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
 		LOGGER.info("Saving Event Master: {}", eventMaster);
 		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
-		DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dtoEventMaster, files);
-		if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-					result.getResult());
+		try {
+			DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dtoEventMaster, files);
+			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
+				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
+						"An event is already booked against date :" + dtoEventMaster.getDteEventDate(),
+						result.getResult());
+			} else if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			} else {
+				return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+						result.getTxtMessage(), dtoEventMaster);
+			}
+		} catch (Exception e) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
+					dtoEventMaster);
 		}
-		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
-				dtoEventMaster);
+
 	}
 
 	@PostMapping(value = "/generateEventCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

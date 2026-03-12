@@ -1156,7 +1156,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				if(newDate != null && entity.getDteEventDate() != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
 					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
 					if(isalreadyBooked) {
-						dtoResult.setTxtMessage("An event is already booked against this date." + dtoEventMaster.getDteEventDate());
+						dtoResult.setTxtMessage("already_booked");
 						return dtoResult;
 					}
 				}
@@ -1501,7 +1501,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
 					if (newDate != null && isalreadyBooked) {
-						dtoResult.setTxtMessage("An event is already booked against this date.");
+						dtoResult.setTxtMessage("already_booked");
 						return dtoResult;
 					}
 
