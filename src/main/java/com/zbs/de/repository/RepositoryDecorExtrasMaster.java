@@ -26,7 +26,7 @@ public interface RepositoryDecorExtrasMaster extends JpaRepository<DecorExtrasMa
 	Optional<DecorExtrasMaster> findByIdAndNotDeleted(@Param("id") Integer id);
 	
 	@Query("SELECT DISTINCT m FROM DecorExtrasMaster m " + "LEFT JOIN FETCH m.decorExtrasOptions o "
-			+ "WHERE m.blnIsDeleted = false AND m.blnIsActive = true AND (o.blnIsDeleted = false OR o IS NULL) AND o.blnIsActive = true ")
+			+ "WHERE m.blnIsDeleted = false AND m.blnIsActive = true AND (o.blnIsDeleted = false OR o IS NULL) AND o.blnIsActive = true order by m.txtExtrasName, o.txtOptionName asc")
 	List<DecorExtrasMaster> findAllActiveWithOptionsWhereNotDeleted();
 	
 	

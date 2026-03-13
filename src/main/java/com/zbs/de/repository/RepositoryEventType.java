@@ -15,6 +15,6 @@ public interface RepositoryEventType extends JpaRepository<EventType, Integer> {
 	@Query("SELECT MAX(e.txtEventTypeCode) FROM EventType e")
 	String findMaxEventTypeCode();
 
-	@Query("SELECT e FROM EventType e where e.blnIsDeleted = false and e.blnIsActive = true")
+	@Query("SELECT e FROM EventType e where e.blnIsDeleted = false and e.blnIsActive = true order by e.txtEventTypeName asc")
 	List<EventType> findAllActive();
 }
