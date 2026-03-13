@@ -4,13 +4,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.zbs.de.model.DecorCategoryMaster;
 
 @Repository("repositoryDecorCategoryMaster")
-public interface RepositoryDecorCategoryMaster extends JpaRepository<DecorCategoryMaster, Integer> {
+public interface RepositoryDecorCategoryMaster extends JpaRepository<DecorCategoryMaster, Integer>, JpaSpecificationExecutor<DecorCategoryMaster>{
 
 	List<DecorCategoryMaster> findByBlnIsDeletedFalse();
 	
