@@ -1,9 +1,11 @@
 package com.zbs.de.service;
 
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.model.DecorCategoryMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryMaster;
+import com.zbs.de.model.dto.DtoDecorCategorySearch;
 import com.zbs.de.model.dto.DtoResult;
 
 public interface ServiceDecorCategoryMaster {
@@ -26,4 +28,6 @@ public interface ServiceDecorCategoryMaster {
 	String generateNextDecorCategoryMasterCode();
 	
 	DtoResult getAllDecorMasterDataWithPrice();
+	
+	Page<DtoDecorCategoryMaster> search(DtoDecorCategorySearch dto);
 }

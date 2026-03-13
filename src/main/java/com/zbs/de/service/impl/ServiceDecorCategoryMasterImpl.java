@@ -9,6 +9,12 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,11 +25,13 @@ import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryReferenceDocument;
 import com.zbs.de.model.dto.DtoDecorCategoryMaster;
 import com.zbs.de.model.dto.DtoDecorCategoryPropertyMaster;
+import com.zbs.de.model.dto.DtoDecorCategorySearch;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.repository.RepositoryDecorCategoryMaster;
 import com.zbs.de.service.ServiceDecorCategoryMaster;
 import com.zbs.de.service.ServiceDecorCategoryPropertyMaster;
 import com.zbs.de.service.ServiceDecorCategoryReferenceDocument;
+import com.zbs.de.spec.SpecificationsDecorCategoryMaster;
 import com.zbs.de.util.UtilFileStorage;
 
 @Service("serviceDecorCategoryMasterImpl")
@@ -267,5 +275,27 @@ public class ServiceDecorCategoryMasterImpl implements ServiceDecorCategoryMaste
 		}
 
 		return new DtoResult("Fetched Successfully", null, null, new ArrayList<>(list));
+	}
+	
+	@Override
+	public Page<DtoDecorCategoryMaster> search(DtoDecorCategorySearch dto) {
+
+		int page = dto.getPage() != null && dto.getPage() >= 0 ? dto.getPage() : 0;
+		int size = dto.getSize() != null && dto.getSize() > 0 ? Math.min(dto.getSize(), 200) : 20;
+
+		String sortBy = dto.getSortBy() != null ? dto.getSortBy() : "numDisplayOrder";
+
+		Sort.Direction dir = "ASC".equalsIgnoreCase(dto.getSortDir()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+		Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
+
+		Specification<DecorCategoryMaster> spec = SpecificationsDecorCategoryMaster.fromDto(dto);
+
+		Page<DecorCategoryMaster> pageResult = repositoryDecorCategoryMaster.findAll(spec, pageable);
+
+		List<DtoDecorCategoryMaster> list = pageResult.getContent().stream().map(MapperDecorCategoryMaster::toMasterDto)
+				.toList();
+
+		return new PageImpl<>(list, pageable, pageResult.getTotalElements());
 	}
 }
