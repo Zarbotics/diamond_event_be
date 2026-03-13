@@ -12,7 +12,7 @@ import com.zbs.de.model.VendorMaster;
 public interface RepositoryVendorMaster extends JpaRepository<VendorMaster, Integer> {
 	List<VendorMaster> findByBlnIsDeleted(Boolean blnIsDeleted);
 	
-	@Query("SELECT v FROM VendorMaster v where v.blnIsActive = true and v.blnIsDeleted = false ")
+	@Query("SELECT v FROM VendorMaster v where v.blnIsActive = true and v.blnIsDeleted = false order by v.txtVendorName asc")
 	List<VendorMaster> findAllActive();
 	
 	@Query("SELECT MAX(e.txtVendorCode) FROM VendorMaster e")
