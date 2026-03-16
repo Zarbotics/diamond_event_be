@@ -146,6 +146,13 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "num_serving_dishes_price")
 	private BigDecimal numServingDishesPrice;
+	
+	
+	@Column(name = "bln_is_client_email_send")
+	private Boolean blnIsClientEmailSend;
+	
+	@Column(name = "bln_is_all_admin_email_send")
+	private Boolean blnIsAllAdminEmailSend;
 
 	// This is when you need to specify which hall you selected
 	@ManyToOne
@@ -531,5 +538,22 @@ public class EventMaster extends BaseEntity implements Serializable {
 	public void setMenuCategorySelections(List<EventMenuCategorySelection> menuCategorySelections) {
 		this.menuCategorySelections = menuCategorySelections;
 	}
+
+	public Boolean getBlnIsClientEmailSend() {
+		return blnIsClientEmailSend;
+	}
+
+	public void setBlnIsClientEmailSend(Boolean blnIsClientEmailSend) {
+		this.blnIsClientEmailSend = blnIsClientEmailSend;
+	}
+
+	public Boolean getBlnIsAllAdminEmailSend() {
+		return blnIsAllAdminEmailSend;
+	}
+
+	public void setBlnIsAllAdminEmailSend(Boolean blnIsAllAdminEmailSend) {
+		this.blnIsAllAdminEmailSend = blnIsAllAdminEmailSend;
+	}
+	
 
 }

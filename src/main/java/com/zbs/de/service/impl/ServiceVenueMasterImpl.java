@@ -106,28 +106,63 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 		}
 	}
 
+//	@Override
+//	public ResponseMessage getAllVenuesGroupedByCity() {
+//		try {
+//			List<VenueMaster> list = repositoryVenueMaster.findByBlnIsDeletedFalse();
+//			Map<CityMaster, List<VenueMaster>> grouped = list.stream()
+//					.collect(Collectors.groupingBy(VenueMaster::getCityMaster));
+//
+//			List<DtoVenueMasterByCity> result = new ArrayList<>();
+//			for (Map.Entry<CityMaster, List<VenueMaster>> entry : grouped.entrySet()) {
+//				CityMaster city = entry.getKey();
+//				List<DtoVenueMaster> venues = entry.getValue().stream().map(MapperVenueMaster::toDto)
+//						.collect(Collectors.toList());
+//
+//				DtoVenueMasterByCity dto = new DtoVenueMasterByCity();
+//				dto.setSerCityId(city.getSerCityId());
+//				dto.setTxtCityName(city.getTxtCityName());
+//				dto.setTxtCityCode(city.getTxtCityCode());
+//				dto.setVenueMasters(venues);
+//				result.add(dto);
+//			}
+//
+//			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched venues grouped by city", result);
+//		} catch (Exception e) {
+//			LOGGER.error(e.getMessage(), e);
+//			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+//					"Error grouping venues by city: " + e.getMessage(), null);
+//		}
+//	}
+	
 	@Override
 	public ResponseMessage getAllVenuesGroupedByCity() {
 		try {
+
 			List<VenueMaster> list = repositoryVenueMaster.findByBlnIsDeletedFalse();
+
 			Map<CityMaster, List<VenueMaster>> grouped = list.stream()
 					.collect(Collectors.groupingBy(VenueMaster::getCityMaster));
 
-			List<DtoVenueMasterByCity> result = new ArrayList<>();
-			for (Map.Entry<CityMaster, List<VenueMaster>> entry : grouped.entrySet()) {
-				CityMaster city = entry.getKey();
-				List<DtoVenueMaster> venues = entry.getValue().stream().map(MapperVenueMaster::toDto)
-						.collect(Collectors.toList());
+			List<DtoVenueMasterByCity> result = grouped.entrySet().stream()
+					.sorted(Comparator.comparing(entry -> entry.getKey().getTxtCityName())).map(entry -> {
 
-				DtoVenueMasterByCity dto = new DtoVenueMasterByCity();
-				dto.setSerCityId(city.getSerCityId());
-				dto.setTxtCityName(city.getTxtCityName());
-				dto.setTxtCityCode(city.getTxtCityCode());
-				dto.setVenueMasters(venues);
-				result.add(dto);
-			}
+						CityMaster city = entry.getKey();
+
+						List<DtoVenueMaster> venues = entry.getValue().stream().map(MapperVenueMaster::toDto)
+								.collect(Collectors.toList());
+
+						DtoVenueMasterByCity dto = new DtoVenueMasterByCity();
+						dto.setSerCityId(city.getSerCityId());
+						dto.setTxtCityName(city.getTxtCityName());
+						dto.setTxtCityCode(city.getTxtCityCode());
+						dto.setVenueMasters(venues);
+
+						return dto;
+					}).collect(Collectors.toList());
 
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched venues grouped by city", result);
+
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
@@ -135,28 +170,63 @@ public class ServiceVenueMasterImpl implements ServiceVenueMaster {
 		}
 	}
 	
+//	@Override
+//	public ResponseMessage getAllActiveVenuesGroupedByActiveCities() {
+//		try {
+//			List<VenueMaster> list = repositoryVenueMaster.getAllActiveVenuesByActiveCities();
+//			Map<CityMaster, List<VenueMaster>> grouped = list.stream()
+//					.collect(Collectors.groupingBy(VenueMaster::getCityMaster));
+//
+//			List<DtoVenueMasterByCity> result = new ArrayList<>();
+//			for (Map.Entry<CityMaster, List<VenueMaster>> entry : grouped.entrySet()) {
+//				CityMaster city = entry.getKey();
+//				List<DtoVenueMaster> venues = entry.getValue().stream().map(MapperVenueMaster::toDto)
+//						.collect(Collectors.toList());
+//
+//				DtoVenueMasterByCity dto = new DtoVenueMasterByCity();
+//				dto.setSerCityId(city.getSerCityId());
+//				dto.setTxtCityName(city.getTxtCityName());
+//				dto.setTxtCityCode(city.getTxtCityCode());
+//				dto.setVenueMasters(venues);
+//				result.add(dto);
+//			}
+//
+//			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched venues grouped by city", result);
+//		} catch (Exception e) {
+//			LOGGER.error(e.getMessage(), e);
+//			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+//					"Error grouping venues by city: " + e.getMessage(), null);
+//		}
+//	}
+
 	@Override
 	public ResponseMessage getAllActiveVenuesGroupedByActiveCities() {
 		try {
+
 			List<VenueMaster> list = repositoryVenueMaster.getAllActiveVenuesByActiveCities();
+
 			Map<CityMaster, List<VenueMaster>> grouped = list.stream()
 					.collect(Collectors.groupingBy(VenueMaster::getCityMaster));
 
-			List<DtoVenueMasterByCity> result = new ArrayList<>();
-			for (Map.Entry<CityMaster, List<VenueMaster>> entry : grouped.entrySet()) {
-				CityMaster city = entry.getKey();
-				List<DtoVenueMaster> venues = entry.getValue().stream().map(MapperVenueMaster::toDto)
-						.collect(Collectors.toList());
+			List<DtoVenueMasterByCity> result = grouped.entrySet().stream()
+					.sorted(Comparator.comparing(entry -> entry.getKey().getTxtCityName())).map(entry -> {
 
-				DtoVenueMasterByCity dto = new DtoVenueMasterByCity();
-				dto.setSerCityId(city.getSerCityId());
-				dto.setTxtCityName(city.getTxtCityName());
-				dto.setTxtCityCode(city.getTxtCityCode());
-				dto.setVenueMasters(venues);
-				result.add(dto);
-			}
+						CityMaster city = entry.getKey();
+
+						List<DtoVenueMaster> venues = entry.getValue().stream().map(MapperVenueMaster::toDto)
+								.collect(Collectors.toList());
+
+						DtoVenueMasterByCity dto = new DtoVenueMasterByCity();
+						dto.setSerCityId(city.getSerCityId());
+						dto.setTxtCityName(city.getTxtCityName());
+						dto.setTxtCityCode(city.getTxtCityCode());
+						dto.setVenueMasters(venues);
+
+						return dto;
+					}).collect(Collectors.toList());
 
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched venues grouped by city", result);
+
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
