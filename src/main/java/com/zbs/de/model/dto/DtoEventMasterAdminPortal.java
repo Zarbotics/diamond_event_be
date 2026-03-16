@@ -82,6 +82,8 @@ public class DtoEventMasterAdminPortal {
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
 
 	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
+	
+	private List<DtoEventVendorMasterSelection> vendorMasterSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -521,6 +523,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setNumFormState(Integer numFormState) {
 		this.numFormState = numFormState;
+	}
+
+	public List<DtoEventVendorMasterSelection> getVendorMasterSelections() {
+		return vendorMasterSelections;
+	}
+
+	public void setVendorMasterSelections(List<DtoEventVendorMasterSelection> vendorMasterSelections) {
+		this.vendorMasterSelections = vendorMasterSelections;
 	}
 
 }
