@@ -94,7 +94,6 @@ import jakarta.transaction.Transactional;
 @Service("serviceEventMaster")
 public class ServiceEventMasterImpl implements ServiceEventMaster {
 
-
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
 
@@ -1473,7 +1472,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				} else {
 					eventBudget = new EventBudget();
-					if (dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
+					if (dtoEventMaster.getDtoEventQuoteAndStatus() != null && dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
 							.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
 						eventBudget.setTxtStatus("Quoted");
 						eventBudget.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
@@ -1863,24 +1862,26 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			                subEntity.getItems().add(itemEntity);
 			            }
 
-			            // Composite Items If Exists
-			            for (DtoMenuComponentRequest itemDto : subDto.getCompositeItems()) {
+						// Composite Items If Exists
+						if (subDto.getCompositeItems() != null) {
+							for (DtoMenuComponentRequest itemDto : subDto.getCompositeItems()) {
 
-			                MenuItem menuItem = menuItems.stream()
-			                    .filter(item -> item.getSerMenuItemId() != null
-			                        && item.getSerMenuItemId().intValue() == itemDto.getParentMenuItemId().intValue())
-			                    .findFirst().orElse(null);
+								MenuItem menuItem = menuItems.stream()
+										.filter(item -> item.getSerMenuItemId() != null && item.getSerMenuItemId()
+												.intValue() == itemDto.getParentMenuItemId().intValue())
+										.findFirst().orElse(null);
 
-			                EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
-			                itemEntity.setEventMaster(entity);
-			                itemEntity.setEventSubCategory(subEntity);
-			                itemEntity.setMenuItem(menuItem);
-			                itemEntity.setNumPrice(itemDto.getNumPrice());
-			                itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
-			                itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
+								EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
+								itemEntity.setEventMaster(entity);
+								itemEntity.setEventSubCategory(subEntity);
+								itemEntity.setMenuItem(menuItem);
+								itemEntity.setNumPrice(itemDto.getNumPrice());
+								itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
+								itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
 
-			                subEntity.getItems().add(itemEntity);
-			            }
+								subEntity.getItems().add(itemEntity);
+							}
+						}
 
 			            catEntity.getSubCategories().add(subEntity);
 			        }
@@ -1956,11 +1957,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 			entity.setNumInfoFilledStatus(getEventCompletionPercentage(entity));
-			entity = repositoryEventMaster.save(entity);
-			if (eventBudget != null) {
-				eventBudget.setEventMaster(entity);
-				serviceEventBudget.save(eventBudget);
-			}
+//			entity = repositoryEventMaster.save(entity);
+//			if (eventBudget != null) {
+//				eventBudget.setEventMaster(entity);
+//				serviceEventBudget.save(eventBudget);
+//			}
 
 			// ***** Sending Notification Of New Customer Registration *****
 			if (blnIsNewEvent) {
@@ -1974,17 +1975,26 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (this.isEventRegistrationCompleted(entity)) {
 				UserMaster userMaster = ServiceCurrentUser.getCurrentUser();
 				if (userMaster != null) {
-					serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
-							entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
-							entity.getDteEventDate());
+					if (entity.getBlnIsClientEmailSend() != null
+							&& entity.getBlnIsClientEmailSend().equals(Boolean.FALSE)) {
+						serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
+								entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
+								entity.getDteEventDate());
+						entity.setBlnIsClientEmailSend(true);
+						dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
+								+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");
+					}
 
 					// ***** Send Email To All Admin Users ********
-					serviceEmailSender.sendEventRegistrationEmailToAdminUsers(userMaster.getTxtName(),
-							entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
-							entity.getDteEventDate());
-
-					dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
-							+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");
+					if (entity.getBlnIsAllAdminEmailSend() != null
+							&& entity.getBlnIsAllAdminEmailSend().equals(Boolean.FALSE)) {
+						serviceEmailSender.sendEventRegistrationEmailToAdminUsers(userMaster.getTxtName(),
+								entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
+								entity.getDteEventDate());
+						entity.setBlnIsAllAdminEmailSend(true);
+						dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
+								+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");
+					}
 				} else {
 					dtoResult.setTxtMessage("Success");
 
@@ -1993,6 +2003,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				dtoResult.setTxtMessage("Success");
 			}
 
+			entity = repositoryEventMaster.save(entity);
+			if (eventBudget != null) {
+				eventBudget.setEventMaster(entity);
+				serviceEventBudget.save(eventBudget);
+			}
+			
 			DtoEventMaster dtoEvent = this.getEventById(entity.getSerEventMasterId());
 			dtoResult.setResult(dtoEvent);
 			return dtoResult;
@@ -2958,24 +2974,26 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			                subEntity.getItems().add(itemEntity);
 			            }
 
-			            // Composite Items If Exists
-			            for (DtoMenuComponentRequest itemDto : subDto.getCompositeItems()) {
+						// Composite Items If Exists
+						if (subDto.getCompositeItems() != null) {
+							for (DtoMenuComponentRequest itemDto : subDto.getCompositeItems()) {
 
-			                MenuItem menuItem = menuItems.stream()
-			                    .filter(item -> item.getSerMenuItemId() != null
-			                        && item.getSerMenuItemId().intValue() == itemDto.getParentMenuItemId().intValue())
-			                    .findFirst().orElse(null);
+								MenuItem menuItem = menuItems.stream()
+										.filter(item -> item.getSerMenuItemId() != null && item.getSerMenuItemId()
+												.intValue() == itemDto.getParentMenuItemId().intValue())
+										.findFirst().orElse(null);
 
-			                EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
-			                itemEntity.setEventMaster(entity);
-			                itemEntity.setEventSubCategory(subEntity);
-			                itemEntity.setMenuItem(menuItem);
-			                itemEntity.setNumPrice(itemDto.getNumPrice());
-			                itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
-			                itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
+								EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
+								itemEntity.setEventMaster(entity);
+								itemEntity.setEventSubCategory(subEntity);
+								itemEntity.setMenuItem(menuItem);
+								itemEntity.setNumPrice(itemDto.getNumPrice());
+								itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
+								itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
 
-			                subEntity.getItems().add(itemEntity);
-			            }
+								subEntity.getItems().add(itemEntity);
+							}
+						}
 
 			            catEntity.getSubCategories().add(subEntity);
 			        }
@@ -3057,11 +3075,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			
 			
 			entity.setNumInfoFilledStatus(getEventCompletionPercentage(entity));
-			entity = repositoryEventMaster.save(entity);
-			if (eventBudget != null) {
-				eventBudget.setEventMaster(entity);
-				serviceEventBudget.save(eventBudget);
-			}
+//			entity = repositoryEventMaster.save(entity);
+//			if (eventBudget != null) {
+//				eventBudget.setEventMaster(entity);
+//				serviceEventBudget.save(eventBudget);
+//			}
 
 			// ***** Sending Notification Of New Customer Registration *****
 			if (blnIsNewEvent) {
@@ -3077,23 +3095,41 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (this.isEventRegistrationCompleted(entity)) {
 				UserMaster userMaster = ServiceCurrentUser.getCurrentUser();
 				if (userMaster != null) {
-					serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
-							entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
-							entity.getDteEventDate());
+					if (entity.getBlnIsClientEmailSend() != null
+							&& entity.getBlnIsClientEmailSend().equals(Boolean.FALSE)) {
+						serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
+								entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
+								entity.getDteEventDate());
+						entity.setBlnIsClientEmailSend(true);
+						dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
+								+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");
 
-					// ***** Send Email To All Admin Users ********
-					serviceEmailSender.sendEventRegistrationEmailToAdminUsers(userMaster.getTxtName(),
-							entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
-							entity.getDteEventDate());
+					}
 
-					dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
-							+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");
+					if (entity.getBlnIsAllAdminEmailSend() != null
+							&& entity.getBlnIsAllAdminEmailSend().equals(false)) {
+						// ***** Send Email To All Admin Users ********
+						serviceEmailSender.sendEventRegistrationEmailToAdminUsers(userMaster.getTxtName(),
+								entity.getTxtEventMasterCode(), entity.getEventType().getTxtEventTypeName(),
+								entity.getDteEventDate());
+						entity.setBlnIsAllAdminEmailSend(true);
+
+						dtoResult.setTxtMessage(entity.getEventType().getTxtEventTypeName()
+								+ " Event Has Been Registered. A Confirmation Email Has Been Sent To Your Registered Email.");
+
+					}
 				} else {
 					dtoResult.setTxtMessage("Success");
 
 				}
 			} else {
 				dtoResult.setTxtMessage("Success");
+			}
+			
+			entity = repositoryEventMaster.save(entity);
+			if (eventBudget != null) {
+				eventBudget.setEventMaster(entity);
+				serviceEventBudget.save(eventBudget);
 			}
 
 			DtoEventMasterAdminPortal dtoEvent = this.getEventByIdAdminPortal(entity.getSerEventMasterId());
