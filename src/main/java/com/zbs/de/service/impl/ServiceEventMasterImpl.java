@@ -2001,7 +2001,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			// ****** Setting Event Vendor Multi Selection  ******
 
 			if (entity.getVendorMasterSelections() != null) {
-				entity.getExtrasSelections().clear();
+				entity.getVendorMasterSelections().clear();
 			}
 
 			if (UtilRandomKey.isNotNull(dtoEventMaster.getVendorMasterSelections())
@@ -3182,7 +3182,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			// ****** Setting Event Vendor Multi Selection ******
 
 			if (entity.getVendorMasterSelections() != null) {
-				entity.getExtrasSelections().clear();
+				entity.getVendorMasterSelections().clear();
 			}
 
 			if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getVendorMasterSelections())

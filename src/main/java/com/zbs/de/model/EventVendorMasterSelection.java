@@ -2,6 +2,8 @@ package com.zbs.de.model;
 
 import java.io.Serializable;
 
+import org.hibernate.annotations.DynamicInsert;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +15,7 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 
 @Entity
+@DynamicInsert
 @Table(name = "event_vendor_master_selection")
 @NamedQuery(name = "EventVendorMasterSelection.findAll", query = "SELECT a FROM EventVendorMasterSelection a")
 public class EventVendorMasterSelection extends BaseEntity implements Serializable {
