@@ -39,6 +39,7 @@ import com.zbs.de.model.EventMenuFoodSelection;
 import com.zbs.de.model.EventMenuSubCategorySelection;
 import com.zbs.de.model.EventRunningOrder;
 import com.zbs.de.model.EventType;
+import com.zbs.de.model.EventVendorMasterSelection;
 import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.UserMaster;
@@ -56,6 +57,7 @@ import com.zbs.de.model.dto.DtoEventMasterSearch;
 import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 import com.zbs.de.model.dto.DtoEventQuoteAndStatus;
+import com.zbs.de.model.dto.DtoEventVendorMasterSelection;
 import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuComponentRequest;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
@@ -79,6 +81,7 @@ import com.zbs.de.service.ServiceEventDecorExtrasSelection;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.service.ServiceEventMenuFoodSelection;
 import com.zbs.de.service.ServiceEventType;
+import com.zbs.de.service.ServiceEventVendorMasterSelection;
 import com.zbs.de.service.ServiceMenuFoodMaster;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.service.ServiceNotificationMaster;
@@ -147,6 +150,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceMenuItem serviceMenuItem;
+	
+	@Autowired	
+	private ServiceEventVendorMasterSelection serviceEventVendorMasterSelection;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
@@ -868,6 +874,36 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						}
 					}
 					dto.setExtrasSelections(dtoEventDecorExtrasSelections);
+
+					// **********************************************************************************************
+					// **********************************************************************************************
+					// **********************************************************************************************
+
+					try {
+						List<EventVendorMasterSelection> eventVendorMasterSelections = serviceEventVendorMasterSelection
+								.getByEventMasterId(dto.getSerEventMasterId());
+						List<DtoEventVendorMasterSelection> dtoEventVendorMasterSelections = new ArrayList<>();
+						if (UtilRandomKey.isNotNull(eventVendorMasterSelections)) {
+							for (EventVendorMasterSelection selection : eventVendorMasterSelections) {
+								DtoEventVendorMasterSelection dtoSelection = new DtoEventVendorMasterSelection();
+								dtoSelection.setSerEventVendorMasterSelectionId(
+										selection.getSerEventVendorMasterSelectionId());
+								if (selection.getVendorMaster() != null) {
+									dtoSelection.setSerVendorId(selection.getVendorMaster().getSerVendorId());
+									dtoSelection.setTxtVendorCode(selection.getVendorMaster().getTxtVendorCode());
+									dtoSelection.setTxtVendorName(selection.getVendorMaster().getTxtVendorName());
+								}
+
+								dtoEventVendorMasterSelections.add(dtoSelection);
+							}
+						}
+						dto.setVendorMasterSelections(dtoEventVendorMasterSelections);
+
+					} catch (Exception ex) {
+						LOGGER.debug("Failed to fetch vendor selections for event {}: {}", dto.getSerEventMasterId(),
+								ex.getMessage(), ex);
+						dto.setVendorMasterSelections(new ArrayList<>());
+					}
 
 					dtoEventMasterLst.add(dto);
 				}
@@ -1962,6 +1998,47 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				// entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
 				entity.getExtrasSelections().addAll(newSelections);
 			}
+			
+			
+			
+			//*********************************************************************************************
+			//*********************************************************************************************
+			//*********************************************************************************************
+
+			// ****** Setting Event Vendor Multi Selection  ******
+
+			if (entity.getVendorMasterSelections() != null) {
+				entity.getVendorMasterSelections().clear();
+			}
+
+			if (UtilRandomKey.isNotNull(dtoEventMaster.getVendorMasterSelections())
+					&& !dtoEventMaster.getVendorMasterSelections().isEmpty()) {
+				List<EventVendorMasterSelection> newVendorSelections = new ArrayList<>();
+				for (DtoEventVendorMasterSelection dto : dtoEventMaster.getVendorMasterSelections()) {
+					EventVendorMasterSelection vendorSelection = new EventVendorMasterSelection();
+					vendorSelection.setEventMaster(entity);
+					if (dto.getSerVendorId() != null) {
+						VendorMaster vendorMaster = serviceVendorMaster.getByPK(dto.getSerVendorId());
+						if (vendorMaster != null) {
+							vendorSelection.setVendorMaster(vendorMaster);
+							newVendorSelections.add(vendorSelection);
+						}
+					}
+				}
+				
+				if (entity.getVendorMasterSelections() == null) {
+					entity.setVendorMasterSelections(newVendorSelections);
+				} else {
+					entity.getVendorMasterSelections().addAll(newVendorSelections);
+				}
+			}
+
+			// *********************************************************************************************
+			//*********************************************************************************************
+			//*********************************************************************************************
+
+			
+			
 
 			entity.setNumInfoFilledStatus(getEventCompletionPercentage(entity));
 //			entity = repositoryEventMaster.save(entity);
@@ -1982,6 +2059,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (this.isEventRegistrationCompleted(entity)) {
 				UserMaster userMaster = ServiceCurrentUser.getCurrentUser();
 				if (userMaster != null) {
+					dtoResult.setTxtMessage("Success");
 					if (entity.getBlnIsClientEmailSend() != null
 							&& entity.getBlnIsClientEmailSend().equals(Boolean.FALSE)) {
 						serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
@@ -2210,6 +2288,36 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					}
 				}
 				dto.setExtrasSelections(dtoEventDecorExtrasSelections);
+				
+				// **********************************************************************************************
+				// **********************************************************************************************
+				// **********************************************************************************************
+
+				try {
+					List<EventVendorMasterSelection> eventVendorMasterSelections = serviceEventVendorMasterSelection
+							.getByEventMasterId(dto.getSerEventMasterId());
+					List<DtoEventVendorMasterSelection> dtoEventVendorMasterSelections = new ArrayList<>();
+					if (UtilRandomKey.isNotNull(eventVendorMasterSelections)) {
+						for (EventVendorMasterSelection selection : eventVendorMasterSelections) {
+							DtoEventVendorMasterSelection dtoSelection = new DtoEventVendorMasterSelection();
+							dtoSelection
+									.setSerEventVendorMasterSelectionId(selection.getSerEventVendorMasterSelectionId());
+							if (selection.getVendorMaster() != null) {
+								dtoSelection.setSerVendorId(selection.getVendorMaster().getSerVendorId());
+								dtoSelection.setTxtVendorCode(selection.getVendorMaster().getTxtVendorCode());
+								dtoSelection.setTxtVendorName(selection.getVendorMaster().getTxtVendorName());
+							}
+
+							dtoEventVendorMasterSelections.add(dtoSelection);
+						}
+					}
+					dto.setVendorMasterSelections(dtoEventVendorMasterSelections);
+
+				} catch (Exception ex) {
+					LOGGER.debug("Failed to fetch vendor selections for event {}: {}", event.getSerEventMasterId(),
+							ex.getMessage(), ex);
+					dto.setVendorMasterSelections(new ArrayList<>());
+				}
 
 				return dto;
 
@@ -3081,9 +3189,39 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 				
 			}
+			
+			// ****** Setting Event Vendor Multi Selection ******
 
-			
-			
+			if (entity.getVendorMasterSelections() != null) {
+				entity.getVendorMasterSelections().clear();
+			}
+
+			if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getVendorMasterSelections())
+					&& !dtoEventMasterAdminPortal.getVendorMasterSelections().isEmpty()) {
+				List<EventVendorMasterSelection> newVendorSelections = new ArrayList<>();
+				for (DtoEventVendorMasterSelection dto : dtoEventMasterAdminPortal.getVendorMasterSelections()) {
+					EventVendorMasterSelection vendorSelection = new EventVendorMasterSelection();
+					vendorSelection.setEventMaster(entity);
+					if (dto.getSerVendorId() != null) {
+						VendorMaster vendorMaster = serviceVendorMaster.getByPK(dto.getSerVendorId());
+						if (vendorMaster != null) {
+							vendorSelection.setVendorMaster(vendorMaster);
+							newVendorSelections.add(vendorSelection);
+						}
+					}
+				}
+
+				if (entity.getVendorMasterSelections() == null) {
+					entity.setVendorMasterSelections(newVendorSelections);
+				} else {
+					entity.getVendorMasterSelections().addAll(newVendorSelections);
+				}
+			}
+
+			// *********************************************************************************************
+			// *********************************************************************************************
+			// *********************************************************************************************
+
 			entity.setNumInfoFilledStatus(getEventCompletionPercentage(entity));
 //			entity = repositoryEventMaster.save(entity);
 //			if (eventBudget != null) {
@@ -3105,6 +3243,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (this.isEventRegistrationCompleted(entity)) {
 				UserMaster userMaster = ServiceCurrentUser.getCurrentUser();
 				if (userMaster != null) {
+					dtoResult.setTxtMessage("Success");
 					if (entity.getBlnIsClientEmailSend() != null
 							&& entity.getBlnIsClientEmailSend().equals(Boolean.FALSE)) {
 						serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
@@ -3752,6 +3891,35 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				LOGGER.debug("Failed to fetch extras selections for event {}: {}", event.getSerEventMasterId(),
 						ex.getMessage(), ex);
 				dtoEvent.setExtrasSelections(new ArrayList<>());
+			}
+			
+			// **********************************************************************************************
+			// **********************************************************************************************
+			// **********************************************************************************************
+
+			try {
+				List<EventVendorMasterSelection> eventVendorMasterSelections = serviceEventVendorMasterSelection
+						.getByEventMasterId(dtoEvent.getSerEventMasterId());
+				List<DtoEventVendorMasterSelection> dtoEventVendorMasterSelections = new ArrayList<>();
+				if (UtilRandomKey.isNotNull(eventVendorMasterSelections)) {
+					for (EventVendorMasterSelection selection : eventVendorMasterSelections) {
+						DtoEventVendorMasterSelection dtoSelection = new DtoEventVendorMasterSelection();
+						dtoSelection.setSerEventVendorMasterSelectionId(selection.getSerEventVendorMasterSelectionId());
+						if (selection.getVendorMaster() != null) {
+							dtoSelection.setSerVendorId(selection.getVendorMaster().getSerVendorId());
+							dtoSelection.setTxtVendorCode(selection.getVendorMaster().getTxtVendorCode());
+							dtoSelection.setTxtVendorName(selection.getVendorMaster().getTxtVendorName());
+						}
+
+						dtoEventVendorMasterSelections.add(dtoSelection);
+					}
+				}
+				dtoEvent.setVendorMasterSelections(dtoEventVendorMasterSelections);
+
+			} catch (Exception ex) {
+				LOGGER.debug("Failed to fetch vendor selections for event {}: {}", event.getSerEventMasterId(),
+						ex.getMessage(), ex);
+				dtoEvent.setVendorMasterSelections(new ArrayList<>());
 			}
 
 			// 5) Budget / quoted price and status

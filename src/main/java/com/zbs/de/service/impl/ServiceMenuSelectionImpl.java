@@ -43,6 +43,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
 			catDto.setNumPrice(category.getNumPrice());
+			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
 			// 2️⃣ Fetch subcategories
 //			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
 			List<MenuItem> subCategories = repositoryMenuItem.findByParentIdByDisplayOrder(category.getSerMenuItemId());
@@ -56,6 +57,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				subDto.setSubCategoryName(sub.getTxtName());
 				subDto.setNumPrice(sub.getNumPrice());
                 subDto.setTxtDescription(sub.getTxtDescription());
+                subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
 
 				// 3️⃣ Normal (non-composite) items
 				List<MenuItem> items = repositoryMenuItem.findByParentId(sub.getSerMenuItemId()).stream()
@@ -103,7 +105,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
 			catDto.setNumPrice(category.getNumPrice());
-
+			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
+			
 			// 2️⃣ Fetch subcategories
 //			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
 			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentIdByDisplayOrder(category.getSerMenuItemId());
@@ -116,7 +119,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				subDto.setSubCategoryId(sub.getSerMenuItemId());
 				subDto.setSubCategoryName(sub.getTxtName());
 				subDto.setNumPrice(sub.getNumPrice());
-
+                subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
+                
 				// 3️⃣ Normal (non-composite) items
 				List<MenuItem> items = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId()).stream()
 						.filter(i -> Boolean.TRUE.equals(i.getBlnIsSelectable()))
@@ -160,6 +164,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
+			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
 
 //			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
 			List<MenuItem> subCategories = repositoryMenuItem.findByParentIdByDisplayOrder(category.getSerMenuItemId());
@@ -172,7 +177,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				subDto.setSubCategoryId(sub.getSerMenuItemId());
 				subDto.setSubCategoryName(sub.getTxtName());
                 subDto.setTxtDescription(sub.getTxtDescription());
-
+                subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
+                
 				// -------- Normal Items --------
 				List<MenuItem> items = repositoryMenuItem.findByParentId(sub.getSerMenuItemId()).stream()
 						.filter(i -> Boolean.TRUE.equals(i.getBlnIsSelectable()))
@@ -234,6 +240,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
+			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
 
 //			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
 			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentIdByDisplayOrder(category.getSerMenuItemId());
@@ -245,7 +252,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
 				subDto.setSubCategoryId(sub.getSerMenuItemId());
 				subDto.setSubCategoryName(sub.getTxtName());
-
+                subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
+                
 				// -------- Normal Catering Items --------
 				List<MenuItem> items = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId()).stream()
 						.filter(i -> Boolean.TRUE.equals(i.getBlnIsSelectable()))

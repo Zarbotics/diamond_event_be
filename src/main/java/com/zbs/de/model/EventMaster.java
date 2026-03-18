@@ -182,6 +182,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventDecorExtrasSelection> extrasSelections;
+	
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<EventVendorMasterSelection> vendorMasterSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -553,6 +556,14 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setBlnIsAllAdminEmailSend(Boolean blnIsAllAdminEmailSend) {
 		this.blnIsAllAdminEmailSend = blnIsAllAdminEmailSend;
+	}
+
+	public List<EventVendorMasterSelection> getVendorMasterSelections() {
+		return vendorMasterSelections;
+	}
+
+	public void setVendorMasterSelections(List<EventVendorMasterSelection> vendorMasterSelections) {
+		this.vendorMasterSelections = vendorMasterSelections;
 	}
 	
 
