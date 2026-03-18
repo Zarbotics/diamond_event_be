@@ -2052,6 +2052,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (this.isEventRegistrationCompleted(entity)) {
 				UserMaster userMaster = ServiceCurrentUser.getCurrentUser();
 				if (userMaster != null) {
+					dtoResult.setTxtMessage("Success");
 					if (entity.getBlnIsClientEmailSend() != null
 							&& entity.getBlnIsClientEmailSend().equals(Boolean.FALSE)) {
 						serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
@@ -3232,6 +3233,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (this.isEventRegistrationCompleted(entity)) {
 				UserMaster userMaster = ServiceCurrentUser.getCurrentUser();
 				if (userMaster != null) {
+					dtoResult.setTxtMessage("Success");
 					if (entity.getBlnIsClientEmailSend() != null
 							&& entity.getBlnIsClientEmailSend().equals(Boolean.FALSE)) {
 						serviceEmailSender.sendEventRegistrationEmail(userMaster.getTxtEmail(), userMaster.getTxtName(),
