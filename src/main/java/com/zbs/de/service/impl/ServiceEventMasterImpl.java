@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -46,6 +47,7 @@ import com.zbs.de.model.UserMaster;
 import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.VenueMasterDetail;
+import com.zbs.de.model.dto.DtoEventBookingValidationResult;
 import com.zbs.de.model.dto.DtoEventBudget;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
 import com.zbs.de.model.dto.DtoEventDecorExtrasSelection;
@@ -1194,9 +1196,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
 
 				if(newDate != null && entity.getDteEventDate() != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
-					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
-					if(isalreadyBooked) {
+//					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+//					if(isalreadyBooked) {
+//						dtoResult.setTxtMessage("already_booked");
+//						return dtoResult;
+//					}
+					DtoEventBookingValidationResult bookingValidation =  this.canBookEvent(newDate, entity.getDteEventDate(), entity.getSerEventMasterId());
+					if(!bookingValidation.isAllowed()) {
 						dtoResult.setTxtMessage("already_booked");
+						dtoResult.setResult(bookingValidation.getMessage());
 						return dtoResult;
 					}
 				}
@@ -1541,9 +1549,16 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				if(dtoEventMaster.getDteEventDate() != null) {
 					Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
 
-					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
-					if (newDate != null && isalreadyBooked) {
+//					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+//					if (newDate != null && isalreadyBooked) {
+//						dtoResult.setTxtMessage("already_booked");
+//						return dtoResult;
+//					}
+					
+					DtoEventBookingValidationResult bookingValidation =  this.canBookEvent(newDate, null, null);
+					if(!bookingValidation.isAllowed()) {
 						dtoResult.setTxtMessage("already_booked");
+						dtoResult.setResult(bookingValidation.getMessage());
 						return dtoResult;
 					}
 
@@ -2430,10 +2445,16 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
 
 				if(newDate != null && entity.getDteEventDate() != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
-					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
-					if(isalreadyBooked) {
+//					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+//					if(isalreadyBooked) {
+//						dtoResult.setTxtMessage("already_booked");
+//						dtoResult.setResult(null);
+//						return dtoResult;
+//					}
+					DtoEventBookingValidationResult bookingValidation =  this.canBookEvent(newDate, entity.getDteEventDate(), entity.getSerEventMasterId());
+					if(!bookingValidation.isAllowed()) {
 						dtoResult.setTxtMessage("already_booked");
-						dtoResult.setResult(null);
+						dtoResult.setResult(bookingValidation.getMessage());
 						return dtoResult;
 					}
 				}
@@ -2757,12 +2778,22 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				blnIsNewEvent = true;
 				entity = MapperEventMaster.dtoEventMasterAdminPortalToEntity(dtoEventMasterAdminPortal);
 
-				Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
+				if (dtoEventMasterAdminPortal.getDteEventDate() != null) {
+					Date newDate = UtilDateAndTime
+							.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
 
-				Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
-				if (newDate != null && isalreadyBooked) {
-					dtoResult.setTxtMessage("already_booked");
-					return dtoResult;
+//					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
+//					if (newDate != null && isalreadyBooked) {
+//						dtoResult.setTxtMessage("already_booked");
+//						return dtoResult;
+//					}
+					DtoEventBookingValidationResult bookingValidation = this.canBookEvent(newDate,
+							entity.getDteEventDate(), entity.getSerEventMasterId());
+					if (!bookingValidation.isAllowed()) {
+						dtoResult.setTxtMessage("already_booked");
+						dtoResult.setResult(bookingValidation.getMessage());
+						return dtoResult;
+					}
 				}
 				
 				entity.setEventRunningOrder(null);
@@ -4037,5 +4068,115 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			dtoResult.setTxtMessage(e.getMessage());
 			return dtoResult;
 		}
+	}
+
+	public DtoEventBookingValidationResult canBookEvent(Date newDate, Date oldDate, Integer eventId) {
+
+		if (newDate == null) {
+			return new DtoEventBookingValidationResult(false, "Invalid date");
+		}
+
+		// Normalize dates
+		Date newStart = UtilDateAndTime.getStartOfDay(newDate);
+		Date newEnd = UtilDateAndTime.getEndOfDay(newDate);
+
+		// Get current count on NEW date (excluding current event if update)
+		int newDateCount = repositoryEventMaster.countEventsOnDate(newStart, newEnd, eventId);
+
+		// Detect if it's update + date changed
+		boolean isDateChanged = false;
+
+		if (eventId != null && oldDate != null) {
+			Date oldStart = UtilDateAndTime.getStartOfDay(oldDate);
+//			Date oldEnd = UtilDateAndTime.getEndOfDay(oldDate);
+
+			isDateChanged = !(oldStart.equals(newStart));
+
+			if (isDateChanged) {
+				// Simulate adding this event to new date
+				newDateCount = newDateCount + 1;
+			}
+		} else {
+			// New event → always adding
+			newDateCount = newDateCount + 1;
+		}
+
+		// Determine day of week for NEW date
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(newDate);
+		int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+
+		// =========================================================
+		// RULE 2: Sunday (Dynamic Capacity)
+		// =========================================================
+		if (dayOfWeek == Calendar.SUNDAY) {
+
+			// Get Monday
+			Calendar mondayCal = (Calendar) cal.clone();
+			mondayCal.add(Calendar.DAY_OF_MONTH, +1);
+
+			Date mondayStart = UtilDateAndTime.getStartOfDay(mondayCal.getTime());
+			Date mondayEnd = UtilDateAndTime.getEndOfDay(mondayCal.getTime());
+
+			int mondayCount = repositoryEventMaster.countEventsOnDate(mondayStart, mondayEnd, eventId);
+
+			// Adjust if moving FROM Monday → Sunday
+			if (eventId != null && oldDate != null) {
+				Calendar oldCal = Calendar.getInstance();
+				oldCal.setTime(oldDate);
+
+				if (oldCal.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY && isDateChanged) {
+					mondayCount = mondayCount - 1;
+				}
+			}
+
+			// 🔥 Dynamic limit
+			int maxSundayEvents = (mondayCount > 0) ? 2 : 3;
+
+			if (newDateCount > maxSundayEvents) {
+				return new DtoEventBookingValidationResult(false,
+						"Sunday is fully booked (Max " + maxSundayEvents + " events)");
+			}
+
+			return new DtoEventBookingValidationResult(true, "Allowed");
+		}
+
+		// =========================================================
+		// RULE 3: Monday restriction (depends on Sunday)
+		// =========================================================
+		if (dayOfWeek == Calendar.MONDAY) {
+
+			Calendar sundayCal = (Calendar) cal.clone();
+			sundayCal.add(Calendar.DAY_OF_MONTH, -1);
+
+			Date sundayStart = UtilDateAndTime.getStartOfDay(sundayCal.getTime());
+			Date sundayEnd = UtilDateAndTime.getEndOfDay(sundayCal.getTime());
+
+			int sundayCount = repositoryEventMaster.countEventsOnDate(sundayStart, sundayEnd, eventId);
+
+			// Adjust Sunday count if moving FROM Sunday → Monday
+			if (eventId != null && oldDate != null) {
+
+				Calendar oldCal = Calendar.getInstance();
+				oldCal.setTime(oldDate);
+
+				if (oldCal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY && isDateChanged) {
+					sundayCount = sundayCount - 1;
+				}
+			}
+
+			if (sundayCount >= 3) {
+				return new DtoEventBookingValidationResult(false, "Cannot book Monday because Sunday is fully booked");
+			}
+		}
+
+		// =========================================================
+		// RULE 1: Normal Day → Max 2
+		// =========================================================
+		if (newDateCount > 2) {
+			return new DtoEventBookingValidationResult(false, "This date is fully booked (Max 2 events)");
+		}
+
+		return new DtoEventBookingValidationResult(true, "Allowed");
 	}
 }
