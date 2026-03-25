@@ -82,4 +82,12 @@ public interface RepositoryEventMaster
 	@Query("select distinct(e.dteEventDate) from EventMaster e where e.blnIsDeleted = false order by e.dteEventDate asc")
 	List<Date> getAlreadyBookedDates();
 
+	@Query("""
+			    SELECT COUNT(e) FROM EventMaster e
+			    WHERE e.blnIsDeleted = false
+			    AND e.dteEventDate BETWEEN :start AND :end
+			    AND (:eventId IS NULL OR e.serEventMasterId <> :eventId)
+			""")
+	int countEventsOnDate(@Param("start") Date start, @Param("end") Date end, @Param("eventId") Integer eventId);
+
 }
