@@ -79,6 +79,8 @@ public class DtoEventMaster {
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
 
 	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
+	
+	private List<DtoEventVendorMasterSelection> vendorMasterSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -526,6 +528,14 @@ public class DtoEventMaster {
 
 	public void setNumServingDishesPrice(BigDecimal numServingDishesPrice) {
 		this.numServingDishesPrice = numServingDishesPrice;
+	}
+
+	public List<DtoEventVendorMasterSelection> getVendorMasterSelections() {
+		return vendorMasterSelections;
+	}
+
+	public void setVendorMasterSelections(List<DtoEventVendorMasterSelection> vendorMasterSelections) {
+		this.vendorMasterSelections = vendorMasterSelections;
 	}
 	
 	

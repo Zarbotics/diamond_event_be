@@ -8,6 +8,7 @@ public class DtoCustomerMenuCategory {
 	private String categoryName;
 	private BigDecimal numPrice;
 	private BigDecimal numFinalPrice;
+	private Boolean blnIsSelectable;
 	private List<DtoCustomerMenuSubCategory> subCategories;
 
 	public Long getCategoryId() {
@@ -48,6 +49,14 @@ public class DtoCustomerMenuCategory {
 
 	public void setNumFinalPrice(BigDecimal numFinalPrice) {
 		this.numFinalPrice = numFinalPrice;
+	}
+
+	public Boolean getBlnIsSelectable() {
+		return blnIsSelectable;
+	}
+
+	public void setBlnIsSelectable(Boolean blnIsSelectable) {
+		this.blnIsSelectable = blnIsSelectable;
 	}
 
 }

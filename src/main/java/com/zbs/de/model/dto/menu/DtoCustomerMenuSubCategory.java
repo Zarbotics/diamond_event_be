@@ -11,19 +11,20 @@ public class DtoCustomerMenuSubCategory {
 	private String subCategoryName;
 	private BigDecimal numPrice;
 	private BigDecimal numFinalPrice;
+	private String txtDescription;
+	private Boolean blnIsSelectable;
 	private List<DtoMenuItem> items;
-    private String txtDescription;
 	private List<DtoMenuComponentRequest> compositeItems;
 
-    public String getTxtDescription() {
-        return txtDescription;
-    }
+	public String getTxtDescription() {
+		return txtDescription;
+	}
 
-    public void setTxtDescription(String txtDescription) {
-        this.txtDescription = txtDescription;
-    }
+	public void setTxtDescription(String txtDescription) {
+		this.txtDescription = txtDescription;
+	}
 
-    public Long getSubCategoryId() {
+	public Long getSubCategoryId() {
 		return subCategoryId;
 	}
 
@@ -69,6 +70,14 @@ public class DtoCustomerMenuSubCategory {
 
 	public void setNumFinalPrice(BigDecimal numFinalPrice) {
 		this.numFinalPrice = numFinalPrice;
+	}
+
+	public Boolean getBlnIsSelectable() {
+		return blnIsSelectable;
+	}
+
+	public void setBlnIsSelectable(Boolean blnIsSelectable) {
+		this.blnIsSelectable = blnIsSelectable;
 	}
 
 }
