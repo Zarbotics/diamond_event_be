@@ -33,6 +33,7 @@ import com.zbs.de.model.EventBudget;
 import com.zbs.de.model.EventDecorCategorySelection;
 import com.zbs.de.model.EventDecorExtrasSelection;
 import com.zbs.de.model.EventDecorPropertySelection;
+import com.zbs.de.model.EventDecorPropertyValueSelection;
 import com.zbs.de.model.EventDecorReferenceDocument;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventMenuCategorySelection;
@@ -1374,13 +1375,37 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 												.intValue())
 										.findFirst().orElse(null);
 
-								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
-												.getSerPropertyValueId().intValue())
-										.findFirst().orElse(null);
+//								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+//										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
+//												.getSerPropertyValueId().intValue())
+//										.findFirst().orElse(null);
 
+								//**********************************************************
+								
+								List<EventDecorPropertyValueSelection> selectedValues = new ArrayList<>();
+
+								for (Integer valueId : property.getSerPropertyValueIds()) {
+
+								    DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+								        .filter(pv -> pv.getSerPropertyValueId().intValue() == valueId)
+								        .findFirst()
+								        .orElse(null);
+
+								    EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+								    val.setEventDecorPropertySelection(eventDecorPropertySelection);
+								    val.setPropertyValue(matchedValue);
+
+								    selectedValues.add(val);
+								}
+
+								eventDecorPropertySelection.setSelectedValues(selectedValues);
+								
+								//***********************************************************
+								
+								
+								
 								eventDecorPropertySelection.setProperty(matchedMaster);
-								eventDecorPropertySelection.setSelectedValue(matchedValue);
+//								eventDecorPropertySelection.setSelectedValue(matchedValue);
 								newSelectedProperties.add(eventDecorPropertySelection);
 							}
 
@@ -1670,13 +1695,35 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 												.getSerEventDecorPropertyId().intValue())
 										.findFirst().orElse(null);
 
-								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
-												.getSerPropertyValueId().intValue())
-										.findFirst().orElse(null);
+//								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+//										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
+//												.getSerPropertyValueId().intValue())
+//										.findFirst().orElse(null);
+								
+								//************************************************
+								List<EventDecorPropertyValueSelection> selectedValues = new ArrayList<>();
+
+								for (Integer valueId : property.getSerPropertyValueIds()) {
+
+								    DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+								        .filter(pv -> pv.getSerPropertyValueId().intValue() == valueId)
+								        .findFirst()
+								        .orElse(null);
+
+								    EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+								    val.setEventDecorPropertySelection(eventDecorPropertySelection);
+								    val.setPropertyValue(matchedValue);
+
+								    selectedValues.add(val);
+								}
+
+								eventDecorPropertySelection.setSelectedValues(selectedValues);
+								
+								
+								//*************************************************
 
 								eventDecorPropertySelection.setProperty(matchedMaster);
-								eventDecorPropertySelection.setSelectedValue(matchedValue);
+//								eventDecorPropertySelection.setSelectedValue(matchedValue);
 								newSelectedProperties.add(eventDecorPropertySelection);
 							}
 
@@ -2633,13 +2680,30 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 												.intValue())
 										.findFirst().orElse(null);
 
-								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
-												.getSerPropertyValueId().intValue())
-										.findFirst().orElse(null);
+//								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+//										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
+//												.getSerPropertyValueId().intValue())
+//										.findFirst().orElse(null);
+
+								List<EventDecorPropertyValueSelection> selectedValues = new ArrayList<>();
+
+								for (Integer valueId : property.getSerPropertyValueIds()) {
+
+									DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+											.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId).findFirst()
+											.orElse(null);
+
+									EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+									val.setEventDecorPropertySelection(eventDecorPropertySelection);
+									val.setPropertyValue(matchedValue);
+
+									selectedValues.add(val);
+								}
+
+								eventDecorPropertySelection.setSelectedValues(selectedValues);
 
 								eventDecorPropertySelection.setProperty(matchedMaster);
-								eventDecorPropertySelection.setSelectedValue(matchedValue);
+//								eventDecorPropertySelection.setSelectedValue(matchedValue);
 								newSelectedProperties.add(eventDecorPropertySelection);
 							}
 
@@ -2903,13 +2967,32 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 												.intValue())
 										.findFirst().orElse(null);
 
-								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
-												.getSerPropertyValueId().intValue())
-										.findFirst().orElse(null);
+//								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+//										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
+//												.getSerPropertyValueId().intValue())
+//										.findFirst().orElse(null);
 
+								// **********************************************
+								List<EventDecorPropertyValueSelection> selectedValues = new ArrayList<>();
+
+								for (Integer valueId : property.getSerPropertyValueIds()) {
+
+									DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+											.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId).findFirst()
+											.orElse(null);
+
+									EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+									val.setEventDecorPropertySelection(eventDecorPropertySelection);
+									val.setPropertyValue(matchedValue);
+
+									selectedValues.add(val);
+								}
+
+								eventDecorPropertySelection.setSelectedValues(selectedValues);
+
+								// **********************************************
 								eventDecorPropertySelection.setProperty(matchedMaster);
-								eventDecorPropertySelection.setSelectedValue(matchedValue);
+//								eventDecorPropertySelection.setSelectedValue(matchedValue);
 								newSelectedProperties.add(eventDecorPropertySelection);
 							}
 
