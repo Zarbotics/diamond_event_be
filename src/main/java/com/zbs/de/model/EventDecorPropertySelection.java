@@ -17,7 +17,9 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.annotations.DynamicInsert;
 
@@ -53,7 +55,7 @@ public class EventDecorPropertySelection extends BaseEntity implements Serializa
 	private BigDecimal numPrice = BigDecimal.ZERO;
 
 	@OneToMany(mappedBy = "eventDecorPropertySelection", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<EventDecorPropertyValueSelection> selectedValues = new ArrayList<>();
+	private Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
 
 	public Integer getSerEventDecorPropertyId() {
 		return serEventDecorPropertyId;
@@ -95,13 +97,22 @@ public class EventDecorPropertySelection extends BaseEntity implements Serializa
 		this.numPrice = numPrice;
 	}
 
-	public List<EventDecorPropertyValueSelection> getSelectedValues() {
+	public Set<EventDecorPropertyValueSelection> getSelectedValues() {
 		return selectedValues;
 	}
 
-	public void setSelectedValues(List<EventDecorPropertyValueSelection> selectedValues) {
+	public void setSelectedValues(Set<EventDecorPropertyValueSelection> selectedValues) {
 		this.selectedValues = selectedValues;
 	}
 	
+	public void addSelectedValue(EventDecorPropertyValueSelection value) {
+	    selectedValues.add(value);
+	    value.setEventDecorPropertySelection(this);
+	}
+
+	public void removeSelectedValue(EventDecorPropertyValueSelection value) {
+	    selectedValues.remove(value);
+	    value.setEventDecorPropertySelection(null);
+	}
 
 }

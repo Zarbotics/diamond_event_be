@@ -1,7 +1,9 @@
 package com.zbs.de.mapper;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryPropertyValue;
@@ -28,7 +30,7 @@ public class MapperEventDecorPropertySelection {
 		
 		// For multi select property values
 		if (dto.getSerPropertyValueIds() != null) {
-			List<EventDecorPropertyValueSelection> values = new ArrayList<>();
+			Set<EventDecorPropertyValueSelection> values = new HashSet<>();
 
 			for (Integer valId : dto.getSerPropertyValueIds()) {
 				EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();

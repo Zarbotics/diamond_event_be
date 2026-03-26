@@ -63,5 +63,18 @@ public class EventDecorPropertyValueSelection extends BaseEntity implements Seri
 	public void setPropertyValue(DecorCategoryPropertyValue propertyValue) {
 		this.propertyValue = propertyValue;
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+	    if (this == o) return true;
+	    if (!(o instanceof EventDecorPropertyValueSelection)) return false;
+	    EventDecorPropertyValueSelection that = (EventDecorPropertyValueSelection) o;
+	    return serEventDecorPropertyValueId != null && serEventDecorPropertyValueId.equals(that.serEventDecorPropertyValueId);
+	}
+
+	@Override
+	public int hashCode() {
+	    return getClass().hashCode();
+	}
 
 }

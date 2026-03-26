@@ -8,9 +8,11 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -1383,7 +1385,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 								//**********************************************************
 								
-								List<EventDecorPropertyValueSelection> selectedValues = new ArrayList<>();
+								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
 
 								for (Integer valueId : property.getSerPropertyValueIds()) {
 
@@ -1702,7 +1704,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //										.findFirst().orElse(null);
 								
 								//************************************************
-								List<EventDecorPropertyValueSelection> selectedValues = new ArrayList<>();
+								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
 
 								for (Integer valueId : property.getSerPropertyValueIds()) {
 
@@ -2686,7 +2688,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //												.getSerPropertyValueId().intValue())
 //										.findFirst().orElse(null);
 
-								List<EventDecorPropertyValueSelection> selectedValues = new ArrayList<>();
+								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
 
 								for (Integer valueId : property.getSerPropertyValueIds()) {
 
@@ -2974,7 +2976,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //										.findFirst().orElse(null);
 
 								// **********************************************
-								List<EventDecorPropertyValueSelection> selectedValues = new ArrayList<>();
+								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
 
 								for (Integer valueId : property.getSerPropertyValueIds()) {
 
