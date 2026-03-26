@@ -90,4 +90,11 @@ public interface RepositoryEventMaster
 			""")
 	int countEventsOnDate(@Param("start") Date start, @Param("end") Date end, @Param("eventId") Integer eventId);
 
+	@Query("""
+			    SELECT e.dteEventDate, COUNT(e)
+			    FROM EventMaster e
+			    WHERE e.blnIsDeleted = false
+			    GROUP BY e.dteEventDate
+			""")
+	List<Object[]> getEventDateCounts();
 }

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -4116,22 +4117,112 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	   
 	}
 
+//	@Override
+//	public DtoResult getAlreadyBookedDates() {
+//		DtoResult dtoResult = new DtoResult();
+//		try {
+//			List<Date> dates = repositoryEventMaster.getAlreadyBookedDates();
+//			List<String> strDates =new ArrayList<>();
+//			for(Date date : dates) {
+//				String strdate = UtilDateAndTime.mmddyyyyDateToString(date);
+//				strDates.add(strdate);
+//			}
+//			dtoResult.setTxtMessage("Success");
+//			dtoResult.setResult(strDates);
+//			return dtoResult;
+//		} catch (Exception e) {
+//			LOGGER.debug(e.getMessage(), e);
+//			dtoResult.setTxtMessage(e.getMessage());
+//			return dtoResult;
+//		}
+//	}
+	
+	
 	@Override
 	public DtoResult getAlreadyBookedDates() {
+
 		DtoResult dtoResult = new DtoResult();
+
 		try {
-			List<Date> dates = repositoryEventMaster.getAlreadyBookedDates();
-			List<String> strDates =new ArrayList<>();
-			for(Date date : dates) {
-				String strdate = UtilDateAndTime.mmddyyyyDateToString(date);
-				strDates.add(strdate);
+
+			List<Object[]> results = repositoryEventMaster.getEventDateCounts();
+			List<String> blockedDates = new ArrayList<>();
+
+			Map<Date, Integer> dateCountMap = new HashMap<>();
+
+			// Prepare map
+			for (Object[] obj : results) {
+				Date date = (Date) obj[0];
+				Integer count = ((Long) obj[1]).intValue();
+				dateCountMap.put(UtilDateAndTime.getStartOfDay(date), count);
 			}
+
+			for (Map.Entry<Date, Integer> entry : dateCountMap.entrySet()) {
+
+				Date date = entry.getKey();
+				int count = entry.getValue();
+
+				Calendar cal = Calendar.getInstance();
+				cal.setTime(date);
+				int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+
+				boolean isBlocked = false;
+
+				// =====================================================
+				// SUNDAY
+				// =====================================================
+				if (dayOfWeek == Calendar.SUNDAY) {
+
+					Calendar mondayCal = (Calendar) cal.clone();
+					mondayCal.add(Calendar.DAY_OF_MONTH, +1);
+
+					Date monday = UtilDateAndTime.getStartOfDay(mondayCal.getTime());
+					int mondayCount = dateCountMap.getOrDefault(monday, 0);
+
+					int maxSunday = (mondayCount > 0) ? 2 : 3;
+
+					if (count >= maxSunday) {
+						isBlocked = true;
+					}
+				}
+
+				// =====================================================
+				// MONDAY
+				// =====================================================
+				else if (dayOfWeek == Calendar.MONDAY) {
+
+					Calendar sundayCal = (Calendar) cal.clone();
+					sundayCal.add(Calendar.DAY_OF_MONTH, -1);
+
+					Date sunday = UtilDateAndTime.getStartOfDay(sundayCal.getTime());
+					int sundayCount = dateCountMap.getOrDefault(sunday, 0);
+
+					if (sundayCount >= 3) {
+						isBlocked = true;
+					}
+				}
+
+				// =====================================================
+				// NORMAL DAYS
+				// =====================================================
+				else {
+					if (count >= 2) {
+						isBlocked = true;
+					}
+				}
+
+				if (isBlocked) {
+					blockedDates.add(UtilDateAndTime.mmddyyyyDateToString(date));
+				}
+			}
+
 			dtoResult.setTxtMessage("Success");
-			dtoResult.setResult(strDates);
+			dtoResult.setResult(blockedDates);
 			return dtoResult;
+
 		} catch (Exception e) {
 			LOGGER.debug(e.getMessage(), e);
-			dtoResult.setTxtMessage(e.getMessage());
+			dtoResult.setTxtMessage("Failure");
 			return dtoResult;
 		}
 	}
