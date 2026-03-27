@@ -1,8 +1,14 @@
 package com.zbs.de.mapper;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.EventDecorPropertySelection;
+import com.zbs.de.model.EventDecorPropertyValueSelection;
 import com.zbs.de.model.dto.DtoEventDecorPropertySelection;
 
 public class MapperEventDecorPropertySelection {
@@ -21,6 +27,26 @@ public class MapperEventDecorPropertySelection {
 			value.setSerPropertyValueId(dto.getSerPropertyValueId());
 			entity.setSelectedValue(value);
 		}
+		
+		// For multi select property values
+		if (dto.getSerPropertyValueIds() != null) {
+			Set<EventDecorPropertyValueSelection> values = new HashSet<>();
+
+			for (Integer valId : dto.getSerPropertyValueIds()) {
+				EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+
+				DecorCategoryPropertyValue value = new DecorCategoryPropertyValue();
+				value.setSerPropertyValueId(valId);
+
+				val.setPropertyValue(value);
+				val.setEventDecorPropertySelection(entity);
+
+				values.add(val);
+			}
+
+			entity.setSelectedValues(values);
+		}
+		
 		return entity;
 	}
 
@@ -37,6 +63,15 @@ public class MapperEventDecorPropertySelection {
 		if (entity.getSelectedValue() != null) {
 			dto.setSerPropertyValueId(entity.getSelectedValue().getSerPropertyValueId());
 			dto.setTxtPropertyValue(entity.getSelectedValue().getTxtPropertyValue());
+		}
+		
+		// For multi select property values
+		if (entity.getSelectedValues() != null) {
+		    dto.setSerPropertyValueIds(
+		        entity.getSelectedValues().stream()
+		            .map(v -> v.getPropertyValue().getSerPropertyValueId())
+		            .toList()
+		    );  
 		}
 		return dto;
 	}
