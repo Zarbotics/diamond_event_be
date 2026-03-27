@@ -1386,19 +1386,21 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								//**********************************************************
 								
 								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
+								
+								if (property.getSerPropertyValueIds() != null) {
 
-								for (Integer valueId : property.getSerPropertyValueIds()) {
+									for (Integer valueId : property.getSerPropertyValueIds()) {
 
-								    DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-								        .filter(pv -> pv.getSerPropertyValueId().intValue() == valueId)
-								        .findFirst()
-								        .orElse(null);
+										DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+												.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId)
+												.findFirst().orElse(null);
 
-								    EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
-								    val.setEventDecorPropertySelection(eventDecorPropertySelection);
-								    val.setPropertyValue(matchedValue);
+										EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+										val.setEventDecorPropertySelection(eventDecorPropertySelection);
+										val.setPropertyValue(matchedValue);
 
-								    selectedValues.add(val);
+										selectedValues.add(val);
+									}
 								}
 
 								eventDecorPropertySelection.setSelectedValues(selectedValues);
