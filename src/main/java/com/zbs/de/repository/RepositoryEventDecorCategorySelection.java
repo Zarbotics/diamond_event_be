@@ -41,12 +41,8 @@ public interface RepositoryEventDecorCategorySelection extends JpaRepository<Eve
 			@Param("eventMasterId") Integer eventMasterId);
 	
 	@Query("""
-		    SELECT DISTINCT edcs
+		    SELECT edcs
 		    FROM EventDecorCategorySelection edcs
-		    LEFT JOIN FETCH edcs.selectedProperties sp
-		    LEFT JOIN FETCH sp.selectedValues sv
-		    LEFT JOIN FETCH sv.propertyValue pv
-		    LEFT JOIN FETCH edcs.decorCategory dc
 		    WHERE edcs.eventMaster.serEventMasterId = :eventMasterId
 		      AND (edcs.blnIsDeleted = false OR edcs.blnIsDeleted IS NULL)
 		""")
