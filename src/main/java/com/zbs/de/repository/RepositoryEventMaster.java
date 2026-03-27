@@ -94,6 +94,7 @@ public interface RepositoryEventMaster
 			    SELECT e.dteEventDate, COUNT(e)
 			    FROM EventMaster e
 			    WHERE e.blnIsDeleted = false
+			    AND e.dteEventDate IS NOT NULL
 			    GROUP BY e.dteEventDate
 			""")
 	List<Object[]> getEventDateCounts();
