@@ -12,6 +12,7 @@ public class DtoDecorExtrasMaster {
 	private BigDecimal numPrice;
 	private String txtDescription;
 	private Integer numDisplayOrder;
+	private Boolean blnIsService;
 	private List<DtoDecorExtrasOption> decorExtrasOptions;
 
 	public Integer getSerExtrasId() {
@@ -77,5 +78,14 @@ public class DtoDecorExtrasMaster {
 	public void setNumDisplayOrder(Integer numDisplayOrder) {
 		this.numDisplayOrder = numDisplayOrder;
 	}
+
+	public Boolean getBlnIsService() {
+		return blnIsService;
+	}
+
+	public void setBlnIsService(Boolean blnIsService) {
+		this.blnIsService = blnIsService;
+	}
+	
 
 }

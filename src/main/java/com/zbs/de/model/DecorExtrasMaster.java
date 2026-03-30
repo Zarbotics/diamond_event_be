@@ -47,6 +47,9 @@ public class DecorExtrasMaster extends BaseEntity implements Serializable {
 
 	private BigDecimal numPrice;
 
+	@Column(name = "bln_is_service")
+	private Boolean blnIsService = false;
+
 	@OneToMany(mappedBy = "decorExtrasMaster", cascade = CascadeType.ALL)
 	private List<DecorExtrasOption> decorExtrasOptions;
 
@@ -104,6 +107,14 @@ public class DecorExtrasMaster extends BaseEntity implements Serializable {
 
 	public void setNumDisplayOrder(Integer numDisplayOrder) {
 		this.numDisplayOrder = numDisplayOrder;
+	}
+
+	public Boolean getBlnIsService() {
+		return blnIsService;
+	}
+
+	public void setBlnIsService(Boolean blnIsService) {
+		this.blnIsService = blnIsService;
 	}
 
 }
