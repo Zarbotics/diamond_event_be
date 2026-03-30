@@ -69,6 +69,35 @@ public class ServiceEventDecorExtrasSelectionImpl implements ServiceEventDecorEx
 		}
 	}
 	
+	
+
+	@Override
+	public List<EventDecorExtrasSelection> getExtrasSelectionsByEventMasterId(Integer serEventMasterId) {
+		try {
+			List<EventDecorExtrasSelection> eventDecorExtrasSelection = repositoryEventDecorExtrasSelection
+					.findExtrasSelectionsByEventId(serEventMasterId);
+			return eventDecorExtrasSelection;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
+	}
+	
+	
+
+	@Override
+	public List<EventDecorExtrasSelection> getServicesSelectionsByEventMasterId(Integer serEventMasterId) {
+		try {
+			List<EventDecorExtrasSelection> eventDecorExtrasSelection = repositoryEventDecorExtrasSelection
+					.findServicesSelectionsByEventId(serEventMasterId);
+			return eventDecorExtrasSelection;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
+	}
+	
+	
 	@Override
 	public Boolean existsByDecorExtrasOptionId(Integer id) {
 		try {

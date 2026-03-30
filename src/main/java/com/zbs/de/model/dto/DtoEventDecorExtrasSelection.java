@@ -14,6 +14,7 @@ public class DtoEventDecorExtrasSelection {
 	private String txtOptionCode;
 	private String txtOptionName;
 	private BigDecimal numPrice;
+	private Boolean blnIsServices;
 
 	public Integer getSerExtrasSelectionId() {
 		return serExtrasSelectionId;
@@ -101,6 +102,14 @@ public class DtoEventDecorExtrasSelection {
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public Boolean getBlnIsServices() {
+		return blnIsServices;
+	}
+
+	public void setBlnIsServices(Boolean blnIsServices) {
+		this.blnIsServices = blnIsServices;
 	}
 
 }

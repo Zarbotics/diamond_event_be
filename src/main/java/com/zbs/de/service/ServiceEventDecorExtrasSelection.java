@@ -10,5 +10,7 @@ public interface ServiceEventDecorExtrasSelection {
 	EventDecorExtrasSelection save(EventDecorExtrasSelection eventDecorExtrasSelection);
 	List<EventDecorExtrasSelection> getByEventMasterId(Integer serEventMasterId);
 	Boolean existsByDecorExtrasOptionId(Integer id);
+	List<EventDecorExtrasSelection> getExtrasSelectionsByEventMasterId(Integer serEventMasterId);
+	List<EventDecorExtrasSelection> getServicesSelectionsByEventMasterId(Integer serEventMasterId);
 
 }
