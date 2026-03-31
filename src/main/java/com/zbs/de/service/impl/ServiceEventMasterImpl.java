@@ -4265,6 +4265,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			List<String> blockedDates = new ArrayList<>();
 
 			Map<Date, Integer> dateCountMap = new HashMap<>();
+			Date today = UtilDateAndTime.getStartOfDay(new Date());
 
 			// Prepare map
 			for (Object[] obj : results) {
@@ -4331,6 +4332,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					blockedDates.add(UtilDateAndTime.mmddyyyyDateToString(date));
 				}
 			}
+			
+			blockedDates.add(UtilDateAndTime.mmddyyyyDateToString(today));
 
 			dtoResult.setTxtMessage("Success");
 			dtoResult.setResult(blockedDates);
@@ -4352,7 +4355,13 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		// Normalize dates
 		Date newStart = UtilDateAndTime.getStartOfDay(newDate);
 		Date newEnd = UtilDateAndTime.getEndOfDay(newDate);
-
+		
+		// 🚫 RULE: No same-day booking allowed
+		Date todayStart = UtilDateAndTime.getStartOfDay(new Date());
+		if (newStart.equals(todayStart)) {
+		    return new DtoEventBookingValidationResult(false, "Same-day booking is not allowed");
+		}
+		
 		// Get current count on NEW date (excluding current event if update)
 		int newDateCount = repositoryEventMaster.countEventsOnDate(newStart, newEnd, eventId);
 
