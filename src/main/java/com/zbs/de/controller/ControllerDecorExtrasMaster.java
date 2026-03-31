@@ -71,11 +71,59 @@ public class ControllerDecorExtrasMaster {
 				result.getTxtMessage(), null);
 	}
 
-	
+	@PostMapping(value = "/getAllExtrasData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllExtrasData(HttpServletRequest request) {
+		LOGGER.info("Searching Decor Extras");
+		DtoResult result = serviceDecorExtrasMaster.getAllExtras();
+		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+				result.getTxtMessage(), null);
+	}
+
+	@PostMapping(value = "/getAllServicesData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllServicesData(HttpServletRequest request) {
+		LOGGER.info("Searching Decor Extras");
+		DtoResult result = serviceDecorExtrasMaster.getAllServices();
+		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+				result.getTxtMessage(), null);
+	}
+
 	@PostMapping(value = "/getAllActiveData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllActiveData(HttpServletRequest request) {
 		LOGGER.info("Searching Decor Extras");
 		DtoResult result = serviceDecorExtrasMaster.getAllActive();
+		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+				result.getTxtMessage(), null);
+	}
+	
+	
+	@PostMapping(value = "/getAllActiveExtrasData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveExtrasData(HttpServletRequest request) {
+		LOGGER.info("Searching Decor Extras");
+		DtoResult result = serviceDecorExtrasMaster.getAllActiveExtras();
+		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+					result.getResult());
+		}
+		return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+				result.getTxtMessage(), null);
+	}
+	
+	@PostMapping(value = "/getAllActiveServicesData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getAllActiveServicesData(HttpServletRequest request) {
+		LOGGER.info("Searching Decor Extras");
+		DtoResult result = serviceDecorExtrasMaster.getAllActiveServices();
 		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
 					result.getResult());
