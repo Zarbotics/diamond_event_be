@@ -73,6 +73,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 				decorExtrasMaster.setTxtDescription(dto.getTxtDescription());
 				decorExtrasMaster.setNumDisplayOrder(dto.getNumDisplayOrder());
 				decorExtrasMaster.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+				decorExtrasMaster.setBlnIsService(dto.getBlnIsService());
 			} else {
 				decorExtrasMaster = MapperDecorExtrasMaster.toEntity(dto);
 				decorExtrasMaster.setBlnIsActive(Boolean.TRUE);
@@ -83,6 +84,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 				decorExtrasMaster.setNumPrice(dto.getNumPrice());
 				decorExtrasMaster.setNumDisplayOrder(dto.getNumDisplayOrder());
 				decorExtrasMaster.setTxtDescription(dto.getTxtDescription());
+				decorExtrasMaster.setBlnIsService(dto.getBlnIsService());
 			}
 
 			repositoryDecorExtrasMaster.save(decorExtrasMaster);
@@ -309,6 +311,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 	            master.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 	            master.setTxtDescription(dto.getTxtDescription());
 	            master.setNumDisplayOrder(dto.getNumDisplayOrder());
+	            master.setBlnIsService(dto.getBlnIsService());
 
 	        } else {
 	            master = MapperDecorExtrasMaster.toEntity(dto);
@@ -488,6 +491,41 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 		return dtoResult;
 	}
 	
+	@Override
+	public DtoResult getAllExtras() {
+		DtoResult dtoResult = new DtoResult();
+		try {
+//			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllWithOptionsWhereNotDeleted();
+			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllExtrasWithOptionsWhereNotDeletedByDisplayOrder();
+			List<DtoDecorExtrasMaster> dtoList = extras.stream().map(MapperDecorExtrasMaster::toDto)
+					.collect(Collectors.toList());
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(dtoList);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Failed to retrieve extras");
+		}
+		return dtoResult;
+	}
+	
+	
+	@Override
+	public DtoResult getAllServices() {
+		DtoResult dtoResult = new DtoResult();
+		try {
+//			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllWithOptionsWhereNotDeleted();
+			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllServicesWithOptionsWhereNotDeletedByDisplayOrder();
+			List<DtoDecorExtrasMaster> dtoList = extras.stream().map(MapperDecorExtrasMaster::toDto)
+					.collect(Collectors.toList());
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(dtoList);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Failed to retrieve extras");
+		}
+		return dtoResult;
+	}
+	
 	
 
 	@Override
@@ -585,6 +623,39 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 		DtoResult dtoResult = new DtoResult();
 		try {
 			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllActiveWithOptionsWhereNotDeleted();
+			List<DtoDecorExtrasMaster> dtoList = extras.stream().map(MapperDecorExtrasMaster::toDto)
+					.collect(Collectors.toList());
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(dtoList);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Failed to retrieve extras");
+		}
+		return dtoResult;
+	}
+	
+	@Override
+	public DtoResult getAllActiveExtras() {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster.findAllActiveExtrasWithOptionsWhereNotDeleted();
+			List<DtoDecorExtrasMaster> dtoList = extras.stream().map(MapperDecorExtrasMaster::toDto)
+					.collect(Collectors.toList());
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(dtoList);
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Failed to retrieve extras");
+		}
+		return dtoResult;
+	}
+	
+	@Override
+	public DtoResult getAllActiveServices() {
+		DtoResult dtoResult = new DtoResult();
+		try {
+			List<DecorExtrasMaster> extras = repositoryDecorExtrasMaster
+					.findAllActiveServicesWithOptionsWhereNotDeleted();
 			List<DtoDecorExtrasMaster> dtoList = extras.stream().map(MapperDecorExtrasMaster::toDto)
 					.collect(Collectors.toList());
 			dtoResult.setTxtMessage("Success");

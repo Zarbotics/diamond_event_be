@@ -77,6 +77,8 @@ public class DtoEventMaster {
 	private List<DtoCustomerMenuCategory> menuCategoriesSelection;
 
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
+	
+	private List<DtoEventDecorExtrasSelection> servicesSelections;
 
 	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
 	
@@ -537,7 +539,12 @@ public class DtoEventMaster {
 	public void setVendorMasterSelections(List<DtoEventVendorMasterSelection> vendorMasterSelections) {
 		this.vendorMasterSelections = vendorMasterSelections;
 	}
-	
-	
 
+	public List<DtoEventDecorExtrasSelection> getServicesSelections() {
+		return servicesSelections;
+	}
+
+	public void setServicesSelections(List<DtoEventDecorExtrasSelection> servicesSelections) {
+		this.servicesSelections = servicesSelections;
+	}
 }

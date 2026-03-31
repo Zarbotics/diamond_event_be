@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.hibernate.annotations.SQLRestriction;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -181,10 +183,15 @@ public class EventMaster extends BaseEntity implements Serializable {
 	private List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	@SQLRestriction("bln_is_services = false")
 	private List<EventDecorExtrasSelection> extrasSelections;
 	
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<EventVendorMasterSelection> vendorMasterSelections;
+	
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	@SQLRestriction("bln_is_services = true")
+	private List<EventDecorExtrasSelection> servicesSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -565,6 +572,13 @@ public class EventMaster extends BaseEntity implements Serializable {
 	public void setVendorMasterSelections(List<EventVendorMasterSelection> vendorMasterSelections) {
 		this.vendorMasterSelections = vendorMasterSelections;
 	}
-	
+
+	public List<EventDecorExtrasSelection> getServicesSelections() {
+		return servicesSelections;
+	}
+
+	public void setServicesSelections(List<EventDecorExtrasSelection> servicesSelections) {
+		this.servicesSelections = servicesSelections;
+	}
 
 }
