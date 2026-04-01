@@ -1236,9 +1236,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtContactPersonFirstName(dtoEventMaster.getTxtContactPersonFirstName());
 				entity.setTxtContactPersonLastName(dtoEventMaster.getTxtContactPersonLastName());
 				entity.setTxtContactPersonPhoneNo(dtoEventMaster.getTxtContactPersonPhoneNo());
-				// if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
-				// entity.setNumInfoFilledStatus(0);
-				// }
+				entity.setTxtEventServicesRemarks(dtoEventMaster.getTxtEventServicesRemarks());
+//				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
+//					entity.setNumInfoFilledStatus(0);
+//				}
 
 				// Set customer
 				// ************
@@ -2608,6 +2609,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtEventRemarks(dtoEventMasterAdminPortal.getTxtEventRemarks());
 				entity.setTxtExternalSupplierRemarks(dtoEventMasterAdminPortal.getTxtExternalSupplierRemarks());
 				entity.setTxtVenueRemarks(dtoEventMasterAdminPortal.getTxtVenueRemarks());
+				entity.setTxtEventServicesRemarks(dtoEventMasterAdminPortal.getTxtEventServicesRemarks());
 				entity.setIsEditAllowed(dtoEventMasterAdminPortal.getIsEditAllowed());
 				entity.setTxtContactPersonFirstName(dtoEventMasterAdminPortal.getTxtContactPersonFirstName());
 				entity.setTxtContactPersonLastName(dtoEventMasterAdminPortal.getTxtContactPersonLastName());

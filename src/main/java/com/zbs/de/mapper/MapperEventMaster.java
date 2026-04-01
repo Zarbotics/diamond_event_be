@@ -56,6 +56,7 @@ public class MapperEventMaster {
 		dto.setTxtEventRemarks(entity.getTxtEventRemarks());
 		dto.setTxtExternalSupplierRemarks(entity.getTxtExternalSupplierRemarks());
 		dto.setTxtVenueRemarks(entity.getTxtVenueRemarks());
+		dto.setTxtEventServicesRemarks(entity.getTxtEventServicesRemarks());
 		
 		dto.setTxtContactPersonFirstName(entity.getTxtContactPersonFirstName());
 		dto.setTxtContactPersonLastName(entity.getTxtContactPersonLastName());
@@ -149,6 +150,7 @@ public class MapperEventMaster {
 		entity.setTxtEventRemarks(dto.getTxtEventRemarks());
 		entity.setTxtExternalSupplierRemarks(dto.getTxtExternalSupplierRemarks());
 		entity.setTxtVenueRemarks(dto.getTxtVenueRemarks());
+		entity.setTxtEventServicesRemarks(dto.getTxtEventServicesRemarks());
 		entity.setNumFormState(dto.getNumFormState());
 		
 		entity.setTxtContactPersonFirstName(dto.getTxtContactPersonFirstName());
@@ -210,6 +212,7 @@ public class MapperEventMaster {
 		dto.setTxtEventRemarks(entity.getTxtEventRemarks());
 		dto.setTxtExternalSupplierRemarks(entity.getTxtExternalSupplierRemarks());
 		dto.setTxtVenueRemarks(entity.getTxtVenueRemarks());
+		dto.setTxtEventServicesRemarks(entity.getTxtEventServicesRemarks());
 		
 		dto.setTxtContactPersonFirstName(entity.getTxtContactPersonFirstName());
 		dto.setTxtContactPersonLastName(entity.getTxtContactPersonLastName());
@@ -306,6 +309,7 @@ public class MapperEventMaster {
 		entity.setTxtEventRemarks(dto.getTxtEventRemarks());
 		entity.setTxtExternalSupplierRemarks(dto.getTxtExternalSupplierRemarks());
 		entity.setTxtVenueRemarks(dto.getTxtVenueRemarks());
+		entity.setTxtEventServicesRemarks(dto.getTxtEventServicesRemarks());
 		entity.setIsEditAllowed(dto.getIsEditAllowed());
 		
 		entity.setTxtContactPersonFirstName(dto.getTxtContactPersonFirstName());

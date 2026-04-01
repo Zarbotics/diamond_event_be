@@ -114,6 +114,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_venue_remarks")
 	private String txtVenueRemarks;
+	
+	@Column(name = "txt_event_services_remarks")
+	private String txtEventServicesRemarks;
 
 	@Column(name = "is_edit_allowed")
 	private Boolean isEditAllowed = true;
@@ -580,5 +583,15 @@ public class EventMaster extends BaseEntity implements Serializable {
 	public void setServicesSelections(List<EventDecorExtrasSelection> servicesSelections) {
 		this.servicesSelections = servicesSelections;
 	}
+
+	public String getTxtEventServicesRemarks() {
+		return txtEventServicesRemarks;
+	}
+
+	public void setTxtEventServicesRemarks(String txtEventServicesRemarks) {
+		this.txtEventServicesRemarks = txtEventServicesRemarks;
+	}
+	
+	
 
 }
