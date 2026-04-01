@@ -57,6 +57,7 @@ public class DtoEventMasterAdminPortal {
 	private String txtExternalSupplierRemarks;
 	private String txtEventExtrasRemarks;
 	private String txtVenueRemarks;
+	private String txtEventServicesRemarks;
 
 	private String dteCreatedDate;
 	private String dteUpdateDate;
@@ -542,5 +543,14 @@ public class DtoEventMasterAdminPortal {
 	public void setServicesSelections(List<DtoEventDecorExtrasSelection> servicesSelections) {
 		this.servicesSelections = servicesSelections;
 	}
+
+	public String getTxtEventServicesRemarks() {
+		return txtEventServicesRemarks;
+	}
+
+	public void setTxtEventServicesRemarks(String txtEventServicesRemarks) {
+		this.txtEventServicesRemarks = txtEventServicesRemarks;
+	}
+	
 
 }
