@@ -3365,6 +3365,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
 					selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
 					selection.setNumPrice(dto.getNumPrice());
+					selection.setBlnIsServices(false);
 					selection.setEventMaster(entity);
 					if (dto.getSerExtrasId() != null) {
 						selection.setDecorExtrasMaster(
@@ -3387,6 +3388,48 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 				
 			}
+			
+			
+			// ****** Setting Event Services ******
+
+			if (entity.getServicesSelections() != null) {
+			    entity.getServicesSelections().clear();
+			}
+
+			if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getServicesSelections())
+			        && !dtoEventMasterAdminPortal.getServicesSelections().isEmpty()) {
+
+			    List<EventDecorExtrasSelection> newServiceSelections = new ArrayList<>();
+
+			    for (DtoEventDecorExtrasSelection dto : dtoEventMasterAdminPortal.getServicesSelections()) {
+
+			        EventDecorExtrasSelection selection = new EventDecorExtrasSelection();
+
+			        selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
+			        selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
+			        selection.setNumPrice(dto.getNumPrice());
+			        selection.setEventMaster(entity);
+
+			        // 🔥 THIS IS THE DIFFERENCE
+			        selection.setBlnIsServices(true);
+
+			        if (dto.getSerExtrasId() != null) {
+			            selection.setDecorExtrasMaster(
+			                serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
+			        }
+
+			        if (dto.getSerExtraOptionId() != null) {
+			            selection.setDecorExtrasOption(
+			                serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
+			        }
+
+			        newServiceSelections.add(selection);
+			    }
+
+			    entity.getServicesSelections().addAll(newServiceSelections);
+			}
+			
+			
 			
 			// ****** Setting Event Vendor Multi Selection ******
 
