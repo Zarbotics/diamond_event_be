@@ -27,7 +27,7 @@ public interface RepositoryDecorExtrasMaster extends JpaRepository<DecorExtrasMa
 	List<DecorExtrasMaster> findAllExtrasWithOptionsWhereNotDeletedByDisplayOrder();
 	
 	@Query("SELECT DISTINCT m FROM DecorExtrasMaster m " + "LEFT JOIN FETCH m.decorExtrasOptions o "
-			+ "WHERE m.blnIsDeleted = false and m.blnIsService = false AND (o.blnIsDeleted = false OR o IS NULL) ORDER BY numDisplayOrder asc")
+			+ "WHERE m.blnIsDeleted = false and m.blnIsService = true AND (o.blnIsDeleted = false OR o IS NULL) ORDER BY numDisplayOrder asc")
 	List<DecorExtrasMaster> findAllServicesWithOptionsWhereNotDeletedByDisplayOrder();
 	
 	@Query("SELECT e FROM DecorExtrasMaster e WHERE e.serExtrasId = :id AND e.blnIsDeleted = false")
