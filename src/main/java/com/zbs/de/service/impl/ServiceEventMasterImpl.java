@@ -2772,19 +2772,23 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //										.findFirst().orElse(null);
 
 								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
+								if(property.getSerPropertyValueIds() != null && !property.getSerPropertyValueIds().isEmpty())
+								{
+									for (Integer valueId : property.getSerPropertyValueIds()) {
 
-								for (Integer valueId : property.getSerPropertyValueIds()) {
+										DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+												.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId).findFirst()
+												.orElse(null);
 
-									DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-											.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId).findFirst()
-											.orElse(null);
+										EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+										val.setEventDecorPropertySelection(eventDecorPropertySelection);
+										val.setPropertyValue(matchedValue);
 
-									EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
-									val.setEventDecorPropertySelection(eventDecorPropertySelection);
-									val.setPropertyValue(matchedValue);
-
-									selectedValues.add(val);
+										selectedValues.add(val);
+									}
 								}
+
+							
 
 								eventDecorPropertySelection.setSelectedValues(selectedValues);
 
@@ -3061,19 +3065,22 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								// **********************************************
 								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
 
-								for (Integer valueId : property.getSerPropertyValueIds()) {
+								if( property.getSerPropertyValueIds() != null && ! property.getSerPropertyValueIds().isEmpty()) {
+									for (Integer valueId : property.getSerPropertyValueIds()) {
 
-									DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-											.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId).findFirst()
-											.orElse(null);
+										DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+												.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId).findFirst()
+												.orElse(null);
 
-									EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
-									val.setEventDecorPropertySelection(eventDecorPropertySelection);
-									val.setPropertyValue(matchedValue);
+										EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+										val.setEventDecorPropertySelection(eventDecorPropertySelection);
+										val.setPropertyValue(matchedValue);
 
-									selectedValues.add(val);
+										selectedValues.add(val);
+									}
+
 								}
-
+								
 								eventDecorPropertySelection.setSelectedValues(selectedValues);
 
 								// **********************************************
@@ -5096,19 +5103,22 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								//************************************************
 								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
 
-								for (Integer valueId : property.getSerPropertyValueIds()) {
+								if(property.getSerPropertyValueIds() != null && !property.getSerPropertyValueIds().isEmpty()) {
+									for (Integer valueId : property.getSerPropertyValueIds()) {
 
-								    DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-								        .filter(pv -> pv.getSerPropertyValueId().intValue() == valueId)
-								        .findFirst()
-								        .orElse(null);
+									    DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
+									        .filter(pv -> pv.getSerPropertyValueId().intValue() == valueId)
+									        .findFirst()
+									        .orElse(null);
 
-								    EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
-								    val.setEventDecorPropertySelection(eventDecorPropertySelection);
-								    val.setPropertyValue(matchedValue);
+									    EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+									    val.setEventDecorPropertySelection(eventDecorPropertySelection);
+									    val.setPropertyValue(matchedValue);
 
-								    selectedValues.add(val);
+									    selectedValues.add(val);
+									}
 								}
+								
 
 								eventDecorPropertySelection.setSelectedValues(selectedValues);
 								
