@@ -7,6 +7,7 @@ public class DtoEventQuoteAndStatus {
 	private BigDecimal numQuotedPrice;
 	private BigDecimal numPaidAmount;
 	private BigDecimal numPendingAmount;
+	private BigDecimal numDiscount;
 	private String txtStatus;
 
 	public BigDecimal getNumQuotedPrice() {
@@ -40,5 +41,14 @@ public class DtoEventQuoteAndStatus {
 	public void setNumPendingAmount(BigDecimal numPendingAmount) {
 		this.numPendingAmount = numPendingAmount;
 	}
+
+	public BigDecimal getNumDiscount() {
+		return numDiscount;
+	}
+
+	public void setNumDiscount(BigDecimal numDiscount) {
+		this.numDiscount = numDiscount;
+	}
+	
 
 }

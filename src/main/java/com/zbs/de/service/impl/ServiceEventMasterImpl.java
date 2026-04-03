@@ -2608,6 +2608,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				entity.setTxtContactPersonPhoneNo(dtoEventMasterAdminPortal.getTxtContactPersonPhoneNo());
 				entity.setNumItineraryPrice(dtoEventMasterAdminPortal.getNumItineraryPrice());
 				entity.setNumServingDishesPrice(dtoEventMasterAdminPortal.getNumServingDishesPrice());
+				entity.setNumDiscount(dtoEventMasterAdminPortal.getNumDiscount());
 //				if (UtilRandomKey.isNull(entity.getNumInfoFilledStatus())) {
 //					entity.setNumInfoFilledStatus(0);
 //				}
@@ -2863,6 +2864,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							eventBudget.setNumPaidAmount(
 									dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumPaidAmount());
 						}
+						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+						}else {
+							eventBudget.setNumDiscount(BigDecimal.ZERO);
+						}
 
 					} else if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
 							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
@@ -2872,11 +2878,18 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						eventBudget.setNumQuotedPrice(
 								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
 						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+						}else {
+							eventBudget.setNumDiscount(BigDecimal.ZERO);
+						}
+
 
 					} else {
 						eventBudget.setTxtStatus("Enquiry");
 						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
 						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+						eventBudget.setNumDiscount(BigDecimal.ZERO);
 
 					}
 
@@ -2894,6 +2907,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							eventBudget.setNumQuotedPrice(
 									dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
 						}
+						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+						}else {
+							eventBudget.setNumDiscount(BigDecimal.ZERO);
+						}
+
 
 					} else if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
 							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
@@ -2903,11 +2922,18 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						eventBudget.setNumQuotedPrice(
 								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
 						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+						}else {
+							eventBudget.setNumDiscount(BigDecimal.ZERO);
+						}
+
 
 					} else {
 						eventBudget.setTxtStatus("Enquiry");
 						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
 						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+						eventBudget.setNumDiscount(BigDecimal.ZERO);
 
 					}
 
@@ -3157,6 +3183,13 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						eventBudget.setNumQuotedPrice(
 								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
 					}
+					
+					if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+						eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+					}else {
+						eventBudget.setNumDiscount(BigDecimal.ZERO);
+					}
+
 
 				} else if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
 						&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
@@ -3166,11 +3199,18 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					eventBudget.setNumQuotedPrice(
 							dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
 					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+					if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+						eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+					}else {
+						eventBudget.setNumDiscount(BigDecimal.ZERO);
+					}
+
 
 				} else {
 					eventBudget.setTxtStatus("Enquiry");
 					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
 					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+					eventBudget.setNumDiscount(BigDecimal.ZERO);
 
 				}
 

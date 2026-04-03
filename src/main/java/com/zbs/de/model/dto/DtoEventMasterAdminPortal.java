@@ -61,6 +61,8 @@ public class DtoEventMasterAdminPortal {
 
 	private String dteCreatedDate;
 	private String dteUpdateDate;
+	
+	private BigDecimal numDiscount;
 
 	private Boolean isEditAllowed;
 
@@ -550,6 +552,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setTxtEventServicesRemarks(String txtEventServicesRemarks) {
 		this.txtEventServicesRemarks = txtEventServicesRemarks;
+	}
+
+	public BigDecimal getNumDiscount() {
+		return numDiscount;
+	}
+
+	public void setNumDiscount(BigDecimal numDiscount) {
+		this.numDiscount = numDiscount;
 	}
 	
 

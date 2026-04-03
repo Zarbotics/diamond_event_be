@@ -49,6 +49,7 @@ public class MapperEventMaster {
 		dto.setTxtEventStatus(entity.getTxtEventStatus());
 		dto.setBlnIsCouple(entity.getBlnIsCouple());
 		dto.setNumFormState(entity.getNumFormState());
+		dto.setNumDiscount(entity.getNumDiscount());
 
 		dto.setTxtCateringRemarks(entity.getTxtCateringRemarks());
 		dto.setTxtDecoreRemarks(entity.getTxtDecoreRemarks());
@@ -205,6 +206,7 @@ public class MapperEventMaster {
 		dto.setBlnIsActive(entity.getBlnIsActive());
 		dto.setTxtEventStatus(entity.getTxtEventStatus());
 		dto.setBlnIsCouple(entity.getBlnIsCouple());
+		dto.setNumDiscount(entity.getNumDiscount());
 
 		dto.setTxtCateringRemarks(entity.getTxtCateringRemarks());
 		dto.setTxtDecoreRemarks(entity.getTxtDecoreRemarks());
@@ -302,7 +304,8 @@ public class MapperEventMaster {
 		entity.setTxtOtherEventType(dto.getTxtOtherEventType());
 		entity.setTxtEventStatus(dto.getTxtEventStatus());
 		entity.setBlnIsCouple(dto.getBlnIsCouple());
-
+		entity.setNumDiscount(dto.getNumDiscount());
+		
 		entity.setTxtCateringRemarks(dto.getTxtCateringRemarks());
 		entity.setTxtDecoreRemarks(dto.getTxtDecoreRemarks());
 		entity.setTxtEventExtrasRemarks(dto.getTxtEventExtrasRemarks());
