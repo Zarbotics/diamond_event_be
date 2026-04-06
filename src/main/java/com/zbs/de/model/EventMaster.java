@@ -158,6 +158,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 	
 	@Column(name = "bln_is_all_admin_email_send")
 	private Boolean blnIsAllAdminEmailSend;
+	
+	@Column(name = "num_discount")
+	private BigDecimal numDiscount;
 
 	// This is when you need to specify which hall you selected
 	@ManyToOne
@@ -590,6 +593,14 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setTxtEventServicesRemarks(String txtEventServicesRemarks) {
 		this.txtEventServicesRemarks = txtEventServicesRemarks;
+	}
+
+	public BigDecimal getNumDiscount() {
+		return numDiscount;
+	}
+
+	public void setNumDiscount(BigDecimal numDiscount) {
+		this.numDiscount = numDiscount;
 	}
 	
 	
