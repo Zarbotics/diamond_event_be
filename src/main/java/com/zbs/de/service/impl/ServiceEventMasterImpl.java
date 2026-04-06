@@ -2068,6 +2068,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			if (entity.getServicesSelections() != null) {
 			    entity.getServicesSelections().clear();
+			} else {
+			    entity.setServicesSelections(new ArrayList<>());
 			}
 
 			if (UtilRandomKey.isNotNull(dtoEventMaster.getServicesSelections())
@@ -3433,6 +3435,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			if (entity.getServicesSelections() != null) {
 			    entity.getServicesSelections().clear();
+			} else {
+			    entity.setServicesSelections(new ArrayList<>());
 			}
 
 			if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getServicesSelections())
@@ -5505,6 +5509,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			if (entity.getServicesSelections() != null) {
 			    entity.getServicesSelections().clear();
+			} else {
+			    entity.setServicesSelections(new ArrayList<>());
 			}
 
 			if (UtilRandomKey.isNotNull(dtoEventMaster.getServicesSelections())
