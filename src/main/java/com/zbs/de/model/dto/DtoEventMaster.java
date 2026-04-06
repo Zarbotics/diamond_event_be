@@ -71,6 +71,8 @@ public class DtoEventMaster {
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
+	
+	private BigDecimal numDiscount;
 
 	private List<DtoEventDecorCategorySelection> dtoEventDecorSelections;
 //	private List<DtoEventMenuFoodSelection> foodSelections;
@@ -556,5 +558,14 @@ public class DtoEventMaster {
 	public void setTxtEventServicesRemarks(String txtEventServicesRemarks) {
 		this.txtEventServicesRemarks = txtEventServicesRemarks;
 	}
+
+	public BigDecimal getNumDiscount() {
+		return numDiscount;
+	}
+
+	public void setNumDiscount(BigDecimal numDiscount) {
+		this.numDiscount = numDiscount;
+	}
+	
 	
 }
