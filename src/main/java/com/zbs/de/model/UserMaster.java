@@ -49,6 +49,9 @@ public class UserMaster extends BaseEntity implements Serializable {
 	@Column(name = "txt_role")
 	private String txtRole;
 
+	@Column(name = "txt_apple_id")
+	private String txtAppleId;
+
 	@Column(name = "bln_receive_email")
 	private Boolean blnReceiveEmail;
 
@@ -138,6 +141,14 @@ public class UserMaster extends BaseEntity implements Serializable {
 
 	public void setBlnReceiveEmail(Boolean blnReceiveEmail) {
 		this.blnReceiveEmail = blnReceiveEmail;
+	}
+
+	public String getTxtAppleId() {
+		return txtAppleId;
+	}
+
+	public void setTxtAppleId(String txtAppleId) {
+		this.txtAppleId = txtAppleId;
 	}
 
 }

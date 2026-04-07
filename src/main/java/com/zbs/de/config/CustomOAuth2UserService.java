@@ -68,6 +68,35 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 	public OAuth2User loadUser(OAuth2UserRequest userRequest) {
 		OAuth2User oauth2User = super.loadUser(userRequest);
 
+		String registrationId = userRequest.getClientRegistration().getRegistrationId();
+		// Apple Logic
+		if ("apple".equals(registrationId)) {
+
+		    String appleId = oauth2User.getAttribute("sub");
+		    String email = oauth2User.getAttribute("email"); // null after first login
+
+		    Optional<UserMaster> userOpt = repositoryUserMaster.findByTxtAppleId(appleId);
+
+		    if (userOpt.isEmpty() && email != null) {
+		        userOpt = repositoryUserMaster.findByTxtEmail(email);
+		    }
+
+		    UserMaster user = userOpt.orElseGet(() -> {
+		        UserMaster newUser = new UserMaster();
+		        newUser.setTxtAppleId(appleId);
+		        newUser.setTxtEmail(email);
+		        newUser.setTxtName("Apple User");
+		        newUser.setTxtRole("ROLE_USER");
+		        return repositoryUserMaster.save(newUser);
+		    });
+
+		    user.setUpdatedDate(UtilDateAndTime.getCurrentDate());
+		    repositoryUserMaster.save(user);
+
+		    return oauth2User;
+		}
+		
+		
 		// Extract Google profile attributes
 		String googleId = oauth2User.getAttribute("sub");
 		String email = oauth2User.getAttribute("email");
