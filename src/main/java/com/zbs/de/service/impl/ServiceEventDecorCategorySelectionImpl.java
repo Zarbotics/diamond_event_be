@@ -35,7 +35,7 @@ public class ServiceEventDecorCategorySelectionImpl implements ServiceEventDecor
 	public List<DtoEventDecorCategorySelection> getSelectionsWithChosenValues(Integer eventMasterId) {
 
 		List<EventDecorCategorySelection> entities = repositoryEventDecorCategorySelection
-				.findByEventMasterWithPropertiesWithOutJoin(eventMasterId);
+				.findByEventMasterWithPropertiesWithValues(eventMasterId);
 
 //		List<EventDecorCategorySelection> entitiesa = repositoryEventDecorCategorySelection
 //				.findByEventMasterWithProperties(eventMasterId);
@@ -70,9 +70,15 @@ public class ServiceEventDecorCategorySelectionImpl implements ServiceEventDecor
 						propDto.setTxtPropertyName(prop.getProperty().getTxtPropertyName());
 					}
 
-					if (prop.getSelectedValue() != null) {
-						propDto.setSerPropertyValueId(prop.getSelectedValue().getSerPropertyValueId());
-						propDto.setTxtPropertyValue(prop.getSelectedValue().getTxtPropertyValue());
+//					if (prop.getSelectedValue() != null) {
+//						propDto.setSerPropertyValueId(prop.getSelectedValue().getSerPropertyValueId());
+//						propDto.setTxtPropertyValue(prop.getSelectedValue().getTxtPropertyValue());
+//					}
+					
+					if (prop.getSelectedValues() != null && !prop.getSelectedValues().isEmpty()) {
+
+						propDto.setSerPropertyValueIds(prop.getSelectedValues().stream()
+								.map(v -> v.getPropertyValue().getSerPropertyValueId()).toList());
 					}
 
 					return propDto;

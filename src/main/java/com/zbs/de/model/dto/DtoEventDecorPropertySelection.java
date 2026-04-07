@@ -1,6 +1,7 @@
 package com.zbs.de.model.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class DtoEventDecorPropertySelection {
 	private Integer serEventDecorPropertyId;
@@ -12,6 +13,8 @@ public class DtoEventDecorPropertySelection {
 
 	private Integer serPropertyValueId;
 	private String txtPropertyValue;
+	
+	private List<Integer> serPropertyValueIds;
 
 	public Integer getSerEventDecorPropertyId() {
 		return serEventDecorPropertyId;
@@ -67,6 +70,14 @@ public class DtoEventDecorPropertySelection {
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public List<Integer> getSerPropertyValueIds() {
+		return serPropertyValueIds;
+	}
+
+	public void setSerPropertyValueIds(List<Integer> serPropertyValueIds) {
+		this.serPropertyValueIds = serPropertyValueIds;
 	}
 
 }

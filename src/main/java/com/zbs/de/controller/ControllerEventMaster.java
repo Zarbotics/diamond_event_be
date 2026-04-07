@@ -64,8 +64,7 @@ public class ControllerEventMaster {
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dtoEventMaster, files);
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
-						"An event is already booked against date :" + dtoEventMaster.getDteEventDate(),
-						result.getResult());
+						result.getResult().toString(), result.getResult());
 			} else if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
 						result.getResult());
@@ -80,6 +79,31 @@ public class ControllerEventMaster {
 
 	}
 
+	
+	@PostMapping(value = "/saveWithDocsCE", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseMessage saveWithDocsCE(@RequestPart("eventMaster") String eventMaster,
+			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
+		LOGGER.info("Saving Event Master: {}", eventMaster);
+		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
+		try {
+			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsCE(dtoEventMaster, files);
+			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
+				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
+						result.getResult().toString(), result.getResult());
+			} else if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
+						result.getResult());
+			} else {
+				return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+						result.getTxtMessage(), dtoEventMaster);
+			}
+		} catch (Exception e) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
+					dtoEventMaster);
+		}
+
+	}
+	
 	@PostMapping(value = "/generateEventCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage generateEventCode(HttpServletRequest request) {
 		String txtCode = serviceEventMaster.generateNextEventMasterCode();
@@ -172,7 +196,7 @@ public class ControllerEventMaster {
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dtoEventMaster, files);
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
-						"An event is already booked against date :" + dtoEventMaster.getDteEventDate(),
+						result.getResult().toString(),
 						result.getResult());
 			} else if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),

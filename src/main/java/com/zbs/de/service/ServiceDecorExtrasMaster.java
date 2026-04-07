@@ -17,19 +17,26 @@ public interface ServiceDecorExtrasMaster {
 	DtoResult getAll();
 
 	DtoResult getById(Integer id);
-	
+
 	DecorExtrasMaster getByIdAndNotDeleted(Integer id);
 
 	DtoResult deleteById(Integer id);
-	
-	DtoResult deleteExtrasOptionById(Integer id);
-	
-	List<DecorExtrasMaster> getAllDecorExtrasMaster();
-	
-	 DtoResult saveAndUpdate(DtoDecorExtrasMaster dto);
-	 
-	 DtoResult getAllActive();
-	 
-	 String generateExtrasCode();
 
+	DtoResult deleteExtrasOptionById(Integer id);
+
+	List<DecorExtrasMaster> getAllDecorExtrasMaster();
+
+	DtoResult saveAndUpdate(DtoDecorExtrasMaster dto);
+
+	DtoResult getAllActive();
+
+	String generateExtrasCode();
+
+	DtoResult getAllActiveServices();
+
+	DtoResult getAllActiveExtras();
+
+	DtoResult getAllExtras();
+
+	DtoResult getAllServices();
 }

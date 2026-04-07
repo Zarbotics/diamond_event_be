@@ -1,21 +1,26 @@
 package com.zbs.de.model;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.DynamicInsert;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-
-import org.hibernate.annotations.DynamicInsert;
 
 @Entity
 @DynamicInsert
@@ -47,6 +52,10 @@ public class EventDecorPropertySelection extends BaseEntity implements Serializa
 
 	@Column(name = "num_price")
 	private BigDecimal numPrice = BigDecimal.ZERO;
+
+	@OneToMany(mappedBy = "eventDecorPropertySelection", cascade = CascadeType.ALL, orphanRemoval = true)
+	@BatchSize(size = 50)
+	private Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
 
 	public Integer getSerEventDecorPropertyId() {
 		return serEventDecorPropertyId;
@@ -86,6 +95,24 @@ public class EventDecorPropertySelection extends BaseEntity implements Serializa
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public Set<EventDecorPropertyValueSelection> getSelectedValues() {
+		return selectedValues;
+	}
+
+	public void setSelectedValues(Set<EventDecorPropertyValueSelection> selectedValues) {
+		this.selectedValues = selectedValues;
+	}
+	
+	public void addSelectedValue(EventDecorPropertyValueSelection value) {
+	    selectedValues.add(value);
+	    value.setEventDecorPropertySelection(this);
+	}
+
+	public void removeSelectedValue(EventDecorPropertyValueSelection value) {
+	    selectedValues.remove(value);
+	    value.setEventDecorPropertySelection(null);
 	}
 
 }

@@ -54,4 +54,6 @@ public interface ServiceEventMaster {
 	DtoResult validateEventDateAvailability(Date eventDate);
 	
 	DtoResult getAlreadyBookedDates();
+	
+	DtoResult saveAndUpdateWithDocsCE(DtoEventMaster dtoEventMaster, List<MultipartFile> files)throws IOException;
 }

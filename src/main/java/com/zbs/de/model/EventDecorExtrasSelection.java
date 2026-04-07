@@ -45,6 +45,9 @@ public class EventDecorExtrasSelection extends BaseEntity implements Serializabl
 
 	@Column(name = "num_price")
 	private BigDecimal numPrice;
+	
+	@Column(name = "bln_is_services")
+	private Boolean blnIsServices;
 
 	@ManyToOne
 	@JoinColumn(name = "ser_extras_id")
@@ -109,5 +112,14 @@ public class EventDecorExtrasSelection extends BaseEntity implements Serializabl
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
 	}
+
+	public Boolean getBlnIsServices() {
+		return blnIsServices;
+	}
+
+	public void setBlnIsServices(Boolean blnIsServices) {
+		this.blnIsServices = blnIsServices;
+	}
+	
 
 }

@@ -39,4 +39,13 @@ public interface RepositoryEventDecorCategorySelection extends JpaRepository<Eve
 			""")
 	List<EventDecorCategorySelection> findByEventMasterWithPropertiesWithOutJoin(
 			@Param("eventMasterId") Integer eventMasterId);
+	
+	@Query("""
+		    SELECT edcs
+		    FROM EventDecorCategorySelection edcs
+		    WHERE edcs.eventMaster.serEventMasterId = :eventMasterId
+		      AND (edcs.blnIsDeleted = false OR edcs.blnIsDeleted IS NULL)
+		""")
+		List<EventDecorCategorySelection> findByEventMasterWithPropertiesWithValues(
+		        @Param("eventMasterId") Integer eventMasterId);
 }

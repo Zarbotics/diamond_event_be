@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.hibernate.annotations.SQLRestriction;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -112,6 +114,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "txt_venue_remarks")
 	private String txtVenueRemarks;
+	
+	@Column(name = "txt_event_services_remarks")
+	private String txtEventServicesRemarks;
 
 	@Column(name = "is_edit_allowed")
 	private Boolean isEditAllowed = true;
@@ -153,6 +158,9 @@ public class EventMaster extends BaseEntity implements Serializable {
 	
 	@Column(name = "bln_is_all_admin_email_send")
 	private Boolean blnIsAllAdminEmailSend;
+	
+	@Column(name = "num_discount")
+	private BigDecimal numDiscount;
 
 	// This is when you need to specify which hall you selected
 	@ManyToOne
@@ -181,7 +189,15 @@ public class EventMaster extends BaseEntity implements Serializable {
 	private List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	@SQLRestriction("bln_is_services = false")
 	private List<EventDecorExtrasSelection> extrasSelections;
+	
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<EventVendorMasterSelection> vendorMasterSelections;
+	
+	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
+	@SQLRestriction("bln_is_services = true")
+	private List<EventDecorExtrasSelection> servicesSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -554,6 +570,39 @@ public class EventMaster extends BaseEntity implements Serializable {
 	public void setBlnIsAllAdminEmailSend(Boolean blnIsAllAdminEmailSend) {
 		this.blnIsAllAdminEmailSend = blnIsAllAdminEmailSend;
 	}
+
+	public List<EventVendorMasterSelection> getVendorMasterSelections() {
+		return vendorMasterSelections;
+	}
+
+	public void setVendorMasterSelections(List<EventVendorMasterSelection> vendorMasterSelections) {
+		this.vendorMasterSelections = vendorMasterSelections;
+	}
+
+	public List<EventDecorExtrasSelection> getServicesSelections() {
+		return servicesSelections;
+	}
+
+	public void setServicesSelections(List<EventDecorExtrasSelection> servicesSelections) {
+		this.servicesSelections = servicesSelections;
+	}
+
+	public String getTxtEventServicesRemarks() {
+		return txtEventServicesRemarks;
+	}
+
+	public void setTxtEventServicesRemarks(String txtEventServicesRemarks) {
+		this.txtEventServicesRemarks = txtEventServicesRemarks;
+	}
+
+	public BigDecimal getNumDiscount() {
+		return numDiscount;
+	}
+
+	public void setNumDiscount(BigDecimal numDiscount) {
+		this.numDiscount = numDiscount;
+	}
+	
 	
 
 }

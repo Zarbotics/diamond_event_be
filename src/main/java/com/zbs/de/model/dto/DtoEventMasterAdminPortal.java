@@ -57,9 +57,12 @@ public class DtoEventMasterAdminPortal {
 	private String txtExternalSupplierRemarks;
 	private String txtEventExtrasRemarks;
 	private String txtVenueRemarks;
+	private String txtEventServicesRemarks;
 
 	private String dteCreatedDate;
 	private String dteUpdateDate;
+	
+	private BigDecimal numDiscount;
 
 	private Boolean isEditAllowed;
 
@@ -80,8 +83,12 @@ public class DtoEventMasterAdminPortal {
 	private List<DtoCustomerMenuCategory> menuCategoriesSelection;
 
 	private List<DtoEventDecorExtrasSelection> extrasSelections;
+	
+	private List<DtoEventDecorExtrasSelection> servicesSelections;
 
 	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
+	
+	private List<DtoEventVendorMasterSelection> vendorMasterSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -522,5 +529,38 @@ public class DtoEventMasterAdminPortal {
 	public void setNumFormState(Integer numFormState) {
 		this.numFormState = numFormState;
 	}
+
+	public List<DtoEventVendorMasterSelection> getVendorMasterSelections() {
+		return vendorMasterSelections;
+	}
+
+	public void setVendorMasterSelections(List<DtoEventVendorMasterSelection> vendorMasterSelections) {
+		this.vendorMasterSelections = vendorMasterSelections;
+	}
+
+	public List<DtoEventDecorExtrasSelection> getServicesSelections() {
+		return servicesSelections;
+	}
+
+	public void setServicesSelections(List<DtoEventDecorExtrasSelection> servicesSelections) {
+		this.servicesSelections = servicesSelections;
+	}
+
+	public String getTxtEventServicesRemarks() {
+		return txtEventServicesRemarks;
+	}
+
+	public void setTxtEventServicesRemarks(String txtEventServicesRemarks) {
+		this.txtEventServicesRemarks = txtEventServicesRemarks;
+	}
+
+	public BigDecimal getNumDiscount() {
+		return numDiscount;
+	}
+
+	public void setNumDiscount(BigDecimal numDiscount) {
+		this.numDiscount = numDiscount;
+	}
+	
 
 }

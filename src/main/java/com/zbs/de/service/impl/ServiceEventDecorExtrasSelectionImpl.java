@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.zbs.de.model.EventDecorExtrasSelection;
-import com.zbs.de.model.EventMenuFoodSelection;
 import com.zbs.de.repository.RepositoryDecorExtrasOption;
 import com.zbs.de.repository.RepositoryEventDecorExtrasSelection;
 import com.zbs.de.service.ServiceEventDecorExtrasSelection;
@@ -21,7 +20,7 @@ public class ServiceEventDecorExtrasSelectionImpl implements ServiceEventDecorEx
 	@Autowired
 	RepositoryEventDecorExtrasSelection repositoryEventDecorExtrasSelection;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventDecorExtrasSelectionImpl.class);
 
     ServiceEventDecorExtrasSelectionImpl(RepositoryDecorExtrasOption repositoryDecorExtrasOption) {
         this.repositoryDecorExtrasOption = repositoryDecorExtrasOption;
@@ -69,6 +68,35 @@ public class ServiceEventDecorExtrasSelectionImpl implements ServiceEventDecorEx
 			return null;
 		}
 	}
+	
+	
+
+	@Override
+	public List<EventDecorExtrasSelection> getExtrasSelectionsByEventMasterId(Integer serEventMasterId) {
+		try {
+			List<EventDecorExtrasSelection> eventDecorExtrasSelection = repositoryEventDecorExtrasSelection
+					.findExtrasSelectionsByEventId(serEventMasterId);
+			return eventDecorExtrasSelection;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
+	}
+	
+	
+
+	@Override
+	public List<EventDecorExtrasSelection> getServicesSelectionsByEventMasterId(Integer serEventMasterId) {
+		try {
+			List<EventDecorExtrasSelection> eventDecorExtrasSelection = repositoryEventDecorExtrasSelection
+					.findServicesSelectionsByEventId(serEventMasterId);
+			return eventDecorExtrasSelection;
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			return null;
+		}
+	}
+	
 	
 	@Override
 	public Boolean existsByDecorExtrasOptionId(Integer id) {
