@@ -10,6 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.zbs.de.config.security.AppleOAuth2AuthorizationRequestResolver;
 import com.zbs.de.config.security.CustomOAuth2SuccessHandler;
 import com.zbs.de.config.security.JwtAuthenticationFilter;
 
@@ -24,6 +25,28 @@ public class SecurityConfig {
 
 	@Autowired
 	private CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+	
+	@Autowired
+	private AppleOAuth2AuthorizationRequestResolver appleResolver;
+
+//	@Bean
+//	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//		http.csrf(csrf -> csrf.disable()).cors(Customizer.withDefaults()) // <-- enable CORS for security layer
+//				.authorizeHttpRequests(auth -> auth
+//						// Allow OPTIONS preflight requests
+//						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+//						.requestMatchers("/", "/auth/login**", "/auth/logout**", "/auth/signup**", "/auth/confirm**","/deimg/**","/deimg**","/report/**",
+//								"/auth/refresh-token**", "/login**", "/error", "/public/**")
+//						.permitAll().anyRequest().authenticated())
+//				.oauth2Login(
+//						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+//								.successHandler(customOAuth2SuccessHandler))
+//				.logout(logout -> logout.logoutSuccessUrl("http://localhost:5173/login").permitAll());
+//
+//		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//
+//		return http.build();
+//	}
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,11 +54,13 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						// Allow OPTIONS preflight requests
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-						.requestMatchers("/", "/auth/login**", "/auth/logout**", "/auth/signup**", "/auth/confirm**","/deimg/**","/deimg**","/report/**",
-								"/auth/refresh-token**", "/login**", "/error", "/public/**")
+						.requestMatchers("/", "/auth/login**", "/auth/logout**", "/auth/signup**", "/auth/confirm**",
+								"/deimg/**", "/deimg**", "/report/**", "/auth/refresh-token**", "/login**", "/error",
+								"/public/**")
 						.permitAll().anyRequest().authenticated())
 				.oauth2Login(
-						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+						oauth2 -> oauth2.authorizationEndpoint(auth -> auth.authorizationRequestResolver(appleResolver))
+								.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 								.successHandler(customOAuth2SuccessHandler))
 				.logout(logout -> logout.logoutSuccessUrl("http://localhost:5173/login").permitAll());
 
