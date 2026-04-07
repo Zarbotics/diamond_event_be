@@ -3704,6 +3704,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					dtoEventQuoteAndStatus.setNumQuotedPrice(eventBudget.getNumQuotedPrice());
 					dtoEventQuoteAndStatus.setNumPaidAmount(eventBudget.getNumPaidAmount());
 					dtoEventQuoteAndStatus.setTxtStatus(eventBudget.getTxtStatus());
+					dtoEventQuoteAndStatus.setNumDiscount(eventBudget.getNumDiscount());
 					dto.setDtoEventQuoteAndStatus(dtoEventQuoteAndStatus);
 				}
 
@@ -4240,6 +4241,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					quote.setNumQuotedPrice(eventBudget.getNumQuotedPrice());
 					quote.setNumPaidAmount(eventBudget.getNumPaidAmount());
 					quote.setTxtStatus(eventBudget.getTxtStatus());
+					quote.setNumDiscount(eventBudget.getNumDiscount());
 					dtoEvent.setDtoEventQuoteAndStatus(quote);
 				}
 			} catch (Exception ex) {
