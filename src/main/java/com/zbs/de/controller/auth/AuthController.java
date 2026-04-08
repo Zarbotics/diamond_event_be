@@ -244,4 +244,12 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 		}
 	}
+	
+	@GetMapping("/checkin")
+	public ResponseEntity<?> checkin(@RequestParam String token) {
+
+		return ResponseEntity.ok(Map.of("checked in", "checked in",
+				"checked in", null));
+	}
+	
 }
