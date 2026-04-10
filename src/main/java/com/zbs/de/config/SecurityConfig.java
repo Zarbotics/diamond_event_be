@@ -56,7 +56,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/", "/auth/login**", "/auth/logout**", "/auth/signup**", "/auth/confirm**",
 								"/deimg/**", "/deimg**", "/report/**", "/auth/refresh-token**", "/login**", "/error",
-								"/public/**")
+								"/public/**", "/api/diamond/auth/**")
 						.permitAll().anyRequest().authenticated())
 				.oauth2Login(
 						oauth2 -> oauth2.authorizationEndpoint(auth -> auth.authorizationRequestResolver(appleResolver))
