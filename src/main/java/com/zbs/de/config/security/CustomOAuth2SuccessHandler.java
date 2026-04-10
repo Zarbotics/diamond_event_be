@@ -101,24 +101,24 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 //			}
 
 			// ****************** For Local Ends *********************
-//			response.sendRedirect(redirectUrl);
+			response.sendRedirect(redirectUrl);
 			
-			Cookie accessCookie = new Cookie("accessToken", accessToken);
-			accessCookie.setHttpOnly(true);
-			accessCookie.setSecure(true);
-			accessCookie.setPath("/");
-			accessCookie.setMaxAge(60 * 60);
-
-			Cookie refreshCookie = new Cookie("refreshToken", refreshToken.getToken());
-			refreshCookie.setHttpOnly(true);
-			refreshCookie.setSecure(true);
-			refreshCookie.setPath("/");
-			refreshCookie.setMaxAge(7 * 24 * 60 * 60);
-
-			response.addCookie(accessCookie);
-			response.addCookie(refreshCookie);
-
-			response.sendRedirect(baseRedirectUrl + redirectPath);
+//			Cookie accessCookie = new Cookie("accessToken", accessToken);
+//			accessCookie.setHttpOnly(true);
+//			accessCookie.setSecure(true);
+//			accessCookie.setPath("/");
+//			accessCookie.setMaxAge(60 * 60);
+//
+//			Cookie refreshCookie = new Cookie("refreshToken", refreshToken.getToken());
+//			refreshCookie.setHttpOnly(true);
+//			refreshCookie.setSecure(true);
+//			refreshCookie.setPath("/");
+//			refreshCookie.setMaxAge(7 * 24 * 60 * 60);
+//
+//			response.addCookie(accessCookie);
+//			response.addCookie(refreshCookie);
+//
+//			response.sendRedirect(baseRedirectUrl + redirectPath);
 		} else {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			response.getWriter().write("User not found in DB");

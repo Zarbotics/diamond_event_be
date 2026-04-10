@@ -29,8 +29,9 @@ public class CorsGlobalConfig {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
-						.allowedOrigins("http://localhost:5173", "http://localhost:3000","https://diamondevents.uk","https://diamondevents.uk",
-								"https://frosty-jang.87-106-101-41.plesk.page")
+						.allowedOrigins("http://localhost:5173", "http://localhost:3000",
+								"https://frosty-jang.87-106-101-41.plesk.page",
+								"https://diamondevents.uk")
 						.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*")
 						.allowCredentials(true);
 			}
