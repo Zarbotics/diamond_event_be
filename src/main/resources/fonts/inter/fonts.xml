@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fontFamilies xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="fonts.xsd">
+    <fontFamily name="Inter">
+        <normal><![CDATA[fonts/inter/Inter-Regular.ttf]]></normal>
+        <bold><![CDATA[fonts/inter/Inter-Bold.ttf]]></bold>
+        <italic><![CDATA[fonts/inter/Inter-Italic.ttf]]></italic>
+        <boldItalic><![CDATA[fonts/inter/Inter-BoldItalic.ttf]]></boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+</fontFamilies>
