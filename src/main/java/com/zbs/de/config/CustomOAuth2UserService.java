@@ -1,3 +1,4 @@
+
 package com.zbs.de.config;
 
 import com.zbs.de.model.UserMaster;
@@ -84,7 +85,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		    UserMaster user = userOpt.orElseGet(() -> {
 		        UserMaster newUser = new UserMaster();
 		        newUser.setTxtAppleId(appleId);
-		        newUser.setTxtEmail(email);
+		        if (email != null) {
+		            newUser.setTxtEmail(email);
+		        } else {
+		        	newUser.setTxtEmail("apple_" + appleId + "@noemail.com");
+		        }
 		        newUser.setTxtName("Apple User");
 		        newUser.setTxtRole("ROLE_USER");
 		        return repositoryUserMaster.save(newUser);
