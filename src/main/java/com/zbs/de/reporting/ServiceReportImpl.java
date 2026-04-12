@@ -118,6 +118,7 @@ public class ServiceReportImpl implements ServiceReport {
 	// Classpath locations (adjust if you put images in other resource folder)
 	private static final String CLASSPATH_COVER = "/static/images/cover.jpg";
 	private static final String CLASSPATH_LOGO = "/static/images/de_logo.png";
+	private static final String CLASSPATH_LOGO_GOLDEN = "/static/images/de_log_golden.png";
 
 	private final DataSource dataSource;
 
@@ -143,7 +144,9 @@ public class ServiceReportImpl implements ServiceReport {
 	@Override
 	public byte[] generateNewCustomeReport(Integer eventId) throws Exception {
 //		return generateNewReport("/reports/new_customer_report/master_event_master.jasper", eventId);
-		return generateNewReport("/reports/new_customer_report/master_cover_image.jasper", eventId);
+//		return generateNewReport("/reports/new_customer_report/master_cover_image.jasper", eventId);
+		return generateNewClientSideReport("/reports/client_side_proposal_0.1/master_event_proposal.jasper", eventId);
+
 	}
 
 	
@@ -256,6 +259,54 @@ public class ServiceReportImpl implements ServiceReport {
 			return null;
 		}
 	}
+
+	
+	private byte[] generateNewClientSideReport(String jasperClasspathLocation, Integer eventId) {
+		// parameters for report
+		Map<String, Object> params = new HashMap<>();
+		params.put("P_EVENT_MASTER_ID", eventId);
+		params.put(
+			    "SUBREPORT_DIR",
+			    getClass()
+			        .getResource("/reports/client_side_proposal_0.1/")
+			        .toString()
+			);
+
+		// load images and put into params (java.awt.Image)
+		Image coverImage = loadImageFromClasspathOrFolder(CLASSPATH_LOGO_GOLDEN, "de_log_golden.png");
+//		Image logoImage = loadImageFromClasspathOrFolder(CLASSPATH_LOGO, "de_logo.png");
+
+		if (coverImage != null) {
+			params.put("REPORT_COVER_IMAGE", coverImage);
+		} else {
+			LOGGER.warn("Cover image not found on classpath or configured folder.");
+		}
+		// load compiled jasper and fill report
+		try (InputStream reportStream = getClass().getResourceAsStream(jasperClasspathLocation)) {
+			if (reportStream == null) {
+				LOGGER.error("Compiled report not found in classpath at: {}", jasperClasspathLocation);
+				return null;
+			}
+
+			JasperReport jasperReport = (JasperReport) JRLoader.loadObject(reportStream);
+
+			// get DB connection from DataSource; ensure it's closed after fill
+			try (Connection conn = dataSource.getConnection()) {
+				JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, conn);
+
+				// export to PDF bytes
+				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+					JasperExportManager.exportReportToPdfStream(jasperPrint, baos);
+					return baos.toByteArray();
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to generate report {} for event {} : {}", jasperClasspathLocation, eventId,
+					e.getMessage(), e);
+			return null;
+		}
+	}
+
 	
 	private byte[] generateNewKitchenItineraryReport(String jasperClasspathLocation, Integer eventId) {
 		// parameters for report
