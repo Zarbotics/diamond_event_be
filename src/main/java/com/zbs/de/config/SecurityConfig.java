@@ -10,7 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.zbs.de.config.security.AppleOAuth2AuthorizationRequestResolver;
+import com.zbs.de.config.security.AppleTokenResponseClient;
 import com.zbs.de.config.security.CustomOAuth2SuccessHandler;
 import com.zbs.de.config.security.JwtAuthenticationFilter;
 
@@ -27,7 +27,7 @@ public class SecurityConfig {
 	private CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 	
 	@Autowired
-	private AppleOAuth2AuthorizationRequestResolver appleResolver;
+	private AppleTokenResponseClient appleTokenResponseClient;
 
 //	@Bean
 //	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -58,8 +58,10 @@ public class SecurityConfig {
 								"/deimg/**", "/deimg**", "/report/**", "/auth/refresh-token**", "/login**", "/error",
 								"/public/**", "/api/diamond/auth/**")
 						.permitAll().anyRequest().authenticated())
-				.oauth2Login(
-						oauth2 -> oauth2.authorizationEndpoint(auth -> auth.authorizationRequestResolver(appleResolver))
+				.oauth2Login(oauth2 -> oauth2
+					    .tokenEndpoint(token -> token
+					            .accessTokenResponseClient(appleTokenResponseClient)
+					        )
 								.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 								.successHandler(customOAuth2SuccessHandler))
 				.logout(logout -> logout.logoutSuccessUrl("http://localhost:5173/login").permitAll());
