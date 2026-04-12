@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fontFamilies xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="fonts.xsd">
+
+    <fontFamily name="Playfair">
+
+        <!-- Regular -->
+        <normal><![CDATA[fonts/playfair/PlayfairDisplay-Regular.ttf]]></normal>
+
+        <!-- Bold -->
+        <bold><![CDATA[fonts/playfair/PlayfairDisplay-Bold.ttf]]></bold>
+
+        <!-- Italic -->
+        <italic><![CDATA[fonts/playfair/PlayfairDisplay-Italic.ttf]]></italic>
+
+        <!-- Bold Italic -->
+        <boldItalic><![CDATA[fonts/playfair/PlayfairDisplay-BoldItalic.ttf]]></boldItalic>
+
+        <!-- Required for PDF rendering -->
+        <pdfEncoding>Identity-H</pdfEncoding>
+
+        <!-- IMPORTANT: embed font into PDF -->
+        <pdfEmbedded>true</pdfEmbedded>
+
+    </fontFamily>
+
+</fontFamilies>
