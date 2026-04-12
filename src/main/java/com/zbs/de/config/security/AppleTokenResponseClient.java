@@ -30,7 +30,11 @@ public class AppleTokenResponseClient implements OAuth2AccessTokenResponseClient
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "authorization_code");
 		params.add("code", request.getAuthorizationExchange().getAuthorizationResponse().getCode());
-		params.add("redirect_uri", request.getClientRegistration().getRedirectUri());
+//		params.add("redirect_uri", request.getClientRegistration().getRedirectUri());
+		params.add("redirect_uri",
+		        request.getAuthorizationExchange()
+		               .getAuthorizationRequest()
+		               .getRedirectUri());
 		params.add("client_id", request.getClientRegistration().getClientId());
 		params.add("client_secret", generator.generateClientSecret());
 
