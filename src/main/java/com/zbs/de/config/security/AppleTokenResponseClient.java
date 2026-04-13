@@ -41,6 +41,9 @@ public class AppleTokenResponseClient implements OAuth2AccessTokenResponseClient
 		Map<String, Object> tokenResponse = (Map<String, Object>) restClient.post().uri(tokenUri)
 				.contentType(MediaType.APPLICATION_FORM_URLENCODED).body(params).retrieve().body(Map.class);
 
+		
+		System.out.println("APPLE TOKEN RESPONSE: " + tokenResponse);
+		
 		return OAuth2AccessTokenResponse.withToken((String) tokenResponse.get("access_token"))
 				.tokenType(OAuth2AccessToken.TokenType.BEARER)
 				.expiresIn(((Number) tokenResponse.get("expires_in")).longValue())
