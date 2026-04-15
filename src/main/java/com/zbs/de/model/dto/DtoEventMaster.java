@@ -63,6 +63,7 @@ public class DtoEventMaster {
 	private String dteUpdateDate;
 
 	private Boolean isEditAllowed;
+	private Boolean blnIsCE;
 
 	private Integer numFormState;
 	
@@ -565,6 +566,14 @@ public class DtoEventMaster {
 
 	public void setNumDiscount(BigDecimal numDiscount) {
 		this.numDiscount = numDiscount;
+	}
+
+	public Boolean getBlnIsCE() {
+		return blnIsCE;
+	}
+
+	public void setBlnIsCE(Boolean blnIsCE) {
+		this.blnIsCE = blnIsCE;
 	}
 	
 	
