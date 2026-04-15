@@ -2167,7 +2167,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						entity.getSerEventMasterId());
 			}
 
-			if (this.isEventRegistrationCompleted(entity)) {
+			if (this.isEventRegistrationCompleted(entity) && (dtoEventMaster.getBlnIsCE() == null || (dtoEventMaster.getBlnIsCE() != null && dtoEventMaster.getBlnIsCE()))) {
 				UserMaster userMaster = ServiceCurrentUser.getCurrentUser();
 				if (userMaster != null) {
 					dtoResult.setTxtMessage("Success");
