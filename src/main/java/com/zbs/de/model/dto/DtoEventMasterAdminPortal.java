@@ -65,6 +65,7 @@ public class DtoEventMasterAdminPortal {
 	private BigDecimal numDiscount;
 
 	private Boolean isEditAllowed;
+	private Boolean blnIsCE;
 
 	private Integer numFormState;
 
@@ -560,6 +561,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setNumDiscount(BigDecimal numDiscount) {
 		this.numDiscount = numDiscount;
+	}
+
+	public Boolean getBlnIsCE() {
+		return blnIsCE;
+	}
+
+	public void setBlnIsCE(Boolean blnIsCE) {
+		this.blnIsCE = blnIsCE;
 	}
 	
 
