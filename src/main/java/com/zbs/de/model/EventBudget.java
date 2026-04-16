@@ -69,6 +69,15 @@ public class EventBudget extends BaseEntity implements Serializable {
 	@Column(name = "num_discount")
 	private BigDecimal numDiscount;
 
+	@Column(name = "num_food_amount")
+	private BigDecimal numFoodAmount;
+
+	@Column(name = "num_services_amount")
+	private BigDecimal numServicesAmount;
+
+	@Column(name = "num_decor_amount")
+	private BigDecimal numDecorAmount;
+	
 	@OneToMany(mappedBy = "eventBudget", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<EventPayment> payments = new ArrayList<>();
 
@@ -209,5 +218,30 @@ public class EventBudget extends BaseEntity implements Serializable {
 	public void setNumDiscount(BigDecimal numDiscount) {
 		this.numDiscount = numDiscount;
 	}
+
+	public BigDecimal getNumFoodAmount() {
+		return numFoodAmount;
+	}
+
+	public void setNumFoodAmount(BigDecimal numFoodAmount) {
+		this.numFoodAmount = numFoodAmount;
+	}
+
+	public BigDecimal getNumServicesAmount() {
+		return numServicesAmount;
+	}
+
+	public void setNumServicesAmount(BigDecimal numServicesAmount) {
+		this.numServicesAmount = numServicesAmount;
+	}
+
+	public BigDecimal getNumDecorAmount() {
+		return numDecorAmount;
+	}
+
+	public void setNumDecorAmount(BigDecimal numDecorAmount) {
+		this.numDecorAmount = numDecorAmount;
+	}
+	
 
 }

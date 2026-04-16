@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Diamond Events - Decor & Extras Sub-Report (Section 05) -->
+<!-- JasperReports 6.11.0 | Jaspersoft Studio 6.11.0 -->
+<jasperReport
+	xmlns="http://jasperreports.sourceforge.net/jasperreports"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+	name="sub_decor_extras"
+	pageWidth="595" pageHeight="842"
+	columnWidth="523" leftMargin="36" rightMargin="36"
+	topMargin="0" bottomMargin="0"
+	uuid="c6000000-0000-0000-0000-000000000001">
+
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit.height" value="px"/>
+	<property name="com.jaspersoft.studio.unit.width" value="px"/>
+
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[97]]></defaultValueExpression>
+	</parameter>
+
+	<queryString language="SQL">
+		<![CDATA[
+		SELECT
+			'D'                                              AS source_type,
+			edcs.ser_event_decor_category_selection_id      AS category_id,
+			COALESCE(dcm.txt_decor_category_name, '')        AS category_name,
+			edcs.num_price                                   AS category_price,
+			COALESCE(dcm.num_display_order, 999)             AS category_order,
+			edps.ser_event_decor_property_id                 AS property_id,
+			COALESCE(pm.txt_property_name, '')               AS property_name,
+			COALESCE(pm.num_display_order, 999)              AS property_order,
+			COALESCE(dcpv.bln_is_document, FALSE)            AS value_is_image,
+			CASE WHEN COALESCE(dcpv.bln_is_document, FALSE) = FALSE
+			     THEN dcpv.txt_property_value
+			     ELSE NULL END                               AS value_text,
+			CASE WHEN COALESCE(dcpv.bln_is_document, FALSE) = TRUE
+			     THEN dcpvd.file_path
+			     ELSE NULL END                               AS value_image_path,
+			COALESCE(dcpv.ser_property_value_id, 0)          AS value_order
+		FROM event_decor_category_selection edcs
+		JOIN decor_category_master dcm
+			ON edcs.ser_decor_category_id = dcm.ser_decor_category_id
+		LEFT JOIN event_decor_property_selection edps
+			ON edps.ser_event_decor_category_selection_id = edcs.ser_event_decor_category_selection_id
+		LEFT JOIN decor_category_property_master pm
+			ON edps.ser_property_id = pm.ser_property_id
+		LEFT JOIN event_decor_property_value_selection edpvs
+			ON edpvs.ser_event_decor_property_id = edps.ser_event_decor_property_id
+		LEFT JOIN decor_category_property_value dcpv
+			ON edpvs.ser_property_value_id = dcpv.ser_property_value_id
+		LEFT JOIN decor_category_property_value_document dcpvd
+			ON dcpv.ser_document_id = dcpvd.ser_document_id
+		WHERE edcs.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+
+		UNION ALL
+
+		SELECT
+			'E'                                              AS source_type,
+			eds.ser_extras_selection_id                      AS category_id,
+			COALESCE(dem.txt_extras_name, '')                AS category_name,
+			eds.num_price                                    AS category_price,
+			COALESCE(dem.num_display_order, 999)             AS category_order,
+			NULL                                             AS property_id,
+			NULL                                             AS property_name,
+			0                                                AS property_order,
+			COALESCE(deo.bln_is_document, FALSE)             AS value_is_image,
+			CASE WHEN COALESCE(deo.bln_is_document, FALSE) = FALSE
+			     THEN deo.txt_option_name
+			     ELSE NULL END                               AS value_text,
+			CASE WHEN COALESCE(deo.bln_is_document, FALSE) = TRUE
+			     THEN deod.file_path
+			     ELSE NULL END                               AS value_image_path,
+			COALESCE(deo.ser_extra_option_id, 0)             AS value_order
+		FROM event_decor_extras_selection eds
+		LEFT JOIN decor_extras_master dem
+			ON eds.ser_extras_id = dem.ser_extras_id
+		LEFT JOIN decor_extras_option deo
+			ON eds.ser_extra_option_id = deo.ser_extra_option_id
+		LEFT JOIN decor_extras_option_document deod
+			ON deo.ser_document_id = deod.ser_document_id
+		WHERE eds.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+		  AND eds.bln_is_services = FALSE
+
+		ORDER BY source_type, category_order, category_name,
+		         property_order, property_name, value_order
+		]]>
+	</queryString>
+
+	<field name="source_type"      class="java.lang.String"/>
+	<field name="category_id"      class="java.lang.Integer"/>
+	<field name="category_name"    class="java.lang.String"/>
+	<field name="category_price"   class="java.math.BigDecimal"/>
+	<field name="category_order"   class="java.lang.Integer"/>
+	<field name="property_id"      class="java.lang.Integer"/>
+	<field name="property_name"    class="java.lang.String"/>
+	<field name="property_order"   class="java.lang.Integer"/>
+	<field name="value_is_image"   class="java.lang.Boolean"/>
+	<field name="value_text"       class="java.lang.String"/>
+	<field name="value_image_path" class="java.lang.String"/>
+	<field name="value_order"      class="java.lang.Integer"/>
+
+	<!-- GROUP 1: Category (dark header box, name + price) -->
+	<group name="categoryGroup" isStartNewPage="false">
+		<groupExpression><![CDATA[$F{source_type} + "_" + String.valueOf($F{category_id})]]></groupExpression>
+		<groupHeader>
+			<band height="34" splitType="Prevent">
+				<rectangle>
+					<reportElement mode="Opaque" x="0" y="4" width="523" height="26"
+						forecolor="#C5A367" backcolor="#1A1A10"
+						uuid="c6000000-0000-0000-0000-000000000010"/>
+					<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement mode="Opaque" x="0" y="4" width="3" height="26"
+						forecolor="#C5A367" backcolor="#C5A367"
+						uuid="c6000000-0000-0000-0000-000000000011"/>
+					<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				</rectangle>
+				<textField isBlankWhenNull="true">
+					<reportElement x="12" y="4" width="370" height="26"
+						forecolor="#C5A367"
+						uuid="c6000000-0000-0000-0000-000000000012"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Inter" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{category_name} != null) ? $F{category_name}.toUpperCase() : ""]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="390" y="4" width="130" height="26"
+						forecolor="#C5A367"
+						uuid="c6000000-0000-0000-0000-000000000013">
+						<printWhenExpression><![CDATA[$F{category_price} != null && $F{category_price}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Inter" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{category_price})]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="12"/>
+		</groupFooter>
+	</group>
+
+	<!-- GROUP 2: Property (label row, only for DECOR source_type='D') -->
+	<group name="propertyGroup" isStartNewPage="false">
+		<groupExpression><![CDATA[$F{source_type} + "_" + String.valueOf($F{category_id}) + "_" + String.valueOf($F{property_id})]]></groupExpression>
+		<groupHeader>
+			<band height="20" splitType="Prevent">
+				<printWhenExpression><![CDATA["D".equals($F{source_type}) && $F{property_id} != null && $F{property_name} != null && !$F{property_name}.trim().isEmpty()]]></printWhenExpression>
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="4" width="523" height="14"
+						forecolor="#C5A367"
+						uuid="c6000000-0000-0000-0000-000000000030"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Inter" size="7" isBold="true" isItalic="true" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{property_name} + ":"]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="0"/>
+		</groupFooter>
+	</group>
+
+	<background>
+		<band height="842" splitType="Stretch">
+			<rectangle>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842"
+					forecolor="#0C0C0C" backcolor="#0C0C0C"
+					uuid="c6000000-0000-0000-0000-000000000002"/>
+				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+			</rectangle>
+		</band>
+	</background>
+
+	<title>
+		<band height="1" splitType="Prevent">
+			<break>
+				<reportElement x="0" y="0" width="1" height="1"
+					uuid="c6000000-0000-0000-0000-000000000099"/>
+			</break>
+		</band>
+	</title>
+
+	<pageHeader>
+		<band height="155" splitType="Prevent">
+			<rectangle>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115"
+					forecolor="#0C0C0C" backcolor="#0C0C0C"
+					uuid="c6000000-0000-0000-0000-000000000003"/>
+				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="6"
+					forecolor="#C5A367" backcolor="#C5A367"
+					uuid="c6000000-0000-0000-0000-000000000004"/>
+				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="0" y="5" width="124" height="90"
+					forecolor="#1E1608"
+					uuid="c6000000-0000-0000-0000-000000000005"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Playfair Display" size="76" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[05]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="13" y="45" width="4" height="45"
+					forecolor="#C5A367" backcolor="#C5A367"
+					uuid="c6000000-0000-0000-0000-000000000006"/>
+				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="26" y="51" width="400" height="30"
+					forecolor="#C5A367"
+					uuid="c6000000-0000-0000-0000-000000000007"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="22" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[DÉCOR & EXTRAS]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="102" width="523" height="1"
+					forecolor="#C5A367"
+					uuid="c6000000-0000-0000-0000-000000000008"/>
+				<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="112" width="523" height="36"
+					forecolor="#BFBFBF"
+					uuid="c6000000-0000-0000-0000-000000000097">
+					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="8.5" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[The finishing touches that elevate your celebration from beautiful to truly extraordinary — bespoke enhancements, floral installations, and personal details that make all the difference.]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+
+	<!-- DETAIL BAND 1: Text value row (chip style) -->
+	<detail>
+		<band height="28" splitType="Prevent">
+			<printWhenExpression><![CDATA[($F{value_is_image} == null || !$F{value_is_image}) && $F{value_text} != null && !$F{value_text}.trim().isEmpty()]]></printWhenExpression>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="4" width="523" height="20"
+					forecolor="#C5A367" backcolor="#1C1C0C"
+					uuid="c6000000-0000-0000-0000-000000000040"/>
+				<graphicElement><pen lineWidth="0.5" lineColor="#C5A367"/></graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="8" y="4" width="12" height="20"
+					forecolor="#C5A367"
+					uuid="c6000000-0000-0000-0000-000000000041"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="8" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[•]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="22" y="4" width="497" height="20"
+					forecolor="#DDDDDD"
+					uuid="c6000000-0000-0000-0000-000000000042"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="8.5" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{value_text} != null && !$F{value_text}.trim().isEmpty()) ? $F{value_text} : ""]]></textFieldExpression>
+			</textField>
+		</band>
+
+		<!-- DETAIL BAND 2: Image value row (thumbnail + caption) -->
+		<band height="100" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{value_is_image} != null && $F{value_is_image} && $F{value_image_path} != null && !$F{value_image_path}.trim().isEmpty()]]></printWhenExpression>
+			<image onErrorType="Blank" scaleImage="RetainShape" hAlign="Left" vAlign="Top">
+				<reportElement x="0" y="4" width="80" height="80"
+					uuid="c6000000-0000-0000-0000-000000000043"/>
+				<imageExpression><![CDATA[($F{value_image_path} != null && !$F{value_image_path}.trim().isEmpty())
+					? new java.net.URL($F{value_image_path})
+					: null]]></imageExpression>
+			</image>
+			<rectangle>
+				<reportElement mode="Transparent" x="0" y="4" width="80" height="80"
+					forecolor="#C5A367"
+					uuid="c6000000-0000-0000-0000-000000000044"/>
+				<graphicElement><pen lineWidth="0.5" lineColor="#C5A367"/></graphicElement>
+			</rectangle>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="86" width="523" height="12"
+					forecolor="#888888"
+					uuid="c6000000-0000-0000-0000-000000000045"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="6.5" isItalic="true" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{value_image_path} != null && $F{value_image_path}.contains("/"))
+					? $F{value_image_path}.substring($F{value_image_path}.lastIndexOf("/") + 1)
+					: ""]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+
+	<pageFooter>
+		<band height="47" splitType="Prevent">
+			<line>
+				<reportElement x="-36" y="0" width="595" height="1"
+					forecolor="#C5A367"
+					uuid="c6000000-0000-0000-0000-000000000009"/>
+				<graphicElement><pen lineWidth="0.5" lineColor="#C5A367"/></graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="13" width="150" height="14"
+					forecolor="#C5A367"
+					uuid="c6000000-0000-0000-0000-000000000060"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="7" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[DIAMOND EVENTS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="373" y="13" width="150" height="14"
+					forecolor="#E0C590"
+					uuid="c6000000-0000-0000-0000-000000000061"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="-36" y="41" width="595" height="6"
+					forecolor="#C5A367" backcolor="#C5A367"
+					uuid="c6000000-0000-0000-0000-000000000062"/>
+				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+			</rectangle>
+		</band>
+	</pageFooter>
+
+	<summary>
+		<band height="20" splitType="Prevent">
+			<rectangle>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="20"
+					forecolor="#0C0C0C" backcolor="#0C0C0C"
+					uuid="c6000000-0000-0000-0000-000000000070"/>
+				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+			</rectangle>
+		</band>
+	</summary>
+
+	<noData>
+		<band height="40">
+			<rectangle>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40"
+					forecolor="#0C0C0C" backcolor="#0C0C0C"
+					uuid="c6000000-0000-0000-0000-000000000071"/>
+				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="0" y="10" width="523" height="20"
+					forecolor="#555555"
+					uuid="c6000000-0000-0000-0000-000000000072"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[No décor or extras have been selected for this event.]]></text>
+			</staticText>
+		</band>
+	</noData>
+
+</jasperReport>
