@@ -1,6 +1,7 @@
 
 package com.zbs.de.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zbs.de.model.UserMaster;
 import com.zbs.de.repository.RepositoryUserMaster;
 import com.zbs.de.service.ServiceEmailSender;
@@ -8,6 +9,9 @@ import com.zbs.de.util.UtilDateAndTime;
 
 import jakarta.mail.MessagingException;
 
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -67,39 +72,48 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 	
 	@Override
 	public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-		OAuth2User oauth2User = super.loadUser(userRequest);
+
 
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();
-		// Apple Logic
-		if ("apple".equals(registrationId)) {
 
-		    String appleId = oauth2User.getAttribute("sub");
-		    String email = oauth2User.getAttribute("email"); // null after first login
+	    // 🔴 APPLE FIX START
+	    if ("apple".equals(registrationId)) {
 
-		    Optional<UserMaster> userOpt = repositoryUserMaster.findByTxtAppleId(appleId);
+	        Map<String, Object> additionalParams = userRequest.getAdditionalParameters();
+	        String idToken = (String) additionalParams.get("id_token");
 
-		    if (userOpt.isEmpty() && email != null) {
-		        userOpt = repositoryUserMaster.findByTxtEmail(email);
-		    }
+	        Map<String, Object> claims = decodeJwt(idToken);
 
-		    UserMaster user = userOpt.orElseGet(() -> {
-		        UserMaster newUser = new UserMaster();
-		        newUser.setTxtAppleId(appleId);
-		        if (email != null) {
-		            newUser.setTxtEmail(email);
-		        } else {
-		        	newUser.setTxtEmail("apple_" + appleId + "@noemail.com");
-		        }
-		        newUser.setTxtName("Apple User");
-		        newUser.setTxtRole("ROLE_USER");
-		        return repositoryUserMaster.save(newUser);
-		    });
+	        String appleId = (String) claims.get("sub");
+	        String email = (String) claims.get("email");
 
-		    user.setUpdatedDate(UtilDateAndTime.getCurrentDate());
-		    repositoryUserMaster.save(user);
+	        Optional<UserMaster> userOpt = repositoryUserMaster.findByTxtAppleId(appleId);
 
-		    return oauth2User;
-		}
+	        if (userOpt.isEmpty() && email != null) {
+	            userOpt = repositoryUserMaster.findByTxtEmail(email);
+	        }
+
+	        UserMaster user = userOpt.orElseGet(() -> {
+	            UserMaster newUser = new UserMaster();
+	            newUser.setTxtAppleId(appleId);
+	            newUser.setTxtEmail(email != null ? email : "apple_" + appleId + "@noemail.com");
+	            newUser.setTxtName("Apple User");
+	            newUser.setTxtRole("ROLE_USER");
+	            return repositoryUserMaster.save(newUser);
+	        });
+
+	        user.setUpdatedDate(UtilDateAndTime.getCurrentDate());
+	        repositoryUserMaster.save(user);
+
+	        return new DefaultOAuth2User(
+	                List.of(() -> "ROLE_USER"),
+	                claims,
+	                "sub"
+	        );
+	    }
+	    // 🔴
+		
+		OAuth2User oauth2User = super.loadUser(userRequest);
 		
 		
 		// Extract Google profile attributes
@@ -173,5 +187,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		repositoryUserMaster.save(user);
 
 		return oauth2User;
+	}
+	
+	private Map<String, Object> decodeJwt(String idToken) {
+	    try {
+	        String[] chunks = idToken.split("\\.");
+	        String payload = new String(Base64.getDecoder().decode(chunks[1]));
+	        ObjectMapper mapper = new ObjectMapper();
+	        return mapper.readValue(payload, Map.class);
+	    } catch (Exception e) {
+	        throw new RuntimeException("Invalid Apple ID token", e);
+	    }
 	}
 }
