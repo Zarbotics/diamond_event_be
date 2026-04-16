@@ -1,386 +1,249 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Diamond Events - Summary Sub-Report (Section 01) -->
-<!-- JasperReports 6.11.0 | Jaspersoft Studio 6.11.0 -->
-<jasperReport
-    xmlns="http://jasperreports.sourceforge.net/jasperreports"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
-        http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-    name="sub_summary"
-    pageWidth="595"
-    pageHeight="842"
-    columnWidth="595"
-    leftMargin="0"
-    rightMargin="0"
-    topMargin="0"
-    bottomMargin="0"
-    isIgnorePagination="false"
-    uuid="c2000000-0000-0000-0000-000000000001">
-
-    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
-    <property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-    <property name="com.jaspersoft.studio.unit.height" value="px"/>
-    <property name="com.jaspersoft.studio.unit.width"  value="px"/>
-
-    <parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
-        <defaultValueExpression><![CDATA[97]]></defaultValueExpression>
-    </parameter>
-
-    <queryString language="SQL">
-        <![CDATA[SELECT 1 AS dummy]]>
-    </queryString>
-    <field name="dummy" class="java.lang.Integer"/>
-
-    <background>
-        <band height="842" splitType="Stretch">
-            <rectangle>
-                <reportElement mode="Opaque" x="0" y="0" width="595" height="842"
-                    forecolor="#0C0C0C" backcolor="#0C0C0C"
-                    uuid="c2000000-0000-0000-0000-000000000002"/>
-                <graphicElement><pen lineWidth="0.0"/></graphicElement>
-            </rectangle>
-        </band>
-    </background>
-
-    <title>
-        <band height="842" splitType="Prevent">
-
-            <!-- 6px gold top bar -->
-            <rectangle>
-                <reportElement mode="Opaque" x="0" y="0" width="595" height="6"
-                    forecolor="#C5A367" backcolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000003"/>
-                <graphicElement><pen lineWidth="0.0"/></graphicElement>
-            </rectangle>
-
-            <!-- "01" ghost number -->
-            <staticText>
-                <reportElement x="48" y="5" width="124" height="90"
-                    forecolor="#1E1608"
-                    uuid="c2000000-0000-0000-0000-000000000004"/>
-                <textElement textAlignment="Left" verticalAlignment="Top">
-                    <font fontName="Playfair Display" size="76" isBold="true"
-                        pdfFontName="Times-Bold"/>
-                </textElement>
-                <text><![CDATA[01]]></text>
-            </staticText>
-
-            <!-- 4px gold left accent bar -->
-            <rectangle>
-                <reportElement mode="Opaque" x="36" y="45" width="4" height="45"
-                    forecolor="#C5A367" backcolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000005"/>
-                <graphicElement><pen lineWidth="0.0"/></graphicElement>
-            </rectangle>
-
-            <!-- SUMMARY section title -->
-            <staticText>
-                <reportElement x="49" y="51" width="300" height="30"
-                    forecolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000006"/>
-                <textElement textAlignment="Left" verticalAlignment="Middle">
-                    <font fontName="Inter" size="22" isBold="false" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[SUMMARY]]></text>
-            </staticText>
-
-            <!-- Gold hairline rule -->
-            <line>
-                <reportElement x="36" y="102" width="523" height="1"
-                    forecolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000007"/>
-                <graphicElement>
-                    <pen lineWidth="0.75" lineColor="#C5A367"/>
-                </graphicElement>
-            </line>
-
-            <!-- Welcome to Diamond Events -->
-            <staticText>
-                <reportElement x="36" y="112" width="523" height="38"
-                    forecolor="#FFFFFF"
-                    uuid="c2000000-0000-0000-0000-000000000008"/>
-                <textElement textAlignment="Left" verticalAlignment="Middle">
-                    <font fontName="Playfair Display" size="24" isBold="true"
-                        pdfFontName="Times-Bold"/>
-                </textElement>
-                <text><![CDATA[Welcome to Diamond Events]]></text>
-            </staticText>
-
-            <!-- Italic subtitle -->
-            <staticText>
-                <reportElement x="36" y="152" width="400" height="18"
-                    forecolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000009"/>
-                <textElement textAlignment="Left" verticalAlignment="Middle">
-                    <font fontName="Playfair Display" size="12" isBold="false" isItalic="true"
-                        pdfFontName="Times-Italic"/>
-                </textElement>
-                <text><![CDATA[Where Your Vision Becomes a Timeless Reality]]></text>
-            </staticText>
-
-            <!-- Short gold accent rule under subtitle -->
-            <line>
-                <reportElement x="36" y="177" width="60" height="1"
-                    forecolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000010"/>
-                <graphicElement>
-                    <pen lineWidth="2.0" lineColor="#C5A367"/>
-                </graphicElement>
-            </line>
-
-            <!-- Body paragraph 1 -->
-            <staticText>
-                <reportElement x="36" y="188" width="523" height="52"
-                    forecolor="#BFBFBF"
-                    uuid="c2000000-0000-0000-0000-000000000011"/>
-                <textElement textAlignment="Left" verticalAlignment="Top">
-                    <font fontName="Inter" size="8.5" isBold="false" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[On behalf of the entire Diamond Events family, we are truly honoured and delighted that you are considering us to bring your most cherished celebration to life. With over two decades of unrivalled expertise in crafting extraordinary events, Diamond Events has built a legacy rooted in excellence, integrity, and an unwavering passion for perfection.]]></text>
-            </staticText>
-
-            <!-- Body paragraph 2 -->
-            <staticText>
-                <reportElement x="36" y="248" width="523" height="52"
-                    forecolor="#BFBFBF"
-                    uuid="c2000000-0000-0000-0000-000000000012"/>
-                <textElement textAlignment="Left" verticalAlignment="Top">
-                    <font fontName="Inter" size="8.5" isBold="false" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[From breathtaking bespoke decor and statement floral installations to exquisite cuisine and seamless, sophisticated entertainment, every element we create is thoughtfully curated with the finest attention to detail - because for us, nothing less than perfection is ever an option.]]></text>
-            </staticText>
-
-            <!-- Body paragraph 3 -->
-            <staticText>
-                <reportElement x="36" y="308" width="523" height="40"
-                    forecolor="#BFBFBF"
-                    uuid="c2000000-0000-0000-0000-000000000013"/>
-                <textElement textAlignment="Left" verticalAlignment="Top">
-                    <font fontName="Inter" size="8.5" isBold="false" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[As you explore this proposal, we invite you to envision a celebration that is not only a reflection of your unique story, but a truly unforgettable experience that you, your family, and your guests will treasure for a lifetime.]]></text>
-            </staticText>
-
-            <!-- ============================================================
-                 FEATURE CARDS — y=510
-            ============================================================ -->
-
-            <!-- CARD 1 background -->
-            <rectangle>
-                <reportElement mode="Opaque" x="36" y="510" width="147" height="120"
-                    forecolor="#C5A367" backcolor="#212121"
-                    uuid="c2000000-0000-0000-0000-000000000014"/>
-                <graphicElement>
-                    <pen lineWidth="0.75" lineColor="#C5A367"/>
-                </graphicElement>
-            </rectangle>
-            <!-- CARD 1 top accent -->
-            <rectangle>
-                <reportElement mode="Opaque" x="36" y="510" width="147" height="3"
-                    forecolor="#C5A367" backcolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000015"/>
-                <graphicElement><pen lineWidth="0.0"/></graphicElement>
-            </rectangle>
-            <!-- CARD 1 bullet -->
-            <staticText>
-                <reportElement x="48" y="522" width="20" height="14"
-                    forecolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000016"/>
-                <textElement>
-                    <font fontName="Inter" size="11" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[+]]></text>
-            </staticText>
-            <!-- CARD 1 title -->
-            <staticText>
-                <reportElement x="48" y="540" width="123" height="16"
-                    forecolor="#FFFFFF"
-                    uuid="c2000000-0000-0000-0000-000000000017"/>
-                <textElement verticalAlignment="Middle">
-                    <font fontName="Playfair Display" size="9" isBold="true" pdfFontName="Times-Bold"/>
-                </textElement>
-                <text><![CDATA[Bespoke Service]]></text>
-            </staticText>
-            <!-- CARD 1 body -->
-            <staticText>
-                <reportElement x="48" y="560" width="123" height="60"
-                    forecolor="#A0A0A0"
-                    uuid="c2000000-0000-0000-0000-000000000018"/>
-                <textElement verticalAlignment="Top">
-                    <font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[Tailored exclusively to you - your vision, preferences, and story at the heart of everything.]]></text>
-            </staticText>
-
-            <!-- CARD 2 background -->
-            <rectangle>
-                <reportElement mode="Opaque" x="190" y="510" width="147" height="120"
-                    forecolor="#C5A367" backcolor="#212121"
-                    uuid="c2000000-0000-0000-0000-000000000019"/>
-                <graphicElement>
-                    <pen lineWidth="0.75" lineColor="#C5A367"/>
-                </graphicElement>
-            </rectangle>
-            <!-- CARD 2 top accent -->
-            <rectangle>
-                <reportElement mode="Opaque" x="190" y="510" width="147" height="3"
-                    forecolor="#C5A367" backcolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000020"/>
-                <graphicElement><pen lineWidth="0.0"/></graphicElement>
-            </rectangle>
-            <!-- CARD 2 bullet -->
-            <staticText>
-                <reportElement x="202" y="522" width="20" height="14"
-                    forecolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000021"/>
-                <textElement>
-                    <font fontName="Inter" size="11" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[+]]></text>
-            </staticText>
-            <!-- CARD 2 title -->
-            <staticText>
-                <reportElement x="202" y="540" width="123" height="16"
-                    forecolor="#FFFFFF"
-                    uuid="c2000000-0000-0000-0000-000000000022"/>
-                <textElement verticalAlignment="Middle">
-                    <font fontName="Playfair Display" size="9" isBold="true" pdfFontName="Times-Bold"/>
-                </textElement>
-                <text><![CDATA[Attention to Detail]]></text>
-            </staticText>
-            <!-- CARD 2 body -->
-            <staticText>
-                <reportElement x="202" y="560" width="123" height="60"
-                    forecolor="#A0A0A0"
-                    uuid="c2000000-0000-0000-0000-000000000023"/>
-                <textElement verticalAlignment="Top">
-                    <font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[Every element meticulously planned so nothing is left to chance.]]></text>
-            </staticText>
-
-            <!-- CARD 3 background -->
-            <rectangle>
-                <reportElement mode="Opaque" x="344" y="510" width="147" height="120"
-                    forecolor="#C5A367" backcolor="#212121"
-                    uuid="c2000000-0000-0000-0000-000000000024"/>
-                <graphicElement>
-                    <pen lineWidth="0.75" lineColor="#C5A367"/>
-                </graphicElement>
-            </rectangle>
-            <!-- CARD 3 top accent -->
-            <rectangle>
-                <reportElement mode="Opaque" x="344" y="510" width="147" height="3"
-                    forecolor="#C5A367" backcolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000025"/>
-                <graphicElement><pen lineWidth="0.0"/></graphicElement>
-            </rectangle>
-            <!-- CARD 3 bullet -->
-            <staticText>
-                <reportElement x="356" y="522" width="20" height="14"
-                    forecolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000026"/>
-                <textElement>
-                    <font fontName="Inter" size="11" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[+]]></text>
-            </staticText>
-            <!-- CARD 3 title -->
-            <staticText>
-                <reportElement x="356" y="540" width="123" height="16"
-                    forecolor="#FFFFFF"
-                    uuid="c2000000-0000-0000-0000-000000000027"/>
-                <textElement verticalAlignment="Middle">
-                    <font fontName="Playfair Display" size="9" isBold="true" pdfFontName="Times-Bold"/>
-                </textElement>
-                <text><![CDATA[On-Day Support]]></text>
-            </staticText>
-            <!-- CARD 3 body -->
-            <staticText>
-                <reportElement x="356" y="560" width="123" height="60"
-                    forecolor="#A0A0A0"
-                    uuid="c2000000-0000-0000-0000-000000000028"/>
-                <textElement verticalAlignment="Top">
-                    <font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[Our management team onsite to ensure a seamless, stress-free celebration.]]></text>
-            </staticText>
-
-            <!-- ============================================================
-                 QUOTE BOX — y=650
-            ============================================================ -->
-            <rectangle>
-                <reportElement mode="Opaque" x="36" y="650" width="523" height="60"
-                    forecolor="#C5A367" backcolor="#1A1508"
-                    uuid="c2000000-0000-0000-0000-000000000029"/>
-                <graphicElement>
-                    <pen lineWidth="0.75" lineColor="#C5A367"/>
-                </graphicElement>
-            </rectangle>
-            <!-- Left 3px gold bar on quote box -->
-            <rectangle>
-                <reportElement mode="Opaque" x="36" y="650" width="3" height="60"
-                    forecolor="#C5A367" backcolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000030"/>
-                <graphicElement><pen lineWidth="0.0"/></graphicElement>
-            </rectangle>
-            <!-- Quote text -->
-            <staticText>
-                <reportElement x="48" y="658" width="503" height="44"
-                    forecolor="#E0C590"
-                    uuid="c2000000-0000-0000-0000-000000000031"/>
-                <textElement textAlignment="Left" verticalAlignment="Middle">
-                    <font fontName="Playfair Display" size="8" isBold="false" isItalic="true"
-                        pdfFontName="Times-Italic"/>
-                </textElement>
-                <text><![CDATA["We are excited about the opportunity to make your dream day a reality, and we look forward to being every part of this beautiful journey with you."]]></text>
-            </staticText>
-
-            <!-- ============================================================
-                 FOOTER
-            ============================================================ -->
-            <line>
-                <reportElement x="0" y="795" width="595" height="1"
-                    forecolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000032"/>
-                <graphicElement>
-                    <pen lineWidth="0.5" lineColor="#C5A367"/>
-                </graphicElement>
-            </line>
-
-            <staticText>
-                <reportElement x="36" y="808" width="150" height="14"
-                    forecolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000033"/>
-                <textElement textAlignment="Left" verticalAlignment="Middle">
-                    <font fontName="Playfair Display" size="7" isBold="true" pdfFontName="Times-Bold"/>
-                </textElement>
-                <text><![CDATA[DIAMOND EVENTS]]></text>
-            </staticText>
-
-            <staticText>
-                <reportElement x="409" y="808" width="150" height="14"
-                    forecolor="#E0C590"
-                    uuid="c2000000-0000-0000-0000-000000000034"/>
-                <textElement textAlignment="Right" verticalAlignment="Middle">
-                    <font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
-                </textElement>
-                <text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
-            </staticText>
-
-            <!-- 6px gold bottom bar -->
-            <rectangle>
-                <reportElement mode="Opaque" x="0" y="836" width="595" height="6"
-                    forecolor="#C5A367" backcolor="#C5A367"
-                    uuid="c2000000-0000-0000-0000-000000000035"/>
-                <graphicElement><pen lineWidth="0.0"/></graphicElement>
-            </rectangle>
-
-        </band>
-    </title>
-
-    <detail>
-        <band height="0"/>
-    </detail>
-
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_summary" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="c2000000-0000-0000-0000-000000000001">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="server_db_28_01.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit.height" value="px"/>
+	<property name="com.jaspersoft.studio.unit.width" value="px"/>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[97]]></defaultValueExpression>
+	</parameter>
+	<queryString language="SQL">
+		<![CDATA[SELECT 1 AS dummy]]>
+	</queryString>
+	<field name="dummy" class="java.lang.Integer"/>
+	<background>
+		<band height="842" splitType="Stretch">
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="0" width="595" height="842" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c2000000-0000-0000-0000-000000000002"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+		</band>
+	</background>
+	<title>
+		<band height="842" splitType="Prevent">
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="0" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000003"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="48" y="5" width="124" height="90" forecolor="#1E1608" uuid="c2000000-0000-0000-0000-000000000004"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Playfair Display" size="76" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[01]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="36" y="45" width="4" height="45" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000005"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="49" y="51" width="300" height="30" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000006"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="22" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[SUMMARY]]></text>
+			</staticText>
+			<line>
+				<reportElement x="36" y="102" width="523" height="1" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000007"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="36" y="112" width="523" height="38" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000008"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="24" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[Welcome to Diamond Events]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="36" y="152" width="400" height="18" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000009"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="12" isBold="false" isItalic="true" pdfFontName="Times-Italic"/>
+				</textElement>
+				<text><![CDATA[Where Your Vision Becomes a Timeless Reality]]></text>
+			</staticText>
+			<line>
+				<reportElement x="36" y="177" width="60" height="1" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000010"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="36" y="188" width="523" height="52" forecolor="#BFBFBF" uuid="c2000000-0000-0000-0000-000000000011"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Inter" size="8.5" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[On behalf of the entire Diamond Events family, we are truly honoured and delighted that you are considering us to bring your most cherished celebration to life. With over two decades of unrivalled expertise in crafting extraordinary events, Diamond Events has built a legacy rooted in excellence, integrity, and an unwavering passion for perfection.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="36" y="248" width="523" height="52" forecolor="#BFBFBF" uuid="c2000000-0000-0000-0000-000000000012"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Inter" size="8.5" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[From breathtaking bespoke decor and statement floral installations to exquisite cuisine and seamless, sophisticated entertainment, every element we create is thoughtfully curated with the finest attention to detail - because for us, nothing less than perfection is ever an option.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="36" y="308" width="523" height="40" forecolor="#BFBFBF" uuid="c2000000-0000-0000-0000-000000000013"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Inter" size="8.5" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[As you explore this proposal, we invite you to envision a celebration that is not only a reflection of your unique story, but a truly unforgettable experience that you, your family, and your guests will treasure for a lifetime.]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="36" y="510" width="147" height="120" forecolor="#C5A367" backcolor="#212121" uuid="c2000000-0000-0000-0000-000000000014"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="36" y="510" width="147" height="3" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000015"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="48" y="522" width="20" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000016"/>
+				<textElement>
+					<font fontName="Inter" size="11" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="48" y="540" width="123" height="16" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000017"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="9" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[Bespoke Service]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="48" y="560" width="123" height="60" forecolor="#A0A0A0" uuid="c2000000-0000-0000-0000-000000000018"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[Tailored exclusively to you - your vision, preferences, and story at the heart of everything.]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="190" y="510" width="147" height="120" forecolor="#C5A367" backcolor="#212121" uuid="c2000000-0000-0000-0000-000000000019"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="190" y="510" width="147" height="3" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000020"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="202" y="522" width="20" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000021"/>
+				<textElement>
+					<font fontName="Inter" size="11" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="202" y="540" width="123" height="16" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000022"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="9" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[Attention to Detail]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="202" y="560" width="123" height="60" forecolor="#A0A0A0" uuid="c2000000-0000-0000-0000-000000000023"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[Every element meticulously planned so nothing is left to chance.]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="344" y="510" width="147" height="120" forecolor="#C5A367" backcolor="#212121" uuid="c2000000-0000-0000-0000-000000000024"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="344" y="510" width="147" height="3" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000025"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="356" y="522" width="20" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000026"/>
+				<textElement>
+					<font fontName="Inter" size="11" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="356" y="540" width="123" height="16" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000027"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="9" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[On-Day Support]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="356" y="560" width="123" height="60" forecolor="#A0A0A0" uuid="c2000000-0000-0000-0000-000000000028"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[Our management team onsite to ensure a seamless, stress-free celebration.]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="36" y="650" width="523" height="60" forecolor="#C5A367" backcolor="#1A1508" uuid="c2000000-0000-0000-0000-000000000029"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="36" y="650" width="3" height="60" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000030"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="48" y="658" width="503" height="44" forecolor="#E0C590" uuid="c2000000-0000-0000-0000-000000000031"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="8" isBold="false" isItalic="true" pdfFontName="Times-Italic"/>
+				</textElement>
+				<text><![CDATA["We are excited about the opportunity to make your dream day a reality, and we look forward to being every part of this beautiful journey with you."]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="795" width="595" height="1" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000032"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="36" y="808" width="150" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000033"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="7" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[DIAMOND EVENTS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="409" y="808" width="150" height="14" forecolor="#E0C590" uuid="c2000000-0000-0000-0000-000000000034"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="836" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000035"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+		</band>
+	</title>
+	<detail>
+		<band/>
+	</detail>
 </jasperReport>

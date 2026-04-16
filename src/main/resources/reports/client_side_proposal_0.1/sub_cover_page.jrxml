@@ -36,7 +36,7 @@
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="0" width="595" height="842" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c1000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="0" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c1000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -58,7 +58,7 @@
 				</graphicElement>
 			</rectangle>
 			<image scaleImage="RetainShape" hAlign="Center" vAlign="Middle">
-				<reportElement x="207" y="60" width="180" height="160" uuid="c1000000-0000-0000-0000-000000000005"/>
+				<reportElement x="100" y="10" width="400" height="300" uuid="c1000000-0000-0000-0000-000000000005"/>
 				<imageExpression><![CDATA[$P{REPORT_COVER_IMAGE}]]></imageExpression>
 			</image>
 			<rectangle>
