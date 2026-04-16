@@ -76,7 +76,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
 			// ****************** For Production Start *********************
 			// Construct redirect URL with query params
-			String baseRedirectUrl = "https://frosty-jang.87-106-101-41.plesk.page";
+//			String baseRedirectUrl = "https://frosty-jang.87-106-101-41.plesk.page";
+			String baseRedirectUrl = "https://diamondevents.uk";
 			
 			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/client-journey";
 
