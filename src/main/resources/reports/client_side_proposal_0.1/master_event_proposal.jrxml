@@ -44,64 +44,29 @@
         WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
           AND e.bln_is_deleted = FALSE]]>
 	</queryString>
-	<field name="ser_event_master_id" class="java.lang.Integer">
-		<property name="com.jaspersoft.studio.field.label" value="ser_event_master_id"/>
-		<property name="com.jaspersoft.studio.field.tree.path" value="event_master"/>
-	</field>
-	<field name="event_name" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="event_name"/>
-	</field>
-	<field name="dte_event_date" class="java.sql.Timestamp">
-		<property name="com.jaspersoft.studio.field.label" value="dte_event_date"/>
-		<property name="com.jaspersoft.studio.field.tree.path" value="event_master"/>
-	</field>
-	<field name="client_name" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="client_name"/>
-	</field>
-	<field name="email" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="email"/>
-	</field>
-	<field name="contact_no" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="contact_no"/>
-	</field>
-	<field name="bride_name" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="bride_name"/>
-	</field>
-	<field name="groom_name" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="groom_name"/>
-	</field>
-	<field name="ser_event_type_id" class="java.lang.Integer">
-		<property name="com.jaspersoft.studio.field.label" value="ser_event_type_id"/>
-		<property name="com.jaspersoft.studio.field.tree.path" value="event_type"/>
-	</field>
-	<field name="event_type_name" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="event_type_name"/>
-	</field>
-	<field name="venue_name" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="venue_name"/>
-	</field>
-	<field name="running_order_code" class="java.lang.String">
-		<property name="com.jaspersoft.studio.field.label" value="running_order_code"/>
-	</field>
-	<field name="quoted_price" class="java.math.BigDecimal">
-		<property name="com.jaspersoft.studio.field.label" value="quoted_price"/>
-	</field>
-	<field name="paid_amount" class="java.math.BigDecimal">
-		<property name="com.jaspersoft.studio.field.label" value="paid_amount"/>
-	</field>
-	<field name="num_guests" class="java.lang.Integer">
-		<property name="com.jaspersoft.studio.field.label" value="num_guests"/>
-	</field>
-	<field name="num_tables" class="java.lang.Integer">
-		<property name="com.jaspersoft.studio.field.label" value="num_tables"/>
-	</field>
+	<field name="ser_event_master_id" class="java.lang.Integer"/>
+	<field name="event_name" class="java.lang.String"/>
+	<field name="dte_event_date" class="java.sql.Timestamp"/>
+	<field name="client_name" class="java.lang.String"/>
+	<field name="email" class="java.lang.String"/>
+	<field name="contact_no" class="java.lang.String"/>
+	<field name="bride_name" class="java.lang.String"/>
+	<field name="groom_name" class="java.lang.String"/>
+	<field name="ser_event_type_id" class="java.lang.Integer"/>
+	<field name="event_type_name" class="java.lang.String"/>
+	<field name="venue_name" class="java.lang.String"/>
+	<field name="running_order_code" class="java.lang.String"/>
+	<field name="quoted_price" class="java.math.BigDecimal"/>
+	<field name="paid_amount" class="java.math.BigDecimal"/>
+	<field name="num_guests" class="java.lang.Integer"/>
+	<field name="num_tables" class="java.lang.Integer"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
 	<title>
 		<band height="842" splitType="Prevent">
 			<subreport>
-				<reportElement x="0" y="0" width="595" height="842" uuid="b1000000-0000-0000-0000-000000000010"/>
+				<reportElement x="0" y="0" width="595" height="842" uuid="a1000000-0000-0000-0000-000000000010"/>
 				<subreportParameter name="P_EVENT_MASTER_ID">
 					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
 				</subreportParameter>
@@ -114,14 +79,64 @@
 		</band>
 	</title>
 	<detail>
-		<band height="842" splitType="Prevent">
+		<band height="1" splitType="Stretch">
 			<subreport>
-				<reportElement x="0" y="0" width="595" height="842" uuid="b1000000-0000-0000-0000-000000000020"/>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000020"/>
 				<subreportParameter name="P_EVENT_MASTER_ID">
 					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_summary.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000030"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_event_details.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000040"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_menu_choices.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000050"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_services.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000060"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_decor_extras.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000070"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_financials.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</detail>

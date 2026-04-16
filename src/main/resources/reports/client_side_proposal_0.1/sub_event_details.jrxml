@@ -1,0 +1,976 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_event_details" pageWidth="595" pageHeight="842" columnWidth="523" leftMargin="36" rightMargin="36" topMargin="0" bottomMargin="0" uuid="c3000000-0000-0000-0000-000000000001">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit.height" value="px"/>
+	<property name="com.jaspersoft.studio.unit.width" value="px"/>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[97]]></defaultValueExpression>
+	</parameter>
+	<queryString language="SQL">
+		<![CDATA[SELECT
+            -- Client / contact
+            NULLIF(TRIM(
+                COALESCE(c.txt_first_name, '') ||
+                CASE WHEN c.txt_last_name IS NOT NULL AND c.txt_last_name <> ''
+                     THEN ' ' || c.txt_last_name ELSE '' END
+            ), '')                                              AS client_name,
+            COALESCE(c.txt_phone_number_1, '')                 AS contact_no,
+            COALESCE(c.txt_email, '')                          AS email,
+
+            -- Contact person (separate from client)
+            NULLIF(TRIM(
+                COALESCE(e.txt_contact_person_first_name, '') ||
+                CASE WHEN e.txt_contact_person_last_name IS NOT NULL
+                          AND e.txt_contact_person_last_name <> ''
+                     THEN ' ' || e.txt_contact_person_last_name ELSE '' END
+            ), '')                                              AS contact_person_name,
+            COALESCE(e.txt_contact_person_phone_no, '')        AS contact_person_phone,
+
+            -- Bride / Groom — safe concat covering all null/empty edge cases
+            NULLIF(TRIM(
+                COALESCE(e.txt_groom_first_name, '') ||
+                CASE WHEN e.txt_groom_last_name IS NOT NULL AND e.txt_groom_last_name <> ''
+                     THEN ' ' || e.txt_groom_last_name ELSE '' END
+            ), '')                                              AS groom_name,
+            NULLIF(TRIM(
+                COALESCE(e.txt_bride_first_name, '') ||
+                CASE WHEN e.txt_bride_last_name IS NOT NULL AND e.txt_bride_last_name <> ''
+                     THEN ' ' || e.txt_bride_last_name ELSE '' END
+            ), '')                                              AS bride_name,
+
+            -- Event details
+            e.dte_event_date,
+            COALESCE(CAST(e.num_number_of_guests AS VARCHAR), '') AS num_guests,
+            COALESCE(CAST(e.num_number_of_tables AS VARCHAR), '') AS num_tables,
+
+            -- Venue: name + hall name
+            NULLIF(TRIM(
+                COALESCE(v.txt_venue_name, '') ||
+                CASE WHEN vd.txt_hall_name IS NOT NULL AND vd.txt_hall_name <> ''
+                     THEN ' - ' || vd.txt_hall_name ELSE '' END
+            ), '')                                              AS venue_display,
+
+            -- Running order (all 14 VARCHAR time fields)
+            r.txt_guest_arrival,
+            r.txt_groom_guest_arrival,
+            r.txt_bride_guest_arrival,
+            r.txt_barat_arrival,
+            r.txt_nikah,
+            r.txt_bride_entrance,
+            r.txt_groom_entrance,
+            r.txt_couples_entrance,
+            r.txt_dua,
+            r.txt_cake_cutting,
+            r.txt_ring_exchange,
+            r.txt_rams,
+            r.txt_speeches,
+            r.txt_dance,
+            r.txt_meal,
+            r.dte_end_of_night,
+
+            -- Running order summary code
+            COALESCE(r.txt_event_running_order_code, '') AS running_order_code
+
+        FROM event_master e
+        LEFT JOIN customer_master      c   ON e.ser_cust_id                  = c.ser_cust_id
+        LEFT JOIN venue_master_detail  vd  ON e.ser_venue_master_detail_id   = vd.ser_venue_master_detail_id
+        LEFT JOIN venue_master         v   ON vd.ser_venue_master_id         = v.ser_venue_master_id
+        LEFT JOIN event_running_order  r   ON e.ser_event_running_order_id   = r.ser_event_running_order_id
+        WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+          AND e.bln_is_deleted = FALSE]]>
+	</queryString>
+	<field name="client_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="client_name"/>
+	</field>
+	<field name="contact_no" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="contact_no"/>
+	</field>
+	<field name="email" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="email"/>
+	</field>
+	<field name="contact_person_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="contact_person_name"/>
+	</field>
+	<field name="contact_person_phone" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="contact_person_phone"/>
+	</field>
+	<field name="groom_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="groom_name"/>
+	</field>
+	<field name="bride_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="bride_name"/>
+	</field>
+	<field name="dte_event_date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="dte_event_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_master"/>
+	</field>
+	<field name="num_guests" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="num_guests"/>
+	</field>
+	<field name="num_tables" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="num_tables"/>
+	</field>
+	<field name="venue_display" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="venue_display"/>
+	</field>
+	<field name="txt_guest_arrival" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_guest_arrival"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_groom_guest_arrival" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_groom_guest_arrival"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_bride_guest_arrival" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_bride_guest_arrival"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_barat_arrival" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_barat_arrival"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_nikah" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_nikah"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_bride_entrance" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_bride_entrance"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_groom_entrance" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_groom_entrance"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_couples_entrance" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_couples_entrance"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_dua" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_dua"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_cake_cutting" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_cake_cutting"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_ring_exchange" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_ring_exchange"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_rams" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_rams"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_speeches" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_speeches"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_dance" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_dance"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="txt_meal" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_meal"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="dte_end_of_night" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="dte_end_of_night"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_running_order"/>
+	</field>
+	<field name="running_order_code" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="running_order_code"/>
+	</field>
+	<background>
+		<band height="842" splitType="Stretch">
+			<rectangle>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c3000000-0000-0000-0000-000000000002"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+		</band>
+	</background>
+	<title>
+		<band height="1" splitType="Prevent">
+			<break>
+				<reportElement x="0" y="0" width="1" height="1" uuid="c3000000-0000-0000-0000-000000000200"/>
+			</break>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="115" splitType="Prevent">
+			<rectangle>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000003"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="13" y="5" width="124" height="90" forecolor="#1E1608" uuid="c3000000-0000-0000-0000-000000000004"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Playfair Display" size="76" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[02]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="45" width="4" height="45" forecolor="#C5A367" backcolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000005">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="13" y="51" width="400" height="30" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000006"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="22" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[EVENT DETAILS]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="102" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000007"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="30" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="8" width="200" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000012"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[YOUR DETAILS]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="26" width="30" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000013"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000014"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[CLIENT NAME]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000015"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{client_name} != null && !$F{client_name}.trim().isEmpty()) ? $F{client_name} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000016"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000017"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[CONTACT NUMBER]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000018"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{contact_no} != null && !$F{contact_no}.trim().isEmpty()) ? $F{contact_no} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000019"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000020"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[EMAIL ADDRESS]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000021"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{email} != null && !$F{email}.trim().isEmpty()) ? $F{email} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000022"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000023"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[CONTACT PERSON]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000024"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{contact_person_name} != null && !$F{contact_person_name}.trim().isEmpty()) ? $F{contact_person_name} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000025"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000026"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[CONTACT PERSON PHONE]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000027"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{contact_person_phone} != null && !$F{contact_person_phone}.trim().isEmpty()) ? $F{contact_person_phone} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000028"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000029"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[GROOM'S NAME]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000030"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{groom_name} != null && !$F{groom_name}.trim().isEmpty()) ? $F{groom_name} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000031"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000032"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[BRIDE'S NAME]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000033"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{bride_name} != null && !$F{bride_name}.trim().isEmpty()) ? $F{bride_name} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000034"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="14"/>
+		<band height="30" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="8" width="200" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000035"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[EVENT DETAILS]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="26" width="30" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000036"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000037"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[EVENT DATE]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000038"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dte_event_date} != null ?
+                        new java.text.SimpleDateFormat("EEEE, d MMMM yyyy").format($F{dte_event_date}) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000039"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000040"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[NUMBER OF GUESTS]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000041"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{num_guests} != null && !$F{num_guests}.trim().isEmpty() && !"0".equals($F{num_guests}.trim())) ? $F{num_guests} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000042"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000043"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[NUMBER OF TABLES]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000044"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{num_tables} != null && !$F{num_tables}.trim().isEmpty() && !"0".equals($F{num_tables}.trim())) ? $F{num_tables} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000045"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000046"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[EVENT VENUE]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000047"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{venue_display} != null && !$F{venue_display}.trim().isEmpty()) ? $F{venue_display} : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="38" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000048"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="14"/>
+		<band height="30" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="8" width="300" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000049"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[RUNNING ORDER OF THE DAY]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="26" width="30" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000050"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_guest_arrival} != null && !$F{txt_guest_arrival}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000051"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[GUEST ARRIVAL]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000052"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_guest_arrival} != null && !$F{txt_guest_arrival}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_guest_arrival}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000053"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_groom_guest_arrival} != null && !$F{txt_groom_guest_arrival}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000054"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[GROOM GUESTS ARRIVAL]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000055"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_groom_guest_arrival} != null && !$F{txt_groom_guest_arrival}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_groom_guest_arrival}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000056"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_bride_guest_arrival} != null && !$F{txt_bride_guest_arrival}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000057"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[BRIDE GUESTS ARRIVAL]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000058"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_bride_guest_arrival} != null && !$F{txt_bride_guest_arrival}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_bride_guest_arrival}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000059"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_barat_arrival} != null && !$F{txt_barat_arrival}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000060"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[BARAT ARRIVAL]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000061"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_barat_arrival} != null && !$F{txt_barat_arrival}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_barat_arrival}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000062"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_nikah} != null && !$F{txt_nikah}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000063"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[NIKAH]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000064"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_nikah} != null && !$F{txt_nikah}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_nikah}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000065"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_bride_entrance} != null && !$F{txt_bride_entrance}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000066"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[BRIDE ENTRANCE]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000067"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_bride_entrance} != null && !$F{txt_bride_entrance}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_bride_entrance}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000068"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_groom_entrance} != null && !$F{txt_groom_entrance}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000069"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[GROOM ENTRANCE]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000070"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_groom_entrance} != null && !$F{txt_groom_entrance}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_groom_entrance}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000071"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_couples_entrance} != null && !$F{txt_couples_entrance}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000072"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[COUPLES ENTRANCE]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000073"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_couples_entrance} != null && !$F{txt_couples_entrance}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_couples_entrance}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000074"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_dua} != null && !$F{txt_dua}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000075"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[DUA]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000076"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_dua} != null && !$F{txt_dua}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_dua}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000077"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_cake_cutting} != null && !$F{txt_cake_cutting}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000078"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[CAKE CUTTING]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000079"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_cake_cutting} != null && !$F{txt_cake_cutting}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_cake_cutting}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000080"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_ring_exchange} != null && !$F{txt_ring_exchange}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000081"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[RING EXCHANGE]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000082"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_ring_exchange} != null && !$F{txt_ring_exchange}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_ring_exchange}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000083"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_rams} != null && !$F{txt_rams}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000084"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[RAMS]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000085"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_rams} != null && !$F{txt_rams}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_rams}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000086"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_speeches} != null && !$F{txt_speeches}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000087"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[SPEECHES]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000088"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_speeches} != null && !$F{txt_speeches}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_speeches}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000089"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_dance} != null && !$F{txt_dance}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000090"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[DANCE]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000091"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_dance} != null && !$F{txt_dance}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_dance}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000092"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{txt_meal} != null && !$F{txt_meal}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000093"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[MEAL]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000094"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{txt_meal} != null && !$F{txt_meal}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_meal}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000095"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="36" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{dte_end_of_night} != null && !$F{dte_end_of_night}.trim().isEmpty()]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000096"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[END OF NIGHT]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000097"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{dte_end_of_night} != null && !$F{dte_end_of_night}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{dte_end_of_night}).getTime()) : ""]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="34" width="523" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000098"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#333311"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="18"/>
+		<band height="80" splitType="Prevent">
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="0" width="523" height="68" forecolor="#C5A367" backcolor="#1A1A10" uuid="c3000000-0000-0000-0000-000000000099"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="0" width="3" height="68" forecolor="#C5A367" backcolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000100"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="12" y="8" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000101"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[IMPORTANT NOTE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="12" y="24" width="503" height="38" forecolor="#AAAAAA" uuid="c3000000-0000-0000-0000-000000000102"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="7.5" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[Table Plan and Room Layout must be submitted no later than 4 weeks from the date of the event. We do not collaborate with third-party event planning, catering, or decorating companies.]]></text>
+			</staticText>
+		</band>
+		<band height="12"/>
+		<band height="30" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="4" width="523" height="22" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000103"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[EXTERNAL SUPPLIERS: Please note we DO NOT collaborate with event planning / catering / decorating companies.]]></text>
+			</staticText>
+		</band>
+		<band height="16"/>
+	</detail>
+	<pageFooter>
+		<band height="47" splitType="Prevent">
+			<line>
+				<reportElement x="-36" y="0" width="595" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000008"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="13" width="150" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000009"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="7" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<text><![CDATA[DIAMOND EVENTS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="373" y="13" width="150" height="14" forecolor="#E0C590" uuid="c3000000-0000-0000-0000-000000000010"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="-36" y="41" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000011"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+		</band>
+	</pageFooter>
+</jasperReport>
+
+
+
+
+
+
