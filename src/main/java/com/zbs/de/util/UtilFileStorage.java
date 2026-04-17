@@ -36,5 +36,4 @@ public class UtilFileStorage {
 		// With this line:
 		return "https://frosty-jang.87-106-101-41.plesk.page:8081/api/diamond/deimg/" + category + "/" + fileName;
 	}
-
 }
