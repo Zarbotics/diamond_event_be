@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_cover_page" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="c1000000-0000-0000-0000-000000000001">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit.height" value="px"/>
+	<property name="com.jaspersoft.studio.unit.width" value="px"/>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[97]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_COVER_IMAGE" class="java.awt.Image">
+		<defaultValueExpression><![CDATA[javax.imageio.ImageIO.read(
+            new java.io.File("C:/Users/T15/JaspersoftWorkspace/MyReports/new_proposal_design/images/diamond_logo.png")
+        )]]></defaultValueExpression>
+	</parameter>
+	<queryString language="SQL">
+		<![CDATA[SELECT
+            COALESCE(e.txt_event_master_name, 'Your Wedding Celebration') AS event_name,
+            e.dte_event_date,
+            COALESCE(et.txt_event_type_name, '') AS event_type_name
+        FROM event_master e
+        LEFT JOIN event_type et ON e.ser_event_type_id = et.ser_event_type_id
+        WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+          AND e.bln_is_deleted = FALSE]]>
+	</queryString>
+	<field name="event_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="event_name"/>
+	</field>
+	<field name="dte_event_date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="dte_event_date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_master"/>
+	</field>
+	<field name="event_type_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="event_type_name"/>
+	</field>
+	<background>
+		<band height="842" splitType="Stretch">
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c1000000-0000-0000-0000-000000000002"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Transparent" x="20" y="20" width="555" height="802" forecolor="#C5A367" uuid="c1000000-0000-0000-0000-000000000003"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+		</band>
+	</background>
+	<title>
+		<band height="842" splitType="Prevent">
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="0" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c1000000-0000-0000-0000-000000000004"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<image scaleImage="RetainShape" hAlign="Center" vAlign="Middle">
+				<reportElement x="100" y="10" width="400" height="300" uuid="c1000000-0000-0000-0000-000000000005"/>
+				<imageExpression><![CDATA[$P{REPORT_COVER_IMAGE}]]></imageExpression>
+			</image>
+			<rectangle>
+				<reportElement mode="Transparent" x="102" y="265" width="390" height="195" forecolor="#C5A367" uuid="c1000000-0000-0000-0000-000000000007"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="102" y="283" width="390" height="14" forecolor="#C5A367" uuid="c1000000-0000-0000-0000-000000000008"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[C E L E B R A T I N G]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="102" y="305" width="390" height="38" forecolor="#FFFFFF" uuid="c1000000-0000-0000-0000-000000000009"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="22" isBold="false" isItalic="true" pdfFontName="Times-BoldItalic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{event_name}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="222" y="351" width="150" height="1" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000001"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="102" y="360" width="390" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000002"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[E V E N T   D A T E]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="102" y="380" width="390" height="26" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000003"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Playfair Display" size="14" isBold="false" pdfFontName="Times-Roman"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("EEEE, d MMMM yyyy").format($F{dte_event_date})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="102" y="488" width="390" height="22" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000004"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Inter" size="11" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Y O U R   E V E N T   P R O P O S A L]]></text>
+			</staticText>
+			<line>
+				<reportElement x="162" y="516" width="270" height="1" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000005"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</line>
+			<ellipse>
+				<reportElement mode="Opaque" x="47" y="548" width="5" height="5" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000006"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</ellipse>
+			<ellipse>
+				<reportElement mode="Opaque" x="162" y="548" width="5" height="5" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000007"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</ellipse>
+			<ellipse>
+				<reportElement mode="Opaque" x="277" y="548" width="5" height="5" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000008"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</ellipse>
+			<ellipse>
+				<reportElement mode="Opaque" x="392" y="548" width="5" height="5" forecolor="#C5A367" backcolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000009"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</ellipse>
+			<ellipse>
+				<reportElement mode="Opaque" x="507" y="548" width="5" height="5" forecolor="#C5A367" backcolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000001"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</ellipse>
+			<staticText>
+				<reportElement x="40" y="560" width="100" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000002"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[01 Summary]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="155" y="560" width="110" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000003"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[02 Event Details]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="270" y="560" width="110" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000004"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[03 Menu Choices]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="385" y="560" width="110" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000005"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[04 Service]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="500" y="560" width="80" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000006"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[05 Décor & Extras]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="836" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000007"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="40" y="800" width="515" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000008"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[T: 01355 574 852   ·   E: INFO@DIAMONDEVENTS.UK   ·   18 Milton Road, East Kilbride, Glasgow, G74 5BU]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="821" width="515" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000009"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="610" width="100" height="14" forecolor="#C5A367" uuid="821f6837-39a1-4266-8fe3-af788a89169b"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[06 Financials]]></text>
+			</staticText>
+			<ellipse>
+				<reportElement mode="Opaque" x="48" y="597" width="5" height="5" forecolor="#C5A367" backcolor="#C5A367" uuid="30d3c6ca-c457-4267-9827-1a4cee2bbefc"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</ellipse>
+		</band>
+	</title>
+	<detail>
+		<band/>
+	</detail>
+</jasperReport>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="master_event_proposal" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="a1000000-0000-0000-0000-000000000001">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="REPORT_COVER_IMAGE" class="java.awt.Image"/>
+	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[97]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<queryString language="SQL">
+		<![CDATA[SELECT
+            e.ser_event_master_id,
+            COALESCE(e.txt_event_master_name, '') AS event_name,
+            e.dte_event_date,
+            COALESCE(c.txt_first_name || ' ' || COALESCE(c.txt_last_name, ''), '') AS client_name,
+            COALESCE(c.txt_email, '')           AS email,
+            COALESCE(c.txt_phone_number_1, '')  AS contact_no,
+            COALESCE(
+                e.txt_bride_first_name || ' ' || COALESCE(e.txt_bride_last_name, ''),
+                ''
+            ) AS bride_name,
+            COALESCE(
+                e.txt_groom_first_name || ' ' || COALESCE(e.txt_groom_last_name, ''),
+                ''
+            ) AS groom_name,
+            et.ser_event_type_id,
+            COALESCE(et.txt_event_type_name, '') AS event_type_name,
+            COALESCE(v.txt_venue_name, '')        AS venue_name,
+            COALESCE(r.txt_event_running_order_code, '') AS running_order_code,
+            COALESCE(eb.num_qouted_price, 0)     AS quoted_price,
+            COALESCE(eb.num_paid_amount, 0)       AS paid_amount,
+            COALESCE(e.num_number_of_guests, 0)  AS num_guests,
+            COALESCE(e.num_number_of_tables, 0)  AS num_tables
+        FROM event_master e
+        LEFT JOIN customer_master    c  ON e.ser_cust_id              = c.ser_cust_id
+        LEFT JOIN venue_master_detail vd ON e.ser_venue_master_detail_id = vd.ser_venue_master_detail_id
+        LEFT JOIN venue_master        v  ON vd.ser_venue_master_id    = v.ser_venue_master_id
+        LEFT JOIN event_type          et ON e.ser_event_type_id       = et.ser_event_type_id
+        LEFT JOIN event_running_order r  ON e.ser_event_running_order_id = r.ser_event_running_order_id
+        LEFT JOIN event_budget        eb ON eb.ser_event_master_id    = e.ser_event_master_id
+        WHERE e.ser_event_master_id = $P{P_EVENT_MASTER_ID}
+          AND e.bln_is_deleted = FALSE]]>
+	</queryString>
+	<field name="ser_event_master_id" class="java.lang.Integer"/>
+	<field name="event_name" class="java.lang.String"/>
+	<field name="dte_event_date" class="java.sql.Timestamp"/>
+	<field name="client_name" class="java.lang.String"/>
+	<field name="email" class="java.lang.String"/>
+	<field name="contact_no" class="java.lang.String"/>
+	<field name="bride_name" class="java.lang.String"/>
+	<field name="groom_name" class="java.lang.String"/>
+	<field name="ser_event_type_id" class="java.lang.Integer"/>
+	<field name="event_type_name" class="java.lang.String"/>
+	<field name="venue_name" class="java.lang.String"/>
+	<field name="running_order_code" class="java.lang.String"/>
+	<field name="quoted_price" class="java.math.BigDecimal"/>
+	<field name="paid_amount" class="java.math.BigDecimal"/>
+	<field name="num_guests" class="java.lang.Integer"/>
+	<field name="num_tables" class="java.lang.Integer"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="842" splitType="Prevent">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="842" uuid="a1000000-0000-0000-0000-000000000010"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_COVER_IMAGE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_COVER_IMAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_cover_page.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000020"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_summary.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000030"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_event_details.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000040"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_menu_choices.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000050"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_services.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000060"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_decor_extras.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="1" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="1" uuid="a1000000-0000-0000-0000-000000000070"/>
+				<subreportParameter name="P_EVENT_MASTER_ID">
+					<subreportParameterExpression><![CDATA[$P{P_EVENT_MASTER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "sub_financials.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

@@ -41,7 +41,7 @@ public class ControllerFileServe {
 	public ResponseEntity<Resource> serveFile(@PathVariable String category, @PathVariable String filename)
 			throws IOException {
 
-		Path filePath = Paths.get("/root/diamondevent_be/uploads/" + category + "/" + filename);
+		Path filePath = Paths.get("/root/diamondevent_staging/uploads/" + category + "/" + filename);
 		if (!Files.exists(filePath)) {
 			return ResponseEntity.notFound().build();
 		}
@@ -56,25 +56,24 @@ public class ControllerFileServe {
 		return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType)).body(resource);
 	}
 
-	// // This is for local Machine
-	// @GetMapping("/{category}/{filename:.+}")
-	// public ResponseEntity<Resource> serveFile(@PathVariable String category,
-	// @PathVariable String filename)
-	// throws IOException {
-	//
-	// Path filePath = Paths.get("D:/Zarbotics/UploadedFiles/", category, filename);
-	// if (!Files.exists(filePath)) {
-	// return ResponseEntity.notFound().build();
-	// }
-	//
-	// // Detect MIME type
-	// String contentType = Files.probeContentType(filePath);
-	// if (contentType == null) {
-	// contentType = "application/octet-stream";
-	// }
-	//
-	// UrlResource resource = new UrlResource(filePath.toUri());
-	// return
-	// ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType)).body(resource);
-	// }
+//	
+//	// This is for local Machine
+//	@GetMapping("/{category}/{filename:.+}")
+//	public ResponseEntity<Resource> serveFile(@PathVariable String category, @PathVariable String filename)
+//			throws IOException {
+//
+//		Path filePath = Paths.get("C:/Users/hp/Pictures/diamond_ev/", category, filename);
+//		if (!Files.exists(filePath)) {
+//			return ResponseEntity.notFound().build();
+//		}
+//
+//		// Detect MIME type
+//		String contentType = Files.probeContentType(filePath);
+//		if (contentType == null) {
+//			contentType = "application/octet-stream";
+//		}
+//
+//		UrlResource resource = new UrlResource(filePath.toUri());
+//		return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType)).body(resource);
+//	}
 }

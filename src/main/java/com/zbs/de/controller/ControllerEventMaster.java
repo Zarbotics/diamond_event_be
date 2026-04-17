@@ -365,5 +365,22 @@ public class ControllerEventMaster {
 		}
 
 	}
+	
+	@PostMapping(value = "/getEventById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getEventById(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		LOGGER.info("Searching Event Master: {}", dtoSearch);
+		try {
+			DtoEventMaster result = serviceEventMaster.getEventById(dtoSearch.getId());
+			if (result != null) {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched", result);
+			} else {
+				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "not found", result);
+			}
+		} catch (Exception e) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to Fetch",
+					dtoSearch);
+		}
+
+	}
 
 }
