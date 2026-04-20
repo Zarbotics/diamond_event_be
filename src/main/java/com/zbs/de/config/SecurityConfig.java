@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.zbs.de.config.security.AppleTokenResponseClient;
 import com.zbs.de.config.security.CustomOAuth2SuccessHandler;
+import com.zbs.de.config.security.DelegatingTokenResponseClient;
 import com.zbs.de.config.security.JwtAuthenticationFilter;
 
 @Configuration
@@ -25,9 +26,9 @@ public class SecurityConfig {
 
 	@Autowired
 	private CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
-	
+
 	@Autowired
-	private AppleTokenResponseClient appleTokenResponseClient;
+	private DelegatingTokenResponseClient delegatingTokenResponseClient;
 
 //	@Bean
 //	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -59,11 +60,9 @@ public class SecurityConfig {
 								"/public/**", "/api/diamond/auth/**")
 						.permitAll().anyRequest().authenticated())
 				.oauth2Login(oauth2 -> oauth2
-					    .tokenEndpoint(token -> token
-					            .accessTokenResponseClient(appleTokenResponseClient)
-					        )
-								.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-								.successHandler(customOAuth2SuccessHandler))
+						.tokenEndpoint(token -> token.accessTokenResponseClient(delegatingTokenResponseClient))
+						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+						.successHandler(customOAuth2SuccessHandler))
 				.logout(logout -> logout.logoutSuccessUrl("http://localhost:5173/login").permitAll());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
