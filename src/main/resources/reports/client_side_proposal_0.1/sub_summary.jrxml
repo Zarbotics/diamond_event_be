@@ -33,7 +33,7 @@
 			<staticText>
 				<reportElement x="48" y="5" width="124" height="90" forecolor="#1E1608" uuid="c2000000-0000-0000-0000-000000000004"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Playfair Display" size="76" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="76" isBold="true"  />
 				</textElement>
 				<text><![CDATA[01]]></text>
 			</staticText>
@@ -46,7 +46,7 @@
 			<staticText>
 				<reportElement x="49" y="51" width="300" height="30" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000006"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="22" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="22" isBold="false"  />
 				</textElement>
 				<text><![CDATA[SUMMARY]]></text>
 			</staticText>
@@ -59,14 +59,14 @@
 			<staticText>
 				<reportElement x="36" y="112" width="523" height="38" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000008"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="24" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="24" isBold="true"  />
 				</textElement>
 				<text><![CDATA[Welcome to Diamond Events]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="36" y="152" width="400" height="18" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000009"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="12" isBold="false" isItalic="true" pdfFontName="Times-Italic"/>
+					<font fontName="Playfair Display" size="12" isBold="false" isItalic="true"/>
 				</textElement>
 				<text><![CDATA[Where Your Vision Becomes a Timeless Reality]]></text>
 			</staticText>
@@ -79,21 +79,21 @@
 			<staticText>
 				<reportElement x="36" y="188" width="523" height="52" forecolor="#BFBFBF" uuid="c2000000-0000-0000-0000-000000000011"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Inter" size="8.5" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="8.5" isBold="false"  />
 				</textElement>
 				<text><![CDATA[On behalf of the entire Diamond Events family, we are truly honoured and delighted that you are considering us to bring your most cherished celebration to life. With over two decades of unrivalled expertise in crafting extraordinary events, Diamond Events has built a legacy rooted in excellence, integrity, and an unwavering passion for perfection.]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="36" y="248" width="523" height="52" forecolor="#BFBFBF" uuid="c2000000-0000-0000-0000-000000000012"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Inter" size="8.5" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="8.5" isBold="false"  />
 				</textElement>
 				<text><![CDATA[From breathtaking bespoke decor and statement floral installations to exquisite cuisine and seamless, sophisticated entertainment, every element we create is thoughtfully curated with the finest attention to detail - because for us, nothing less than perfection is ever an option.]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="36" y="308" width="523" height="40" forecolor="#BFBFBF" uuid="c2000000-0000-0000-0000-000000000013"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Inter" size="8.5" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="8.5" isBold="false"  />
 				</textElement>
 				<text><![CDATA[As you explore this proposal, we invite you to envision a celebration that is not only a reflection of your unique story, but a truly unforgettable experience that you, your family, and your guests will treasure for a lifetime.]]></text>
 			</staticText>
@@ -112,21 +112,21 @@
 			<staticText>
 				<reportElement x="48" y="522" width="20" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000016"/>
 				<textElement>
-					<font fontName="Inter" size="11" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="11"  />
 				</textElement>
 				<text><![CDATA[+]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="48" y="540" width="123" height="16" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000017"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="9" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="9" isBold="true"  />
 				</textElement>
 				<text><![CDATA[Bespoke Service]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="48" y="560" width="123" height="60" forecolor="#A0A0A0" uuid="c2000000-0000-0000-0000-000000000018"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false"  />
 				</textElement>
 				<text><![CDATA[Tailored exclusively to you - your vision, preferences, and story at the heart of everything.]]></text>
 			</staticText>
@@ -145,21 +145,21 @@
 			<staticText>
 				<reportElement x="202" y="522" width="20" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000021"/>
 				<textElement>
-					<font fontName="Inter" size="11" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="11"  />
 				</textElement>
 				<text><![CDATA[+]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="202" y="540" width="123" height="16" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000022"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="9" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="9" isBold="true"  />
 				</textElement>
 				<text><![CDATA[Attention to Detail]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="202" y="560" width="123" height="60" forecolor="#A0A0A0" uuid="c2000000-0000-0000-0000-000000000023"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false"  />
 				</textElement>
 				<text><![CDATA[Every element meticulously planned so nothing is left to chance.]]></text>
 			</staticText>
@@ -178,21 +178,21 @@
 			<staticText>
 				<reportElement x="356" y="522" width="20" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000026"/>
 				<textElement>
-					<font fontName="Inter" size="11" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="11"  />
 				</textElement>
 				<text><![CDATA[+]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="356" y="540" width="123" height="16" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000027"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="9" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="9" isBold="true"  />
 				</textElement>
 				<text><![CDATA[On-Day Support]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="356" y="560" width="123" height="60" forecolor="#A0A0A0" uuid="c2000000-0000-0000-0000-000000000028"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false"  />
 				</textElement>
 				<text><![CDATA[Our management team onsite to ensure a seamless, stress-free celebration.]]></text>
 			</staticText>
@@ -211,7 +211,7 @@
 			<staticText>
 				<reportElement x="48" y="658" width="503" height="44" forecolor="#E0C590" uuid="c2000000-0000-0000-0000-000000000031"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="8" isBold="false" isItalic="true" pdfFontName="Times-Italic"/>
+					<font fontName="Playfair Display" size="8" isBold="false" isItalic="true"/>
 				</textElement>
 				<text><![CDATA["We are excited about the opportunity to make your dream day a reality, and we look forward to being every part of this beautiful journey with you."]]></text>
 			</staticText>
@@ -224,14 +224,14 @@
 			<staticText>
 				<reportElement x="36" y="808" width="150" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000033"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="7" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="7" isBold="true"  />
 				</textElement>
 				<text><![CDATA[DIAMOND EVENTS]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="409" y="808" width="150" height="14" forecolor="#E0C590" uuid="c2000000-0000-0000-0000-000000000034"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false"  />
 				</textElement>
 				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
 			</staticText>
