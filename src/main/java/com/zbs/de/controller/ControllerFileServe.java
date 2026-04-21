@@ -41,7 +41,7 @@ public class ControllerFileServe {
 	public ResponseEntity<Resource> serveFile(@PathVariable String category, @PathVariable String filename)
 			throws IOException {
 
-		Path filePath = Paths.get("/root/diamondevent_staging/uploads/" + category + "/" + filename);
+		Path filePath = Paths.get("/root/diamondevent_be/uploads/" + category + "/" + filename);
 		if (!Files.exists(filePath)) {
 			return ResponseEntity.notFound().build();
 		}
