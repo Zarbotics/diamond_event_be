@@ -70,14 +70,14 @@
 			<staticText>
 				<reportElement x="102" y="283" width="390" height="14" forecolor="#C5A367" uuid="c1000000-0000-0000-0000-000000000008"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false"/>
 				</textElement>
 				<text><![CDATA[C E L E B R A T I N G]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="102" y="305" width="390" height="38" forecolor="#FFFFFF" uuid="c1000000-0000-0000-0000-000000000009"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="22" isBold="false" isItalic="true" pdfFontName="Times-BoldItalic"/>
+					<font fontName="Playfair Display" size="22" isBold="false" isItalic="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{event_name}]]></textFieldExpression>
 			</textField>
@@ -90,21 +90,21 @@
 			<staticText>
 				<reportElement x="102" y="360" width="390" height="14" forecolor="#C5A367" uuid="c2000000-0000-0000-0000-000000000002"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false" />
 				</textElement>
 				<text><![CDATA[E V E N T   D A T E]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="102" y="380" width="390" height="26" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000003"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="14" isBold="false" pdfFontName="Times-Roman"/>
+					<font fontName="Playfair Display" size="14" isBold="false" />
 				</textElement>
 				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("EEEE, d MMMM yyyy").format($F{dte_event_date})]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="102" y="488" width="390" height="22" forecolor="#FFFFFF" uuid="c2000000-0000-0000-0000-000000000004"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="11" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="11" isBold="true" />
 				</textElement>
 				<text><![CDATA[Y O U R   E V E N T   P R O P O S A L]]></text>
 			</staticText>
@@ -147,35 +147,35 @@
 			<staticText>
 				<reportElement x="40" y="560" width="100" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000002"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false" />
 				</textElement>
 				<text><![CDATA[01 Summary]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="155" y="560" width="110" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000003"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false" />
 				</textElement>
 				<text><![CDATA[02 Event Details]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="270" y="560" width="110" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000004"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false"/>
 				</textElement>
 				<text><![CDATA[03 Menu Choices]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="385" y="560" width="110" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000005"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false" />
 				</textElement>
 				<text><![CDATA[04 Service]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="500" y="560" width="80" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000006"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false"/>
 				</textElement>
 				<text><![CDATA[05 Décor & Extras]]></text>
 			</staticText>
@@ -188,21 +188,21 @@
 			<staticText>
 				<reportElement x="40" y="800" width="515" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000008"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false"  />
 				</textElement>
 				<text><![CDATA[T: 01355 574 852   ·   E: INFO@DIAMONDEVENTS.UK   ·   18 Milton Road, East Kilbride, Glasgow, G74 5BU]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="40" y="821" width="515" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000009"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="40" y="610" width="100" height="14" forecolor="#C5A367" uuid="821f6837-39a1-4266-8fe3-af788a89169b"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7" isBold="false"  />
 				</textElement>
 				<text><![CDATA[06 Financials]]></text>
 			</staticText>
