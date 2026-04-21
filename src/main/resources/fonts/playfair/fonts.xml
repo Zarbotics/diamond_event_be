@@ -2,7 +2,7 @@
 <fontFamilies xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:noNamespaceSchemaLocation="fonts.xsd">
 
-    <fontFamily name="Playfair">
+    <fontFamily name="Playfair Display">
 
         <!-- Regular -->
         <normal><![CDATA[fonts/playfair/PlayfairDisplay-Regular.ttf]]></normal>
