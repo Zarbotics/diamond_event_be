@@ -282,7 +282,13 @@
 				<reportElement x="0" y="4" width="80" height="80"
 					uuid="c6000000-0000-0000-0000-000000000043"/>
 				<imageExpression><![CDATA[($F{value_image_path} != null && !$F{value_image_path}.trim().isEmpty())
-					? new java.net.URL($F{value_image_path})
+					?  new java.net.URL(
+						$F{value_image_path}.substring(0, $F{value_image_path}.lastIndexOf("/") + 1) +
+						java.net.URLEncoder.encode(
+							$F{value_image_path}.substring($F{value_image_path}.lastIndexOf("/") + 1),
+							"UTF-8"
+						).replace("+", "%20")
+					)
 					: null]]></imageExpression>
 			</image>
 			<rectangle>
