@@ -2461,6 +2461,25 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							ex.getMessage(), ex);
 					dto.setVendorMasterSelections(new ArrayList<>());
 				}
+				
+				// 5) Budget / quoted price and status
+				try {
+					EventBudget eventBudget = serviceEventBudget.getEventBudgetByEventId(event.getSerEventMasterId());
+					if (eventBudget != null) {
+						DtoEventQuoteAndStatus quote = new DtoEventQuoteAndStatus();
+						quote.setNumQuotedPrice(eventBudget.getNumQuotedPrice());
+						quote.setNumPaidAmount(eventBudget.getNumPaidAmount());
+						quote.setTxtStatus(eventBudget.getTxtStatus());
+						quote.setNumDiscount(eventBudget.getNumDiscount());
+						quote.setNumDecorAmount(eventBudget.getNumDecorAmount());
+						quote.setNumFoodAmount(eventBudget.getNumFoodAmount());
+						quote.setNumServicesAmount(eventBudget.getNumServicesAmount());
+						dto.setDtoEventQuoteAndStatus(quote);
+					}
+				} catch (Exception ex) {
+					LOGGER.debug("Failed to fetch budget for event {}: {}", event.getSerEventMasterId(), ex.getMessage(),
+							ex);
+				}
 
 				return dto;
 
@@ -4243,6 +4262,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					quote.setNumPaidAmount(eventBudget.getNumPaidAmount());
 					quote.setTxtStatus(eventBudget.getTxtStatus());
 					quote.setNumDiscount(eventBudget.getNumDiscount());
+					quote.setNumDecorAmount(eventBudget.getNumDecorAmount());
+					quote.setNumFoodAmount(eventBudget.getNumFoodAmount());
+					quote.setNumServicesAmount(eventBudget.getNumServicesAmount());
 					dtoEvent.setDtoEventQuoteAndStatus(quote);
 				}
 			} catch (Exception ex) {

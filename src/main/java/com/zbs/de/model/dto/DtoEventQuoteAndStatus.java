@@ -2,6 +2,7 @@ package com.zbs.de.model.dto;
 
 import java.math.BigDecimal;
 
+
 public class DtoEventQuoteAndStatus {
 
 	private BigDecimal numQuotedPrice;
@@ -9,6 +10,9 @@ public class DtoEventQuoteAndStatus {
 	private BigDecimal numPendingAmount;
 	private BigDecimal numDiscount;
 	private String txtStatus;
+	private BigDecimal numFoodAmount;
+	private BigDecimal numServicesAmount;
+	private BigDecimal numDecorAmount;
 
 	public BigDecimal getNumQuotedPrice() {
 		return numQuotedPrice;
@@ -48,6 +52,30 @@ public class DtoEventQuoteAndStatus {
 
 	public void setNumDiscount(BigDecimal numDiscount) {
 		this.numDiscount = numDiscount;
+	}
+
+	public BigDecimal getNumFoodAmount() {
+		return numFoodAmount;
+	}
+
+	public void setNumFoodAmount(BigDecimal numFoodAmount) {
+		this.numFoodAmount = numFoodAmount;
+	}
+
+	public BigDecimal getNumServicesAmount() {
+		return numServicesAmount;
+	}
+
+	public void setNumServicesAmount(BigDecimal numServicesAmount) {
+		this.numServicesAmount = numServicesAmount;
+	}
+
+	public BigDecimal getNumDecorAmount() {
+		return numDecorAmount;
+	}
+
+	public void setNumDecorAmount(BigDecimal numDecorAmount) {
+		this.numDecorAmount = numDecorAmount;
 	}
 	
 
