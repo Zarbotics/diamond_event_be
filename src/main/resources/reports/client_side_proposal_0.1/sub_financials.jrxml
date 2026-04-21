@@ -83,7 +83,7 @@
 					forecolor="#1E1608"
 					uuid="c7000000-0000-0000-0000-000000000005"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Playfair Display" size="76" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="76" isBold="true"  />
 				</textElement>
 				<text><![CDATA[06]]></text>
 			</staticText>
@@ -100,7 +100,7 @@
 					forecolor="#C5A367"
 					uuid="c7000000-0000-0000-0000-000000000007"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="22" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="22" isBold="false"  />
 				</textElement>
 				<text><![CDATA[FINANCIAL SUMMARY]]></text>
 			</staticText>
@@ -119,7 +119,7 @@
 					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="8.5" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="8.5"  />
 				</textElement>
 				<text><![CDATA[A clear and transparent breakdown of the total investment associated with every element of your bespoke celebration — complete clarity and peace of mind, every step of the way.]]></text>
 			</staticText>
@@ -144,7 +144,7 @@
 					forecolor="#0C0C0C"
 					uuid="c7000000-0000-0000-0000-000000000011"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7.5" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="7.5" isBold="true"  />
 				</textElement>
 				<text><![CDATA[DESCRIPTION]]></text>
 			</staticText>
@@ -153,7 +153,7 @@
 					forecolor="#0C0C0C"
 					uuid="c7000000-0000-0000-0000-000000000012"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7.5" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="7.5" isBold="true"  />
 				</textElement>
 				<text><![CDATA[AMOUNT]]></text>
 			</staticText>
@@ -176,7 +176,7 @@
 					<printWhenExpression><![CDATA[$F{food_amount} != null && $F{food_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<text><![CDATA[Menu]]></text>
 			</staticText>
@@ -187,7 +187,7 @@
 					<printWhenExpression><![CDATA[$F{food_amount} != null && $F{food_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{food_amount})]]></textFieldExpression>
 			</textField>
@@ -218,7 +218,7 @@
 					<printWhenExpression><![CDATA[$F{services_amount} != null && $F{services_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<text><![CDATA[Services]]></text>
 			</staticText>
@@ -229,7 +229,7 @@
 					<printWhenExpression><![CDATA[$F{services_amount} != null && $F{services_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{services_amount})]]></textFieldExpression>
 			</textField>
@@ -260,7 +260,7 @@
 					<printWhenExpression><![CDATA[$F{decor_amount} != null && $F{decor_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<text><![CDATA[Décor]]></text>
 			</staticText>
@@ -271,7 +271,7 @@
 					<printWhenExpression><![CDATA[$F{decor_amount} != null && $F{decor_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{decor_amount})]]></textFieldExpression>
 			</textField>
@@ -298,7 +298,7 @@
 					forecolor="#C5A367"
 					uuid="c7000000-0000-0000-0000-000000000041"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="9" isBold="true"  />
 				</textElement>
 				<text><![CDATA[TOTAL]]></text>
 			</staticText>
@@ -307,7 +307,7 @@
 					forecolor="#C5A367"
 					uuid="c7000000-0000-0000-0000-000000000042"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="11" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="11" isBold="true"  />
 				</textElement>
 				<textFieldExpression><![CDATA[$F{quoted_price} != null
 					? "£ " + new java.text.DecimalFormat("#,##0.00").format($F{quoted_price})
@@ -322,7 +322,7 @@
 					forecolor="#C5A367"
 					uuid="c7000000-0000-0000-0000-000000000050"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7.5" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="7.5" isBold="true"  />
 				</textElement>
 				<text><![CDATA[PAYMENT TERMS]]></text>
 			</staticText>
@@ -348,7 +348,7 @@
 					forecolor="#C5A367"
 					uuid="c7000000-0000-0000-0000-000000000053"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="8" isBold="true"  />
 				</textElement>
 				<text><![CDATA[Deposit to Secure]]></text>
 			</staticText>
@@ -357,7 +357,7 @@
 					forecolor="#AAAAAA"
 					uuid="c7000000-0000-0000-0000-000000000054"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7.5" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7.5"  />
 				</textElement>
 				<text><![CDATA[£1,000 non-refundable deposit required to confirm your booking. Quote valid for 14 days.]]></text>
 			</staticText>
@@ -376,7 +376,7 @@
 					forecolor="#C5A367"
 					uuid="c7000000-0000-0000-0000-000000000056"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="8" isBold="true"  />
 				</textElement>
 				<text><![CDATA[Remaining Balance]]></text>
 			</staticText>
@@ -385,7 +385,7 @@
 					forecolor="#AAAAAA"
 					uuid="c7000000-0000-0000-0000-000000000057"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7.5" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7.5"  />
 				</textElement>
 				<text><![CDATA[Full balance payable 4 weeks before your event date. No credit or monthly payment plans.]]></text>
 			</staticText>
@@ -404,7 +404,7 @@
 					forecolor="#C5A367"
 					uuid="c7000000-0000-0000-0000-000000000061"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					<font fontName="Inter" size="7" isBold="true"  />
 				</textElement>
 				<text><![CDATA[BANK DETAILS — Diamond Shaadi Glasgow Limited]]></text>
 			</staticText>
@@ -413,7 +413,7 @@
 					forecolor="#CCCCCC"
 					uuid="c7000000-0000-0000-0000-000000000062"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="8.5" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="8.5"  />
 				</textElement>
 				<text><![CDATA[Sort Code: 83 16 15   ·   Account Number: 10206266]]></text>
 			</staticText>
@@ -426,7 +426,7 @@
 					forecolor="#C5A367"
 					uuid="c7000000-0000-0000-0000-000000000070"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<text><![CDATA[▲]]></text>
 			</staticText>
@@ -435,7 +435,7 @@
 					forecolor="#888888"
 					uuid="c7000000-0000-0000-0000-000000000071"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7.5" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7.5"  />
 				</textElement>
 				<text><![CDATA[Your quote is valid for 14 days. If a deposit is not received within this period, Diamond Events is not obliged to honour the original quote.]]></text>
 			</staticText>
@@ -444,7 +444,7 @@
 					forecolor="#888888"
 					uuid="c7000000-0000-0000-0000-000000000072"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7.5" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7.5"  />
 				</textElement>
 				<text><![CDATA[All changes must be submitted by email to info@diamondevents.uk no later than 4 weeks before your event.]]></text>
 			</staticText>
@@ -465,7 +465,7 @@
 					forecolor="#C5A367"
 					uuid="c7000000-0000-0000-0000-000000000080"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="7" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="7" isBold="true"  />
 				</textElement>
 				<text><![CDATA[DIAMOND EVENTS]]></text>
 			</staticText>
@@ -474,7 +474,7 @@
 					forecolor="#E0C590"
 					uuid="c7000000-0000-0000-0000-000000000081"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7"  />
 				</textElement>
 				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
 			</staticText>
@@ -500,7 +500,7 @@
 					forecolor="#555555"
 					uuid="c7000000-0000-0000-0000-000000000091"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<text><![CDATA[No financial data available for this event.]]></text>
 			</staticText>

@@ -123,7 +123,7 @@
 						forecolor="#C5A367"
 						uuid="c6000000-0000-0000-0000-000000000012"/>
 					<textElement verticalAlignment="Middle">
-						<font fontName="Inter" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+						<font fontName="Inter" size="8" isBold="true" />
 					</textElement>
 					<textFieldExpression><![CDATA[($F{category_name} != null) ? $F{category_name}.toUpperCase() : ""]]></textFieldExpression>
 				</textField>
@@ -134,7 +134,7 @@
 						<printWhenExpression><![CDATA[$F{category_price} != null && $F{category_price}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 					</reportElement>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font fontName="Inter" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+						<font fontName="Inter" size="8" isBold="true"   />
 					</textElement>
 					<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{category_price})]]></textFieldExpression>
 				</textField>
@@ -156,7 +156,7 @@
 						forecolor="#C5A367"
 						uuid="c6000000-0000-0000-0000-000000000030"/>
 					<textElement verticalAlignment="Middle">
-						<font fontName="Inter" size="7" isBold="true" isItalic="true" pdfFontName="Helvetica"/>
+						<font fontName="Inter" size="7" isBold="true" isItalic="true"  />
 					</textElement>
 					<textFieldExpression><![CDATA[$F{property_name} + ":"]]></textFieldExpression>
 				</textField>
@@ -206,7 +206,7 @@
 					forecolor="#1E1608"
 					uuid="c6000000-0000-0000-0000-000000000005"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Playfair Display" size="76" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
 				<text><![CDATA[05]]></text>
 			</staticText>
@@ -221,7 +221,7 @@
 					forecolor="#C5A367"
 					uuid="c6000000-0000-0000-0000-000000000007"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="22" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="22" isBold="false"  />
 				</textElement>
 				<text><![CDATA[DÉCOR & EXTRAS]]></text>
 			</staticText>
@@ -238,7 +238,7 @@
 					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="8.5" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="8.5"  />
 				</textElement>
 				<text><![CDATA[The finishing touches that elevate your celebration from beautiful to truly extraordinary — bespoke enhancements, floral installations, and personal details that make all the difference.]]></text>
 			</staticText>
@@ -260,7 +260,7 @@
 					forecolor="#C5A367"
 					uuid="c6000000-0000-0000-0000-000000000041"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="8" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="8"  />
 				</textElement>
 				<text><![CDATA[•]]></text>
 			</staticText>
@@ -269,7 +269,7 @@
 					forecolor="#DDDDDD"
 					uuid="c6000000-0000-0000-0000-000000000042"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="8.5" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="8.5"  />
 				</textElement>
 				<textFieldExpression><![CDATA[($F{value_text} != null && !$F{value_text}.trim().isEmpty()) ? $F{value_text} : ""]]></textFieldExpression>
 			</textField>
@@ -296,7 +296,7 @@
 					forecolor="#888888"
 					uuid="c6000000-0000-0000-0000-000000000045"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="6.5" isItalic="true" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="6.5" isItalic="true"  />
 				</textElement>
 				<textFieldExpression><![CDATA[($F{value_image_path} != null && $F{value_image_path}.contains("/"))
 					? $F{value_image_path}.substring($F{value_image_path}.lastIndexOf("/") + 1)
@@ -318,7 +318,7 @@
 					forecolor="#C5A367"
 					uuid="c6000000-0000-0000-0000-000000000060"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="7" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[DIAMOND EVENTS]]></text>
 			</staticText>
@@ -327,7 +327,7 @@
 					forecolor="#E0C590"
 					uuid="c6000000-0000-0000-0000-000000000061"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7"  />
 				</textElement>
 				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
 			</staticText>
@@ -364,7 +364,7 @@
 					forecolor="#555555"
 					uuid="c6000000-0000-0000-0000-000000000072"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<text><![CDATA[No décor or extras have been selected for this event.]]></text>
 			</staticText>

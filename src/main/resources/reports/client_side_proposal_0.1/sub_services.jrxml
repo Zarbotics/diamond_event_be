@@ -74,7 +74,7 @@
 						forecolor="#C5A367"
 						uuid="c5000000-0000-0000-0000-000000000012"/>
 					<textElement verticalAlignment="Middle">
-						<font fontName="Inter" size="7.5" isBold="true" pdfFontName="Helvetica-Bold"/>
+						<font fontName="Inter" size="7.5" isBold="true"  />
 					</textElement>
 					<textFieldExpression><![CDATA[($F{service_name} != null) ? $F{service_name}.toUpperCase() : ""]]></textFieldExpression>
 				</textField>
@@ -86,7 +86,7 @@
 						<printWhenExpression><![CDATA[$F{service_price} != null && $F{service_price}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 					</reportElement>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font fontName="Inter" size="7.5" isBold="true" pdfFontName="Helvetica-Bold"/>
+						<font fontName="Inter" size="7.5" isBold="true"  />
 					</textElement>
 					<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{service_price})]]></textFieldExpression>
 				</textField>
@@ -144,7 +144,7 @@
 					forecolor="#1E1608"
 					uuid="c5000000-0000-0000-0000-000000000005"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Playfair Display" size="76" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
 				<text><![CDATA[04]]></text>
 			</staticText>
@@ -161,7 +161,7 @@
 					forecolor="#C5A367"
 					uuid="c5000000-0000-0000-0000-000000000007"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="22" isBold="false" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="22" isBold="false"  />
 				</textElement>
 				<text><![CDATA[SERVICES]]></text>
 			</staticText>
@@ -180,7 +180,7 @@
 					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="8.5" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="8.5"  />
 				</textElement>
 				<text><![CDATA[The professional services selected to ensure your event runs seamlessly from start to finish.]]></text>
 			</staticText>
@@ -204,7 +204,7 @@
 					<printWhenExpression><![CDATA[$F{option_name} != null && !$F{option_name}.trim().isEmpty()]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<text><![CDATA[•]]></text>
 			</staticText>
@@ -216,7 +216,7 @@
 					<printWhenExpression><![CDATA[$F{option_name} != null && !$F{option_name}.trim().isEmpty()]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<textFieldExpression><![CDATA[$F{option_name}]]></textFieldExpression>
 			</textField>
@@ -236,7 +236,7 @@
 					forecolor="#C5A367"
 					uuid="c5000000-0000-0000-0000-000000000020"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="7" isBold="true" pdfFontName="Times-Bold"/>
+					<font fontName="Playfair Display" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[DIAMOND EVENTS]]></text>
 			</staticText>
@@ -245,7 +245,7 @@
 					forecolor="#E0C590"
 					uuid="c5000000-0000-0000-0000-000000000021"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="7"  />
 				</textElement>
 				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
 			</staticText>
@@ -282,7 +282,7 @@
 					forecolor="#555555"
 					uuid="c5000000-0000-0000-0000-000000000032"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="9" pdfFontName="Helvetica"/>
+					<font fontName="Inter" size="9"  />
 				</textElement>
 				<text><![CDATA[No services have been selected for this event.]]></text>
 			</staticText>
