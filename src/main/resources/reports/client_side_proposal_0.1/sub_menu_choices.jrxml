@@ -65,7 +65,7 @@
 				<textField isBlankWhenNull="true">
 					<reportElement x="12" y="4" width="370" height="26" forecolor="#C5A367" uuid="c4000000-0000-0000-0000-000000000012"/>
 					<textElement verticalAlignment="Middle">
-						<font fontName="Inter" size="7.5" isBold="true"  />
+						<font fontName="Inter" size="7.5" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[($F{category_name} != null) ? $F{category_name}.toUpperCase() : ""]]></textFieldExpression>
 				</textField>
@@ -74,7 +74,7 @@
 						<printWhenExpression><![CDATA[$F{category_price} != null && $F{category_price}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 					</reportElement>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font fontName="Inter" size="7.5" isBold="true"  />
+						<font fontName="Inter" size="7.5" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{category_price})]]></textFieldExpression>
 				</textField>
@@ -91,7 +91,7 @@
 				<textField isBlankWhenNull="true">
 					<reportElement x="8" y="4" width="370" height="14" forecolor="#999999" uuid="c4000000-0000-0000-0000-000000000041"/>
 					<textElement verticalAlignment="Middle">
-						<font fontName="Inter" size="7" isBold="false"  />
+						<font fontName="Inter" size="7" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[($F{subcategory_name} != null && !$F{subcategory_name}.trim().isEmpty()) ? $F{subcategory_name} : ""]]></textFieldExpression>
 				</textField>
@@ -100,14 +100,14 @@
 						<printWhenExpression><![CDATA[$F{subcategory_price} != null && $F{subcategory_price}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 					</reportElement>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font fontName="Inter" size="7" isBold="false"  />
+						<font fontName="Inter" size="7" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{subcategory_price})]]></textFieldExpression>
 				</textField>
 			</band>
 		</groupHeader>
 		<groupFooter>
-			<band height="0"/>
+			<band/>
 		</groupFooter>
 	</group>
 	<background>
@@ -144,7 +144,7 @@
 			<staticText>
 				<reportElement x="0" y="5" width="124" height="90" forecolor="#1E1608" uuid="c4000000-0000-0000-0000-000000000005"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Playfair Display" size="76" isBold="true" />
+					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
 				<text><![CDATA[03]]></text>
 			</staticText>
@@ -157,7 +157,7 @@
 			<staticText>
 				<reportElement x="26" y="51" width="400" height="30" forecolor="#C5A367" uuid="c4000000-0000-0000-0000-000000000007"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="22" isBold="false"  />
+					<font fontName="Inter" size="22" isBold="false"/>
 				</textElement>
 				<text><![CDATA[MENU CHOICES]]></text>
 			</staticText>
@@ -168,11 +168,9 @@
 				</graphicElement>
 			</line>
 			<staticText>
-				<reportElement x="0" y="112" width="523" height="36" forecolor="#BFBFBF" uuid="c4000000-0000-0000-0000-000000000097">
-					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
-				</reportElement>
+				<reportElement x="0" y="112" width="523" height="36" forecolor="#BFBFBF" uuid="c4000000-0000-0000-0000-000000000097"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="8.5"  />
+					<font fontName="Inter" size="8.5"/>
 				</textElement>
 				<text><![CDATA[Your carefully curated selection from our finest culinary offerings — crafted from premium ingredients and presented with elegance.]]></text>
 			</staticText>
@@ -189,49 +187,19 @@
 			<staticText>
 				<reportElement x="8" y="6" width="12" height="14" forecolor="#C5A367" uuid="c4000000-0000-0000-0000-000000000026"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<text><![CDATA[•]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="22" y="6" width="501" height="14" forecolor="#CCCCCC" uuid="c4000000-0000-0000-0000-000000000027"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{item_name} != null && !$F{item_name}.trim().isEmpty()) ? $F{item_name} : ""]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
-	<pageFooter>
-		<band height="47" splitType="Prevent">
-			<line>
-				<reportElement x="-36" y="0" width="595" height="1" forecolor="#C5A367" uuid="c4000000-0000-0000-0000-000000000009"/>
-				<graphicElement>
-					<pen lineWidth="0.5" lineColor="#C5A367"/>
-				</graphicElement>
-			</line>
-			<staticText>
-				<reportElement x="0" y="13" width="150" height="14" forecolor="#C5A367" uuid="c4000000-0000-0000-0000-000000000020"/>
-				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="7" isBold="true"/>
-				</textElement>
-				<text><![CDATA[DIAMOND EVENTS]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="373" y="13" width="150" height="14" forecolor="#E0C590" uuid="c4000000-0000-0000-0000-000000000021"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7"  />
-				</textElement>
-				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
-			</staticText>
-			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="41" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c4000000-0000-0000-0000-000000000022"/>
-				<graphicElement>
-					<pen lineWidth="0.0"/>
-				</graphicElement>
-			</rectangle>
-		</band>
-	</pageFooter>
 	<summary>
 		<band height="80" splitType="Prevent">
 			<rectangle>
@@ -243,14 +211,14 @@
 			<staticText>
 				<reportElement x="0" y="14" width="14" height="14" forecolor="#C5A367" uuid="c4000000-0000-0000-0000-000000000029"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<text><![CDATA[+]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="18" y="14" width="505" height="14" forecolor="#C5A367" uuid="c4000000-0000-0000-0000-000000000030"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7.5"  />
+					<font fontName="Inter" size="7.5"/>
 				</textElement>
 				<text><![CDATA[Prices are not displayed in this section. A full financial summary is provided in Section 05.]]></text>
 			</staticText>
@@ -267,7 +235,7 @@
 			<staticText>
 				<reportElement x="0" y="20" width="523" height="20" forecolor="#555555" uuid="c4000000-0000-0000-0000-000000000032"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<text><![CDATA[No menu selections have been made for this event.]]></text>
 			</staticText>
