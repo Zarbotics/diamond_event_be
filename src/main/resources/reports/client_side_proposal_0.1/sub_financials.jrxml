@@ -1,28 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Diamond Events - Financial Summary Sub-Report (Section 06) -->
-<!-- JasperReports 6.11.0 | Jaspersoft Studio 6.11.0 -->
-<jasperReport
-	xmlns="http://jasperreports.sourceforge.net/jasperreports"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-	name="sub_financials"
-	pageWidth="595" pageHeight="842"
-	columnWidth="523" leftMargin="36" rightMargin="36"
-	topMargin="0" bottomMargin="0"
-	uuid="c7000000-0000-0000-0000-000000000001">
-
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_financials" pageWidth="595" pageHeight="842" columnWidth="523" leftMargin="36" rightMargin="36" topMargin="0" bottomMargin="0" uuid="c7000000-0000-0000-0000-000000000001">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit.height" value="px"/>
 	<property name="com.jaspersoft.studio.unit.width" value="px"/>
-
 	<parameter name="P_EVENT_MASTER_ID" class="java.lang.Integer">
 		<defaultValueExpression><![CDATA[97]]></defaultValueExpression>
 	</parameter>
-
 	<queryString language="SQL">
-		<![CDATA[
-		SELECT
+		<![CDATA[SELECT
 			eb.num_food_amount      AS food_amount,
 			eb.num_services_amount  AS services_amount,
 			eb.num_decor_amount     AS decor_amount,
@@ -30,481 +17,395 @@
 			eb.num_paid_amount      AS paid_amount,
 			eb.num_discount         AS discount
 		FROM event_budget eb
-		WHERE eb.ser_event_master_id = $P{P_EVENT_MASTER_ID}
-		]]>
+		WHERE eb.ser_event_master_id = $P{P_EVENT_MASTER_ID}]]>
 	</queryString>
-
-	<field name="food_amount"     class="java.math.BigDecimal"/>
+	<field name="food_amount" class="java.math.BigDecimal"/>
 	<field name="services_amount" class="java.math.BigDecimal"/>
-	<field name="decor_amount"    class="java.math.BigDecimal"/>
-	<field name="quoted_price"    class="java.math.BigDecimal"/>
-	<field name="paid_amount"     class="java.math.BigDecimal"/>
-	<field name="discount"        class="java.math.BigDecimal"/>
-
+	<field name="decor_amount" class="java.math.BigDecimal"/>
+	<field name="quoted_price" class="java.math.BigDecimal"/>
+	<field name="paid_amount" class="java.math.BigDecimal"/>
+	<field name="discount" class="java.math.BigDecimal"/>
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842"
-					forecolor="#0C0C0C" backcolor="#0C0C0C"
-					uuid="c7000000-0000-0000-0000-000000000002"/>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000002"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
 		</band>
 	</background>
-
-	<!-- Title: break forces new page start -->
 	<title>
 		<band height="1" splitType="Prevent">
 			<break>
-				<reportElement x="0" y="0" width="1" height="1"
-					uuid="c7000000-0000-0000-0000-000000000099"/>
+				<reportElement x="0" y="0" width="1" height="1" uuid="c7000000-0000-0000-0000-000000000099"/>
 			</break>
 		</band>
 	</title>
-
-	<!-- Page header: section header repeats on every page -->
 	<pageHeader>
 		<band height="155" splitType="Prevent">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115"
-					forecolor="#0C0C0C" backcolor="#0C0C0C"
-					uuid="c7000000-0000-0000-0000-000000000003"/>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000003"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="6"
-					forecolor="#C5A367" backcolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000004"/>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000004"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
-			<!-- "06" ghost number -->
 			<staticText>
-				<reportElement x="0" y="5" width="124" height="90"
-					forecolor="#1E1608"
-					uuid="c7000000-0000-0000-0000-000000000005"/>
+				<reportElement x="0" y="5" width="124" height="90" forecolor="#1E1608" uuid="c7000000-0000-0000-0000-000000000005"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Playfair Display" size="76" isBold="true"  />
+					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
 				<text><![CDATA[06]]></text>
 			</staticText>
-			<!-- Gold accent bar -->
 			<rectangle>
-				<reportElement mode="Opaque" x="13" y="45" width="4" height="45"
-					forecolor="#C5A367" backcolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000006"/>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<reportElement mode="Opaque" x="13" y="45" width="4" height="45" forecolor="#C5A367" backcolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000006"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
-			<!-- FINANCIAL SUMMARY title -->
 			<staticText>
-				<reportElement x="26" y="51" width="460" height="30"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000007"/>
+				<reportElement x="26" y="51" width="460" height="30" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000007"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="22" isBold="false"  />
+					<font fontName="Inter" size="22" isBold="false"/>
 				</textElement>
 				<text><![CDATA[FINANCIAL SUMMARY]]></text>
 			</staticText>
-			<!-- Gold hairline -->
 			<line>
-				<reportElement x="0" y="102" width="523" height="1"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000008"/>
-				<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
+				<reportElement x="0" y="102" width="523" height="1" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000008"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
 			</line>
-			<!-- Intro paragraph — only on first page -->
 			<staticText>
-				<reportElement x="0" y="112" width="523" height="36"
-					forecolor="#BFBFBF"
-					uuid="c7000000-0000-0000-0000-000000000097">
+				<reportElement x="0" y="112" width="523" height="36" forecolor="#BFBFBF" uuid="c7000000-0000-0000-0000-000000000097">
 					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="8.5"  />
+					<font fontName="Inter" size="8.5"/>
 				</textElement>
 				<text><![CDATA[A clear and transparent breakdown of the total investment associated with every element of your bespoke celebration — complete clarity and peace of mind, every step of the way.]]></text>
 			</staticText>
 		</band>
 	</pageHeader>
-
-	<!-- ── DETAIL: all content in a single detail band ────────────────── -->
 	<detail>
-		<band height="560" splitType="Prevent">
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- TABLE HEADER ROW: DESCRIPTION / AMOUNT                     -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
+		<band height="580" splitType="Prevent">
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="0" width="523" height="28"
-					forecolor="#C5A367" backcolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000010"/>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<reportElement mode="Opaque" x="0" y="0" width="523" height="28" forecolor="#C5A367" backcolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000010"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="0" width="300" height="28"
-					forecolor="#0C0C0C"
-					uuid="c7000000-0000-0000-0000-000000000011"/>
+				<reportElement x="12" y="0" width="300" height="28" forecolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000011"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7.5" isBold="true"  />
+					<font fontName="Inter" size="7.5" isBold="true"/>
 				</textElement>
 				<text><![CDATA[DESCRIPTION]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="400" y="0" width="110" height="28"
-					forecolor="#0C0C0C"
-					uuid="c7000000-0000-0000-0000-000000000012"/>
+				<reportElement x="400" y="0" width="110" height="28" forecolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000012"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7.5" isBold="true"  />
+					<font fontName="Inter" size="7.5" isBold="true"/>
 				</textElement>
 				<text><![CDATA[AMOUNT]]></text>
 			</staticText>
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- ROW 1: Menu                                                 -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="28" width="523" height="36"
-					forecolor="#1A1A0A" backcolor="#1A1A0A"
-					uuid="c7000000-0000-0000-0000-000000000013">
+				<reportElement mode="Opaque" x="0" y="28" width="523" height="36" forecolor="#1A1A0A" backcolor="#1A1A0A" uuid="c7000000-0000-0000-0000-000000000013">
 					<printWhenExpression><![CDATA[$F{food_amount} != null && $F{food_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="28" width="300" height="36"
-					forecolor="#CCCCCC"
-					uuid="c7000000-0000-0000-0000-000000000014">
+				<reportElement x="12" y="28" width="300" height="36" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000014">
 					<printWhenExpression><![CDATA[$F{food_amount} != null && $F{food_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<text><![CDATA[Menu]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="400" y="28" width="110" height="36"
-					forecolor="#CCCCCC"
-					uuid="c7000000-0000-0000-0000-000000000015">
+				<reportElement x="400" y="28" width="110" height="36" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000015">
 					<printWhenExpression><![CDATA[$F{food_amount} != null && $F{food_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{food_amount})]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="0" y="63" width="523" height="1"
-					forecolor="#2A2A1A"
-					uuid="c7000000-0000-0000-0000-000000000016">
+				<reportElement x="0" y="63" width="523" height="1" forecolor="#2A2A1A" uuid="c7000000-0000-0000-0000-000000000016">
 					<printWhenExpression><![CDATA[$F{food_amount} != null && $F{food_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
-				<graphicElement><pen lineWidth="0.5"/></graphicElement>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
 			</line>
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- ROW 2: Services                                             -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="64" width="523" height="36"
-					forecolor="#141408" backcolor="#141408"
-					uuid="c7000000-0000-0000-0000-000000000020">
+				<reportElement mode="Opaque" x="0" y="64" width="523" height="36" forecolor="#141408" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000020">
 					<printWhenExpression><![CDATA[$F{services_amount} != null && $F{services_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="64" width="300" height="36"
-					forecolor="#CCCCCC"
-					uuid="c7000000-0000-0000-0000-000000000021">
+				<reportElement x="12" y="64" width="300" height="36" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000021">
 					<printWhenExpression><![CDATA[$F{services_amount} != null && $F{services_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<text><![CDATA[Services]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="400" y="64" width="110" height="36"
-					forecolor="#CCCCCC"
-					uuid="c7000000-0000-0000-0000-000000000022">
+				<reportElement x="400" y="64" width="110" height="36" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000022">
 					<printWhenExpression><![CDATA[$F{services_amount} != null && $F{services_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{services_amount})]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="0" y="99" width="523" height="1"
-					forecolor="#2A2A1A"
-					uuid="c7000000-0000-0000-0000-000000000023">
+				<reportElement x="0" y="99" width="523" height="1" forecolor="#2A2A1A" uuid="c7000000-0000-0000-0000-000000000023">
 					<printWhenExpression><![CDATA[$F{services_amount} != null && $F{services_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
-				<graphicElement><pen lineWidth="0.5"/></graphicElement>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
 			</line>
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- ROW 3: Decor                                                -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="100" width="523" height="36"
-					forecolor="#1A1A0A" backcolor="#1A1A0A"
-					uuid="c7000000-0000-0000-0000-000000000030">
+				<reportElement mode="Opaque" x="0" y="100" width="523" height="28" forecolor="#1A1A0A" backcolor="#1A1A0A" uuid="c7000000-0000-0000-0000-000000000030">
 					<printWhenExpression><![CDATA[$F{decor_amount} != null && $F{decor_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="100" width="300" height="36"
-					forecolor="#CCCCCC"
-					uuid="c7000000-0000-0000-0000-000000000031">
+				<reportElement x="12" y="100" width="300" height="28" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000031">
 					<printWhenExpression><![CDATA[$F{decor_amount} != null && $F{decor_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<text><![CDATA[Décor]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="400" y="100" width="110" height="36"
-					forecolor="#CCCCCC"
-					uuid="c7000000-0000-0000-0000-000000000032">
+				<reportElement x="400" y="100" width="110" height="28" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000032">
 					<printWhenExpression><![CDATA[$F{decor_amount} != null && $F{decor_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{decor_amount})]]></textFieldExpression>
 			</textField>
-			<line>
-				<reportElement x="0" y="135" width="523" height="1"
-					forecolor="#2A2A1A"
-					uuid="c7000000-0000-0000-0000-000000000033">
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="128" width="523" height="28" forecolor="#141408" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000034">
 					<printWhenExpression><![CDATA[$F{decor_amount} != null && $F{decor_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
 				</reportElement>
-				<graphicElement><pen lineWidth="0.5"/></graphicElement>
-			</line>
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- TOTAL ROW                                                    -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<rectangle>
-				<reportElement mode="Opaque" x="0" y="136" width="523" height="38"
-					forecolor="#C5A367" backcolor="#1A1A0A"
-					uuid="c7000000-0000-0000-0000-000000000040"/>
-				<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="136" width="300" height="38"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000041"/>
+				<reportElement x="22" y="128" width="300" height="28" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000035">
+					<printWhenExpression><![CDATA[$F{decor_amount} != null && $F{decor_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
+				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="true"  />
+					<font fontName="Inter" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[VAT @ 20%]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="400" y="128" width="110" height="28" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000036">
+					<printWhenExpression><![CDATA[$F{decor_amount} != null && $F{decor_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Inter" size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{decor_amount}.multiply(new java.math.BigDecimal("0.20")))]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="155" width="523" height="1" forecolor="#2A2A1A" uuid="c7000000-0000-0000-0000-000000000033">
+					<printWhenExpression><![CDATA[$F{decor_amount} != null && $F{decor_amount}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="156" width="523" height="38" forecolor="#C5A367" backcolor="#1A1A0A" uuid="c7000000-0000-0000-0000-000000000040"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="12" y="156" width="300" height="38" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000041"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[TOTAL]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="380" y="136" width="130" height="38"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000042"/>
+				<reportElement x="380" y="156" width="130" height="38" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000042"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="11" isBold="true"  />
+					<font fontName="Inter" size="11" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{quoted_price} != null
 					? "£ " + new java.text.DecimalFormat("#,##0.00").format($F{quoted_price})
 					: "£ —"]]></textFieldExpression>
 			</textField>
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- PAYMENT TERMS heading                                       -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
 			<staticText>
-				<reportElement x="0" y="196" width="300" height="14"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000050"/>
+				<reportElement x="0" y="216" width="300" height="14" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000050"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7.5" isBold="true"  />
+					<font fontName="Inter" size="7.5" isBold="true"/>
 				</textElement>
 				<text><![CDATA[PAYMENT TERMS]]></text>
 			</staticText>
-			<!-- Gold accent underline -->
 			<line>
-				<reportElement x="0" y="212" width="40" height="1"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000051"/>
-				<graphicElement><pen lineWidth="2.0" lineColor="#C5A367"/></graphicElement>
+				<reportElement x="0" y="232" width="40" height="1" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000051"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineColor="#C5A367"/>
+				</graphicElement>
 			</line>
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- LEFT BOX: Deposit to Secure                                 -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="222" width="253" height="80"
-					forecolor="#C5A367" backcolor="#141408"
-					uuid="c7000000-0000-0000-0000-000000000052"/>
-				<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
+				<reportElement mode="Opaque" x="0" y="242" width="253" height="80" forecolor="#C5A367" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000052"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="230" width="229" height="16"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000053"/>
+				<reportElement x="12" y="250" width="229" height="16" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000053"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="8" isBold="true"  />
+					<font fontName="Inter" size="8" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Deposit to Secure]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="12" y="250" width="229" height="46"
-					forecolor="#AAAAAA"
-					uuid="c7000000-0000-0000-0000-000000000054"/>
+				<reportElement x="12" y="270" width="229" height="46" forecolor="#AAAAAA" uuid="c7000000-0000-0000-0000-000000000054"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7.5"  />
+					<font fontName="Inter" size="7.5"/>
 				</textElement>
 				<text><![CDATA[£1,000 non-refundable deposit required to confirm your booking. Quote valid for 14 days.]]></text>
 			</staticText>
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- RIGHT BOX: Remaining Balance                                -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
 			<rectangle>
-				<reportElement mode="Opaque" x="270" y="222" width="253" height="80"
-					forecolor="#C5A367" backcolor="#141408"
-					uuid="c7000000-0000-0000-0000-000000000055"/>
-				<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
+				<reportElement mode="Opaque" x="270" y="242" width="253" height="80" forecolor="#C5A367" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000055"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="282" y="230" width="229" height="16"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000056"/>
+				<reportElement x="282" y="250" width="229" height="16" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000056"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="8" isBold="true"  />
+					<font fontName="Inter" size="8" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Remaining Balance]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="282" y="250" width="229" height="46"
-					forecolor="#AAAAAA"
-					uuid="c7000000-0000-0000-0000-000000000057"/>
+				<reportElement x="282" y="270" width="229" height="46" forecolor="#AAAAAA" uuid="c7000000-0000-0000-0000-000000000057"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7.5"  />
+					<font fontName="Inter" size="7.5"/>
 				</textElement>
 				<text><![CDATA[Full balance payable 4 weeks before your event date. No credit or monthly payment plans.]]></text>
 			</staticText>
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- BANK DETAILS BOX                                            -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="322" width="523" height="54"
-					forecolor="#C5A367" backcolor="#141408"
-					uuid="c7000000-0000-0000-0000-000000000060"/>
-				<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
+				<reportElement mode="Opaque" x="0" y="342" width="523" height="54" forecolor="#C5A367" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000060"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#C5A367"/>
+				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="330" width="499" height="14"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000061"/>
+				<reportElement x="12" y="350" width="499" height="14" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000061"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[BANK DETAILS — Diamond Shaadi Glasgow Limited]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="12" y="346" width="499" height="22"
-					forecolor="#CCCCCC"
-					uuid="c7000000-0000-0000-0000-000000000062"/>
+				<reportElement x="12" y="366" width="499" height="22" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000062"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="8.5"  />
+					<font fontName="Inter" size="8.5"/>
 				</textElement>
 				<text><![CDATA[Sort Code: 83 16 15   ·   Account Number: 10206266]]></text>
 			</staticText>
-
-			<!-- ═══════════════════════════════════════════════════════════ -->
-			<!-- FOOTER NOTES                                                 -->
-			<!-- ═══════════════════════════════════════════════════════════ -->
 			<staticText>
-				<reportElement x="0" y="396" width="14" height="28"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000070"/>
+				<reportElement x="0" y="416" width="14" height="28" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000070"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<text><![CDATA[▲]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="18" y="396" width="505" height="28"
-					forecolor="#888888"
-					uuid="c7000000-0000-0000-0000-000000000071"/>
+				<reportElement x="18" y="416" width="505" height="28" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000071"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7.5"  />
+					<font fontName="Inter" size="7.5"/>
 				</textElement>
 				<text><![CDATA[Your quote is valid for 14 days. If a deposit is not received within this period, Diamond Events is not obliged to honour the original quote.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="0" y="432" width="523" height="20"
-					forecolor="#888888"
-					uuid="c7000000-0000-0000-0000-000000000072"/>
+				<reportElement x="0" y="452" width="523" height="20" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000072"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7.5"  />
+					<font fontName="Inter" size="7.5"/>
 				</textElement>
 				<text><![CDATA[All changes must be submitted by email to info@diamondevents.uk no later than 4 weeks before your event.]]></text>
 			</staticText>
-
 		</band>
 	</detail>
-
 	<pageFooter>
 		<band height="47" splitType="Prevent">
 			<line>
-				<reportElement x="-36" y="0" width="595" height="1"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000009"/>
-				<graphicElement><pen lineWidth="0.5" lineColor="#C5A367"/></graphicElement>
+				<reportElement x="-36" y="0" width="595" height="1" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000009"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#C5A367"/>
+				</graphicElement>
 			</line>
 			<staticText>
-				<reportElement x="0" y="13" width="150" height="14"
-					forecolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000080"/>
+				<reportElement x="0" y="13" width="150" height="14" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000080"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="7" isBold="true"  />
+					<font fontName="Playfair Display" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[DIAMOND EVENTS]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="373" y="13" width="150" height="14"
-					forecolor="#E0C590"
-					uuid="c7000000-0000-0000-0000-000000000081"/>
+				<reportElement x="373" y="13" width="150" height="14" forecolor="#E0C590" uuid="c7000000-0000-0000-0000-000000000081"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7"  />
+					<font fontName="Inter" size="7"/>
 				</textElement>
 				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
 			</staticText>
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="41" width="595" height="6"
-					forecolor="#C5A367" backcolor="#C5A367"
-					uuid="c7000000-0000-0000-0000-000000000082"/>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<reportElement mode="Opaque" x="-36" y="41" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000082"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
 		</band>
 	</pageFooter>
-
 	<noData>
 		<band height="40">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40"
-					forecolor="#0C0C0C" backcolor="#0C0C0C"
-					uuid="c7000000-0000-0000-0000-000000000090"/>
-				<graphicElement><pen lineWidth="0.0"/></graphicElement>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000090"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="0" y="10" width="523" height="20"
-					forecolor="#555555"
-					uuid="c7000000-0000-0000-0000-000000000091"/>
+				<reportElement x="0" y="10" width="523" height="20" forecolor="#555555" uuid="c7000000-0000-0000-0000-000000000091"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<text><![CDATA[No financial data available for this event.]]></text>
 			</staticText>
 		</band>
 	</noData>
-
 </jasperReport>

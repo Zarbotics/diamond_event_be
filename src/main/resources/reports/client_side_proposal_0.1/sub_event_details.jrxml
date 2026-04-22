@@ -210,7 +210,7 @@
 			<staticText>
 				<reportElement x="13" y="5" width="124" height="90" forecolor="#1E1608" uuid="c3000000-0000-0000-0000-000000000004"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
-					<font fontName="Playfair Display" size="76" isBold="true"  />
+					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
 				<text><![CDATA[02]]></text>
 			</staticText>
@@ -225,7 +225,7 @@
 			<staticText>
 				<reportElement x="13" y="51" width="400" height="30" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000006"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="22" isBold="false"  />
+					<font fontName="Inter" size="22" isBold="false"/>
 				</textElement>
 				<text><![CDATA[EVENT DETAILS]]></text>
 			</staticText>
@@ -242,7 +242,7 @@
 			<staticText>
 				<reportElement x="0" y="8" width="200" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000012"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="8" isBold="true"  />
+					<font fontName="Inter" size="8" isBold="true"/>
 				</textElement>
 				<text><![CDATA[YOUR DETAILS]]></text>
 			</staticText>
@@ -257,14 +257,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000014"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[CLIENT NAME]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000015"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{client_name} != null && !$F{client_name}.trim().isEmpty()) ? $F{client_name} : ""]]></textFieldExpression>
 			</textField>
@@ -279,14 +279,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000017"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[CONTACT NUMBER]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000018"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{contact_no} != null && !$F{contact_no}.trim().isEmpty()) ? $F{contact_no} : ""]]></textFieldExpression>
 			</textField>
@@ -301,14 +301,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000020"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[EMAIL ADDRESS]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000021"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{email} != null && !$F{email}.trim().isEmpty()) ? $F{email} : ""]]></textFieldExpression>
 			</textField>
@@ -323,14 +323,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000023"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[CONTACT PERSON]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000024"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{contact_person_name} != null && !$F{contact_person_name}.trim().isEmpty()) ? $F{contact_person_name} : ""]]></textFieldExpression>
 			</textField>
@@ -345,14 +345,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000026"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[CONTACT PERSON PHONE]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000027"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{contact_person_phone} != null && !$F{contact_person_phone}.trim().isEmpty()) ? $F{contact_person_phone} : ""]]></textFieldExpression>
 			</textField>
@@ -367,14 +367,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000029"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[GROOM'S NAME]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000030"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{groom_name} != null && !$F{groom_name}.trim().isEmpty()) ? $F{groom_name} : ""]]></textFieldExpression>
 			</textField>
@@ -389,14 +389,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000032"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[BRIDE'S NAME]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000033"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{bride_name} != null && !$F{bride_name}.trim().isEmpty()) ? $F{bride_name} : ""]]></textFieldExpression>
 			</textField>
@@ -412,7 +412,7 @@
 			<staticText>
 				<reportElement x="0" y="8" width="200" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000035"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Inter" size="8" isBold="true"  />
+					<font fontName="Inter" size="8" isBold="true"/>
 				</textElement>
 				<text><![CDATA[EVENT DETAILS]]></text>
 			</staticText>
@@ -427,14 +427,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000037"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[EVENT DATE]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000038"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{dte_event_date} != null ?
                         new java.text.SimpleDateFormat("EEEE, d MMMM yyyy").format($F{dte_event_date}) : ""]]></textFieldExpression>
@@ -450,14 +450,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000040"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[NUMBER OF GUESTS]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000041"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{num_guests} != null && !$F{num_guests}.trim().isEmpty() && !"0".equals($F{num_guests}.trim())) ? $F{num_guests} : ""]]></textFieldExpression>
 			</textField>
@@ -472,14 +472,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000043"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[NUMBER OF TABLES]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000044"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{num_tables} != null && !$F{num_tables}.trim().isEmpty() && !"0".equals($F{num_tables}.trim())) ? $F{num_tables} : ""]]></textFieldExpression>
 			</textField>
@@ -494,14 +494,14 @@
 			<staticText>
 				<reportElement x="0" y="4" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000046"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[EVENT VENUE]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="17" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000047"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9" isBold="false"  />
+					<font fontName="Inter" size="9" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{venue_display} != null && !$F{venue_display}.trim().isEmpty()) ? $F{venue_display} : ""]]></textFieldExpression>
 			</textField>
@@ -517,7 +517,7 @@
 			<staticText>
 				<reportElement x="0" y="8" width="300" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000049"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[RUNNING ORDER OF THE DAY]]></text>
 			</staticText>
@@ -533,14 +533,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000051"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[GUEST ARRIVAL]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000052"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_guest_arrival} != null && !$F{txt_guest_arrival}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_guest_arrival}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -556,14 +556,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000054"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[GROOM GUESTS ARRIVAL]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000055"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_groom_guest_arrival} != null && !$F{txt_groom_guest_arrival}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_groom_guest_arrival}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -579,14 +579,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000057"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[BRIDE GUESTS ARRIVAL]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000058"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_bride_guest_arrival} != null && !$F{txt_bride_guest_arrival}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_bride_guest_arrival}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -602,14 +602,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000060"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[BARAT ARRIVAL]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000061"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_barat_arrival} != null && !$F{txt_barat_arrival}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_barat_arrival}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -625,14 +625,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000063"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[NIKAH]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000064"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_nikah} != null && !$F{txt_nikah}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_nikah}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -648,14 +648,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000066"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[BRIDE ENTRANCE]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000067"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_bride_entrance} != null && !$F{txt_bride_entrance}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_bride_entrance}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -671,14 +671,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000069"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[GROOM ENTRANCE]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000070"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_groom_entrance} != null && !$F{txt_groom_entrance}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_groom_entrance}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -694,14 +694,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000072"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[COUPLES ENTRANCE]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000073"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_couples_entrance} != null && !$F{txt_couples_entrance}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_couples_entrance}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -717,14 +717,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000075"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[DUA]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000076"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_dua} != null && !$F{txt_dua}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_dua}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -740,14 +740,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000078"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[CAKE CUTTING]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000079"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_cake_cutting} != null && !$F{txt_cake_cutting}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_cake_cutting}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -763,14 +763,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000081"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[RING EXCHANGE]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000082"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_ring_exchange} != null && !$F{txt_ring_exchange}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_ring_exchange}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -786,14 +786,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000084"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[RAMS]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000085"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_rams} != null && !$F{txt_rams}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_rams}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -809,14 +809,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000087"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[SPEECHES]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000088"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_speeches} != null && !$F{txt_speeches}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_speeches}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -832,14 +832,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000090"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[DANCE]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000091"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_dance} != null && !$F{txt_dance}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_dance}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -855,14 +855,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000093"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[MEAL]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000094"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{txt_meal} != null && !$F{txt_meal}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{txt_meal}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -878,14 +878,14 @@
 			<staticText>
 				<reportElement x="0" y="2" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000096"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[END OF NIGHT]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="0" y="15" width="523" height="14" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000097"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="9"  />
+					<font fontName="Inter" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{dte_end_of_night} != null && !$F{dte_end_of_night}.trim().isEmpty()) ? new java.text.SimpleDateFormat("hh:mm a").format( javax.xml.bind.DatatypeConverter.parseDateTime($F{dte_end_of_night}).getTime()) : ""]]></textFieldExpression>
 			</textField>
@@ -913,14 +913,14 @@
 			<staticText>
 				<reportElement x="12" y="8" width="200" height="12" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000101"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"  />
+					<font fontName="Inter" size="7" isBold="true"/>
 				</textElement>
 				<text><![CDATA[IMPORTANT NOTE]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="12" y="24" width="503" height="38" forecolor="#AAAAAA" uuid="c3000000-0000-0000-0000-000000000102"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7.5" isBold="false"  />
+					<font fontName="Inter" size="7.5" isBold="false"/>
 				</textElement>
 				<text><![CDATA[Table Plan and Room Layout must be submitted no later than 4 weeks from the date of the event. We do not collaborate with third-party event planning, catering, or decorating companies.]]></text>
 			</staticText>
@@ -930,41 +930,11 @@
 			<staticText>
 				<reportElement x="0" y="4" width="523" height="22" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000103"/>
 				<textElement verticalAlignment="Top">
-					<font fontName="Inter" size="7" isBold="false"  />
+					<font fontName="Inter" size="7" isBold="false"/>
 				</textElement>
 				<text><![CDATA[EXTERNAL SUPPLIERS: Please note we DO NOT collaborate with event planning / catering / decorating companies.]]></text>
 			</staticText>
 		</band>
 		<band height="16"/>
 	</detail>
-	<pageFooter>
-		<band height="47" splitType="Prevent">
-			<line>
-				<reportElement x="-36" y="0" width="595" height="1" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000008"/>
-				<graphicElement>
-					<pen lineWidth="0.5" lineColor="#C5A367"/>
-				</graphicElement>
-			</line>
-			<staticText>
-				<reportElement x="0" y="13" width="150" height="14" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000009"/>
-				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="7" isBold="true"  />
-				</textElement>
-				<text><![CDATA[DIAMOND EVENTS]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="373" y="13" width="150" height="14" forecolor="#E0C590" uuid="c3000000-0000-0000-0000-000000000010"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="false"  />
-				</textElement>
-				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
-			</staticText>
-			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="41" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000011"/>
-				<graphicElement>
-					<pen lineWidth="0.0"/>
-				</graphicElement>
-			</rectangle>
-		</band>
-	</pageFooter>
 </jasperReport>
