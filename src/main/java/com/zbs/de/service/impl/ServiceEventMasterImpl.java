@@ -881,6 +881,43 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					}
 					dto.setExtrasSelections(dtoEventDecorExtrasSelections);
 
+					
+					// Fetching Event Services Selection
+					// ***********************************
+
+					List<EventDecorExtrasSelection> eventDecorServicesSelection = serviceEventDecorExtrasSelection
+							.getByEventMasterId(dto.getSerEventMasterId());
+					List<DtoEventDecorExtrasSelection> dtoEventDecorServicesSelections = new ArrayList<>();
+					if (UtilRandomKey.isNotNull(eventDecorServicesSelection)) {
+						for (EventDecorExtrasSelection entity : eventDecorServicesSelection) {
+							DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection = new DtoEventDecorExtrasSelection();
+							dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
+							dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
+							dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+							dtoEventDecorExtrasSelection.setBlnIsServices(entity.getBlnIsServices());
+							if (entity.getDecorExtrasMaster() != null) {
+								dtoEventDecorExtrasSelection.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+								dtoEventDecorExtrasSelection
+										.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+								dtoEventDecorExtrasSelection
+										.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+							}
+
+							if (entity.getDecorExtrasOption() != null) {
+								dtoEventDecorExtrasSelection
+										.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+								dtoEventDecorExtrasSelection
+										.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+								dtoEventDecorExtrasSelection
+										.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+							}
+
+							dtoEventDecorServicesSelections.add(dtoEventDecorExtrasSelection);
+						}
+					}
+					dto.setServicesSelections(dtoEventDecorServicesSelections);
+					
+					
 					// **********************************************************************************************
 					// **********************************************************************************************
 					// **********************************************************************************************
@@ -910,6 +947,28 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								ex.getMessage(), ex);
 						dto.setVendorMasterSelections(new ArrayList<>());
 					}
+					
+					
+
+					// 5) Budget / quoted price and status
+					try {
+						EventBudget eventBudget = serviceEventBudget.getEventBudgetByEventId(dto.getSerEventMasterId());
+						if (eventBudget != null) {
+							DtoEventQuoteAndStatus quote = new DtoEventQuoteAndStatus();
+							quote.setNumQuotedPrice(eventBudget.getNumQuotedPrice());
+							quote.setNumPaidAmount(eventBudget.getNumPaidAmount());
+							quote.setTxtStatus(eventBudget.getTxtStatus());
+							quote.setNumDiscount(eventBudget.getNumDiscount());
+							quote.setNumDecorAmount(eventBudget.getNumDecorAmount());
+							quote.setNumFoodAmount(eventBudget.getNumFoodAmount());
+							quote.setNumServicesAmount(eventBudget.getNumServicesAmount());
+							dto.setDtoEventQuoteAndStatus(quote);
+						}
+					} catch (Exception ex) {
+						LOGGER.debug("Failed to fetch budget for event {}: {}", dto.getSerEventMasterId(), ex.getMessage(),
+								ex);
+					}
+
 
 					dtoEventMasterLst.add(dto);
 				}
