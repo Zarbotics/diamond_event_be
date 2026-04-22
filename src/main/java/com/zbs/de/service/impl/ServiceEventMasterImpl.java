@@ -841,77 +841,69 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					}
 					dto.setMenuCategoriesSelection(catDtos);
 
-					// Fetching Event Extras Selection
-					// ***********************************
-
-					List<EventDecorExtrasSelection> eventDecorExtrasSelection = serviceEventDecorExtrasSelection
-							.getByEventMasterId(dto.getSerEventMasterId());
-					List<DtoEventDecorExtrasSelection> dtoEventDecorExtrasSelections = new ArrayList<>();
-					if (UtilRandomKey.isNotNull(eventDecorExtrasSelection)) {
-						for (EventDecorExtrasSelection entity : eventDecorExtrasSelection) {
-							DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection = new DtoEventDecorExtrasSelection();
-							dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
-							dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
-							dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
-							if (entity.getDecorExtrasMaster() != null) {
-								dtoEventDecorExtrasSelection
-										.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
-								dtoEventDecorExtrasSelection
-										.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
-								dtoEventDecorExtrasSelection
-										.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+					// 4) Decor extras selections
+					try {
+						List<EventDecorExtrasSelection> extras = serviceEventDecorExtrasSelection
+								.getExtrasSelectionsByEventMasterId(dto.getSerEventMasterId());
+						List<DtoEventDecorExtrasSelection> dtoExtras = new ArrayList<>();
+						if (UtilRandomKey.isNotNull(extras)) {
+							for (EventDecorExtrasSelection entity : extras) {
+								DtoEventDecorExtrasSelection e = new DtoEventDecorExtrasSelection();
+								e.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
+								e.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
+								e.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+								e.setNumPrice(entity.getNumPrice());
+								if (entity.getDecorExtrasMaster() != null) {
+									e.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+									e.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+									e.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+								}
+								if (entity.getDecorExtrasOption() != null) {
+									e.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+									e.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+									e.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+								}
+								dtoExtras.add(e);
 							}
-
-							if (entity.getDecorExtrasOption() != null) {
-								dtoEventDecorExtrasSelection
-										.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
-								dtoEventDecorExtrasSelection
-										.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
-								dtoEventDecorExtrasSelection
-										.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
-							}
-
-							dtoEventDecorExtrasSelections.add(dtoEventDecorExtrasSelection);
 						}
+						dto.setExtrasSelections(dtoExtras);
+					} catch (Exception ex) {
+						LOGGER.debug("Failed to fetch extras selections for event {}: {}", dto.getSerEventMasterId(),
+								ex.getMessage(), ex);
+						dto.setExtrasSelections(new ArrayList<>());
 					}
-					dto.setExtrasSelections(dtoEventDecorExtrasSelections);
 
-					
-					// Fetching Event Services Selection
-					// ***********************************
-
-					List<EventDecorExtrasSelection> eventDecorServicesSelection = serviceEventDecorExtrasSelection
-							.getByEventMasterId(dto.getSerEventMasterId());
-					List<DtoEventDecorExtrasSelection> dtoEventDecorServicesSelections = new ArrayList<>();
-					if (UtilRandomKey.isNotNull(eventDecorServicesSelection)) {
-						for (EventDecorExtrasSelection entity : eventDecorServicesSelection) {
-							DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection = new DtoEventDecorExtrasSelection();
-							dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
-							dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
-							dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
-							dtoEventDecorExtrasSelection.setBlnIsServices(entity.getBlnIsServices());
-							if (entity.getDecorExtrasMaster() != null) {
-								dtoEventDecorExtrasSelection.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
-								dtoEventDecorExtrasSelection
-										.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
-								dtoEventDecorExtrasSelection
-										.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+					// 4) Decor services selections
+					try {
+						List<EventDecorExtrasSelection> services = serviceEventDecorExtrasSelection
+								.getServicesSelectionsByEventMasterId(dto.getSerEventMasterId());
+						List<DtoEventDecorExtrasSelection> dtoServices = new ArrayList<>();
+						if (UtilRandomKey.isNotNull(services)) {
+							for (EventDecorExtrasSelection entity : services) {
+								DtoEventDecorExtrasSelection e = new DtoEventDecorExtrasSelection();
+								e.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
+								e.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
+								e.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+								e.setNumPrice(entity.getNumPrice());
+								if (entity.getDecorExtrasMaster() != null) {
+									e.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+									e.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+									e.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+								}
+								if (entity.getDecorExtrasOption() != null) {
+									e.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+									e.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+									e.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+								}
+								dtoServices.add(e);
 							}
-
-							if (entity.getDecorExtrasOption() != null) {
-								dtoEventDecorExtrasSelection
-										.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
-								dtoEventDecorExtrasSelection
-										.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
-								dtoEventDecorExtrasSelection
-										.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
-							}
-
-							dtoEventDecorServicesSelections.add(dtoEventDecorExtrasSelection);
 						}
+						dto.setServicesSelections(dtoServices);
+					} catch (Exception ex) {
+						LOGGER.debug("Failed to fetch services selections for event {}: {}", dto.getSerEventMasterId(),
+								ex.getMessage(), ex);
+						dto.setExtrasSelections(new ArrayList<>());
 					}
-					dto.setServicesSelections(dtoEventDecorServicesSelections);
-					
 					
 					// **********************************************************************************************
 					// **********************************************************************************************
@@ -2419,77 +2411,69 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				dto.setMenuCategoriesSelection(catDtos);
 
 
-				// Fetching Event Extras Selection
-				// ***********************************
-
-				List<EventDecorExtrasSelection> eventDecorExtrasSelection = serviceEventDecorExtrasSelection
-						.getByEventMasterId(dto.getSerEventMasterId());
-				List<DtoEventDecorExtrasSelection> dtoEventDecorExtrasSelections = new ArrayList<>();
-				if (UtilRandomKey.isNotNull(eventDecorExtrasSelection)) {
-					for (EventDecorExtrasSelection entity : eventDecorExtrasSelection) {
-						DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection = new DtoEventDecorExtrasSelection();
-						dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
-						dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
-						dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
-						dtoEventDecorExtrasSelection.setBlnIsServices(entity.getBlnIsServices());
-						if (entity.getDecorExtrasMaster() != null) {
-							dtoEventDecorExtrasSelection.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
-							dtoEventDecorExtrasSelection
-									.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
-							dtoEventDecorExtrasSelection
-									.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+				// 4) Decor extras selections
+				try {
+					List<EventDecorExtrasSelection> extras = serviceEventDecorExtrasSelection
+							.getExtrasSelectionsByEventMasterId(dto.getSerEventMasterId());
+					List<DtoEventDecorExtrasSelection> dtoExtras = new ArrayList<>();
+					if (UtilRandomKey.isNotNull(extras)) {
+						for (EventDecorExtrasSelection entity : extras) {
+							DtoEventDecorExtrasSelection e = new DtoEventDecorExtrasSelection();
+							e.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
+							e.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
+							e.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+							e.setNumPrice(entity.getNumPrice());
+							if (entity.getDecorExtrasMaster() != null) {
+								e.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+								e.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+								e.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+							}
+							if (entity.getDecorExtrasOption() != null) {
+								e.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+								e.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+								e.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+							}
+							dtoExtras.add(e);
 						}
-
-						if (entity.getDecorExtrasOption() != null) {
-							dtoEventDecorExtrasSelection
-									.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
-							dtoEventDecorExtrasSelection
-									.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
-							dtoEventDecorExtrasSelection
-									.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
-						}
-
-						dtoEventDecorExtrasSelections.add(dtoEventDecorExtrasSelection);
 					}
+					dto.setExtrasSelections(dtoExtras);
+				} catch (Exception ex) {
+					LOGGER.debug("Failed to fetch extras selections for event {}: {}", event.getSerEventMasterId(),
+							ex.getMessage(), ex);
+					dto.setExtrasSelections(new ArrayList<>());
 				}
-				dto.setExtrasSelections(dtoEventDecorExtrasSelections);
-				
-				
-				// Fetching Event Services Selection
-				// ***********************************
 
-				List<EventDecorExtrasSelection> eventDecorServicesSelection = serviceEventDecorExtrasSelection
-						.getByEventMasterId(dto.getSerEventMasterId());
-				List<DtoEventDecorExtrasSelection> dtoEventDecorServicesSelections = new ArrayList<>();
-				if (UtilRandomKey.isNotNull(eventDecorServicesSelection)) {
-					for (EventDecorExtrasSelection entity : eventDecorServicesSelection) {
-						DtoEventDecorExtrasSelection dtoEventDecorExtrasSelection = new DtoEventDecorExtrasSelection();
-						dtoEventDecorExtrasSelection.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
-						dtoEventDecorExtrasSelection.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
-						dtoEventDecorExtrasSelection.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
-						dtoEventDecorExtrasSelection.setBlnIsServices(entity.getBlnIsServices());
-						if (entity.getDecorExtrasMaster() != null) {
-							dtoEventDecorExtrasSelection.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
-							dtoEventDecorExtrasSelection
-									.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
-							dtoEventDecorExtrasSelection
-									.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+				// 4) Decor services selections
+				try {
+					List<EventDecorExtrasSelection> services = serviceEventDecorExtrasSelection
+							.getServicesSelectionsByEventMasterId(dto.getSerEventMasterId());
+					List<DtoEventDecorExtrasSelection> dtoServices = new ArrayList<>();
+					if (UtilRandomKey.isNotNull(services)) {
+						for (EventDecorExtrasSelection entity : services) {
+							DtoEventDecorExtrasSelection e = new DtoEventDecorExtrasSelection();
+							e.setSerExtrasSelectionId(entity.getSerExtrasSelectionId());
+							e.setTxtDynamicProperty1(entity.getTxtDynamicProperty1());
+							e.setTxtDynamicProperty2(entity.getTxtDynamicProperty2());
+							e.setNumPrice(entity.getNumPrice());
+							if (entity.getDecorExtrasMaster() != null) {
+								e.setSerExtrasId(entity.getDecorExtrasMaster().getSerExtrasId());
+								e.setTxtExtrasCode(entity.getDecorExtrasMaster().getTxtExtrasCode());
+								e.setTxtExtrasName(entity.getDecorExtrasMaster().getTxtExtrasName());
+							}
+							if (entity.getDecorExtrasOption() != null) {
+								e.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
+								e.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
+								e.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
+							}
+							dtoServices.add(e);
 						}
-
-						if (entity.getDecorExtrasOption() != null) {
-							dtoEventDecorExtrasSelection
-									.setSerExtraOptionId(entity.getDecorExtrasOption().getSerExtraOptionId());
-							dtoEventDecorExtrasSelection
-									.setTxtOptionCode(entity.getDecorExtrasOption().getTxtOptionCode());
-							dtoEventDecorExtrasSelection
-									.setTxtOptionName(entity.getDecorExtrasOption().getTxtOptionName());
-						}
-
-						dtoEventDecorServicesSelections.add(dtoEventDecorExtrasSelection);
 					}
+					dto.setServicesSelections(dtoServices);
+				} catch (Exception ex) {
+					LOGGER.debug("Failed to fetch services selections for event {}: {}", event.getSerEventMasterId(),
+							ex.getMessage(), ex);
+					dto.setExtrasSelections(new ArrayList<>());
 				}
-				dto.setServicesSelections(dtoEventDecorServicesSelections);
-				
 				
 				// **********************************************************************************************
 				// **********************************************************************************************
