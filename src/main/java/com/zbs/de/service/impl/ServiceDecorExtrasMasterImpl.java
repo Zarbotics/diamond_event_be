@@ -383,6 +383,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 	                /* UPDATE */
 	                option = existingMap.get(dtoOption.getSerExtraOptionId());
 	                option.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
+	                option.setBlnIsActive(dtoOption.getBlnIsActive());
 
 	            } else {
 	                /* INSERT (NEW OPTION) */
@@ -397,8 +398,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 
 	            option.setTxtOptionCode(dtoOption.getTxtOptionCode());
 	            option.setTxtOptionName(dtoOption.getTxtOptionName());
-	            option.setBlnIsActive(true);
-	            option.setBlnIsDeleted(false);
+
 
 	            /* =========================
 	               DOCUMENT HANDLING
