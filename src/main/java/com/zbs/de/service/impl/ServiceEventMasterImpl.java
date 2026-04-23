@@ -1179,6 +1179,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			throws IOException {
 		// Validate required IDs
 		DtoResult dtoResult = new DtoResult();
+		BigDecimal numDecorCategoryPrice= BigDecimal.ZERO;
+		BigDecimal numDecorPropertyPrice= BigDecimal.ZERO;
+		BigDecimal numServicesPrice = BigDecimal.ZERO;
+		BigDecimal numFoodCategoryPrice = BigDecimal.ZERO;
+		BigDecimal numFoodSubcategoryPrice = BigDecimal.ZERO;
+		
 		try {
 			if (dtoEventMaster.getSerCustId() == null || dtoEventMaster.getSerEventTypeId() == null) {
 				LOGGER.debug("Customer ID and Event Type ID are required");
@@ -1403,6 +1409,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
 						decorSelection.setSerEventDecorCategorySelectionId(null);
 						decorSelection.setEventMaster(entity);
+						
+						if(decorSelection.getNumPrice() != null) {
+							numDecorCategoryPrice = numDecorCategoryPrice.add(decorSelection.getNumPrice());
+						}
+
 //						decorSelection = repositoryEventDecorCategorySelection.save(decorSelection);
 
 						// Set property selections' back reference
@@ -1424,7 +1435,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								eventDecorPropertySelection.setBlnIsDeleted(false);
 								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
 								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
-
+								if(eventDecorPropertySelection.getNumPrice() != null) {
+									numDecorPropertyPrice = numDecorPropertyPrice.add(eventDecorPropertySelection.getNumPrice());
+								}
 								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
 										.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId()
 												.intValue())
@@ -1974,6 +1987,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			        catEntity.setCategory(category);
 			        catEntity.setNumTotalPrice(catDto.getNumPrice());
 			        catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
+			        
+			        if(catDto.getNumFinalPrice() != null) {
+			        	numFoodCategoryPrice = numFoodCategoryPrice.add(catDto.getNumFinalPrice());
+			        }
 
 			        // Initialize collections
 			        if (catEntity.getSubCategories() == null) {
@@ -1992,6 +2009,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			            subEntity.setSubCategory(subCategory);
 			            subEntity.setNumTotalPrice(subDto.getNumPrice());
 			            subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
+			            if(subDto.getNumFinalPrice() != null) {
+			            	numFoodSubcategoryPrice = numFoodSubcategoryPrice.add(subDto.getNumFinalPrice());
+			            }
 
 			            // Initialize items collection
 			            if (subEntity.getItems() == null) {
@@ -2094,8 +2114,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
 					selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
 					selection.setEventMaster(entity);
+					selection.setNumPrice(dto.getNumPrice());
 			        selection.setBlnIsServices(false);
-
+			    	if(selection.getNumPrice() != null) {
+						numDecorCategoryPrice = numDecorCategoryPrice.add(selection.getNumPrice());
+					}
 					if (dto.getSerExtrasId() != null) {
 						selection.setDecorExtrasMaster(
 								serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
@@ -2134,8 +2157,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			        selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
 			        selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
-
+			        selection.setNumPrice(dto.getNumPrice());
 			        selection.setEventMaster(entity);
+			        if(dto.getNumPrice()!=null) {
+			        	numServicesPrice = numServicesPrice.add(dto.getNumPrice());
+			        }
 
 			        // 🔥 THIS IS THE DIFFERENCE
 			        selection.setBlnIsServices(true);
@@ -2246,6 +2272,18 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			entity = repositoryEventMaster.save(entity);
 			if (eventBudget != null) {
 				eventBudget.setEventMaster(entity);
+				BigDecimal decorCategory = numDecorCategoryPrice != null ? numDecorCategoryPrice : BigDecimal.ZERO;
+				BigDecimal decorProperty = numDecorPropertyPrice != null ? numDecorPropertyPrice : BigDecimal.ZERO;
+
+				BigDecimal foodCategory = numFoodCategoryPrice != null ? numFoodCategoryPrice : BigDecimal.ZERO;
+				BigDecimal foodSubcategory = numFoodSubcategoryPrice != null ? numFoodSubcategoryPrice
+						: BigDecimal.ZERO;
+
+				BigDecimal services = numServicesPrice != null ? numServicesPrice : BigDecimal.ZERO;
+
+				eventBudget.setNumDecorAmount(decorCategory.add(decorProperty));
+				eventBudget.setNumFoodAmount(foodCategory.add(foodSubcategory));
+				eventBudget.setNumServicesAmount(services);
 				serviceEventBudget.save(eventBudget);
 			}
 			
@@ -2575,6 +2613,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			List<MultipartFile> files) throws IOException {
 		// Validate required IDs
 		DtoResult dtoResult = new DtoResult();
+		BigDecimal numDecorCategoryPrice= BigDecimal.ZERO;
+		BigDecimal numDecorPropertyPrice= BigDecimal.ZERO;
+		BigDecimal numServicesPrice = BigDecimal.ZERO;
+		BigDecimal numFoodCategoryPrice = BigDecimal.ZERO;
+		BigDecimal numFoodSubcategoryPrice = BigDecimal.ZERO;
 		try {
 			if (dtoEventMasterAdminPortal.getSerCustId() == null
 					|| dtoEventMasterAdminPortal.getSerEventTypeId() == null) {
@@ -2789,6 +2832,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Set Decor Item Selections
 				// *************************
+				
+
 				if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getDtoEventDecorSelections())) {
 
 					// Deleting Existing Selections
@@ -2803,6 +2848,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 					for (DtoEventDecorCategorySelection dto : dtoEventMasterAdminPortal.getDtoEventDecorSelections()) {
 						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
+						if(decorSelection.getNumPrice() != null) {
+							numDecorCategoryPrice = numDecorCategoryPrice.add(decorSelection.getNumPrice());
+						}
+
 						decorSelection.setEventMaster(entity);
 //						decorSelection = repositoryEventDecorCategorySelection.save(decorSelection);
 
@@ -2826,7 +2875,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
 								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
 								eventDecorPropertySelection.setNumPrice(property.getNumPrice());
-
+								if(eventDecorPropertySelection.getNumPrice() != null) {
+									numDecorPropertyPrice = numDecorPropertyPrice.add(eventDecorPropertySelection.getNumPrice());
+								}
 								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
 										.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId()
 												.intValue())
@@ -3123,6 +3174,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					for (DtoEventDecorCategorySelection dto : dtoEventMasterAdminPortal.getDtoEventDecorSelections()) {
 						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
 						decorSelection.setEventMaster(entity);
+						if(decorSelection.getNumPrice() != null) {
+							numDecorCategoryPrice = numDecorCategoryPrice.add(decorSelection.getNumPrice());
+						}
+						
 
 //						if (decorSelection.getSelectedProperties() != null) {
 //							decorSelection.getSelectedProperties()
@@ -3142,7 +3197,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
 								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
 								eventDecorPropertySelection.setNumPrice(property.getNumPrice());
-
+								if(eventDecorPropertySelection.getNumPrice() != null) {
+									numDecorPropertyPrice = numDecorPropertyPrice.add(eventDecorPropertySelection.getNumPrice());
+								}
 								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
 										.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId()
 												.intValue())
@@ -3351,6 +3408,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			        catEntity.setCategory(category);
 			        catEntity.setNumTotalPrice(catDto.getNumPrice());
 			        catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
+			        if(catDto.getNumFinalPrice() != null) {
+			        	numFoodCategoryPrice = numFoodCategoryPrice.add(catDto.getNumFinalPrice());
+			        }
 
 			        // Initialize collections
 			        if (catEntity.getSubCategories() == null) {
@@ -3369,7 +3429,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			            subEntity.setSubCategory(subCategory);
 			            subEntity.setNumTotalPrice(subDto.getNumPrice());
 			            subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
-
+			            if(subDto.getNumFinalPrice() != null) {
+			            	numFoodSubcategoryPrice = numFoodSubcategoryPrice.add(subDto.getNumFinalPrice());
+			            }
 			            // Initialize items collection
 			            if (subEntity.getItems() == null) {
 			                subEntity.setItems(new ArrayList<>());
@@ -3471,6 +3533,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					selection.setNumPrice(dto.getNumPrice());
 					selection.setBlnIsServices(false);
 					selection.setEventMaster(entity);
+					if(selection.getNumPrice() != null) {
+						numDecorCategoryPrice = numDecorCategoryPrice.add(selection.getNumPrice());
+					}
 					if (dto.getSerExtrasId() != null) {
 						selection.setDecorExtrasMaster(
 								serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
@@ -3515,7 +3580,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			        selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
 			        selection.setNumPrice(dto.getNumPrice());
 			        selection.setEventMaster(entity);
-
+			        if(dto.getNumPrice() != null) {
+			        	numServicesPrice = numServicesPrice.add(dto.getNumPrice());
+			        }
 			        // 🔥 THIS IS THE DIFFERENCE
 			        selection.setBlnIsServices(true);
 
@@ -3624,6 +3691,19 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			
 			entity = repositoryEventMaster.save(entity);
 			if (eventBudget != null) {
+				BigDecimal decorCategory = numDecorCategoryPrice != null ? numDecorCategoryPrice : BigDecimal.ZERO;
+				BigDecimal decorProperty = numDecorPropertyPrice != null ? numDecorPropertyPrice : BigDecimal.ZERO;
+
+				BigDecimal foodCategory = numFoodCategoryPrice != null ? numFoodCategoryPrice : BigDecimal.ZERO;
+				BigDecimal foodSubcategory = numFoodSubcategoryPrice != null ? numFoodSubcategoryPrice
+						: BigDecimal.ZERO;
+
+				BigDecimal services = numServicesPrice != null ? numServicesPrice : BigDecimal.ZERO;
+
+				eventBudget.setNumDecorAmount(decorCategory.add(decorProperty));
+				eventBudget.setNumFoodAmount(foodCategory.add(foodSubcategory));
+				eventBudget.setNumServicesAmount(services);
+				
 				eventBudget.setEventMaster(entity);
 				serviceEventBudget.save(eventBudget);
 			}
