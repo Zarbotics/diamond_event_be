@@ -192,7 +192,7 @@ public class ServiceEmailSenderImpl implements ServiceEmailSender, ServiceEmailV
 		if (userMasters != null && !userMasters.isEmpty()) {
 			String subject = "New Customer Registration – Diamond Event";
 			for (UserMaster userMaster : userMasters) {
-				if (userMaster.getTxtEmail() != null) {
+				if (userMaster.getTxtEmail() != null && userMaster.getBlnReceiveEmail()) {
 					try {
 
 						String message = String.format("""
