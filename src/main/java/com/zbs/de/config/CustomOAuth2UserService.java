@@ -114,7 +114,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		        UserMaster newUser = new UserMaster();
 		        newUser.setTxtAppleId(appleId);
 		        newUser.setTxtEmail(email != null ? email : "apple_" + appleId + "@noemail.com");
-		        newUser.setTxtName(resolvedName != null ? resolvedName : "Apple User");
+		        newUser.setTxtName(resolvedName != null ? resolvedName : "");
 		        newUser.setTxtRole("ROLE_USER");
 		        newUser.setTxtPassword(hashedPassword);
 		        newUser.setBlnIsActive(true);
@@ -124,24 +124,28 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		        
 		     // Send welcome email **with** the temporary password
 				// Note: we catch exceptions so email errors don't break login
-				try {
-					String subject = "Welcome to Diamond Events";
-					StringBuilder body = new StringBuilder();
-					body.append("Hello ").append(resolvedName != null ? resolvedName : "").append(",\n\n");
-					body.append("Thank you for signing up using Google.\n\n");
-					body.append("If you ever want to log in without Google, you can use this temporary password:\n\n");
-					body.append(randomPassword).append("\n\n");
-					body.append("For security, please change this password after your first login.\n");
-					body.append("If you did not request this, please contact support.\n\n");
-					body.append("Regards,\nDiamond Events Team");
+				if (email != null) {
+					try {
+						String subject = "Welcome to Diamond Events";
+						StringBuilder body = new StringBuilder();
+						body.append("Hello ").append(resolvedName != null ? resolvedName : "").append(",\n\n");
+						body.append("Thank you for signing up using Google.\n\n");
+						body.append(
+								"If you ever want to log in without Google, you can use this temporary password:\n\n");
+						body.append(randomPassword).append("\n\n");
+						body.append("For security, please change this password after your first login.\n");
+						body.append("If you did not request this, please contact support.\n\n");
+						body.append("Regards,\nDiamond Events Team");
 
-					emailSender.sendEmail(newUser.getTxtEmail(), subject, body.toString());
-				} catch (MessagingException me) {
+						emailSender.sendEmail(newUser.getTxtEmail(), subject, body.toString());
+					} catch (MessagingException me) {
 
-				} catch (Exception e) {
-					// logger.warn("Unexpected email send problem", e);
+					} catch (Exception e) {
+						// logger.warn("Unexpected email send problem", e);
+					}
+
 				}
-				
+
 		        return repositoryUserMaster.save(newUser);
 		    });
 
