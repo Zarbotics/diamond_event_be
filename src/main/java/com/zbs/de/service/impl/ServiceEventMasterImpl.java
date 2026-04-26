@@ -738,20 +738,26 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 					// Fetching Event Venue Detail
 					// ***********************************
-					if (UtilRandomKey.isNotNull(eventMaster.getVenueMasterDetail())) {
-						DtoResult res = serviceVenueMaster.getVenueByVenueMasterDetailId(
-								eventMaster.getVenueMasterDetail().getSerVenueMasterDetailId());
-						if (UtilRandomKey.isNotNull(res) && res.getTxtMessage().equalsIgnoreCase("Success")) {
-							VenueMaster venueMaster = (VenueMaster) res.getResult();
-							DtoEventVenue dtoEventVenue = new DtoEventVenue();
-							dtoEventVenue.setSerVenueMasterId(venueMaster.getSerVenueMasterId());
-							dtoEventVenue.setTxtVenueCode(venueMaster.getTxtVenueCode());
-							dtoEventVenue.setTxtVenueName(venueMaster.getTxtVenueName());
-							dtoEventVenue.setSerVenueMasterDetailId(
+					try {
+						if (UtilRandomKey.isNotNull(eventMaster.getVenueMasterDetail())) {
+							DtoResult res = serviceVenueMaster.getVenueByVenueMasterDetailId(
 									eventMaster.getVenueMasterDetail().getSerVenueMasterDetailId());
-							dtoEventVenue.setTxtHallCode(eventMaster.getVenueMasterDetail().getTxtHallCode());
-							dtoEventVenue.setTxtHallName(eventMaster.getVenueMasterDetail().getTxtHallName());
+							if (UtilRandomKey.isNotNull(res) && res.getTxtMessage().equalsIgnoreCase("Success")) {
+								VenueMaster venueMaster = (VenueMaster) res.getResult();
+								DtoEventVenue dtoEventVenue = new DtoEventVenue();
+								dtoEventVenue.setSerVenueMasterId(venueMaster.getSerVenueMasterId());
+								dtoEventVenue.setTxtVenueCode(venueMaster.getTxtVenueCode());
+								dtoEventVenue.setTxtVenueName(venueMaster.getTxtVenueName());
+								dtoEventVenue.setSerVenueMasterDetailId(
+										eventMaster.getVenueMasterDetail().getSerVenueMasterDetailId());
+								dtoEventVenue.setTxtHallCode(eventMaster.getVenueMasterDetail().getTxtHallCode());
+								dtoEventVenue.setTxtHallName(eventMaster.getVenueMasterDetail().getTxtHallName());
+								dto.setDtoEventVenue(dtoEventVenue);
+							}
 						}
+					} catch (Exception ex) {
+						LOGGER.debug("Failed to fetch venue detail for event {}: {}", eventMaster.getSerEventMasterId(),
+								ex.getMessage(), ex);
 					}
 
 					// Fetching Decor
@@ -2380,21 +2386,30 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Fetching Event Venue Detail
 				// ***********************************
-				if (UtilRandomKey.isNotNull(event.getVenueMasterDetail())) {
-					DtoResult res = serviceVenueMaster
-							.getVenueByVenueMasterDetailId(event.getVenueMasterDetail().getSerVenueMasterDetailId());
-					if (UtilRandomKey.isNotNull(res) && res.getTxtMessage().equalsIgnoreCase("Success")) {
-						VenueMaster venueMaster = (VenueMaster) res.getResult();
-						DtoEventVenue dtoEventVenue = new DtoEventVenue();
-						dtoEventVenue.setSerVenueMasterId(venueMaster.getSerVenueMasterId());
-						dtoEventVenue.setTxtVenueCode(venueMaster.getTxtVenueCode());
-						dtoEventVenue.setTxtVenueName(venueMaster.getTxtVenueName());
-						dtoEventVenue
-								.setSerVenueMasterDetailId(event.getVenueMasterDetail().getSerVenueMasterDetailId());
-						dtoEventVenue.setTxtHallCode(event.getVenueMasterDetail().getTxtHallCode());
-						dtoEventVenue.setTxtHallName(event.getVenueMasterDetail().getTxtHallName());
+				// 1) Venue detail (if present)
+				try {
+					if (UtilRandomKey.isNotNull(event.getVenueMasterDetail())) {
+						DtoResult res = serviceVenueMaster
+								.getVenueByVenueMasterDetailId(event.getVenueMasterDetail().getSerVenueMasterDetailId());
+						if (UtilRandomKey.isNotNull(res) && "Success".equalsIgnoreCase(res.getTxtMessage())) {
+							VenueMaster venueMaster = (VenueMaster) res.getResult();
+							DtoEventVenue dtoEventVenue = new DtoEventVenue();
+							dtoEventVenue.setSerVenueMasterId(venueMaster.getSerVenueMasterId());
+							dtoEventVenue.setTxtVenueCode(venueMaster.getTxtVenueCode());
+							dtoEventVenue.setTxtVenueName(venueMaster.getTxtVenueName());
+							dtoEventVenue
+									.setSerVenueMasterDetailId(event.getVenueMasterDetail().getSerVenueMasterDetailId());
+							dtoEventVenue.setTxtHallCode(event.getVenueMasterDetail().getTxtHallCode());
+							dtoEventVenue.setTxtHallName(event.getVenueMasterDetail().getTxtHallName());
+
+							dto.setDtoEventVenue(dtoEventVenue);
+						}
 					}
+				} catch (Exception ex) {
+					LOGGER.debug("Failed to fetch venue detail for event {}: {}", event.getSerEventMasterId(),
+							ex.getMessage(), ex);
 				}
+
 
 				// Fetching Decor
 				// ***********************************

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_services" pageWidth="595" pageHeight="842" columnWidth="523" leftMargin="36" rightMargin="36" topMargin="0" bottomMargin="0" uuid="c5000000-0000-0000-0000-000000000001">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="live_db_04_26.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit.height" value="px"/>
 	<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -16,23 +16,48 @@
 			COALESCE(dem.num_display_order, 999)       AS service_order,
 			eds.num_price                              AS service_price,
 			deo.ser_extra_option_id                    AS option_id,
-			COALESCE(deo.txt_option_name, '')          AS option_name
+			COALESCE(deo.txt_option_name, '')          AS option_name,
+			em.txt_event_services_remarks
 		FROM event_decor_extras_selection eds
 		LEFT JOIN decor_extras_master dem
 			ON eds.ser_extras_id = dem.ser_extras_id
 		LEFT JOIN decor_extras_option deo
 			ON eds.ser_extra_option_id = deo.ser_extra_option_id
+		LEFT JOIN event_master em
+			ON eds.ser_event_master_id = em.ser_event_master_id
 		WHERE eds.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 		  AND eds.bln_is_services = TRUE
 		ORDER BY service_order, service_name, option_name]]>
 	</queryString>
-	<field name="ser_extras_selection_id" class="java.lang.Integer"/>
-	<field name="service_id" class="java.lang.Integer"/>
-	<field name="service_name" class="java.lang.String"/>
-	<field name="service_order" class="java.lang.Integer"/>
-	<field name="service_price" class="java.math.BigDecimal"/>
-	<field name="option_id" class="java.lang.Integer"/>
-	<field name="option_name" class="java.lang.String"/>
+	<field name="ser_extras_selection_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="ser_extras_selection_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_decor_extras_selection"/>
+	</field>
+	<field name="service_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="service_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="decor_extras_master"/>
+	</field>
+	<field name="service_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="service_name"/>
+	</field>
+	<field name="service_order" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="service_order"/>
+	</field>
+	<field name="service_price" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="service_price"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_decor_extras_selection"/>
+	</field>
+	<field name="option_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="option_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="decor_extras_option"/>
+	</field>
+	<field name="option_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="option_name"/>
+	</field>
+	<field name="txt_event_services_remarks" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_event_services_remarks"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="event_master"/>
+	</field>
 	<group name="serviceGroup">
 		<groupExpression><![CDATA[$F{service_id}]]></groupExpression>
 		<groupHeader>
@@ -74,7 +99,7 @@
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c5000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c5000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -91,7 +116,7 @@
 	<pageHeader>
 		<band height="155" splitType="Prevent">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c5000000-0000-0000-0000-000000000003"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0F1231" backcolor="#0F1231" uuid="c5000000-0000-0000-0000-000000000003"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -129,7 +154,9 @@
 				</graphicElement>
 			</line>
 			<staticText>
-				<reportElement x="0" y="112" width="523" height="36" forecolor="#BFBFBF" uuid="c5000000-0000-0000-0000-000000000097"/>
+				<reportElement x="0" y="112" width="523" height="36" forecolor="#BFBFBF" uuid="c5000000-0000-0000-0000-000000000097">
+					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
+				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font fontName="Inter" size="8.5"/>
 				</textElement>
@@ -140,7 +167,7 @@
 	<detail>
 		<band height="26" splitType="Prevent">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="26" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c5000000-0000-0000-0000-000000000025"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="26" forecolor="#0F1231" backcolor="#0F1231" uuid="c5000000-0000-0000-0000-000000000025"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -166,19 +193,53 @@
 		</band>
 	</detail>
 	<summary>
-		<band height="20" splitType="Prevent">
+		<band height="80" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="20" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c5000000-0000-0000-0000-000000000028"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="80" forecolor="#0F1231" backcolor="#0F1231" uuid="c5000000-0000-0000-0000-000000000028"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
 			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="4" width="523" height="52" forecolor="#111108" backcolor="#111108" uuid="c5000000-0000-0000-0000-000000000033">
+					<printWhenExpression><![CDATA[$F{txt_event_services_remarks} != null && !$F{txt_event_services_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="4" width="4" height="52" forecolor="#C5A367" backcolor="#C5A367" uuid="c5000000-0000-0000-0000-000000000034">
+					<printWhenExpression><![CDATA[$F{txt_event_services_remarks} != null && !$F{txt_event_services_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="14" y="8" width="200" height="11" forecolor="#C5A367" uuid="c5000000-0000-0000-0000-000000000035">
+					<printWhenExpression><![CDATA[$F{txt_event_services_remarks} != null && !$F{txt_event_services_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="6.5" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SERVICE REMARKS]]></text>
+			</staticText>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="14" y="21" width="505" height="32" forecolor="#CCCCCC" uuid="c5000000-0000-0000-0000-000000000036">
+					<printWhenExpression><![CDATA[$F{txt_event_services_remarks} != null && !$F{txt_event_services_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="8.5" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_event_services_remarks}]]></textFieldExpression>
+			</textField>
 		</band>
 	</summary>
 	<noData>
 		<band height="40">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c5000000-0000-0000-0000-000000000031"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0F1231" backcolor="#0F1231" uuid="c5000000-0000-0000-0000-000000000031"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
