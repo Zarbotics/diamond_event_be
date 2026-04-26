@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_decor_extras" pageWidth="595" pageHeight="842" columnWidth="523" leftMargin="36" rightMargin="36" topMargin="0" bottomMargin="0" uuid="c6000000-0000-0000-0000-000000000001">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="live_db_04_26.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit.height" value="px"/>
 	<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -21,7 +21,9 @@
 			COALESCE(dcpv.bln_is_document, FALSE)            AS value_is_image,
 			dcpv.txt_property_value                          AS value_text,
 			NULL                                             AS value_image_path,
-			COALESCE(dcpv.ser_property_value_id, 0)          AS value_order
+			COALESCE(dcpv.ser_property_value_id, 0)          AS value_order,
+			em1.txt_decore_remarks,
+			NULL												AS txt_event_extras_remarks
 		FROM event_decor_category_selection edcs
 		JOIN decor_category_master dcm
 			ON edcs.ser_decor_category_id = dcm.ser_decor_category_id
@@ -35,6 +37,8 @@
 			ON edpvs.ser_property_value_id = dcpv.ser_property_value_id
 		LEFT JOIN decor_category_property_value_document dcpvd
 			ON dcpv.ser_document_id = dcpvd.ser_document_id
+		LEFT JOIN event_master em1
+			ON edcs.ser_event_master_id = em1.ser_event_master_id
 		WHERE edcs.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 
 		UNION ALL
@@ -51,7 +55,9 @@
 			COALESCE(deo.bln_is_document, FALSE)             AS value_is_image,
 			deo.txt_option_name                              AS value_text,
 			NULL                                             AS value_image_path,
-			COALESCE(deo.ser_extra_option_id, 0)             AS value_order
+			COALESCE(deo.ser_extra_option_id, 0)             AS value_order,
+			NULL                                       AS txt_decore_remarks,
+			em2.txt_event_extras_remarks
 		FROM event_decor_extras_selection eds
 		LEFT JOIN decor_extras_master dem
 			ON eds.ser_extras_id = dem.ser_extras_id
@@ -59,24 +65,56 @@
 			ON eds.ser_extra_option_id = deo.ser_extra_option_id
 		LEFT JOIN decor_extras_option_document deod
 			ON deo.ser_document_id = deod.ser_document_id
+		LEFT JOIN event_master em2
+			ON eds.ser_event_master_id = em2.ser_event_master_id
 		WHERE eds.ser_event_master_id = $P{P_EVENT_MASTER_ID}
 		  AND eds.bln_is_services = FALSE
 
 		ORDER BY source_type, category_order, category_name,
 		         property_order, property_name, value_order]]>
 	</queryString>
-	<field name="source_type" class="java.lang.String"/>
-	<field name="category_id" class="java.lang.Integer"/>
-	<field name="category_name" class="java.lang.String"/>
-	<field name="category_price" class="java.math.BigDecimal"/>
-	<field name="category_order" class="java.lang.Integer"/>
-	<field name="property_id" class="java.lang.Integer"/>
-	<field name="property_name" class="java.lang.String"/>
-	<field name="property_order" class="java.lang.Integer"/>
-	<field name="value_is_image" class="java.lang.Boolean"/>
-	<field name="value_text" class="java.lang.String"/>
-	<field name="value_image_path" class="java.lang.String"/>
-	<field name="value_order" class="java.lang.Integer"/>
+	<field name="source_type" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="source_type"/>
+	</field>
+	<field name="category_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="category_id"/>
+	</field>
+	<field name="category_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="category_name"/>
+	</field>
+	<field name="category_price" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="category_price"/>
+	</field>
+	<field name="category_order" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="category_order"/>
+	</field>
+	<field name="property_id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="property_id"/>
+	</field>
+	<field name="property_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="property_name"/>
+	</field>
+	<field name="property_order" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="property_order"/>
+	</field>
+	<field name="value_is_image" class="java.lang.Boolean">
+		<property name="com.jaspersoft.studio.field.label" value="value_is_image"/>
+	</field>
+	<field name="value_text" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="value_text"/>
+	</field>
+	<field name="value_image_path" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="value_image_path"/>
+	</field>
+	<field name="value_order" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="value_order"/>
+	</field>
+	<field name="txt_decore_remarks" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_decore_remarks"/>
+	</field>
+	<field name="txt_event_extras_remarks" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_event_extras_remarks"/>
+	</field>
 	<group name="categoryGroup">
 		<groupExpression><![CDATA[$F{source_type} + "_" + String.valueOf($F{category_id})]]></groupExpression>
 		<groupHeader>
@@ -136,7 +174,7 @@
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c6000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c6000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -153,7 +191,7 @@
 	<pageHeader>
 		<band height="155" splitType="Prevent">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c6000000-0000-0000-0000-000000000003"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0F1231" backcolor="#0F1231" uuid="c6000000-0000-0000-0000-000000000003"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -225,19 +263,87 @@
 		</band>
 	</detail>
 	<summary>
-		<band height="20" splitType="Prevent">
+		<band height="160" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="20" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c6000000-0000-0000-0000-000000000070"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="160" forecolor="#0F1231" backcolor="#0F1231" uuid="c6000000-0000-0000-0000-000000000070"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
 			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="4" width="523" height="52" forecolor="#111108" backcolor="#111108" uuid="c6000000-0000-0000-0000-000000000073">
+					<printWhenExpression><![CDATA[$F{txt_decore_remarks} != null && !$F{txt_decore_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="4" width="4" height="52" forecolor="#C5A367" backcolor="#C5A367" uuid="c6000000-0000-0000-0000-000000000074">
+					<printWhenExpression><![CDATA[$F{txt_decore_remarks} != null && !$F{txt_decore_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="14" y="8" width="200" height="11" forecolor="#C5A367" uuid="c6000000-0000-0000-0000-000000000075">
+					<printWhenExpression><![CDATA[$F{txt_decore_remarks} != null && !$F{txt_decore_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="6.5" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DECOR REMARKS]]></text>
+			</staticText>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="14" y="21" width="505" height="32" forecolor="#CCCCCC" uuid="c6000000-0000-0000-0000-000000000076">
+					<printWhenExpression><![CDATA[$F{txt_decore_remarks} != null && !$F{txt_decore_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="8.5" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_decore_remarks}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="66" width="523" height="52" forecolor="#111108" backcolor="#111108" uuid="c6000000-0000-0000-0000-000000000077">
+					<printWhenExpression><![CDATA[$F{txt_event_extras_remarks} != null && !$F{txt_event_extras_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="66" width="4" height="52" forecolor="#C5A367" backcolor="#C5A367" uuid="c6000000-0000-0000-0000-000000000078">
+					<printWhenExpression><![CDATA[$F{txt_event_extras_remarks} != null && !$F{txt_event_extras_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="14" y="70" width="200" height="11" forecolor="#C5A367" uuid="c6000000-0000-0000-0000-000000000079">
+					<printWhenExpression><![CDATA[$F{txt_event_extras_remarks} != null && !$F{txt_event_extras_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="6.5" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DECOR EXTRAS REMARKS]]></text>
+			</staticText>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="14" y="83" width="505" height="32" forecolor="#CCCCCC" uuid="c6000000-0000-0000-0000-000000000080">
+					<printWhenExpression><![CDATA[$F{txt_event_extras_remarks} != null && !$F{txt_event_extras_remarks}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="8.5" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_event_extras_remarks}]]></textFieldExpression>
+			</textField>
 		</band>
 	</summary>
 	<noData>
 		<band height="40">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c6000000-0000-0000-0000-000000000071"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0F1231" backcolor="#0F1231" uuid="c6000000-0000-0000-0000-000000000071"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_event_details" pageWidth="595" pageHeight="842" columnWidth="523" leftMargin="36" rightMargin="36" topMargin="0" bottomMargin="0" uuid="c3000000-0000-0000-0000-000000000001">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="live_db_04_26.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit.height" value="px"/>
 	<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -71,7 +71,11 @@
             r.dte_end_of_night,
 
             -- Running order summary code
-            COALESCE(r.txt_event_running_order_code, '') AS running_order_code
+            COALESCE(r.txt_event_running_order_code, '') AS running_order_code,
+
+            -- Venue and event remarks
+            e.txt_venue_remarks,
+            e.txt_event_remarks
 
         FROM event_master e
         LEFT JOIN customer_master      c   ON e.ser_cust_id                  = c.ser_cust_id
@@ -182,10 +186,16 @@
 	<field name="running_order_code" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="running_order_code"/>
 	</field>
+	<field name="txt_venue_remarks" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_venue_remarks"/>
+	</field>
+	<field name="txt_event_remarks" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="txt_event_remarks"/>
+	</field>
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c3000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c3000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -511,6 +521,35 @@
 					<pen lineWidth="0.5" lineColor="#333311"/>
 				</graphicElement>
 			</line>
+		</band>
+		<band height="60" splitType="Stretch">
+			<printWhenExpression><![CDATA[$F{txt_venue_remarks} != null && !$F{txt_venue_remarks}.trim().isEmpty()]]></printWhenExpression>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="4" width="523" height="52" forecolor="#111108" backcolor="#111108" uuid="c3000000-0000-0000-0000-000000000154"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="4" width="4" height="52" forecolor="#C5A367" backcolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000155"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="14" y="8" width="200" height="11" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000148"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="6.5" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[VENUE REMARKS]]></text>
+			</staticText>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="14" y="21" width="505" height="32" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000149"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="8.5" isBold="false" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_venue_remarks}]]></textFieldExpression>
+			</textField>
 		</band>
 		<band height="14"/>
 		<band height="30" splitType="Prevent">
@@ -895,6 +934,35 @@
 					<pen lineWidth="0.5" lineColor="#333311"/>
 				</graphicElement>
 			</line>
+		</band>
+		<band height="60" splitType="Stretch">
+			<printWhenExpression><![CDATA[$F{txt_event_remarks} != null && !$F{txt_event_remarks}.trim().isEmpty()]]></printWhenExpression>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="4" width="523" height="52" forecolor="#111108" backcolor="#111108" uuid="c3000000-0000-0000-0000-000000000156"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="4" width="4" height="52" forecolor="#C5A367" backcolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000157"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="14" y="8" width="200" height="11" forecolor="#C5A367" uuid="c3000000-0000-0000-0000-000000000151"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="6.5" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[EVENT REMARKS]]></text>
+			</staticText>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="14" y="21" width="505" height="32" forecolor="#CCCCCC" uuid="c3000000-0000-0000-0000-000000000152"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="8.5" isBold="false" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txt_event_remarks}]]></textFieldExpression>
+			</textField>
 		</band>
 		<band height="18"/>
 		<band height="80" splitType="Prevent">
