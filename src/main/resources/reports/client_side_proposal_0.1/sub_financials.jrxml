@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.11.0-0c4056ccaa4d25a5a8c45672d2f764ea3498bebb  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_financials" pageWidth="595" pageHeight="842" columnWidth="523" leftMargin="36" rightMargin="36" topMargin="0" bottomMargin="0" uuid="c7000000-0000-0000-0000-000000000001">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="live_db_04_26.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit.height" value="px"/>
 	<property name="com.jaspersoft.studio.unit.width" value="px"/>
@@ -28,7 +28,7 @@
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -45,7 +45,7 @@
 	<pageHeader>
 		<band height="155" splitType="Prevent">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000003"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0F1231" backcolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000003"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -102,14 +102,14 @@
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="0" width="300" height="28" forecolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000011"/>
+				<reportElement x="12" y="0" width="300" height="28" forecolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000011"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="Inter" size="7.5" isBold="true"/>
 				</textElement>
 				<text><![CDATA[DESCRIPTION]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="400" y="0" width="110" height="28" forecolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000012"/>
+				<reportElement x="400" y="0" width="110" height="28" forecolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000012"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="Inter" size="7.5" isBold="true"/>
 				</textElement>
@@ -361,40 +361,10 @@
 			</staticText>
 		</band>
 	</detail>
-	<pageFooter>
-		<band height="47" splitType="Prevent">
-			<line>
-				<reportElement x="-36" y="0" width="595" height="1" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000009"/>
-				<graphicElement>
-					<pen lineWidth="0.5" lineColor="#C5A367"/>
-				</graphicElement>
-			</line>
-			<staticText>
-				<reportElement x="0" y="13" width="150" height="14" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000080"/>
-				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font fontName="Playfair Display" size="7" isBold="true"/>
-				</textElement>
-				<text><![CDATA[DIAMOND EVENTS]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="373" y="13" width="150" height="14" forecolor="#E0C590" uuid="c7000000-0000-0000-0000-000000000081"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="Inter" size="7"/>
-				</textElement>
-				<text><![CDATA[WWW.DIAMONDEVENTS.UK]]></text>
-			</staticText>
-			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="41" width="595" height="6" forecolor="#C5A367" backcolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000082"/>
-				<graphicElement>
-					<pen lineWidth="0.0"/>
-				</graphicElement>
-			</rectangle>
-		</band>
-	</pageFooter>
 	<noData>
 		<band height="40">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0C0C0C" backcolor="#0C0C0C" uuid="c7000000-0000-0000-0000-000000000090"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0F1231" backcolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000090"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
