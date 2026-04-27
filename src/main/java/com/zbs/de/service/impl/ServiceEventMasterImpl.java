@@ -2,6 +2,7 @@ package com.zbs.de.service.impl;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -955,6 +956,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							quote.setNumDecorAmount(eventBudget.getNumDecorAmount());
 							quote.setNumFoodAmount(eventBudget.getNumFoodAmount());
 							quote.setNumServicesAmount(eventBudget.getNumServicesAmount());
+							quote.setNumDecorExtrasVat(eventBudget.getNumDecorExtrasVat());
+							quote.setNumFinalAmount(eventBudget.getNumFinalAmount());
 							dto.setDtoEventQuoteAndStatus(quote);
 						}
 					} catch (Exception ex) {
@@ -1592,44 +1595,109 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //					entity.setNumInfoFilledStatus(100);
 				}
 
+//				// Setting Event Quoted Price
+//				// **************************
+//
+//				eventBudget = serviceEventBudget.getEventBudgetByEventId(entity.getSerEventMasterId());
+//				if (eventBudget != null) {
+//					if (eventBudget.getNumPaidAmount() != null
+//							&& eventBudget.getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
+//						eventBudget.setTxtStatus("Confirmed");
+//
+//					} else if (dtoEventMaster.getDtoEventQuoteAndStatus() != null
+//							&& dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
+//									.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+//						eventBudget.setTxtStatus("Quoted");
+//						eventBudget.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+//						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//
+//					} else {
+//						eventBudget.setTxtStatus("Enquiry");
+//						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+//						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//
+//					}
+//
+//				} else {
+//					eventBudget = new EventBudget();
+//					if (dtoEventMaster.getDtoEventQuoteAndStatus() != null && dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
+//							.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+//						eventBudget.setTxtStatus("Quoted");
+//						eventBudget.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+//						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//
+//					} else {
+//						eventBudget.setTxtStatus("Enquiry");
+//						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+//						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//
+//					}
+//
+//				}
 				// Setting Event Quoted Price
 				// **************************
-
 				eventBudget = serviceEventBudget.getEventBudgetByEventId(entity.getSerEventMasterId());
-				if (eventBudget != null) {
-					if (eventBudget.getNumPaidAmount() != null
-							&& eventBudget.getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
-						eventBudget.setTxtStatus("Confirmed");
 
-					} else if (dtoEventMaster.getDtoEventQuoteAndStatus() != null
-							&& dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
-									.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
-						eventBudget.setTxtStatus("Quoted");
-						eventBudget.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
-						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+				if (eventBudget == null) {
+				    eventBudget = new EventBudget();
+				}
 
-					} else {
-						eventBudget.setTxtStatus("Enquiry");
-						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
-						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+				DtoEventQuoteAndStatus quoteAndStatus = dtoEventMaster.getDtoEventQuoteAndStatus();
 
-					}
+				boolean hasIncomingPaidAmount = quoteAndStatus != null
+				        && quoteAndStatus.getNumPaidAmount() != null
+				        && quoteAndStatus.getNumPaidAmount().compareTo(BigDecimal.ZERO) > 0;
+
+				boolean hasExistingPaidAmount = eventBudget.getNumPaidAmount() != null
+				        && eventBudget.getNumPaidAmount().compareTo(BigDecimal.ZERO) > 0;
+
+				boolean hasQuotedPrice = quoteAndStatus != null
+				        && quoteAndStatus.getNumQuotedPrice() != null
+				        && quoteAndStatus.getNumQuotedPrice().compareTo(BigDecimal.ZERO) > 0;
+
+				BigDecimal discount = (quoteAndStatus != null && quoteAndStatus.getNumDiscount() != null)
+				        ? quoteAndStatus.getNumDiscount()
+				        : BigDecimal.ZERO;
+
+				if (hasIncomingPaidAmount || hasExistingPaidAmount) {
+				    eventBudget.setTxtStatus("Confirmed");
+				    eventBudget.setNumDiscount(discount);
+
+				    if (hasIncomingPaidAmount) {
+				        eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+				    }
+				    if (hasQuotedPrice) {
+				        eventBudget.setNumQuotedPrice(quoteAndStatus.getNumQuotedPrice());
+				    }
+
+				    // Derive VAT and final amount from whatever quoted price is now on the record
+				    BigDecimal effectiveQuotedPrice = safeValue(eventBudget.getNumQuotedPrice());
+				    eventBudget.setNumDecorExtrasVat(
+				        calculateDecorExtrasVat(safeValue(
+				            quoteAndStatus != null ? quoteAndStatus.getNumDecorAmount() : null)));
+				    eventBudget.setNumFinalAmount(calculateFinalAmount(effectiveQuotedPrice, discount));
+
+				    if (quoteAndStatus != null) {
+				        applyAmountFields(eventBudget, quoteAndStatus);
+				    }
+
+				} else if (hasQuotedPrice) {
+				    eventBudget.setTxtStatus("Quoted");
+				    eventBudget.setNumQuotedPrice(quoteAndStatus.getNumQuotedPrice());
+				    eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDiscount(discount);
+				    applyAmountFields(eventBudget, quoteAndStatus);
 
 				} else {
-					eventBudget = new EventBudget();
-					if (dtoEventMaster.getDtoEventQuoteAndStatus() != null && dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
-							.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
-						eventBudget.setTxtStatus("Quoted");
-						eventBudget.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
-						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
-
-					} else {
-						eventBudget.setTxtStatus("Enquiry");
-						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
-						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
-
-					}
-
+				    eventBudget.setTxtStatus("Enquiry");
+				    eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+				    eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDiscount(BigDecimal.ZERO);
+				    eventBudget.setNumFoodAmount(BigDecimal.ZERO);
+				    eventBudget.setNumServicesAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDecorAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDecorExtrasVat(BigDecimal.ZERO);
+				    eventBudget.setNumFinalAmount(BigDecimal.ZERO);
 				}
 
 			} else {
@@ -1906,22 +1974,68 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				String code = generateNextEventMasterCode();
 				entity.setTxtEventMasterCode(code);
 
-				// Setting up Event QuotePrice
-				// ***************************
-
+//				// Setting up Event QuotePrice
+//				// ***************************
+//
+//				eventBudget = new EventBudget();
+//				if (dtoEventMaster.getDtoEventQuoteAndStatus() != null
+//						&& dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
+//								.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
+//					eventBudget.setTxtStatus("Quoted");
+//					eventBudget.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+//					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//
+//				} else {
+//					eventBudget.setTxtStatus("Enquiry");
+//					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+//					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//
+//				}
+				
+				// Setting Event Quoted Price
+				// **************************
 				eventBudget = new EventBudget();
-				if (dtoEventMaster.getDtoEventQuoteAndStatus() != null
-						&& dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null && dtoEventMaster
-								.getDtoEventQuoteAndStatus().getNumQuotedPrice().compareTo(BigDecimal.ZERO) == 1) {
-					eventBudget.setTxtStatus("Quoted");
-					eventBudget.setNumQuotedPrice(dtoEventMaster.getDtoEventQuoteAndStatus().getNumQuotedPrice());
-					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+
+				DtoEventQuoteAndStatus quoteAndStatus = dtoEventMaster.getDtoEventQuoteAndStatus();
+
+				boolean hasPaidAmount = quoteAndStatus != null
+				        && quoteAndStatus.getNumPaidAmount() != null
+				        && quoteAndStatus.getNumPaidAmount().compareTo(BigDecimal.ZERO) > 0;
+
+				boolean hasQuotedPrice = quoteAndStatus != null
+				        && quoteAndStatus.getNumQuotedPrice() != null
+				        && quoteAndStatus.getNumQuotedPrice().compareTo(BigDecimal.ZERO) > 0;
+
+				BigDecimal discount = (quoteAndStatus != null && quoteAndStatus.getNumDiscount() != null)
+				        ? quoteAndStatus.getNumDiscount()
+				        : BigDecimal.ZERO;
+
+				if (hasPaidAmount) {
+				    eventBudget.setTxtStatus("Confirmed");
+				    eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+				    eventBudget.setNumDiscount(discount);
+				    if (hasQuotedPrice) {
+				        eventBudget.setNumQuotedPrice(quoteAndStatus.getNumQuotedPrice());
+				    }
+				    applyAmountFields(eventBudget, quoteAndStatus);
+
+				} else if (hasQuotedPrice) {
+				    eventBudget.setTxtStatus("Quoted");
+				    eventBudget.setNumQuotedPrice(quoteAndStatus.getNumQuotedPrice());
+				    eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDiscount(discount);
+				    applyAmountFields(eventBudget, quoteAndStatus);
 
 				} else {
-					eventBudget.setTxtStatus("Enquiry");
-					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
-					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
-
+				    eventBudget.setTxtStatus("Enquiry");
+				    eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+				    eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDiscount(BigDecimal.ZERO);
+				    eventBudget.setNumFoodAmount(BigDecimal.ZERO);
+				    eventBudget.setNumServicesAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDecorAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDecorExtrasVat(BigDecimal.ZERO);
+				    eventBudget.setNumFinalAmount(BigDecimal.ZERO);
 				}
 			}
 			
@@ -2570,6 +2684,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						quote.setNumDecorAmount(eventBudget.getNumDecorAmount());
 						quote.setNumFoodAmount(eventBudget.getNumFoodAmount());
 						quote.setNumServicesAmount(eventBudget.getNumServicesAmount());
+						quote.setNumDecorExtrasVat(eventBudget.getNumDecorExtrasVat());
+						quote.setNumFinalAmount(eventBudget.getNumFinalAmount());
 						dto.setDtoEventQuoteAndStatus(quote);
 					}
 				} catch (Exception ex) {
@@ -2981,93 +3097,160 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Setting Event Quoted Price
 				// **************************
+//				eventBudget = serviceEventBudget.getEventBudgetByEventId(entity.getSerEventMasterId());
+//
+//				if (eventBudget != null) {
+//					if (eventBudget.getNumPaidAmount() != null
+//							&& (eventBudget.getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1
+//									|| (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
+//											&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumPaidAmount()
+//													.compareTo(BigDecimal.ZERO) == 1))) {
+//						eventBudget.setTxtStatus("Confirmed");
+//						if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal
+//								.getDtoEventQuoteAndStatus().getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
+//							eventBudget.setNumPaidAmount(
+//									dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumPaidAmount());
+//						}
+//						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+//							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+//						}else {
+//							eventBudget.setNumDiscount(BigDecimal.ZERO);
+//						}
+//
+//					} else if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
+//							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+//							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
+//									.compareTo(BigDecimal.ZERO) == 1) {
+//						eventBudget.setTxtStatus("Quoted");
+//						eventBudget.setNumQuotedPrice(
+//								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+//						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+//							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+//						}else {
+//							eventBudget.setNumDiscount(BigDecimal.ZERO);
+//						}
+//
+//
+//					} else {
+//						eventBudget.setTxtStatus("Enquiry");
+//						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+//						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//						eventBudget.setNumDiscount(BigDecimal.ZERO);
+//						eventBudget.setNumFinalAmount(BigDecimal.ZERO);
+//
+//					}
+//
+//				} else {
+//					eventBudget = new EventBudget();
+//
+//					if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal
+//							.getDtoEventQuoteAndStatus().getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
+//						eventBudget.setTxtStatus("Confirmed");
+//						eventBudget.setNumPaidAmount(
+//								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumPaidAmount());
+//						if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+//								&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
+//										.compareTo(BigDecimal.ZERO) == 1) {
+//							eventBudget.setNumQuotedPrice(
+//									dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+//						}
+//						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+//							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+//						}else {
+//							eventBudget.setNumDiscount(BigDecimal.ZERO);
+//						}
+//
+//
+//					} else if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
+//							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+//							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
+//									.compareTo(BigDecimal.ZERO) == 1) {
+//						eventBudget.setTxtStatus("Quoted");
+//						eventBudget.setNumQuotedPrice(
+//								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+//						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+//							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+//						}else {
+//							eventBudget.setNumDiscount(BigDecimal.ZERO);
+//						}
+//
+//
+//					} else {
+//						eventBudget.setTxtStatus("Enquiry");
+//						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+//						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//						eventBudget.setNumDiscount(BigDecimal.ZERO);
+//
+//					}
+//
+//				}
+				
+				// Setting Event Quoted Price
+				// **************************
 				eventBudget = serviceEventBudget.getEventBudgetByEventId(entity.getSerEventMasterId());
 
-				if (eventBudget != null) {
-					if (eventBudget.getNumPaidAmount() != null
-							&& (eventBudget.getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1
-									|| (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
-											&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumPaidAmount()
-													.compareTo(BigDecimal.ZERO) == 1))) {
-						eventBudget.setTxtStatus("Confirmed");
-						if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal
-								.getDtoEventQuoteAndStatus().getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
-							eventBudget.setNumPaidAmount(
-									dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumPaidAmount());
-						}
-						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
-							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
-						}else {
-							eventBudget.setNumDiscount(BigDecimal.ZERO);
-						}
+				if (eventBudget == null) {
+				    eventBudget = new EventBudget();
+				}
 
-					} else if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
-							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
-							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
-									.compareTo(BigDecimal.ZERO) == 1) {
-						eventBudget.setTxtStatus("Quoted");
-						eventBudget.setNumQuotedPrice(
-								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
-						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
-						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
-							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
-						}else {
-							eventBudget.setNumDiscount(BigDecimal.ZERO);
-						}
+				DtoEventQuoteAndStatus quoteAndStatus = dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus();
 
+				boolean hasIncomingPaidAmount = quoteAndStatus != null
+				        && quoteAndStatus.getNumPaidAmount() != null
+				        && quoteAndStatus.getNumPaidAmount().compareTo(BigDecimal.ZERO) > 0;
 
-					} else {
-						eventBudget.setTxtStatus("Enquiry");
-						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
-						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
-						eventBudget.setNumDiscount(BigDecimal.ZERO);
+				boolean hasExistingPaidAmount = eventBudget.getNumPaidAmount() != null
+				        && eventBudget.getNumPaidAmount().compareTo(BigDecimal.ZERO) > 0;
 
-					}
+				boolean hasQuotedPrice = quoteAndStatus != null
+				        && quoteAndStatus.getNumQuotedPrice() != null
+				        && quoteAndStatus.getNumQuotedPrice().compareTo(BigDecimal.ZERO) > 0;
+
+				BigDecimal discount = (quoteAndStatus != null && quoteAndStatus.getNumDiscount() != null)
+				        ? quoteAndStatus.getNumDiscount()
+				        : BigDecimal.ZERO;
+
+				if (hasIncomingPaidAmount || hasExistingPaidAmount) {
+				    eventBudget.setTxtStatus("Confirmed");
+				    eventBudget.setNumDiscount(discount);
+
+				    if (hasIncomingPaidAmount) {
+				        eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+				    }
+				    if (hasQuotedPrice) {
+				        eventBudget.setNumQuotedPrice(quoteAndStatus.getNumQuotedPrice());
+				    }
+
+				    // Derive VAT and final amount from whatever quoted price is now on the record
+				    BigDecimal effectiveQuotedPrice = safeValue(eventBudget.getNumQuotedPrice());
+				    eventBudget.setNumDecorExtrasVat(
+				        calculateDecorExtrasVat(safeValue(
+				            quoteAndStatus != null ? quoteAndStatus.getNumDecorAmount() : null)));
+				    eventBudget.setNumFinalAmount(calculateFinalAmount(effectiveQuotedPrice, discount));
+
+				    if (quoteAndStatus != null) {
+				        applyAmountFields(eventBudget, quoteAndStatus);
+				    }
+
+				} else if (hasQuotedPrice) {
+				    eventBudget.setTxtStatus("Quoted");
+				    eventBudget.setNumQuotedPrice(quoteAndStatus.getNumQuotedPrice());
+				    eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDiscount(discount);
+				    applyAmountFields(eventBudget, quoteAndStatus);
 
 				} else {
-					eventBudget = new EventBudget();
-
-					if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal
-							.getDtoEventQuoteAndStatus().getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
-						eventBudget.setTxtStatus("Confirmed");
-						eventBudget.setNumPaidAmount(
-								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumPaidAmount());
-						if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
-								&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
-										.compareTo(BigDecimal.ZERO) == 1) {
-							eventBudget.setNumQuotedPrice(
-									dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
-						}
-						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
-							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
-						}else {
-							eventBudget.setNumDiscount(BigDecimal.ZERO);
-						}
-
-
-					} else if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
-							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
-							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
-									.compareTo(BigDecimal.ZERO) == 1) {
-						eventBudget.setTxtStatus("Quoted");
-						eventBudget.setNumQuotedPrice(
-								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
-						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
-						if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
-							eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
-						}else {
-							eventBudget.setNumDiscount(BigDecimal.ZERO);
-						}
-
-
-					} else {
-						eventBudget.setTxtStatus("Enquiry");
-						eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
-						eventBudget.setNumPaidAmount(BigDecimal.ZERO);
-						eventBudget.setNumDiscount(BigDecimal.ZERO);
-
-					}
-
+				    eventBudget.setTxtStatus("Enquiry");
+				    eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+				    eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDiscount(BigDecimal.ZERO);
+				    eventBudget.setNumFoodAmount(BigDecimal.ZERO);
+				    eventBudget.setNumServicesAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDecorAmount(BigDecimal.ZERO);
+				    eventBudget.setNumDecorExtrasVat(BigDecimal.ZERO);
+				    eventBudget.setNumFinalAmount(BigDecimal.ZERO);
 				}
 
 			} else {
@@ -3305,50 +3488,94 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				String code = generateNextEventMasterCode();
 				entity.setTxtEventMasterCode(code);
 
+//				// Setting Event Quoted Price
+//				// **************************
+//
+//				eventBudget = new EventBudget();
+//				if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal
+//						.getDtoEventQuoteAndStatus().getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
+//					eventBudget.setTxtStatus("Confirmed");
+//					eventBudget
+//							.setNumPaidAmount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumPaidAmount());
+//					if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+//							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
+//									.compareTo(BigDecimal.ZERO) == 1) {
+//						eventBudget.setNumQuotedPrice(
+//								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+//					}
+//					
+//					if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+//						eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+//					}else {
+//						eventBudget.setNumDiscount(BigDecimal.ZERO);
+//					}
+//
+//
+//				} else if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
+//						&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
+//						&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
+//								.compareTo(BigDecimal.ZERO) == 1) {
+//					eventBudget.setTxtStatus("Quoted");
+//					eventBudget.setNumQuotedPrice(
+//							dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+//					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//					if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
+//						eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
+//					}else {
+//						eventBudget.setNumDiscount(BigDecimal.ZERO);
+//					}
+//
+//
+//				} else {
+//					eventBudget.setTxtStatus("Enquiry");
+//					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
+//					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+//					eventBudget.setNumDiscount(BigDecimal.ZERO);
+//
+//				}
+				
 				// Setting Event Quoted Price
 				// **************************
-
 				eventBudget = new EventBudget();
-				if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal
-						.getDtoEventQuoteAndStatus().getNumPaidAmount().compareTo(BigDecimal.ZERO) == 1) {
+
+				DtoEventQuoteAndStatus quoteAndStatus = dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus();
+
+				boolean hasPaidAmount = quoteAndStatus != null && quoteAndStatus.getNumPaidAmount() != null
+						&& quoteAndStatus.getNumPaidAmount().compareTo(BigDecimal.ZERO) > 0;
+
+				boolean hasQuotedPrice = quoteAndStatus != null && quoteAndStatus.getNumQuotedPrice() != null
+						&& quoteAndStatus.getNumQuotedPrice().compareTo(BigDecimal.ZERO) > 0;
+
+				BigDecimal discount = (quoteAndStatus != null && quoteAndStatus.getNumDiscount() != null)
+						? quoteAndStatus.getNumDiscount()
+						: BigDecimal.ZERO;
+
+				if (hasPaidAmount) {
 					eventBudget.setTxtStatus("Confirmed");
-					eventBudget
-							.setNumPaidAmount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumPaidAmount());
-					if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
-							&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
-									.compareTo(BigDecimal.ZERO) == 1) {
-						eventBudget.setNumQuotedPrice(
-								dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+					eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+					eventBudget.setNumDiscount(discount);
+					if (hasQuotedPrice) {
+						eventBudget.setNumQuotedPrice(quoteAndStatus.getNumQuotedPrice());
 					}
-					
-					if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
-						eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
-					}else {
-						eventBudget.setNumDiscount(BigDecimal.ZERO);
-					}
+					applyAmountFields(eventBudget, quoteAndStatus);
 
-
-				} else if (dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null
-						&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice() != null
-						&& dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice()
-								.compareTo(BigDecimal.ZERO) == 1) {
+				} else if (hasQuotedPrice) {
 					eventBudget.setTxtStatus("Quoted");
-					eventBudget.setNumQuotedPrice(
-							dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumQuotedPrice());
+					eventBudget.setNumQuotedPrice(quoteAndStatus.getNumQuotedPrice());
 					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
-					if(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus() != null && dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount() != null) {
-						eventBudget.setNumDiscount(dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus().getNumDiscount());
-					}else {
-						eventBudget.setNumDiscount(BigDecimal.ZERO);
-					}
-
+					eventBudget.setNumDiscount(discount);
+					applyAmountFields(eventBudget, quoteAndStatus);
 
 				} else {
 					eventBudget.setTxtStatus("Enquiry");
 					eventBudget.setNumQuotedPrice(BigDecimal.ZERO);
 					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
 					eventBudget.setNumDiscount(BigDecimal.ZERO);
-
+					eventBudget.setNumFoodAmount(BigDecimal.ZERO);
+					eventBudget.setNumServicesAmount(BigDecimal.ZERO);
+					eventBudget.setNumDecorAmount(BigDecimal.ZERO);
+					eventBudget.setNumDecorExtrasVat(BigDecimal.ZERO);
+					eventBudget.setNumFinalAmount(BigDecimal.ZERO);
 				}
 
 			}
@@ -4403,6 +4630,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					quote.setNumDecorAmount(eventBudget.getNumDecorAmount());
 					quote.setNumFoodAmount(eventBudget.getNumFoodAmount());
 					quote.setNumServicesAmount(eventBudget.getNumServicesAmount());
+					quote.setNumDecorExtrasVat(eventBudget.getNumDecorExtrasVat());
+					quote.setNumFinalAmount(eventBudget.getNumFinalAmount());
 					dtoEvent.setDtoEventQuoteAndStatus(quote);
 				}
 			} catch (Exception ex) {
@@ -5811,5 +6040,39 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			dtoResult.setTxtMessage("Failure");
 			return dtoResult;
 		}
+	}
+	
+	private BigDecimal calculateDecorExtrasVat(BigDecimal numDecorAmount) {
+	    if (numDecorAmount == null || numDecorAmount.compareTo(BigDecimal.ZERO) <= 0) {
+	        return BigDecimal.ZERO;
+	    }
+	    return numDecorAmount.multiply(new BigDecimal("0.20")).setScale(2, RoundingMode.HALF_UP);
+	}
+	
+	private BigDecimal calculateFinalAmount(BigDecimal numQuotedPrice, BigDecimal numDiscount) {
+	    BigDecimal quoted   = (numQuotedPrice != null) ? numQuotedPrice : BigDecimal.ZERO;
+	    BigDecimal discount = (numDiscount    != null) ? numDiscount    : BigDecimal.ZERO;
+	    BigDecimal result   = quoted.subtract(discount);
+	    return result.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : result;
+	}
+	private void applyAmountFields(EventBudget eventBudget, DtoEventQuoteAndStatus quoteAndStatus) {
+	    BigDecimal foodAmount     = safeValue(quoteAndStatus.getNumFoodAmount());
+	    BigDecimal servicesAmount = safeValue(quoteAndStatus.getNumServicesAmount());
+	    BigDecimal decorAmount    = safeValue(quoteAndStatus.getNumDecorAmount());
+	    BigDecimal quotedPrice    = safeValue(quoteAndStatus.getNumQuotedPrice());
+	    BigDecimal discount       = safeValue(quoteAndStatus.getNumDiscount());
+
+	    BigDecimal decorExtrasVat = calculateDecorExtrasVat(decorAmount);
+	    BigDecimal finalAmount    = calculateFinalAmount(quotedPrice, discount);
+
+	    eventBudget.setNumFoodAmount(foodAmount);
+	    eventBudget.setNumServicesAmount(servicesAmount);
+	    eventBudget.setNumDecorAmount(decorAmount);
+	    eventBudget.setNumDecorExtrasVat(decorExtrasVat);
+	    eventBudget.setNumFinalAmount(finalAmount);
+	}
+	
+	private BigDecimal safeValue(BigDecimal value) {
+	    return (value != null) ? value : BigDecimal.ZERO;
 	}
 }
