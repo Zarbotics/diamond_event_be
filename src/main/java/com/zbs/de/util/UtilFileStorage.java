@@ -23,7 +23,7 @@ public class UtilFileStorage {
 //	}
 
 	public static String saveFile(MultipartFile file, String category) throws IOException {
-		String folder = "/root/diamondevent_be/uploads/" + category;
+		String folder = "/root/diamondevent_staging/uploads/" + category;
 		Files.createDirectories(Paths.get(folder));
 
 		String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
@@ -34,7 +34,7 @@ public class UtilFileStorage {
 		// return filePath.toString();
 
 		// With this line:
-		return "https://frosty-jang.87-106-101-41.plesk.page:8081/api/diamond/deimg/" + category + "/" + fileName;
+		return "https://frosty-jang.87-106-101-41.plesk.page:8082/api/diamond/deimg/" + category + "/" + fileName;
 	}
 
 }
