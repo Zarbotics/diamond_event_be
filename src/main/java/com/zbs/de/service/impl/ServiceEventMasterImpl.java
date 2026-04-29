@@ -1494,26 +1494,29 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						// Set reference image back reference
 
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
-							decorSelection.getUserUploadedDocuments().clear();
-							List<EventDecorReferenceDocument> documents = new ArrayList<>();
-							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-								MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-								if (file != null) {
-									String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-									doc.setDocumentName(file.getName());
-									doc.setOriginalName(file.getOriginalFilename());
-									doc.setDocumentType(file.getContentType());
-									doc.setSize(String.valueOf(file.getSize()));
-									doc.setFilePath(uploadPath);
-									doc.setEventDecorCategorySelection(decorSelection);
-									documents.add(doc);
+							boolean hasNewFiles = files != null
+									&& files.stream().anyMatch(f -> f != null && !f.isEmpty());
+							if (hasNewFiles) {
+								decorSelection.getUserUploadedDocuments().clear();
+								List<EventDecorReferenceDocument> documents = new ArrayList<>();
+								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
+									MultipartFile file = fileMap.get(dtoImg.getOriginalName());
+									if (file != null) {
+										String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
+										EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
+										doc.setDocumentName(file.getName());
+										doc.setOriginalName(file.getOriginalFilename());
+										doc.setDocumentType(file.getContentType());
+										doc.setSize(String.valueOf(file.getSize()));
+										doc.setFilePath(uploadPath);
+										doc.setEventDecorCategorySelection(decorSelection);
+										documents.add(doc);
+									}
 								}
-							}
 //							decorSelection.setUserUploadedDocuments(documents);
-							decorSelection.getUserUploadedDocuments().addAll(documents);
+								decorSelection.getUserUploadedDocuments().addAll(documents);
+							}
 						}
-
 						decorSelections.add(decorSelection);
 					}
 
@@ -3199,27 +3202,31 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						// Set reference image back reference
 
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
-							decorSelection.getUserUploadedDocuments().clear();
-							List<EventDecorReferenceDocument> documents = new ArrayList<>();
-							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-								MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-								if (file != null) {
-									String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-									doc.setDocumentName(file.getName());
-									doc.setOriginalName(file.getOriginalFilename());
-									doc.setDocumentType(file.getContentType());
-									doc.setSize(String.valueOf(file.getSize()));
-									doc.setFilePath(uploadPath);
-									doc.setEventDecorCategorySelection(decorSelection);
-									documents.add(doc);
+							boolean hasNewFiles = files != null
+									&& files.stream().anyMatch(f -> f != null && !f.isEmpty());
+							if (hasNewFiles) {
+								decorSelection.getUserUploadedDocuments().clear();
+								List<EventDecorReferenceDocument> documents = new ArrayList<>();
+								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
+									MultipartFile file = fileMap.get(dtoImg.getOriginalName());
+									if (file != null) {
+										String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
+										EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
+										doc.setDocumentName(file.getName());
+										doc.setOriginalName(file.getOriginalFilename());
+										doc.setDocumentType(file.getContentType());
+										doc.setSize(String.valueOf(file.getSize()));
+										doc.setFilePath(uploadPath);
+										doc.setEventDecorCategorySelection(decorSelection);
+										documents.add(doc);
+									}
 								}
-							}
 //							decorSelection.setUserUploadedDocuments(documents);
-							decorSelection.getUserUploadedDocuments().addAll(documents);
-						}
+								decorSelection.getUserUploadedDocuments().addAll(documents);
+							}
 
-						decorSelections.add(decorSelection);
+							decorSelections.add(decorSelection);
+						}
 					}
 
 //					entity.setDecorSelections(decorSelections);
@@ -5534,29 +5541,32 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						// Set reference image back reference
 
 						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
-							decorSelection.getUserUploadedDocuments().clear();
-							List<EventDecorReferenceDocument> documents = new ArrayList<>();
-							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-								MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-								if (file != null) {
-									String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-									doc.setDocumentName(file.getName());
-									doc.setOriginalName(file.getOriginalFilename());
-									doc.setDocumentType(file.getContentType());
-									doc.setSize(String.valueOf(file.getSize()));
-									doc.setFilePath(uploadPath);
-									doc.setEventDecorCategorySelection(decorSelection);
-									documents.add(doc);
+							boolean hasNewFiles = files != null
+									&& files.stream().anyMatch(f -> f != null && !f.isEmpty());
+							if (hasNewFiles) {
+								decorSelection.getUserUploadedDocuments().clear();
+								List<EventDecorReferenceDocument> documents = new ArrayList<>();
+								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
+									MultipartFile file = fileMap.get(dtoImg.getOriginalName());
+									if (file != null) {
+										String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
+										EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
+										doc.setDocumentName(file.getName());
+										doc.setOriginalName(file.getOriginalFilename());
+										doc.setDocumentType(file.getContentType());
+										doc.setSize(String.valueOf(file.getSize()));
+										doc.setFilePath(uploadPath);
+										doc.setEventDecorCategorySelection(decorSelection);
+										documents.add(doc);
+									}
 								}
-							}
 //							decorSelection.setUserUploadedDocuments(documents);
-							decorSelection.getUserUploadedDocuments().addAll(documents);
+								decorSelection.getUserUploadedDocuments().addAll(documents);
+							}
+
+							decorSelections.add(decorSelection);
 						}
-
-						decorSelections.add(decorSelection);
 					}
-
 //					entity.setDecorSelections(decorSelections);
 					entity.getDecorSelections().addAll(decorSelections);
 //					entity.setNumInfoFilledStatus(70);
