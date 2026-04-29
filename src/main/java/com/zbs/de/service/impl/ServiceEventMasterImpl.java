@@ -2547,18 +2547,18 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			entity = repositoryEventMaster.save(entity);
 			if (eventBudget != null) {
 				eventBudget.setEventMaster(entity);
-				BigDecimal decorCategory = numDecorCategoryPrice != null ? numDecorCategoryPrice : BigDecimal.ZERO;
-				BigDecimal decorProperty = numDecorPropertyPrice != null ? numDecorPropertyPrice : BigDecimal.ZERO;
-
-				BigDecimal foodCategory = numFoodCategoryPrice != null ? numFoodCategoryPrice : BigDecimal.ZERO;
-				BigDecimal foodSubcategory = numFoodSubcategoryPrice != null ? numFoodSubcategoryPrice
-						: BigDecimal.ZERO;
-
-				BigDecimal services = numServicesPrice != null ? numServicesPrice : BigDecimal.ZERO;
-
-				eventBudget.setNumDecorAmount(decorCategory.add(decorProperty));
-				eventBudget.setNumFoodAmount(foodCategory.add(foodSubcategory));
-				eventBudget.setNumServicesAmount(services);
+//				BigDecimal decorCategory = numDecorCategoryPrice != null ? numDecorCategoryPrice : BigDecimal.ZERO;
+//				BigDecimal decorProperty = numDecorPropertyPrice != null ? numDecorPropertyPrice : BigDecimal.ZERO;
+//
+//				BigDecimal foodCategory = numFoodCategoryPrice != null ? numFoodCategoryPrice : BigDecimal.ZERO;
+//				BigDecimal foodSubcategory = numFoodSubcategoryPrice != null ? numFoodSubcategoryPrice
+//						: BigDecimal.ZERO;
+//
+//				BigDecimal services = numServicesPrice != null ? numServicesPrice : BigDecimal.ZERO;
+//
+//				eventBudget.setNumDecorAmount(decorCategory.add(decorProperty));
+//				eventBudget.setNumFoodAmount(foodCategory.add(foodSubcategory));
+//				eventBudget.setNumServicesAmount(services);
 				serviceEventBudget.save(eventBudget);
 			}
 			
