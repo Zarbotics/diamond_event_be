@@ -13,6 +13,8 @@ public class DtoCustomerMenuSubCategory {
 	private BigDecimal numFinalPrice;
 	private String txtDescription;
 	private Boolean blnIsSelectable;
+	private Boolean blnHasSelectionLimit;
+	private Integer numSelectionLimit;
 	private List<DtoMenuItem> items;
 	private List<DtoMenuComponentRequest> compositeItems;
 
@@ -78,6 +80,22 @@ public class DtoCustomerMenuSubCategory {
 
 	public void setBlnIsSelectable(Boolean blnIsSelectable) {
 		this.blnIsSelectable = blnIsSelectable;
+	}
+
+	public Boolean getBlnHasSelectionLimit() {
+		return blnHasSelectionLimit;
+	}
+
+	public void setBlnHasSelectionLimit(Boolean blnHasSelectionLimit) {
+		this.blnHasSelectionLimit = blnHasSelectionLimit;
+	}
+
+	public Integer getNumSelectionLimit() {
+		return numSelectionLimit;
+	}
+
+	public void setNumSelectionLimit(Integer numSelectionLimit) {
+		this.numSelectionLimit = numSelectionLimit;
 	}
 
 }
