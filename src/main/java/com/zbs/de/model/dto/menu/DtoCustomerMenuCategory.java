@@ -9,6 +9,8 @@ public class DtoCustomerMenuCategory {
 	private BigDecimal numPrice;
 	private BigDecimal numFinalPrice;
 	private Boolean blnIsSelectable;
+	private Boolean blnHasSelectionLimit;
+	private Integer numSelectionLimit;
 	private List<DtoCustomerMenuSubCategory> subCategories;
 
 	public Long getCategoryId() {
@@ -57,6 +59,22 @@ public class DtoCustomerMenuCategory {
 
 	public void setBlnIsSelectable(Boolean blnIsSelectable) {
 		this.blnIsSelectable = blnIsSelectable;
+	}
+
+	public Boolean getBlnHasSelectionLimit() {
+		return blnHasSelectionLimit;
+	}
+
+	public void setBlnHasSelectionLimit(Boolean blnHasSelectionLimit) {
+		this.blnHasSelectionLimit = blnHasSelectionLimit;
+	}
+
+	public Integer getNumSelectionLimit() {
+		return numSelectionLimit;
+	}
+
+	public void setNumSelectionLimit(Integer numSelectionLimit) {
+		this.numSelectionLimit = numSelectionLimit;
 	}
 
 }

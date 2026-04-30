@@ -29,6 +29,9 @@ public class DtoMenuItem {
 	private BigDecimal numCalculatedPrice;
 	private BigDecimal numFinalPrice;
 	private String txtPriceMultiplierType;
+	
+	private Boolean blnHasSelectionLimit;
+	private Integer numSelectionLimit;
 
 	public DtoMenuItem() {
 		super();
@@ -208,6 +211,22 @@ public class DtoMenuItem {
 
 	public BigDecimal getNumFinalPrice() {
 		return numFinalPrice;
+	}
+
+	public Boolean getBlnHasSelectionLimit() {
+		return blnHasSelectionLimit;
+	}
+
+	public void setBlnHasSelectionLimit(Boolean blnHasSelectionLimit) {
+		this.blnHasSelectionLimit = blnHasSelectionLimit;
+	}
+
+	public Integer getNumSelectionLimit() {
+		return numSelectionLimit;
+	}
+
+	public void setNumSelectionLimit(Integer numSelectionLimit) {
+		this.numSelectionLimit = numSelectionLimit;
 	}
 
 	public void setNumFinalPrice(BigDecimal numFinalPrice) {
