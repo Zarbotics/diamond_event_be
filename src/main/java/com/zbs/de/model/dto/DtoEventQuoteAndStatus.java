@@ -2,7 +2,6 @@ package com.zbs.de.model.dto;
 
 import java.math.BigDecimal;
 
-
 public class DtoEventQuoteAndStatus {
 
 	private BigDecimal numQuotedPrice;
@@ -13,6 +12,8 @@ public class DtoEventQuoteAndStatus {
 	private BigDecimal numFoodAmount;
 	private BigDecimal numServicesAmount;
 	private BigDecimal numDecorAmount;
+	private BigDecimal numDecorExtrasVat;
+	private BigDecimal numFinalAmount;
 
 	public BigDecimal getNumQuotedPrice() {
 		return numQuotedPrice;
@@ -77,6 +78,21 @@ public class DtoEventQuoteAndStatus {
 	public void setNumDecorAmount(BigDecimal numDecorAmount) {
 		this.numDecorAmount = numDecorAmount;
 	}
-	
+
+	public BigDecimal getNumDecorExtrasVat() {
+		return numDecorExtrasVat;
+	}
+
+	public void setNumDecorExtrasVat(BigDecimal numDecorExtrasVat) {
+		this.numDecorExtrasVat = numDecorExtrasVat;
+	}
+
+	public BigDecimal getNumFinalAmount() {
+		return numFinalAmount;
+	}
+
+	public void setNumFinalAmount(BigDecimal numFinalAmount) {
+		this.numFinalAmount = numFinalAmount;
+	}
 
 }
