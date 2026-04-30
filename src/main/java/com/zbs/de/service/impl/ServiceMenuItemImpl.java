@@ -162,7 +162,8 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 		exist.setBlnIsActive(dto.getBlnIsActive());
 		exist.setNumPrice(dto.getNumPrice());
 		exist.setEnmPriceMultiplierType(dto.getTxtPriceMultiplierType() != null ? EnmPriceMultiplierType.valueOf(dto.getTxtPriceMultiplierType()) : null);
-
+		exist.setBlnHasSelectionLimit(dto.getBlnHasSelectionLimit());
+		exist.setNumSelectionLimit(dto.getNumSelectionLimit());
 
 		// ---- ROLE ENUM ----
 //		EnmMenuItemRole currentRole = EnmMenuItemRole.of(dto.getTxtRole());

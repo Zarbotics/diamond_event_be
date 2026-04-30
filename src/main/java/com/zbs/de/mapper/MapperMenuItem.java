@@ -31,7 +31,8 @@ public class MapperMenuItem {
 		dto.setBlnIsCompostie(entity.getBlnIsComposite());
 		dto.setBlnIsCateringItem(entity.getBlnIsCateringItem());
 		dto.setNumPrice(entity.getNumPrice());
-
+		dto.setBlnHasSelectionLimit(entity.getBlnHasSelectionLimit());
+		dto.setNumSelectionLimit(entity.getNumSelectionLimit());
 		// parentId (avoid triggering lazy load)
 		dto.setParentId(entity.getParent() != null ? entity.getParent().getSerMenuItemId() : null);
 		dto.setSerMenuItemRoleId(entity.getMenuItemRole() != null ? entity.getMenuItemRole().getSerMenuItemRoleId() : null);
@@ -68,7 +69,8 @@ public class MapperMenuItem {
 		entity.setBlnIsCateringItem(dto.getBlnIsCateringItem());
 		entity.setNumPrice(dto.getNumPrice());
 		entity.setEnmPriceMultiplierType(dto.getTxtPriceMultiplierType() != null ? EnmPriceMultiplierType.valueOf(dto.getTxtPriceMultiplierType()) : null);
-
+		entity.setBlnHasSelectionLimit(dto.getBlnHasSelectionLimit());
+		entity.setNumSelectionLimit(dto.getNumSelectionLimit());
 		// Parent mapping (lazy reference — NO DB fetch)
 		if (dto.getParentId() != null) {
 			MenuItem parentRef = new MenuItem();
@@ -101,7 +103,8 @@ public class MapperMenuItem {
 		entity.setBlnIsCateringItem(dto.getBlnIsCateringItem());
 		entity.setNumPrice(dto.getNumPrice());
 		entity.setEnmPriceMultiplierType(dto.getTxtPriceMultiplierType() != null ? EnmPriceMultiplierType.valueOf(dto.getTxtPriceMultiplierType()) : null);
-
+		entity.setBlnHasSelectionLimit(dto.getBlnHasSelectionLimit());
+		entity.setNumSelectionLimit(dto.getNumSelectionLimit());
 
 		if (dto.getParentId() != null) {
 			MenuItem parentRef = new MenuItem();

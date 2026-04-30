@@ -7,7 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.zbs.de.controller.auth.AuthController;
 import com.zbs.de.mapper.MapperMenuItem;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoMenuComponentRequest;
@@ -22,11 +22,17 @@ import com.zbs.de.util.enums.EnmPriceMultiplierType;
 @Service("serviceMenuSelectionImpl")
 public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 
+    private final AuthController authController;
+
 	@Autowired
 	RepositoryMenuItem repositoryMenuItem;
 
 	@Autowired
 	ServiceMenuComponent serviceMenuComponent;
+
+    ServiceMenuSelectionImpl(AuthController authController) {
+        this.authController = authController;
+    }
 
 	@Override
 	@Transactional(readOnly = true)
@@ -241,6 +247,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
 			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
+			catDto.setBlnHasSelectionLimit(category.getBlnHasSelectionLimit());
+			catDto.setNumSelectionLimit(category.getNumSelectionLimit());
 
 //			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
 			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentIdByDisplayOrder(category.getSerMenuItemId());
@@ -253,6 +261,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				subDto.setSubCategoryId(sub.getSerMenuItemId());
 				subDto.setSubCategoryName(sub.getTxtName());
                 subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
+				subDto.setBlnHasSelectionLimit(sub.getBlnHasSelectionLimit());
+				subDto.setNumSelectionLimit(sub.getNumSelectionLimit());
                 
 				// -------- Normal Catering Items --------
 				List<MenuItem> items = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId()).stream()

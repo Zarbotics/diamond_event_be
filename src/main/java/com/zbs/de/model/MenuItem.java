@@ -59,6 +59,12 @@ public class MenuItem extends BaseEntity {
 	@Column(name = "bln_is_catering_item")
 	private Boolean blnIsCateringItem = Boolean.FALSE;
 
+	@Column(name = "bln_has_selection_limit")
+	private Boolean blnHasSelectionLimit = false;
+
+	@Column(name = "num_selection_limit")
+	private Integer numSelectionLimit;
+
 	@ManyToOne
 	@JoinColumn(name = "ser_menu_item_role_id")
 	private MenuItemRole menuItemRole;
@@ -80,7 +86,7 @@ public class MenuItem extends BaseEntity {
 
 	@Column(name = "num_default_servings_per_guest")
 	private Double numDefaultServingsPerGuest;
-	
+
 	@Enumerated(EnumType.STRING)
 	@Column(name = "enm_price_multiplier_type")
 	private EnmPriceMultiplierType enmPriceMultiplierType = EnmPriceMultiplierType.PER_GUEST;
@@ -246,6 +252,21 @@ public class MenuItem extends BaseEntity {
 	public void setEnmPriceMultiplierType(EnmPriceMultiplierType enmPriceMultiplierType) {
 		this.enmPriceMultiplierType = enmPriceMultiplierType;
 	}
-	
+
+	public Boolean getBlnHasSelectionLimit() {
+		return blnHasSelectionLimit;
+	}
+
+	public void setBlnHasSelectionLimit(Boolean blnHasSelectionLimit) {
+		this.blnHasSelectionLimit = blnHasSelectionLimit;
+	}
+
+	public Integer getNumSelectionLimit() {
+		return numSelectionLimit;
+	}
+
+	public void setNumSelectionLimit(Integer numSelectionLimit) {
+		this.numSelectionLimit = numSelectionLimit;
+	}
 
 }
