@@ -1491,17 +1491,47 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							decorSelection.getSelectedProperties().addAll(newSelectedProperties);
 						}
 
+//						// Set reference image back reference
+//
+//						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
+//							boolean hasNewFiles = files != null
+//									&& files.stream().anyMatch(f -> f != null && !f.isEmpty());
+//							if (hasNewFiles) {
+//								decorSelection.getUserUploadedDocuments().clear();
+//								List<EventDecorReferenceDocument> documents = new ArrayList<>();
+//								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
+//									MultipartFile file = fileMap.get(dtoImg.getOriginalName());
+//									if (file != null) {
+//										String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
+//										EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
+//										doc.setDocumentName(file.getName());
+//										doc.setOriginalName(file.getOriginalFilename());
+//										doc.setDocumentType(file.getContentType());
+//										doc.setSize(String.valueOf(file.getSize()));
+//										doc.setFilePath(uploadPath);
+//										doc.setEventDecorCategorySelection(decorSelection);
+//										documents.add(doc);
+//									}
+//								}
+////							decorSelection.setUserUploadedDocuments(documents);
+//								decorSelection.getUserUploadedDocuments().addAll(documents);
+//							}
+//						}
+						
 						// Set reference image back reference
+						if (decorSelection.getUserUploadedDocuments() != null) {
 
-						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
 							boolean hasNewFiles = files != null
 									&& files.stream().anyMatch(f -> f != null && !f.isEmpty());
+
 							if (hasNewFiles) {
+								// New file uploaded — save new document
 								decorSelection.getUserUploadedDocuments().clear();
 								List<EventDecorReferenceDocument> documents = new ArrayList<>();
+
 								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
 									MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-									if (file != null) {
+									if (file != null && !file.isEmpty()) {
 										String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
 										EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
 										doc.setDocumentName(file.getName());
@@ -1513,9 +1543,30 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 										documents.add(doc);
 									}
 								}
-//							decorSelection.setUserUploadedDocuments(documents);
 								decorSelection.getUserUploadedDocuments().addAll(documents);
+
+							} else if (dto.getUserUploadedDocuments() != null
+									&& !dto.getUserUploadedDocuments().isEmpty()) {
+								// No new file — re-create fresh entities from DTO (existing DB data)
+								// DO NOT reuse old entities — they are detached!
+								decorSelection.getUserUploadedDocuments().clear();
+								List<EventDecorReferenceDocument> existingDocs = new ArrayList<>();
+
+								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
+									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
+									// Do NOT set the ID — let Hibernate treat it as a new entity
+									// linked to the new decorSelection
+									doc.setDocumentName(dtoImg.getDocumentName());
+									doc.setOriginalName(dtoImg.getOriginalName());
+									doc.setDocumentType(dtoImg.getDocumentType());
+									doc.setSize(dtoImg.getSize());
+									doc.setFilePath(dtoImg.getTxtDocumentUrl());
+									doc.setEventDecorCategorySelection(decorSelection);
+									existingDocs.add(doc);
+								}
+								decorSelection.getUserUploadedDocuments().addAll(existingDocs);
 							}
+							// else: no documents at all — leave empty
 						}
 						decorSelections.add(decorSelection);
 					}
