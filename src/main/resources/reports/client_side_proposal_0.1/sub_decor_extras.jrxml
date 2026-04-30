@@ -18,6 +18,7 @@
 			edps.ser_event_decor_property_id                 AS property_id,
 			COALESCE(pm.txt_property_name, '')               AS property_name,
 			COALESCE(pm.num_display_order, 999)              AS property_order,
+			edps.num_price                                   AS property_price,
 			COALESCE(dcpv.bln_is_document, FALSE)            AS value_is_image,
 			dcpv.txt_property_value                          AS value_text,
 			NULL                                             AS value_image_path,
@@ -52,6 +53,7 @@
 			NULL                                             AS property_id,
 			NULL                                             AS property_name,
 			0                                                AS property_order,
+			NULL                                 AS property_price,
 			COALESCE(deo.bln_is_document, FALSE)             AS value_is_image,
 			deo.txt_option_name                              AS value_text,
 			NULL                                             AS value_image_path,
@@ -81,6 +83,7 @@
 			NULL                        AS property_id,
 			''                          AS property_name,
 			0                           AS property_order,
+			NULL                                   AS property_price,
 			FALSE                       AS value_is_image,
 			NULL                        AS value_text,
 			NULL                        AS value_image_path,
@@ -101,6 +104,7 @@
 			NULL                        AS property_id,
 			''                          AS property_name,
 			0                           AS property_order,
+			NULL                                  AS property_price,
 			TRUE                        AS value_is_image,
 			erd.txt_original_name       AS value_text,
 			erd.file_path               AS value_image_path,
@@ -139,6 +143,9 @@
 	</field>
 	<field name="property_order" class="java.lang.Integer">
 		<property name="com.jaspersoft.studio.field.label" value="property_order"/>
+	</field>
+	<field name="property_price" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="property_price"/>
 	</field>
 	<field name="value_is_image" class="java.lang.Boolean">
 		<property name="com.jaspersoft.studio.field.label" value="value_is_image"/>
@@ -203,7 +210,7 @@
 	<group name="propertyGroup">
 		<groupExpression><![CDATA[$F{source_type} + "_" + String.valueOf($F{category_id}) + "_" + String.valueOf($F{property_id})]]></groupExpression>
 		<groupHeader>
-			<band height="20" splitType="Prevent">
+			<band height="18" splitType="Prevent">
 				<printWhenExpression><![CDATA["D".equals($F{source_type}) && $F{property_id} != null && $F{property_name} != null && !$F{property_name}.trim().isEmpty()]]></printWhenExpression>
 				<textField isBlankWhenNull="true">
 					<reportElement x="0" y="4" width="523" height="14" forecolor="#C5A367" uuid="c6000000-0000-0000-0000-000000000030"/>
@@ -211,6 +218,15 @@
 						<font fontName="Inter" size="7" isBold="true" isItalic="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{property_name} + ":"]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="390" y="4" width="130" height="14" forecolor="#C5A367" uuid="c6000000-0000-1000-0000-000000000013">
+						<printWhenExpression><![CDATA[$F{property_price} != null && $F{property_price}.compareTo(java.math.BigDecimal.ZERO) > 0]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Inter" size="7" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format($F{property_price})]]></textFieldExpression>
 				</textField>
 			</band>
 		</groupHeader>
