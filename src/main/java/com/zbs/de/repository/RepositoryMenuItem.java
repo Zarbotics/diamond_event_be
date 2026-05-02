@@ -27,7 +27,7 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	@Query(value = "select * from menu_item where txt_path <@ ?1", nativeQuery = true)
 	List<MenuItem> findDescendantsByTxtPath(String ltreePath);
 
-	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId ORDER BY LOWER(txt_name) asc", nativeQuery = true)
+	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId and bln_is_active= true ORDER BY LOWER(txt_name) asc", nativeQuery = true)
 	List<MenuItem> findByParentId(@Param("parentId")Long parentId);
 	
 	@Query(value = "select * from menu_item where bln_is_deleted = false and bln_is_active = true and  parent_menu_item_id =:parentId ORDER BY num_display_order asc", nativeQuery = true)
