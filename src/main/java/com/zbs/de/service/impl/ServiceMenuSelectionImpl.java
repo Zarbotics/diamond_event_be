@@ -64,6 +64,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				subDto.setNumPrice(sub.getNumPrice());
                 subDto.setTxtDescription(sub.getTxtDescription());
                 subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
+				subDto.setBlnHasSelectionLimit(sub.getBlnHasSelectionLimit());
+				subDto.setNumSelectionLimit(sub.getNumSelectionLimit());
 
 				// 3️⃣ Normal (non-composite) items
 				List<MenuItem> items = repositoryMenuItem.findByParentId(sub.getSerMenuItemId()).stream()
@@ -126,7 +128,9 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				subDto.setSubCategoryName(sub.getTxtName());
 				subDto.setNumPrice(sub.getNumPrice());
                 subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
-                
+				subDto.setBlnHasSelectionLimit(sub.getBlnHasSelectionLimit());
+				subDto.setNumSelectionLimit(sub.getNumSelectionLimit());
+				
 				// 3️⃣ Normal (non-composite) items
 				List<MenuItem> items = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId()).stream()
 						.filter(i -> Boolean.TRUE.equals(i.getBlnIsSelectable()))
@@ -171,6 +175,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			catDto.setCategoryId(category.getSerMenuItemId());
 			catDto.setCategoryName(category.getTxtName());
 			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
+			catDto.setBlnHasSelectionLimit(category.getBlnHasSelectionLimit());
+			catDto.setNumSelectionLimit(category.getNumSelectionLimit());
 
 //			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
 			List<MenuItem> subCategories = repositoryMenuItem.findByParentIdByDisplayOrder(category.getSerMenuItemId());
@@ -184,6 +190,8 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				subDto.setSubCategoryName(sub.getTxtName());
                 subDto.setTxtDescription(sub.getTxtDescription());
                 subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
+				subDto.setBlnHasSelectionLimit(sub.getBlnHasSelectionLimit());
+				subDto.setNumSelectionLimit(sub.getNumSelectionLimit());
                 
 				// -------- Normal Items --------
 				List<MenuItem> items = repositoryMenuItem.findByParentId(sub.getSerMenuItemId()).stream()
