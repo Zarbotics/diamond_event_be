@@ -15,7 +15,7 @@
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c2000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="0" y="0" width="595" height="842" forecolor="#0e1331" backcolor="#0e1331" uuid="c2000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -31,7 +31,7 @@
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="48" y="5" width="124" height="90" forecolor="#1E1608" uuid="c2000000-0000-0000-0000-000000000004"/>
+				<reportElement x="48" y="5" width="124" height="90" forecolor="#0e1331" uuid="c2000000-0000-0000-0000-000000000004"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
 					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
@@ -98,7 +98,7 @@
 				<text><![CDATA[As you explore this proposal, we invite you to envision a celebration that is not only a reflection of your unique story, but a truly unforgettable experience that you, your family, and your guests will treasure for a lifetime.]]></text>
 			</staticText>
 			<rectangle>
-				<reportElement mode="Opaque" x="36" y="510" width="147" height="120" forecolor="#C5A367" backcolor="#212121" uuid="c2000000-0000-0000-0000-000000000014"/>
+				<reportElement mode="Opaque" x="36" y="510" width="147" height="120" forecolor="#C5A367" backcolor="#0e1331" uuid="c2000000-0000-0000-0000-000000000014"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#C5A367"/>
 				</graphicElement>
@@ -131,7 +131,7 @@
 				<text><![CDATA[Tailored exclusively to you - your vision, preferences, and story at the heart of everything.]]></text>
 			</staticText>
 			<rectangle>
-				<reportElement mode="Opaque" x="190" y="510" width="147" height="120" forecolor="#C5A367" backcolor="#212121" uuid="c2000000-0000-0000-0000-000000000019"/>
+				<reportElement mode="Opaque" x="190" y="510" width="147" height="120" forecolor="#C5A367" backcolor="#0e1331" uuid="c2000000-0000-0000-0000-000000000019"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#C5A367"/>
 				</graphicElement>
@@ -164,7 +164,7 @@
 				<text><![CDATA[Every element meticulously planned so nothing is left to chance.]]></text>
 			</staticText>
 			<rectangle>
-				<reportElement mode="Opaque" x="344" y="510" width="147" height="120" forecolor="#C5A367" backcolor="#212121" uuid="c2000000-0000-0000-0000-000000000024"/>
+				<reportElement mode="Opaque" x="344" y="510" width="147" height="120" forecolor="#C5A367" backcolor="#0e1331" uuid="c2000000-0000-0000-0000-000000000024"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#C5A367"/>
 				</graphicElement>
@@ -197,7 +197,7 @@
 				<text><![CDATA[Our management team onsite to ensure a seamless, stress-free celebration.]]></text>
 			</staticText>
 			<rectangle>
-				<reportElement mode="Opaque" x="36" y="650" width="523" height="60" forecolor="#C5A367" backcolor="#1A1508" uuid="c2000000-0000-0000-0000-000000000029"/>
+				<reportElement mode="Opaque" x="36" y="650" width="523" height="60" forecolor="#C5A367" backcolor="#0e1331" uuid="c2000000-0000-0000-0000-000000000029"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#C5A367"/>
 				</graphicElement>

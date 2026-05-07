@@ -174,7 +174,7 @@
 			<band height="34" splitType="Prevent">
 				<printWhenExpression><![CDATA[!"Z".equals($F{source_type}) && !"U".equals($F{source_type})]]></printWhenExpression>
 				<rectangle>
-					<reportElement mode="Opaque" x="0" y="4" width="523" height="26" forecolor="#C5A367" backcolor="#1A1A10" uuid="c6000000-0000-0000-0000-000000000010"/>
+					<reportElement mode="Opaque" x="0" y="4" width="523" height="26" forecolor="#C5A367" backcolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000010"/>
 					<graphicElement>
 						<pen lineWidth="0.75" lineColor="#C5A367"/>
 					</graphicElement>
@@ -237,7 +237,7 @@
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c6000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0e1331" backcolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -254,7 +254,7 @@
 	<pageHeader>
 		<band height="155" splitType="Prevent">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0F1231" backcolor="#0F1231" uuid="c6000000-0000-0000-0000-000000000003"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0e1331" backcolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000003"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -266,7 +266,7 @@
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="0" y="5" width="124" height="90" forecolor="#1E1608" uuid="c6000000-0000-0000-0000-000000000005"/>
+				<reportElement x="0" y="5" width="124" height="90" forecolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000005"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
 					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
@@ -304,7 +304,7 @@
 		<band height="28" splitType="Prevent">
 			<printWhenExpression><![CDATA[!"Z".equals($F{source_type}) && !"U".equals($F{source_type}) && $F{value_text} != null && !$F{value_text}.trim().isEmpty()]]></printWhenExpression>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="4" width="523" height="20" forecolor="#C5A367" backcolor="#1C1C0C" uuid="c6000000-0000-0000-0000-000000000040"/>
+				<reportElement mode="Opaque" x="0" y="4" width="523" height="20" forecolor="#C5A367" backcolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000040"/>
 				<graphicElement>
 					<pen lineWidth="0.5" lineColor="#C5A367"/>
 				</graphicElement>
@@ -328,13 +328,13 @@
 	<summary>
 		<band height="600" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="600" forecolor="#0F1231" backcolor="#0F1231" uuid="c6000000-0000-0000-0000-000000000070"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="600" forecolor="#0e1331" backcolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000070"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0F1231" backcolor="#0F1231" uuid="c6000000-0000-0000-0000-000000000086"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0e1331" backcolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000086"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -346,7 +346,7 @@
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="0" y="5" width="124" height="90" forecolor="#1E1608" uuid="c6000000-0000-0000-0000-000000000088"/>
+				<reportElement x="0" y="5" width="124" height="90" forecolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000088"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
 					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
@@ -379,7 +379,7 @@
 				<text><![CDATA[The finishing touches that elevate your celebration from beautiful to truly extraordinary — bespoke enhancements, floral installations, and personal details that make all the difference.]]></text>
 			</staticText>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="160" width="523" height="52" forecolor="#111108" backcolor="#111108" uuid="c6000000-0000-0000-0000-000000000073">
+				<reportElement mode="Opaque" x="0" y="160" width="523" height="52" forecolor="#0e1331" backcolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000073">
 					<printWhenExpression><![CDATA[$F{txt_decore_remarks} != null && !$F{txt_decore_remarks}.trim().isEmpty()]]></printWhenExpression>
 				</reportElement>
 				<graphicElement>
@@ -413,7 +413,7 @@
 				<textFieldExpression><![CDATA[$F{txt_decore_remarks}]]></textFieldExpression>
 			</textField>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="222" width="523" height="52" forecolor="#111108" backcolor="#111108" uuid="c6000000-0000-0000-0000-000000000077">
+				<reportElement mode="Opaque" x="0" y="222" width="523" height="52" forecolor="#0e1331" backcolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000077">
 					<printWhenExpression><![CDATA[$F{txt_event_extras_remarks} != null && !$F{txt_event_extras_remarks}.trim().isEmpty()]]></printWhenExpression>
 				</reportElement>
 				<graphicElement>
@@ -472,7 +472,7 @@
 	<noData>
 		<band height="40">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0F1231" backcolor="#0F1231" uuid="c6000000-0000-0000-0000-000000000071"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0e1331" backcolor="#0e1331" uuid="c6000000-0000-0000-0000-000000000071"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
