@@ -830,18 +830,19 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 							for (EventMenuFoodSelection item : sub.getItems()) {
 
 								MenuItem mi = item.getMenuItem();
+								if (mi != null) {
+									DtoMenuItem itemDto = new DtoMenuItem();
+									itemDto.setSerMenuItemId(mi.getSerMenuItemId().longValue());
+									itemDto.setTxtCode(mi.getTxtCode());
+									itemDto.setTxtName(mi.getTxtName());
+									itemDto.setTxtShortName(mi.getTxtShortName());
+									itemDto.setTxtDescription(mi.getTxtDescription());
+									itemDto.setNumPrice(item.getNumPrice());
+									itemDto.setNumCalculatedPrice(item.getNumCalculatedPrice());
+									itemDto.setNumFinalPrice(item.getNumFinalPrice());
 
-								DtoMenuItem itemDto = new DtoMenuItem();
-								itemDto.setSerMenuItemId(mi.getSerMenuItemId().longValue());
-								itemDto.setTxtCode(mi.getTxtCode());
-								itemDto.setTxtName(mi.getTxtName());
-								itemDto.setTxtShortName(mi.getTxtShortName());
-								itemDto.setTxtDescription(mi.getTxtDescription());
-								itemDto.setNumPrice(item.getNumPrice());
-								itemDto.setNumCalculatedPrice(item.getNumCalculatedPrice());
-								itemDto.setNumFinalPrice(item.getNumFinalPrice());
-
-								itemDtos.add(itemDto);
+									itemDtos.add(itemDto);
+								}
 							}
 
 							subDto.setItems(itemDtos);
