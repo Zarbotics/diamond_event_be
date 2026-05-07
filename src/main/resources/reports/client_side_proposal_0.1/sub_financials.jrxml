@@ -30,7 +30,7 @@
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0e1331" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -47,7 +47,7 @@
 	<pageHeader>
 		<band height="155" splitType="Prevent">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0F1231" backcolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000003"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="115" forecolor="#0e1331" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000003"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -59,7 +59,7 @@
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="0" y="5" width="124" height="90" forecolor="#1E1608" uuid="c7000000-0000-0000-0000-000000000005"/>
+				<reportElement x="0" y="5" width="124" height="90" forecolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000005"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
 					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
@@ -96,7 +96,7 @@
 		</band>
 	</pageHeader>
 	<detail>
-		<band height="520" splitType="Prevent">
+		<band height="562" splitType="Prevent">
 			<rectangle>
 				<reportElement mode="Opaque" x="0" y="0" width="523" height="28" forecolor="#C5A367" backcolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000010"/>
 				<graphicElement>
@@ -104,21 +104,21 @@
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="0" width="300" height="28" forecolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000011"/>
+				<reportElement x="12" y="0" width="300" height="28" forecolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000011"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="Inter" size="7.5" isBold="true"/>
 				</textElement>
 				<text><![CDATA[DESCRIPTION]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="400" y="0" width="110" height="28" forecolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000012"/>
+				<reportElement x="400" y="0" width="110" height="28" forecolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000012"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="Inter" size="7.5" isBold="true"/>
 				</textElement>
 				<text><![CDATA[AMOUNT]]></text>
 			</staticText>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="28" width="523" height="36" forecolor="#1A1A0A" backcolor="#1A1A0A" uuid="c7000000-0000-0000-0000-000000000013"/>
+				<reportElement mode="Opaque" x="0" y="28" width="523" height="36" forecolor="#0e1331" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000013"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -138,13 +138,13 @@
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format(($F{food_amount} != null ? $F{food_amount} : java.math.BigDecimal.ZERO))]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="0" y="63" width="523" height="1" forecolor="#2A2A1A" uuid="c7000000-0000-0000-0000-000000000016"/>
+				<reportElement x="0" y="63" width="523" height="1" forecolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000016"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="64" width="523" height="36" forecolor="#141408" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000020"/>
+				<reportElement mode="Opaque" x="0" y="64" width="523" height="36" forecolor="#0e1331" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000020"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -164,13 +164,13 @@
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format(($F{services_amount} != null ? $F{services_amount} : java.math.BigDecimal.ZERO))]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="0" y="99" width="523" height="1" forecolor="#2A2A1A" uuid="c7000000-0000-0000-0000-000000000023"/>
+				<reportElement x="0" y="99" width="523" height="1" forecolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000023"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="100" width="523" height="28" forecolor="#1A1A0A" backcolor="#1A1A0A" uuid="c7000000-0000-0000-0000-000000000030"/>
+				<reportElement mode="Opaque" x="0" y="100" width="523" height="28" forecolor="#0e1331" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000030"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -190,7 +190,7 @@
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format(($F{decor_amount} != null ? $F{decor_amount} : java.math.BigDecimal.ZERO))]]></textFieldExpression>
 			</textField>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="128" width="523" height="28" forecolor="#141408" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000034"/>
+				<reportElement mode="Opaque" x="0" y="128" width="523" height="28" forecolor="#0e1331" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000034"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -210,13 +210,13 @@
 				<textFieldExpression><![CDATA["£" + new java.text.DecimalFormat("#,##0.00").format(($F{decor_amount} != null ? $F{decor_amount} : java.math.BigDecimal.ZERO).multiply(new java.math.BigDecimal("0.20")))]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="0" y="155" width="523" height="1" forecolor="#2A2A1A" uuid="c7000000-0000-0000-0000-000000000033"/>
+				<reportElement x="0" y="155" width="523" height="1" forecolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000033"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="156" width="523" height="38" forecolor="#C5A367" backcolor="#1A1A0A" uuid="c7000000-0000-0000-0000-000000000040"/>
+				<reportElement mode="Opaque" x="0" y="156" width="523" height="38" forecolor="#C5A367" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000040"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#C5A367"/>
 				</graphicElement>
@@ -236,7 +236,7 @@
 				<textFieldExpression><![CDATA["£ " + new java.text.DecimalFormat("#,##0.00").format(($F{quoted_price} != null ? $F{quoted_price} : java.math.BigDecimal.ZERO))]]></textFieldExpression>
 			</textField>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="194" width="523" height="28" forecolor="#141408" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000043"/>
+				<reportElement mode="Opaque" x="0" y="194" width="523" height="28" forecolor="#0e1331" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000043"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -256,7 +256,7 @@
 				<textFieldExpression><![CDATA["- £" + new java.text.DecimalFormat("#,##0.00").format(($F{discount} != null ? $F{discount} : java.math.BigDecimal.ZERO))]]></textFieldExpression>
 			</textField>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="222" width="523" height="38" forecolor="#C5A367" backcolor="#1A1A0A" uuid="c7000000-0000-0000-0000-000000000046"/>
+				<reportElement mode="Opaque" x="0" y="222" width="523" height="38" forecolor="#C5A367" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000046"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#C5A367"/>
 				</graphicElement>
@@ -289,7 +289,7 @@
 				</graphicElement>
 			</line>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="302" width="253" height="80" forecolor="#C5A367" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000052"/>
+				<reportElement mode="Opaque" x="0" y="302" width="253" height="80" forecolor="#C5A367" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000052"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#C5A367"/>
 				</graphicElement>
@@ -306,10 +306,10 @@
 				<textElement verticalAlignment="Top">
 					<font fontName="Inter" size="7.5"/>
 				</textElement>
-				<text><![CDATA[£1,000 non-refundable deposit required to confirm your booking. Quote valid for 14 days.]]></text>
+				<text><![CDATA[£2,000 non-refundable deposit required to confirm your booking. Quote valid for 14 days.]]></text>
 			</staticText>
 			<rectangle>
-				<reportElement mode="Opaque" x="270" y="302" width="253" height="80" forecolor="#C5A367" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000055"/>
+				<reportElement mode="Opaque" x="270" y="302" width="253" height="80" forecolor="#C5A367" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000055"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#C5A367"/>
 				</graphicElement>
@@ -328,42 +328,115 @@
 				</textElement>
 				<text><![CDATA[Full balance payable 4 weeks before your event date. No credit or monthly payment plans.]]></text>
 			</staticText>
+			<!-- BANK DETAILS label -->
+			<staticText>
+				<reportElement x="0" y="392" width="300" height="14" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000059"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="7.5" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BANK DETAILS]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="408" width="40" height="1" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000086"/>
+				<graphicElement><pen lineWidth="2.0" lineColor="#C5A367"/></graphicElement>
+			</line>
+			<!-- Box 1: Food — Diamond Wedding & Events Glasgow Limited -->
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="392" width="523" height="54" forecolor="#C5A367" backcolor="#141408" uuid="c7000000-0000-0000-0000-000000000058"/>
-				<graphicElement>
-					<pen lineWidth="0.75" lineColor="#C5A367"/>
-				</graphicElement>
+				<reportElement mode="Opaque" x="0" y="418" width="169" height="62" forecolor="#C5A367" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000058"/>
+				<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="12" y="400" width="499" height="14" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000059"/>
+				<reportElement x="6" y="422" width="157" height="11" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000087"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="7" isBold="true"/>
+					<font fontName="Inter" size="6" isBold="true"/>
 				</textElement>
-				<text><![CDATA[BANK DETAILS — Diamond Shaadi Glasgow Limited]]></text>
+				<text><![CDATA[FOOD]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="12" y="416" width="499" height="22" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000060"/>
+				<reportElement x="6" y="434" width="157" height="13" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000095"/>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Inter" size="8.5"/>
+					<font fontName="Inter" size="6.5" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Sort Code: 83 16 15   ·   Account Number: 10206266]]></text>
+				<text><![CDATA[Diamond Wedding & Events Glasgow Ltd]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="0" y="456" width="14" height="28" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000070"/>
+				<reportElement x="6" y="448" width="157" height="28" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000060"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="7"/>
+				</textElement>
+				<text><![CDATA[SC: 80 22 60
+Acc: 20288461]]></text>
+			</staticText>
+			<!-- Box 2: Service — Diamond Wedding Services AK Ltd -->
+			<rectangle>
+				<reportElement mode="Opaque" x="177" y="418" width="169" height="62" forecolor="#C5A367" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000093"/>
+				<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="183" y="422" width="157" height="11" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000088"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SERVICE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="183" y="434" width="157" height="13" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000096"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="6.5" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Diamond Wedding Services AK Ltd]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="183" y="448" width="157" height="28" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000098"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="7"/>
+				</textElement>
+				<text><![CDATA[SC: 83 16 15
+Acc: 10206096]]></text>
+			</staticText>
+			<!-- Box 3: Décor — Diamond Shaadi Glasgow Limited -->
+			<rectangle>
+				<reportElement mode="Opaque" x="354" y="418" width="169" height="62" forecolor="#C5A367" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000094"/>
+				<graphicElement><pen lineWidth="0.75" lineColor="#C5A367"/></graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="360" y="422" width="157" height="11" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000089"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DÉCOR]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="360" y="434" width="157" height="13" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000097"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Inter" size="6.5" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Diamond Shaadi Glasgow Limited]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="360" y="448" width="157" height="28" forecolor="#CCCCCC" uuid="c7000000-0000-0000-0000-000000000099"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Inter" size="7"/>
+				</textElement>
+				<text><![CDATA[SC: 83 16 15
+Acc: 10206266]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="490" width="14" height="28" forecolor="#C5A367" uuid="c7000000-0000-0000-0000-000000000070"/>
 				<textElement verticalAlignment="Top">
 					<font fontName="Inter" size="9"/>
 				</textElement>
 				<text><![CDATA[▲]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="18" y="456" width="505" height="28" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000071"/>
+				<reportElement x="18" y="490" width="505" height="28" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000071"/>
 				<textElement verticalAlignment="Top">
 					<font fontName="Inter" size="7.5"/>
 				</textElement>
 				<text><![CDATA[Your quote is valid for 14 days. If a deposit is not received within this period, Diamond Events is not obliged to honour the original quote.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="0" y="492" width="523" height="20" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000072"/>
+				<reportElement x="0" y="526" width="523" height="20" forecolor="#888888" uuid="c7000000-0000-0000-0000-000000000072"/>
 				<textElement verticalAlignment="Top">
 					<font fontName="Inter" size="7.5"/>
 				</textElement>
@@ -374,7 +447,7 @@
 	<noData>
 		<band height="40">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0F1231" backcolor="#0F1231" uuid="c7000000-0000-0000-0000-000000000090"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="40" forecolor="#0e1331" backcolor="#0e1331" uuid="c7000000-0000-0000-0000-000000000090"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>

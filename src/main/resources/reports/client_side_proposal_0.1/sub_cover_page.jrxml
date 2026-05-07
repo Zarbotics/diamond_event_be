@@ -36,7 +36,7 @@
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c1000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="0" y="0" width="595" height="842" forecolor="#0e1331" backcolor="#0e1331" uuid="c1000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>

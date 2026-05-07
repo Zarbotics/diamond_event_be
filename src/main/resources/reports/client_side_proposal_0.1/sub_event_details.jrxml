@@ -195,7 +195,7 @@
 	<background>
 		<band height="842" splitType="Stretch">
 			<rectangle>
-				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0F1231" backcolor="#0F1231" uuid="c3000000-0000-0000-0000-000000000002"/>
+				<reportElement mode="Opaque" x="-36" y="0" width="595" height="842" forecolor="#0e1331" backcolor="#0e1331" uuid="c3000000-0000-0000-0000-000000000002"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -218,7 +218,7 @@
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="13" y="5" width="124" height="90" forecolor="#1E1608" uuid="c3000000-0000-0000-0000-000000000004"/>
+				<reportElement x="13" y="5" width="124" height="90" forecolor="#0e1331" uuid="c3000000-0000-0000-0000-000000000004"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
 					<font fontName="Playfair Display" size="76" isBold="true"/>
 				</textElement>
@@ -525,7 +525,7 @@
 		<band height="60" splitType="Stretch">
 			<printWhenExpression><![CDATA[$F{txt_venue_remarks} != null && !$F{txt_venue_remarks}.trim().isEmpty()]]></printWhenExpression>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="4" width="523" height="52" forecolor="#111108" backcolor="#111108" uuid="c3000000-0000-0000-0000-000000000154"/>
+				<reportElement mode="Opaque" x="0" y="4" width="523" height="52" forecolor="#0e1331" backcolor="#0e1331" uuid="c3000000-0000-0000-0000-000000000154"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -938,7 +938,7 @@
 		<band height="60" splitType="Stretch">
 			<printWhenExpression><![CDATA[$F{txt_event_remarks} != null && !$F{txt_event_remarks}.trim().isEmpty()]]></printWhenExpression>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="4" width="523" height="52" forecolor="#111108" backcolor="#111108" uuid="c3000000-0000-0000-0000-000000000156"/>
+				<reportElement mode="Opaque" x="0" y="4" width="523" height="52" forecolor="#0e1331" backcolor="#0e1331" uuid="c3000000-0000-0000-0000-000000000156"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
@@ -967,7 +967,7 @@
 		<band height="18"/>
 		<band height="80" splitType="Prevent">
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="0" width="523" height="68" forecolor="#C5A367" backcolor="#1A1A10" uuid="c3000000-0000-0000-0000-000000000099"/>
+				<reportElement mode="Opaque" x="0" y="0" width="523" height="68" forecolor="#C5A367" backcolor="#0e1331" uuid="c3000000-0000-0000-0000-000000000099"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#C5A367"/>
 				</graphicElement>
