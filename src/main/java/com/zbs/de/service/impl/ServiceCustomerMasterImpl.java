@@ -135,7 +135,11 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster = MapperCustomerMaster.toEntity(dtoCustomerMaster);
 				customerMaster.setTxtCustCode(this.generateCustomerCode());
 				customerMaster.setCreatedDate(UtilDateAndTime.getCurrentDate());
-				customerMaster.setBlnIsActive(dtoCustomerMaster.getBlnIsActive());
+				if (dtoCustomerMaster != null && dtoCustomerMaster.getBlnIsActive() != null) {
+					customerMaster.setBlnIsActive(dtoCustomerMaster.getBlnIsActive());
+				} else {
+					customerMaster.setBlnIsActive(true);
+				}
 				customerMaster.setBlnIsDeleted(false);
 				customerMaster.setBlnIsApproved(true);
 				customerMaster.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
