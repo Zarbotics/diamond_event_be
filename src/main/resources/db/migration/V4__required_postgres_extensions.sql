@@ -1,0 +1,29 @@
+-- =====================================================================
+-- V4 — PostgreSQL extensions the schema depends on
+-- =====================================================================
+--
+-- MenuItem.txtPath is declared `columnDefinition = "ltree"` and mapped with
+-- hypersistence's PostgreSQLLTreeType, so the menu tree relies on the ltree
+-- extension being installed in the database.
+--
+-- Nothing created it. On the production database it was presumably added by
+-- hand at some point and then forgotten; on any NEW database — a developer's
+-- laptop, a test database, CI, a disaster-recovery restore into a fresh
+-- instance — Hibernate cannot create menu_item at all:
+--
+--     ERROR: type "ltree" does not exist
+--
+-- and every query against menu_item then fails with
+--
+--     ERROR: relation "menu_item" does not exist
+--
+-- which is a long way from the actual cause. Flyway runs before Hibernate's
+-- DDL, so creating the extension here fixes it for every environment, once.
+--
+-- ltree has been a trusted extension since PostgreSQL 13, so the database
+-- owner can create it without superuser rights. On PostgreSQL 12 or earlier
+-- this statement needs a superuser; if it fails for that reason, run it once
+-- by hand as the superuser and this migration then becomes a no-op.
+-- =====================================================================
+
+CREATE EXTENSION IF NOT EXISTS ltree;

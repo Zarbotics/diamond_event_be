@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.zbs.de.config.security.CustomOAuth2SuccessHandler;
+import com.zbs.de.config.security.ApiAuthenticationEntryPoint;
 import com.zbs.de.config.security.DelegatingTokenResponseClient;
 import com.zbs.de.config.security.JwtAuthenticationFilter;
 import com.zbs.de.config.security.PortalEndpoints;
@@ -52,6 +53,9 @@ public class SecurityConfig {
 	@Autowired
 	private DelegatingTokenResponseClient delegatingTokenResponseClient;
 
+	@Autowired
+	private ApiAuthenticationEntryPoint apiAuthenticationEntryPoint;
+
 	@Value("${app.frontend.logout-redirect-url}")
 	private String logoutRedirectUrl;
 
@@ -63,6 +67,13 @@ public class SecurityConfig {
 				.csrf(csrf -> csrf.disable())
 				.cors(Customizer.withDefaults())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+				// Without this, oauth2Login answers an unauthenticated API call with a
+				// 302 to the provider. The frontend refreshes its token on a 401 and
+				// follows a 302 silently, so a redirect leaves the customer looking at
+				// a screen that never recovers.
+				.exceptionHandling(ex -> ex
+						.authenticationEntryPoint(apiAuthenticationEntryPoint)
+						.accessDeniedHandler(apiAuthenticationEntryPoint))
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers(PortalEndpoints.PUBLIC).permitAll()
