@@ -11,10 +11,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import jakarta.servlet.http.Cookie;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Component
@@ -23,12 +26,22 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 	private final RepositoryUserMaster userRepo;
 	private final JwtTokenUtil jwtUtil;
 	private final ServiceRefreshToken serviceRefreshToken;
+	private final SsoHandoffService ssoHandoffService;
+
+	/** Where a customer lands after signing in. Configured, not compiled in. */
+	@Value("${app.frontend.base-url}")
+	private String clientBaseUrl;
+
+	/** Where a member of staff lands after signing in. */
+	@Value("${app.frontend.admin-url}")
+	private String adminBaseUrl;
 
 	public CustomOAuth2SuccessHandler(RepositoryUserMaster userRepo, JwtTokenUtil jwtUtil,
-			ServiceRefreshToken serviceRefreshToken) {
+			ServiceRefreshToken serviceRefreshToken, SsoHandoffService ssoHandoffService) {
 		this.userRepo = userRepo;
 		this.jwtUtil = jwtUtil;
 		this.serviceRefreshToken = serviceRefreshToken;
+		this.ssoHandoffService = ssoHandoffService;
 	}
 
 //	@Override
@@ -74,34 +87,19 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
 			RefreshToken refreshToken = serviceRefreshToken.createRefreshToken(user);
 
-			// ****************** For Production Start *********************
-			// Construct redirect URL with query params
-//			String baseRedirectUrl = "https://frosty-jang.87-106-101-41.plesk.page";
-			String baseRedirectUrl = "https://diamondevents.uk";
-			
-			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/client-journey";
+			// The redirect used to carry ?accessToken=…&refreshToken=… directly.
+			// Tokens in a URL land in browser history, server access logs, proxy logs
+			// and any Referer header sent onward — and a leaked refresh token is a
+			// durable account takeover. It now carries a single-use code that is
+			// worthless on its own and is exchanged over POST within two minutes.
+			String handoffCode = ssoHandoffService.issue(accessToken, refreshToken.getToken());
 
-			String redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrl, redirectPath,
-					accessToken, refreshToken.getToken());
-			// **************** For Production Ends ***************
+			String baseRedirectUrl = SecurityRoles.ADMIN.equals(user.getTxtRole()) ? adminBaseUrl : clientBaseUrl;
+			String redirectPath = SecurityRoles.ADMIN.equals(user.getTxtRole()) ? "/admin" : "/client-journey";
 
-			// ****************** For Local Start *********************
+			String redirectUrl = String.format("%s%s?code=%s", baseRedirectUrl, redirectPath,
+					URLEncoder.encode(handoffCode, StandardCharsets.UTF_8));
 
-//			String baseRedirectUrlCJ = "http://localhost:5173"; // For Client Journey CJ
-//			String baseRedirectUrlAP = "http://localhost:3000"; // For Admin Portal PA
-//
-//			String redirectPath = "ROLE_ADMIN".equals(user.getTxtRole()) ? "/admin" : "/client-journey";
-//
-//			String redirectUrl = null;
-//			if ("ROLE_ADMIN".equals(user.getTxtRole())) {
-//				redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrlAP, redirectPath,
-//						accessToken, refreshToken.getToken());
-//			} else {
-//				redirectUrl = String.format("%s%s?accessToken=%s&refreshToken=%s", baseRedirectUrlCJ, redirectPath,
-//						accessToken, refreshToken.getToken());
-//			}
-
-			// ****************** For Local Ends *********************
 			response.sendRedirect(redirectUrl);
 			
 //			Cookie accessCookie = new Cookie("accessToken", accessToken);

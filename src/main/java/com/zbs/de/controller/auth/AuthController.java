@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import com.zbs.de.config.security.SsoHandoffService;
 import com.zbs.de.model.EmailVerificationToken;
 import com.zbs.de.model.RefreshToken;
 import com.zbs.de.model.UserMaster;
@@ -50,6 +51,37 @@ public class AuthController {
 
 	@Value("${app.frontend-email-verification-url}")
 	private String frontEndVerificationPageUrl;
+
+	@Autowired
+	private SsoHandoffService ssoHandoffService;
+
+	/**
+	 * Exchanges the one-time code from an SSO redirect for the real tokens.
+	 *
+	 * <p>
+	 * The redirect after Google or Apple sign-in used to carry the tokens
+	 * themselves in the query string, where they were captured by browser
+	 * history, server access logs, proxy logs and any {@code Referer} header sent
+	 * onward. It now carries only a code, which this endpoint redeems exactly
+	 * once and destroys.
+	 *
+	 * <p>
+	 * Every failure — unknown code, already used, expired — returns the same 400
+	 * with the same message, so the endpoint cannot be used to probe which codes
+	 * exist.
+	 */
+	@PostMapping("/exchange")
+	public ResponseEntity<?> exchangeHandoffCode(@RequestBody(required = false) Map<String, String> body) {
+		String code = body == null ? null : body.get("code");
+
+		return ssoHandoffService.redeem(code)
+				.<ResponseEntity<?>>map(tokens -> ResponseEntity.ok(Map.of(
+						"accessToken", tokens.accessToken(),
+						"refreshToken", tokens.refreshToken())))
+				.orElseGet(() -> ResponseEntity.badRequest().body(Map.of(
+						"message",
+						"That sign-in link has already been used or has expired. Please sign in again.")));
+	}
 
 	@PostMapping("/refresh-token")
 	public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> body) {
