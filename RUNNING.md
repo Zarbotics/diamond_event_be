@@ -40,6 +40,33 @@ long period and has never been captured as a migration, so there is nothing
 that can recreate it from scratch. Capturing a baseline from a production dump
 is the next step; only then can `DDL_AUTO=validate` be turned on.
 
+## Development data
+
+A clean database gives every catalogue endpoint an empty array, so the booking
+journey renders as a sequence of blank screens and there is no way to tell a
+broken query from an empty table. Load the seed:
+
+```bash
+psql -h localhost -U postgres -d diamond_ev -f src/main/resources/db/seed/dev-seed.sql
+```
+
+It is idempotent — run it as often as you like — and it lives outside
+`db/migration` deliberately, so Flyway will never apply it to production.
+
+It creates venues, event types, the catalogue of decor, extras, services and
+suppliers, and the three-level `menu_item` tree the Food Menu step reads
+(which is a different structure from `menu_food_master`). It also creates two
+accounts, both with the password `DevPassword123!`:
+
+| Email | Role | For |
+|---|---|---|
+| `dev.customer@example.com` | `ROLE_USER` | Walking the booking journey |
+| `dev.admin@example.com` | `ROLE_ADMIN` | The admin portal |
+
+Both are pre-verified so `POST /auth/login` works without an SMTP server. The
+customer is deliberately `ROLE_USER`: testing the journey as an administrator
+would mean never exercising the authorisation rules a real customer hits.
+
 ## Sign-in
 
 After Google or Apple sign-in the backend redirects to the frontend with a
@@ -82,15 +109,26 @@ once rather than one per deploy attempt.
 ## Tests
 
 ```bash
-./mvnw test
+./mvnw verify
 ```
 
-Unit tests run anywhere. `StartupAndSecurityIT` boots the whole application
-against a real database and skips itself if there is none:
+`verify`, not `test`. Surefire's default includes stop at `*Test`, so
+`StartupAndSecurityIT` — the only test that boots the whole application
+against a real database, and the one covering the startup, CORS and
+401-vs-302 failures — was never run by the build. `maven-failsafe-plugin` is
+bound to `verify` and picks it up.
+
+`./mvnw test` still runs the 42 unit tests, which need nothing but a JDK.
+
+The integration test skips itself when there is no database, so `verify`
+succeeds on a machine without PostgreSQL — it just covers less:
 
 ```bash
 createdb diamond_ev_test
-./mvnw test -Dtest=StartupAndSecurityIT
+./mvnw verify
 ```
 
-Override with `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD`.
+Override the connection with `TEST_DB_URL`, `TEST_DB_USERNAME`,
+`TEST_DB_PASSWORD`.
+
+Current state: 42 unit tests, 12 integration tests, all passing.
