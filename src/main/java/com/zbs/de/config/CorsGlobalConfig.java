@@ -1,27 +1,25 @@
 package com.zbs.de.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Cross-origin rules for the two browser clients.
+ *
+ * <p>
+ * The allowed origins come from {@code app.cors.allowed-origins} rather than
+ * being compiled in, so that adding a staging host no longer requires a code
+ * change and production no longer trusts {@code localhost} or retired preview
+ * domains.
+ */
 @Configuration
 public class CorsGlobalConfig {
 
-//	@Bean
-//	public WebMvcConfigurer corsConfigurer() {
-//		return new WebMvcConfigurer() {
-//			@Override
-//			public void addCorsMappings(CorsRegistry registry) {
-//				registry.addMapping("/**")
-//						.allowedOrigins("http://localhost:5173", "https://localhost:5173", "http://87.106.101.41",
-//								"https://frosty-jang.87-106-101-41.plesk.page:8081", "https://87.106.101.41",
-//								"https://frosty-jang.87-106-101-41.plesk.page")
-//						.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*")
-//						.allowCredentials(true);
-//			}
-//		};
-//	}
+	@Value("${app.cors.allowed-origins}")
+	private String[] allowedOrigins;
 
 	@Bean
 	public WebMvcConfigurer corsConfigurer() {
@@ -29,13 +27,12 @@ public class CorsGlobalConfig {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
-						.allowedOrigins("http://localhost:5173", "http://localhost:3000",
-								"https://frosty-jang.87-106-101-41.plesk.page",
-								"https://diamondevents.uk")
-						.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*")
-						.allowCredentials(true);
+						.allowedOrigins(allowedOrigins)
+						.allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+						.allowedHeaders("*")
+						.allowCredentials(true)
+						.maxAge(3600);
 			}
 		};
 	}
-
 }

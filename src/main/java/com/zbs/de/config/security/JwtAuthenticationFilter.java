@@ -7,7 +7,9 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -47,34 +49,57 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				}
 
 				String email = claims.getSubject();
-				Integer userId = (Integer) claims.get("userId");
 
 				Optional<UserMaster> userOpt = repositoryUserMaster.findByTxtEmail(email);
 				if (userOpt.isPresent()) {
 					UserMaster user = userOpt.get();
 
+					// The role is read from the user record rather than from the token claim.
+					// A token minted before a role change must not keep the old privileges, and
+					// a tampered claim must never be able to grant one.
 					UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null,
-							List.of());
+							authoritiesFor(user));
+					auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 					SecurityContextHolder.getContext().setAuthentication(auth);
 				} else {
-					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					response.getWriter().write("Invalid user");
+					unauthorized(response, "Invalid user");
 					return;
 				}
 
 			} catch (ExpiredJwtException ex) {
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getWriter().write("Access token expired");
+				unauthorized(response, "Access token expired");
 				return;
 
 			} catch (Exception ex) {
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getWriter().write("Invalid or malformed token");
+				unauthorized(response, "Invalid or malformed token");
 				return;
 			}
 		}
 
 		filterChain.doFilter(request, response);
+	}
+
+	/**
+	 * Maps the user's stored role onto granted authorities.
+	 *
+	 * <p>
+	 * An account with a missing or unrecognised role is treated as a customer,
+	 * never as an administrator, so that bad data fails closed.
+	 */
+	private List<SimpleGrantedAuthority> authoritiesFor(UserMaster user) {
+		String role = user.getTxtRole();
+		if (SecurityRoles.ADMIN.equals(role)) {
+			return List.of(new SimpleGrantedAuthority(SecurityRoles.ADMIN));
+		}
+		return List.of(new SimpleGrantedAuthority(SecurityRoles.USER));
+	}
+
+	private void unauthorized(HttpServletResponse response, String message) throws IOException {
+		SecurityContextHolder.clearContext();
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		response.getWriter().write("{\"status\":401,\"message\":\"" + message + "\"}");
 	}
 
 	private String extractToken(HttpServletRequest request) {

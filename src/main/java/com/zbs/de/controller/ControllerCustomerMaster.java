@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zbs.de.config.security.AccessGuard;
+import com.zbs.de.config.security.CurrentUser;
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
 import com.zbs.de.model.dto.DtoCustomerMasterDropDown;
@@ -41,6 +43,12 @@ public class ControllerCustomerMaster {
 	/** The service main acct. */
 	@Autowired
 	ServiceCustomerMaster serviceCustomerMaster;
+
+	@Autowired
+	AccessGuard accessGuard;
+
+	@Autowired
+	CurrentUser currentUser;
 
 	/**
 	 * Gets the all data.
@@ -87,7 +95,19 @@ public class ControllerCustomerMaster {
 	@RequestMapping(value = "/saveOrUpdate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
 	public ResponseMessage saveOrUpdate(@RequestBody DtoCustomerMaster dtoCustomerMaster, HttpServletRequest request)
 			throws Exception {
-		LOGGER.info("Save Or Update CustomerMaster Mehod" + dtoCustomerMaster);
+		LOGGER.info("Save or update customer");
+
+		if (!currentUser.isAdmin()) {
+			// Editing an existing record requires owning it.
+			if (dtoCustomerMaster.getSerCustId() != null) {
+				accessGuard.assertCanAccessCustomer(dtoCustomerMaster.getSerCustId());
+			}
+			// The email is the only link between a login and a customer record, so a
+			// customer must not be able to set it to somebody else's — doing so would
+			// hand them ownership of that person's events.
+			currentUser.email().ifPresent(dtoCustomerMaster::setTxtEmail);
+		}
+
 		ResponseMessage responseMessage = null;
 		responseMessage = this.serviceCustomerMaster.saveAndUpdate(dtoCustomerMaster);
 		if (responseMessage != null) {
@@ -121,10 +141,26 @@ public class ControllerCustomerMaster {
 
 	@RequestMapping(value = "/getByEmail", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
 	public ResponseMessage getByEmail(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
-		LOGGER.info("Fetching customer by ID" + dtoSearch);
+		LOGGER.info("Fetching customer by email");
 		ResponseMessage responseMessage = new ResponseMessage();
+
+		// A customer may only look themselves up. Without this, the endpoint is an
+		// email-address oracle over the whole customer base: pass any address, get
+		// back that person's name, phone number and home address.
+		String requestedEmail = dtoSearch.getSearchKeyword();
+		if (!currentUser.isAdmin()) {
+			String ownEmail = currentUser.email()
+					.orElseThrow(() -> new org.springframework.security.access.AccessDeniedException(
+							"No account is linked to this session."));
+			if (requestedEmail != null && !ownEmail.equalsIgnoreCase(requestedEmail.trim())) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"You may only look up your own account.");
+			}
+			requestedEmail = ownEmail;
+		}
+
 		try {
-			DtoResult dtoResult = serviceCustomerMaster.getByEmail(dtoSearch.getSearchKeyword());
+			DtoResult dtoResult = serviceCustomerMaster.getByEmail(requestedEmail);
 			if (dtoResult.getTxtMessage().equalsIgnoreCase("success")) {
 				responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched successfully",
 						dtoResult.getResult());

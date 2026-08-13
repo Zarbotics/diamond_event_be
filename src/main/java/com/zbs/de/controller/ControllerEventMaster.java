@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zbs.de.config.security.AccessGuard;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
@@ -42,7 +43,10 @@ public class ControllerEventMaster {
 	@Autowired
 	ServiceEventMaster serviceEventMaster;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
+	@Autowired
+	AccessGuard accessGuard;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventMaster.class);
 
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage saveOrUpdate(@RequestBody DtoEventMaster dtoEventMaster, HttpServletRequest request) {
@@ -60,6 +64,15 @@ public class ControllerEventMaster {
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
 		LOGGER.info("Saving Event Master: {}", eventMaster);
 		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
+
+		// Ownership is asserted before the try/catch below: an AccessDeniedException
+		// must reach the exception handler as a 403, not be flattened into a 400 by
+		// the catch-all.
+		accessGuard.assertCanAccessCustomer(dtoEventMaster.getSerCustId());
+		if (dtoEventMaster.getSerEventMasterId() != null) {
+			accessGuard.assertCanAccessEvent(dtoEventMaster.getSerEventMasterId());
+		}
+
 		try {
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dtoEventMaster, files);
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
@@ -113,6 +126,8 @@ public class ControllerEventMaster {
 	@PostMapping(value = "/getByEventIdAndCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getByEventIdAndCustomerId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Searching Event Master: {}", dtoSearch);
+		// id1 carries the customer id for this endpoint; id carries the event type.
+		dtoSearch.setId1(accessGuard.resolveCustomerId(dtoSearch.getId1()));
 		DtoResult result = serviceEventMaster.getByEventTypeIdAndCustId(dtoSearch);
 		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
@@ -125,6 +140,9 @@ public class ControllerEventMaster {
 	@PostMapping(value = "/getByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getByCustomerId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Searching Event Master: {}", dtoSearch);
+		// A customer id supplied by the client is never trusted. For a customer it is
+		// replaced with their own; for staff it is passed through unchanged.
+		dtoSearch.setId(accessGuard.resolveCustomerId(dtoSearch.getId()));
 		DtoResult result = serviceEventMaster.getByCustId(dtoSearch);
 		if (result.getResulList() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
@@ -369,6 +387,8 @@ public class ControllerEventMaster {
 	@PostMapping(value = "/getEventById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getEventById(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Searching Event Master: {}", dtoSearch);
+		// Asserted outside the try/catch so a denial surfaces as 403, not 400.
+		accessGuard.assertCanAccessEvent(dtoSearch.getId());
 		try {
 			DtoEventMaster result = serviceEventMaster.getEventById(dtoSearch.getId());
 			if (result != null) {

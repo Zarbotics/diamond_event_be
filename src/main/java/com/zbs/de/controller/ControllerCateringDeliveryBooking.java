@@ -1,5 +1,6 @@
 package com.zbs.de.controller;
 
+import com.zbs.de.config.security.AccessGuard;
 import com.zbs.de.model.dto.DtoCateringDeliveryBooking;
 import com.zbs.de.model.dto.DtoCateringDeliveryBookingSearch;
 import com.zbs.de.model.dto.DtoResult;
@@ -29,11 +30,17 @@ public class ControllerCateringDeliveryBooking {
 	@Autowired
 	private ServiceCateringDeliveryBooking service;
 
+	@Autowired
+	private AccessGuard accessGuard;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerCateringDeliveryBooking.class);
 
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> saveOrUpdate(@RequestBody DtoCateringDeliveryBooking dto,
 			HttpServletRequest request) {
+
+		// Customer-facing save: the booking is pinned to the caller's own record.
+		dto.setSerCustId(accessGuard.resolveCustomerId(dto.getSerCustId()));
 
 		DtoResult result = service.saveOrUpdate(dto);
 		if (result != null && result.getTxtMessage().equalsIgnoreCase("Success") && result.getResult() != null) {
@@ -93,6 +100,8 @@ public class ControllerCateringDeliveryBooking {
 
 	@PostMapping(value = "/getByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseMessage> getByCustomerId(@RequestBody DtoSearch dto, HttpServletRequest request) {
+		// Client-supplied customer id is replaced with the caller's own.
+		dto.setId(accessGuard.resolveCustomerId(dto.getId()));
 		return ResponseEntity.ok(new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched all successfully",
 				service.getByCustId(dto).getResulList()));
 	}
