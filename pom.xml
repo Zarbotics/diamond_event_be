@@ -74,6 +74,28 @@
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
+		<!--
+			The customer's event document is built as HTML and rendered to PDF.
+
+			The JasperReports pipeline it replaces embedded raw SQL in .jrxml
+			templates and filled them from a JDBC Connection, which bypassed both the
+			service layer and — once roles landed — the authorisation layer entirely.
+			It also committed compiled .jasper binaries alongside the sources, so no
+			change to a customer-facing document could be reviewed in a diff.
+
+			Jasper stays for the operational reports (kitchen itinerary), which are
+			genuinely tabular and print-only.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.openhtmltopdf</groupId>
+			<artifactId>openhtmltopdf-pdfbox</artifactId>
+			<version>1.1.22</version>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>

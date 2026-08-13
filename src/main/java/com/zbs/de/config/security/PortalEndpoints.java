@@ -77,6 +77,10 @@ public final class PortalEndpoints {
 			// (/report/event/*, /report/kitchen_itinerary/*) are deliberately absent and
 			// so remain administrator-only.
 			"/report/eventClientSide/*",
+			// The customer's event document, HTML and PDF. Ownership asserted in
+			// ControllerEventDocument.
+			"/documents/event/*",
+			"/documents/event/*/pdf",
 	};
 
 	/** Everything a signed-in customer may call. */

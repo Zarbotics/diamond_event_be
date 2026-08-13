@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en-GB">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="'Your event — ' + ${doc.reference}">Your event</title>
+  <style>
+    /* =================================================================
+       Diamond Events — customer event document
+
+       The brand is the customer journey's: Butler-style display serif,
+       Montserrat body, deep navy and champagne.
+
+       The GROUND is deliberately not the journey's dark navy. This document
+       is printed — by the customer at home, and by staff for the file. A
+       dark ground costs a great deal of ink over eight pages, renders
+       muddily on most home printers, and champagne on white measures about
+       1.5:1, which is illegible.
+
+       So: the cover keeps the dark navy and champagne, because a cover is a
+       single deliberate statement and reads as premium. Everything after it
+       is navy ink on ivory, with champagne reserved for rules and small
+       accents, darkened to bronze wherever it carries text on a light
+       ground (5.1:1 rather than 1.5:1).
+       ================================================================= */
+
+    @page {
+      size: A4;
+      margin: 18mm 16mm 20mm 16mm;
+      @bottom-left {
+        content: element(pageFooter);
+      }
+    }
+
+    /* The cover bleeds to the page edge. */
+    @page cover {
+      margin: 0;
+    }
+
+    :root {
+      --navy: #0e1331;
+      --navy-soft: #2b3560;
+      --ivory: #fbf9f4;
+      --paper: #ffffff;
+      --champagne: #e5cfa0;
+      --bronze: #8a6a2f;    /* champagne, darkened for text on light */
+      --ink: #17203f;
+      --ink-muted: #55608a;
+      --rule: #ded6c6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.55;
+      color: var(--ink);
+      background: var(--paper);
+      margin: 0;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Butler', Georgia, 'Times New Roman', serif;
+      font-weight: normal;
+      margin: 0;
+    }
+
+    /* ---------------------------------------------------------------
+       Cover
+       --------------------------------------------------------------- */
+    .cover {
+      page: cover;
+      page-break-after: always;
+      background: var(--navy);
+      color: var(--champagne);
+      height: 297mm;
+      padding: 45mm 22mm 22mm 22mm;
+      position: relative;
+    }
+
+    .cover__mark {
+      font-size: 8pt;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--champagne);
+      margin-bottom: 30mm;
+    }
+
+    .cover__eyebrow {
+      font-size: 9pt;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #b9a67f;
+      margin-bottom: 6mm;
+    }
+
+    .cover__title {
+      font-size: 34pt;
+      line-height: 1.1;
+      color: var(--champagne);
+      margin-bottom: 8mm;
+    }
+
+    .cover__date {
+      font-size: 15pt;
+      color: #ffffff;
+      letter-spacing: 0.04em;
+    }
+
+    .cover__rule {
+      width: 40mm;
+      height: 1px;
+      background: var(--champagne);
+      margin: 12mm 0;
+    }
+
+    .cover__meta {
+      font-size: 10pt;
+      color: #cfd4e6;
+      line-height: 1.9;
+    }
+
+    .cover__meta strong {
+      color: var(--champagne);
+      font-weight: normal;
+      letter-spacing: 0.06em;
+    }
+
+    .cover__foot {
+      position: absolute;
+      bottom: 22mm;
+      left: 22mm;
+      right: 22mm;
+      font-size: 8.5pt;
+      color: #8e97b8;
+      border-top: 1px solid #2b3560;
+      padding-top: 4mm;
+    }
+
+    /* ---------------------------------------------------------------
+       Running footer
+       --------------------------------------------------------------- */
+    #pageFooter {
+      position: running(pageFooter);
+      font-size: 8pt;
+      color: var(--ink-muted);
+      letter-spacing: 0.06em;
+      border-top: 0.5pt solid var(--rule);
+      padding-top: 2mm;
+      width: 100%;
+    }
+
+    /* ---------------------------------------------------------------
+       Sections
+       --------------------------------------------------------------- */
+    .section {
+      page-break-inside: avoid;
+      margin-bottom: 9mm;
+    }
+
+    /* A section that is likely to be long may break, but never immediately
+       after its own heading. */
+    .section--long { page-break-inside: auto; }
+
+    .section__head {
+      border-bottom: 1.5pt solid var(--bronze);
+      padding-bottom: 2mm;
+      margin-bottom: 4mm;
+      page-break-after: avoid;
+    }
+
+    .section__title {
+      font-size: 15pt;
+      color: var(--navy);
+      letter-spacing: 0.01em;
+    }
+
+    .section__note {
+      font-size: 8.5pt;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--bronze);
+      margin-bottom: 1mm;
+    }
+
+    /* ---------------------------------------------------------------
+       Key/value rows
+       --------------------------------------------------------------- */
+    table.kv {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.kv td {
+      padding: 1.6mm 0;
+      vertical-align: top;
+      border-bottom: 0.5pt solid var(--rule);
+    }
+
+    table.kv td.k {
+      width: 42mm;
+      color: var(--ink-muted);
+      font-size: 9.5pt;
+    }
+
+    table.kv tr:last-child td { border-bottom: none; }
+
+    /* ---------------------------------------------------------------
+       Running order — a timeline, not a table of strings
+       --------------------------------------------------------------- */
+    table.timeline {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.timeline td {
+      padding: 2mm 0;
+      border-bottom: 0.5pt solid var(--rule);
+      vertical-align: top;
+    }
+
+    table.timeline td.time {
+      width: 24mm;
+      font-weight: 600;
+      color: var(--navy);
+      font-variant-numeric: tabular-nums;
+    }
+
+    table.timeline tr:last-child td { border-bottom: none; }
+
+    /* ---------------------------------------------------------------
+       Menu — grouped by course
+       --------------------------------------------------------------- */
+    .course { margin-bottom: 5mm; page-break-inside: avoid; }
+
+    .course__name {
+      font-size: 8.5pt;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--bronze);
+      margin-bottom: 1.5mm;
+      border-bottom: 0.5pt solid var(--rule);
+      padding-bottom: 1mm;
+    }
+
+    .course__items {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      /* Two columns keeps a long menu from running to several pages. */
+      column-count: 2;
+      column-gap: 8mm;
+    }
+
+    .course__items li {
+      padding: 0.9mm 0;
+      break-inside: avoid;
+      font-size: 10pt;
+    }
+
+    .course__items li:before {
+      content: "·";
+      color: var(--bronze);
+      margin-right: 2.5mm;
+    }
+
+    .item__note {
+      color: var(--ink-muted);
+      font-size: 8.5pt;
+    }
+
+    /* ---------------------------------------------------------------
+       Notes from the customer
+       --------------------------------------------------------------- */
+    .note {
+      background: var(--ivory);
+      border-left: 2pt solid var(--champagne);
+      padding: 3mm 4mm;
+      margin-top: 3mm;
+      font-size: 9.5pt;
+      color: var(--ink);
+      page-break-inside: avoid;
+    }
+
+    .note__label {
+      font-size: 8pt;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--bronze);
+      display: block;
+      margin-bottom: 1mm;
+    }
+
+    .empty {
+      color: var(--ink-muted);
+      font-size: 9.5pt;
+      font-style: italic;
+    }
+
+    /* ---------------------------------------------------------------
+       Closing
+       --------------------------------------------------------------- */
+    .closing {
+      margin-top: 10mm;
+      padding: 5mm 6mm;
+      background: var(--navy);
+      color: #e8eaf3;
+      page-break-inside: avoid;
+    }
+
+    .closing h3 {
+      color: var(--champagne);
+      font-size: 13pt;
+      margin-bottom: 3mm;
+    }
+
+    .closing ol {
+      margin: 0 0 4mm 0;
+      padding-left: 5mm;
+      font-size: 9.5pt;
+      line-height: 1.8;
+    }
+
+    .closing a { color: var(--champagne); text-decoration: none; }
+
+    .closing__contact {
+      border-top: 1px solid #2b3560;
+      padding-top: 3mm;
+      font-size: 9pt;
+      color: #b7bed6;
+    }
+
+    /* On screen the document sits on a neutral ground rather than filling the
+       viewport edge to edge, so it reads as a document. */
+    @media screen {
+      body { background: #e9e6df; padding: 24px 0; }
+      .page-wrap {
+        max-width: 210mm;
+        margin: 0 auto;
+        background: var(--paper);
+        box-shadow: 0 2px 24px rgba(0,0,0,.16);
+      }
+      .content { padding: 18mm 16mm; }
+      .cover { height: auto; min-height: 240mm; }
+      #pageFooter { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- =============================================================
+       Cover
+       ============================================================= -->
+  <section class="cover">
+    <div class="cover__mark">Diamond Events</div>
+
+    <p class="cover__eyebrow" th:text="${doc.eventTypeName} ?: 'Your event'">Wedding</p>
+    <h1 class="cover__title" th:text="${doc.headline}">Aisha &amp; Bilal</h1>
+    <p class="cover__date" th:if="${doc.eventDate}" th:text="${doc.eventDate}">Saturday 15 August 2026</p>
+
+    <div class="cover__rule"></div>
+
+    <div class="cover__meta">
+      <div th:if="${doc.reference}">
+        <strong>Reference</strong>&#160;&#160;<span th:text="${doc.reference}">EVT-001</span>
+      </div>
+      <div th:if="${doc.venueName}">
+        <strong>Venue</strong>&#160;&#160;<span th:text="${doc.venueLine}">Diamond Suite</span>
+      </div>
+      <div th:if="${doc.guestCount}">
+        <strong>Guests</strong>&#160;&#160;<span th:text="${doc.guestCount}">250</span>
+      </div>
+    </div>
+
+    <div class="cover__foot">
+      This document sets out everything you have chosen so far. It is not a
+      quote and nothing here is confirmed until you accept one in writing.
+      <span th:if="${doc.generatedOn}">
+        Prepared <span th:text="${doc.generatedOn}">13 August 2026</span>.
+      </span>
+    </div>
+  </section>
+
+  <div id="pageFooter">
+    <span th:text="${doc.headline}">Aisha &amp; Bilal</span>
+    &#160;·&#160;
+    <span th:text="${doc.reference}">EVT-001</span>
+    &#160;·&#160; Diamond Events
+  </div>
+
+  <div class="content">
+
+    <!-- =============================================================
+         Your event
+         ============================================================= -->
+    <section class="section">
+      <div class="section__head">
+        <p class="section__note">Section one</p>
+        <h2 class="section__title">Your event</h2>
+      </div>
+
+      <table class="kv">
+        <tr th:if="${doc.eventTypeName}">
+          <td class="k">Occasion</td>
+          <td th:text="${doc.eventTypeName}">Wedding</td>
+        </tr>
+        <tr th:if="${doc.eventDate}">
+          <td class="k">Date</td>
+          <td th:text="${doc.eventDate}">Saturday 15 August 2026</td>
+        </tr>
+        <tr th:if="${doc.venueLine}">
+          <td class="k">Venue</td>
+          <td th:text="${doc.venueLine}">Diamond Suite, Grand Hall</td>
+        </tr>
+        <tr th:if="${doc.guestCount}">
+          <td class="k">Guests</td>
+          <td>
+            <span th:text="${doc.guestCount}">250</span>
+            <span th:if="${doc.tableCount}" class="item__note"
+                  th:text="' · ' + ${doc.tableCount} + ' tables'"> · 25 tables</span>
+          </td>
+        </tr>
+        <tr th:if="${doc.brideName}">
+          <td class="k">Bride</td>
+          <td th:text="${doc.brideName}">Aisha</td>
+        </tr>
+        <tr th:if="${doc.groomName}">
+          <td class="k">Groom</td>
+          <td th:text="${doc.groomName}">Bilal</td>
+        </tr>
+        <tr th:if="${doc.contactName}">
+          <td class="k">Main contact</td>
+          <td>
+            <span th:text="${doc.contactName}">A. Khan</span>
+            <span th:if="${doc.contactPhone}" class="item__note"
+                  th:text="' · ' + ${doc.contactPhone}"> · 07700 900123</span>
+          </td>
+        </tr>
+      </table>
+
+      <div class="note" th:if="${doc.eventNotes}">
+        <span class="note__label">Your notes</span>
+        <span th:text="${doc.eventNotes}"></span>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         Running order
+         ============================================================= -->
+    <section class="section section--long">
+      <div class="section__head">
+        <p class="section__note">Section two</p>
+        <h2 class="section__title">Running order</h2>
+      </div>
+
+      <table class="timeline" th:if="${!doc.runningOrder.isEmpty()}">
+        <tr th:each="item : ${doc.runningOrder}">
+          <td class="time" th:text="${item.time}">18:00</td>
+          <td th:text="${item.label}">Guest arrival</td>
+        </tr>
+      </table>
+
+      <p class="empty" th:if="${doc.runningOrder.isEmpty()}">
+        No timings agreed yet — we will set these together at your consultation.
+      </p>
+    </section>
+
+    <!-- =============================================================
+         Food menu
+         ============================================================= -->
+    <section class="section section--long">
+      <div class="section__head">
+        <p class="section__note">Section three</p>
+        <h2 class="section__title">Your menu</h2>
+      </div>
+
+      <div th:if="${!doc.menuCourses.isEmpty()}">
+        <div class="course" th:each="course : ${doc.menuCourses}">
+          <p class="course__name" th:text="${course.name}">Starters</p>
+          <ul class="course__items">
+            <li th:each="item : ${course.items}">
+              <span th:text="${item.name}">Seekh Kebab</span>
+              <span class="item__note" th:if="${item.note}"
+                    th:text="' — ' + ${item.note}"> — chargrilled lamb</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="empty" th:if="${doc.menuCourses.isEmpty()}">
+        No dishes chosen yet.
+      </p>
+
+      <div class="note" th:if="${doc.cateringNotes}">
+        <span class="note__label">Your notes on catering</span>
+        <span th:text="${doc.cateringNotes}"></span>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         Décor
+         ============================================================= -->
+    <section class="section section--long">
+      <div class="section__head">
+        <p class="section__note">Section four</p>
+        <h2 class="section__title">Décor</h2>
+      </div>
+
+      <div th:if="${!doc.decorGroups.isEmpty()}">
+        <div class="course" th:each="group : ${doc.decorGroups}">
+          <p class="course__name" th:text="${group.name}">Themed stage</p>
+          <ul class="course__items">
+            <li th:each="item : ${group.items}">
+              <span th:text="${item.name}">Gold drapes</span>
+              <span class="item__note" th:if="${item.note}"
+                    th:text="' — ' + ${item.note}"> — ivory</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="empty" th:if="${doc.decorGroups.isEmpty()}">
+        No décor chosen yet.
+      </p>
+
+      <div class="note" th:if="${doc.decorNotes}">
+        <span class="note__label">Your notes on décor</span>
+        <span th:text="${doc.decorNotes}"></span>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         Services and extras
+         ============================================================= -->
+    <section class="section" th:if="${!doc.services.isEmpty() or !doc.extras.isEmpty() or doc.servicesNotes != null or doc.extrasNotes != null}">
+      <div class="section__head">
+        <p class="section__note">Section five</p>
+        <h2 class="section__title">Services and extras</h2>
+      </div>
+
+      <div class="course" th:if="${!doc.services.isEmpty()}">
+        <p class="course__name">Services</p>
+        <ul class="course__items">
+          <li th:each="item : ${doc.services}" th:text="${item.name}">Photography</li>
+        </ul>
+      </div>
+
+      <div class="course" th:if="${!doc.extras.isEmpty()}">
+        <p class="course__name">Extras</p>
+        <ul class="course__items">
+          <li th:each="item : ${doc.extras}" th:text="${item.name}">Chocolate fountain</li>
+        </ul>
+      </div>
+
+      <div class="note" th:if="${doc.servicesNotes}">
+        <span class="note__label">Your notes on services</span>
+        <span th:text="${doc.servicesNotes}"></span>
+      </div>
+      <div class="note" th:if="${doc.extrasNotes}">
+        <span class="note__label">Your notes on extras</span>
+        <span th:text="${doc.extrasNotes}"></span>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         Suppliers
+         ============================================================= -->
+    <section class="section" th:if="${doc.supplierNotes}">
+      <div class="section__head">
+        <p class="section__note">Section six</p>
+        <h2 class="section__title">Suppliers you are bringing</h2>
+      </div>
+      <div class="note">
+        <span th:text="${doc.supplierNotes}"></span>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         What happens next
+         ============================================================= -->
+    <section class="closing">
+      <h3>What happens next</h3>
+      <ol>
+        <li>We check availability for your date and read through your choices.</li>
+        <li>We come back to you within one working day.</li>
+        <li>We book a consultation to go through the detail and talk about pricing.</li>
+        <li>You receive a written quote. Nothing is confirmed, and no payment is
+            taken, until you accept it.</li>
+      </ol>
+      <div class="closing__contact">
+        Questions about anything here? Call <strong>0121 200 0000</strong> or email
+        <a href="mailto:enquiries@diamondevents.uk">enquiries@diamondevents.uk</a>,
+        quoting <span th:text="${doc.reference}">EVT-001</span>.
+      </div>
+    </section>
+
+  </div>
+</div>
+</body>
+</html>
