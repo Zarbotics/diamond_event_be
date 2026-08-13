@@ -59,6 +59,21 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!--
+			Flyway owns the database schema. Previously Hibernate did, via
+			ddl-auto=update, which only ever adds: it never drops a column, narrows a
+			type, or adds a constraint to existing data. Every schema mistake was
+			therefore permanent, and no deploy left a record of what it changed.
+		-->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
