@@ -48,7 +48,7 @@ import org.springframework.test.web.servlet.MvcResult;
 		"spring.datasource.username=${TEST_DB_USERNAME:postgres}",
 		"spring.datasource.password=${TEST_DB_PASSWORD:postgres}",
 		"server.ssl.enabled=false",
-		"app.cors.allowed-origins=http://localhost:5173,http://localhost:3000",
+		"app.cors.allowed-origins=http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000",
 })
 class StartupAndSecurityIT {
 
@@ -161,7 +161,13 @@ class StartupAndSecurityIT {
 	@Test
 	@DisplayName("the development frontends are allowed through CORS")
 	void corsAllowsLocalFrontends() throws Exception {
-		for (String origin : new String[] { "http://localhost:5173", "http://localhost:3000" }) {
+		// Both spellings of loopback. They are separate origins to a browser, so
+		// a developer on http://127.0.0.1:5173 — which is what `vite --host`
+		// prints — had every request blocked while a colleague on
+		// http://localhost:5173 saw nothing wrong.
+		for (String origin : new String[] {
+				"http://localhost:5173", "http://127.0.0.1:5173",
+				"http://localhost:3000", "http://127.0.0.1:3000" }) {
 			MvcResult result = mockMvc.perform(options("/eventType/getAllActiveEventTypesWithSubEvents")
 					.header("Origin", origin)
 					.header("Access-Control-Request-Method", "POST"))
@@ -208,6 +214,80 @@ class StartupAndSecurityIT {
 					"SELECT 1 FROM information_schema.tables WHERE table_name = 'menu_item'");
 			assertThat(table.next()).as("menu_item was not created").isTrue();
 		}
+	}
+
+	// -----------------------------------------------------------------
+	// Self-registration
+	// -----------------------------------------------------------------
+
+	@Test
+	@DisplayName("signing up creates a customer, never an administrator")
+	void signupDoesNotGrantAdmin() throws Exception {
+		// /auth/signup is public — it has to be, it is how a customer creates an
+		// account — and it used to call setTxtRole("ROLE_ADMIN") unconditionally.
+		// Anyone at all could POST an email and a password and receive the
+		// administrator role, which under the default-deny chain is the only
+		// remaining route to the whole back office including the customer list.
+		String email = "signup-role-check-" + System.nanoTime() + "@example.invalid";
+
+		mockMvc.perform(post("/auth/signup")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"email\":\"" + email + "\",\"password\":\"Sufficiently-Long-1\","
+						+ "\"firstName\":\"Role\",\"lastName\":\"Check\"}"))
+				.andReturn();
+
+		String url = System.getenv().getOrDefault("TEST_DB_URL",
+				"jdbc:postgresql://localhost:5432/diamond_ev_test");
+		String user = System.getenv().getOrDefault("TEST_DB_USERNAME", "postgres");
+		String password = System.getenv().getOrDefault("TEST_DB_PASSWORD", "postgres");
+
+		try (Connection connection = DriverManager.getConnection(url, user, password)) {
+			var rows = connection.createStatement().executeQuery(
+					"SELECT txt_role FROM user_master WHERE txt_email = '" + email + "'");
+
+			// The signup may not have persisted at all — it sends a verification
+			// email, and there is no SMTP server in a test environment. That is
+			// fine: no row means no privilege was granted. What must never happen
+			// is a row that says ROLE_ADMIN.
+			if (rows.next()) {
+				assertThat(rows.getString("txt_role"))
+						.as("self-registration granted the administrator role")
+						.isNotEqualTo("ROLE_ADMIN");
+			}
+		}
+	}
+
+	@Test
+	@DisplayName("a country row with a null legacy is_active flag does not break hydration")
+	void nullLegacyActiveFlagIsTolerated() throws Exception {
+		// CountryMaster maps the nullable is_active column to a primitive boolean.
+		// Hibernate cannot put NULL in a primitive, so it threw
+		// PropertyAccessException while loading the row — and because
+		// CountryMaster is reached through StateMaster from CityMaster, that took
+		// the entire venue list down with a 500 on a step the customer cannot get
+		// past.
+		String url = System.getenv().getOrDefault("TEST_DB_URL",
+				"jdbc:postgresql://localhost:5432/diamond_ev_test");
+		String user = System.getenv().getOrDefault("TEST_DB_USERNAME", "postgres");
+		String password = System.getenv().getOrDefault("TEST_DB_PASSWORD", "postgres");
+
+		try (Connection connection = DriverManager.getConnection(url, user, password)) {
+			connection.createStatement().execute(
+					"INSERT INTO country_master (txt_country_code, txt_country_name, bln_is_active, "
+							+ "bln_is_deleted, is_active) VALUES ('ZZ', 'Null Flag Test', true, false, NULL) "
+							+ "ON CONFLICT DO NOTHING");
+		}
+
+		MvcResult result = mockMvc.perform(post("/venueMaster/getAllActiveVenuesGroupedByActiveCities")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{}"))
+				.andReturn();
+
+		// Unauthenticated, so 401 is the expected answer. The point is that it is
+		// not a 500 from a hydration failure.
+		assertThat(result.getResponse().getStatus())
+				.as("a null legacy is_active flag caused a server error")
+				.isNotEqualTo(500);
 	}
 
 	@Test

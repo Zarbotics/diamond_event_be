@@ -24,6 +24,7 @@ import com.zbs.de.repository.RepositoryUserMaster;
 import com.zbs.de.service.ServiceEmailSender;
 import com.zbs.de.service.ServiceEmailVerification;
 import com.zbs.de.service.ServiceRefreshToken;
+import com.zbs.de.config.security.SecurityRoles;
 import com.zbs.de.util.JwtTokenUtil;
 import com.zbs.de.util.ResponseMessage;
 
@@ -213,7 +214,19 @@ public class AuthController {
 
 		}
 		newUser.setTxtFirstName(req.getFirstName());
-		newUser.setTxtRole("ROLE_ADMIN");
+		// Self-registration creates a customer, never a member of staff.
+		//
+		// This line read setTxtRole("ROLE_ADMIN"). /auth/signup is public — it has
+		// to be, it is how a customer creates an account — so anyone at all could
+		// POST an email and a password and be granted the administrator role.
+		// Under the old chain, which ended in anyRequest().authenticated(), that
+		// was already full access to every back-office endpoint including the
+		// complete customer list. Under the default-deny chain it is the single
+		// thing that would still hand it over.
+		//
+		// Staff accounts are provisioned through the admin portal by someone who
+		// already holds the role, which is the only path that should mint one.
+		newUser.setTxtRole(SecurityRoles.USER);
 		newUser.setTxtLastName(req.getLastName());
 		newUser.setBlnEmailVerified(false); // Require email verification before login
 		newUser.setBlnIsActive(true);

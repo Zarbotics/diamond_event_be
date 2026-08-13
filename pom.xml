@@ -224,6 +224,33 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<!--
+				Runs the *IT classes during `mvn verify`.
+
+				Surefire's default includes stop at *Test / Test*, so
+				StartupAndSecurityIT — which is the only test that boots the whole
+				application against a real database, and the one that covers the
+				startup, CORS and 401-vs-302 failures — was never executed by the
+				build at all. It only ran when somebody remembered to pass
+				-Dtest=StartupAndSecurityIT by hand, which is the same as not having
+				it.
+
+				It skips itself, rather than failing, on a machine with no
+				PostgreSQL, so this is safe to bind unconditionally.
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
