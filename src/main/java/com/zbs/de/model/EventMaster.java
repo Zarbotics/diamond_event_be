@@ -367,8 +367,28 @@ public class EventMaster extends BaseEntity implements Serializable {
 		return venueMasterDetail;
 	}
 
+	/**
+	 * Sets the hall, and with it the venue the hall belongs to.
+	 *
+	 * <p>
+	 * These two are one fact stored twice, and only one of them was ever
+	 * written: every call site set the hall and left {@code venueMaster} null,
+	 * so {@code event_master.ser_venue_master_id} was null on every booking in
+	 * the database. The venue could still be reached by going through the hall,
+	 * but anything joining an event straight to a venue — reporting, the admin
+	 * event list, the customer's own event document — found nothing there.
+	 *
+	 * <p>
+	 * There are eight places that set the hall in {@code ServiceEventMasterImpl}
+	 * alone. Deriving the venue here rather than at each of them means a ninth
+	 * cannot get it wrong, and there is nothing to ask the customer for: the
+	 * hall already knows its venue.
+	 */
 	public void setVenueMasterDetail(VenueMasterDetail venueMasterDetail) {
 		this.venueMasterDetail = venueMasterDetail;
+		if (venueMasterDetail != null && venueMasterDetail.getVenueMaster() != null) {
+			this.venueMaster = venueMasterDetail.getVenueMaster();
+		}
 	}
 
 	public String getTxtEventStatus() {

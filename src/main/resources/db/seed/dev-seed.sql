@@ -56,6 +56,31 @@ FROM (VALUES
 ) AS v(code, name, address, email, phone, web, city)
 WHERE NOT EXISTS (SELECT 1 FROM venue_master WHERE txt_venue_code = v.code);
 
+-- ── Halls ─────────────────────────────────────────────────────────────
+-- A venue on its own is not selectable: the Event Venue step lists halls
+-- within each venue and the customer picks one of those. Seeding venues
+-- without halls left every venue showing "No halls available", so the step
+-- could not be completed and the review screen could never show a venue.
+--
+-- Capacities matter too — the step refuses a hall whose capacity is below the
+-- guest count, so there has to be a range to choose from.
+INSERT INTO venue_master_detail (txt_hall_code, txt_hall_name, num_capacity, txt_capacity, num_price,
+                                 ser_venue_master_id, bln_is_active, bln_is_deleted, created_date)
+SELECT v.code, v.name, v.capacity, v.capacity || ' seated', v.price,
+       (SELECT ser_venue_master_id FROM venue_master WHERE txt_venue_code = v.venue),
+       true, false, now()
+FROM (VALUES
+    ('HALL-001-A', 'The Ballroom',        400, 6500.00, 'VEN-001'),
+    ('HALL-001-B', 'The Library Room',    120, 2800.00, 'VEN-001'),
+    ('HALL-002-A', 'Riverside Marquee',   300, 5200.00, 'VEN-002'),
+    ('HALL-002-B', 'The Terrace',          90, 2400.00, 'VEN-002'),
+    ('HALL-003-A', 'The Orangery',        250, 4800.00, 'VEN-003'),
+    ('HALL-004-A', 'Alexandra Main Hall', 500, 5900.00, 'VEN-004'),
+    ('HALL-004-B', 'The Gallery',         150, 3100.00, 'VEN-004'),
+    ('HALL-005-A', 'Deansgate Suite',     350, 5400.00, 'VEN-005')
+) AS v(code, name, capacity, price, venue)
+WHERE NOT EXISTS (SELECT 1 FROM venue_master_detail WHERE txt_hall_code = v.code);
+
 -- ── Event types ───────────────────────────────────────────────────────
 -- Main events first; sub-events reference them by parent_event_type.
 INSERT INTO event_type (txt_event_type_code, txt_event_type_name, bln_is_main_event, bln_is_active, bln_is_deleted, created_date)
@@ -252,6 +277,7 @@ COMMIT;
 -- What landed.
 SELECT 'event types'      AS catalogue, count(*) FROM event_type
 UNION ALL SELECT 'venues',              count(*) FROM venue_master
+UNION ALL SELECT 'halls',               count(*) FROM venue_master_detail
 UNION ALL SELECT 'food items',          count(*) FROM menu_food_master
 UNION ALL SELECT 'decor categories',    count(*) FROM decor_category_master
 UNION ALL SELECT 'decor properties',    count(*) FROM decor_category_property_master
