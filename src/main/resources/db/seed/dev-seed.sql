@@ -220,7 +220,22 @@ FROM (VALUES
     ('OP-CHR-IVY', 'Ivory',          NULL,                    'EX-CHR'),
     ('OP-CHR-CHM', 'Champagne',      NULL,                    'EX-CHR'),
     ('OP-PHO-STD', 'Standard album', '40 pages.',             'SV-PHO'),
-    ('OP-PHO-PRM', 'Premium album',  '80 pages, boxed.',      'SV-PHO')
+    ('OP-PHO-PRM', 'Premium album',  '80 pages, boxed.',      'SV-PHO'),
+    -- The remaining services had no options at all, which is how the
+    -- inner-join bug in RepositoryDecorExtrasMaster went unnoticed: four of
+    -- the five services simply never reached the customer.
+    ('OP-VID-HL',  'Highlights film',  'Five to eight minutes.',        'SV-VID'),
+    ('OP-VID-FULL','Full ceremony film','Unedited, plus highlights.',   'SV-VID'),
+    ('OP-DJ-STD',  'DJ only',          'Five hours.',                   'SV-DJ'),
+    ('OP-DJ-LIVE', 'DJ with live percussion', 'Five hours, dhol for the entrances.', 'SV-DJ'),
+    ('OP-MC-EN',   'English',          NULL,                            'SV-MC'),
+    ('OP-MC-BI',   'Bilingual',        'English plus Urdu or Punjabi.', 'SV-MC'),
+    ('OP-VLT-4',   'Four hours',       'Two attendants.',               'SV-VLT'),
+    ('OP-VLT-8',   'Eight hours',      'Four attendants.',              'SV-VLT'),
+    ('OP-CAK-RND', 'Round table',      'Seats a three-tier cake.',      'EX-CAK'),
+    ('OP-CAK-SQR', 'Square table',     'Seats a larger display.',       'EX-CAK'),
+    ('OP-WLK-IVY', 'Ivory runner',     NULL,                            'EX-WLK'),
+    ('OP-WLK-BLK', 'Black mirror runner', NULL,                         'EX-WLK')
 ) AS v(code, name, descr, extra)
 WHERE NOT EXISTS (SELECT 1 FROM decor_extras_option WHERE txt_option_code = v.code);
 
