@@ -77,6 +77,16 @@ public interface RepositoryEventMaster
 	@Query("SELECT MAX(e.txtEventMasterCode) FROM EventMaster e WHERE e.txtEventMasterCode LIKE CONCAT('DE-', :year, '-%')")
 	String findMaxEventCodeForYear(@Param("year") int year);
 
+	/**
+	 * Whether a reference is already in use.
+	 *
+	 * <p>
+	 * Used when allocating the next one, so a gap or a code claimed since the
+	 * maximum was read is stepped over rather than handed out twice. See
+	 * {@code ServiceEventMasterImpl.generateNextEventMasterCode}.
+	 */
+	boolean existsByTxtEventMasterCode(String txtEventMasterCode);
+
 	boolean existsByDteEventDateAndBlnIsDeletedFalse(Date dteEventDate);
 
 	@Query("select distinct(e.dteEventDate) from EventMaster e where e.blnIsDeleted = false order by e.dteEventDate asc")

@@ -612,28 +612,67 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	// return String.format("EVT-%03d", nextNumber);
 	// }
 
+	/** Event references restart at this serial each year. */
+	private static final int FIRST_SERIAL_OF_YEAR = 1001;
+
+	/** How many consecutive taken codes to step over before giving up. */
+	private static final int MAX_CODE_ATTEMPTS = 100;
+
+	/**
+	 * The next free event reference for this year, as {@code DE-<yy>-<serial>}.
+	 *
+	 * <p>
+	 * This reads the highest code and adds one, which on its own is a race: two
+	 * customers starting a booking in the same moment both read DE-26-1004 and
+	 * both are handed DE-26-1005. The reference is what a customer quotes on the
+	 * phone and what staff search on, so two events sharing one is a real
+	 * problem rather than a cosmetic one.
+	 *
+	 * <p>
+	 * Two things close it. The loop below skips any code already taken, which
+	 * covers the common case of a gap or a code claimed since the maximum was
+	 * read. And {@code ux_event_master_code} (migration V5) makes a genuine
+	 * simultaneous collision fail the insert instead of quietly creating a
+	 * duplicate — a failed save the customer can retry is a far better outcome
+	 * than two bookings with the same number, which nobody notices until someone
+	 * telephones.
+	 *
+	 * <p>
+	 * A per-year database sequence would remove the race entirely and is the
+	 * right long-term answer; it needs the existing production codes migrated
+	 * onto it, which is not something to do blind.
+	 */
+	@Override
 	public String generateNextEventMasterCode() {
-		// Get current year (last 2 digits)
 		int year = LocalDate.now().getYear() % 100;
 
-		// Query the latest event code for this year (e.g. DE-25-1050)
 		String maxCode = repositoryEventMaster.findMaxEventCodeForYear(year);
 
-		int nextSerial = 1001; // default starting serial for the year
+		int nextSerial = FIRST_SERIAL_OF_YEAR;
 
 		if (maxCode != null && maxCode.startsWith("DE-" + year + "-")) {
 			try {
-				// Extract serial part
 				String serialPart = maxCode.substring(maxCode.lastIndexOf("-") + 1);
-				int lastSerial = Integer.parseInt(serialPart);
-				nextSerial = lastSerial + 1;
+				nextSerial = Integer.parseInt(serialPart) + 1;
 			} catch (NumberFormatException e) {
-				// fallback to default
-				nextSerial = 1001;
+				LOGGER.warn("Event code {} does not end in a serial; starting the year again.", maxCode);
+				nextSerial = FIRST_SERIAL_OF_YEAR;
 			}
 		}
 
-		return String.format("DE-%02d-%04d", year, nextSerial);
+		for (int attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
+			String candidate = String.format("DE-%02d-%04d", year, nextSerial + attempt);
+			if (!repositoryEventMaster.existsByTxtEventMasterCode(candidate)) {
+				return candidate;
+			}
+		}
+
+		// Bounded rather than infinite: if this many consecutive codes are taken,
+		// something is wrong with the numbering rather than with this booking, and
+		// spinning would turn that into a hung request.
+		throw new IllegalStateException(
+				"Could not find a free event reference for 20" + year + " after " + MAX_CODE_ATTEMPTS
+						+ " attempts starting at " + nextSerial);
 	}
 
 	@Override
