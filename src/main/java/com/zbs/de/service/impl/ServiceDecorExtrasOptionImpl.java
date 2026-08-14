@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.mapper.MapperDecorExtrasMaster;
@@ -23,6 +24,7 @@ import com.zbs.de.service.ServiceDecorExtrasOption;
 import com.zbs.de.service.ServiceDecorExtrasOptionDocument;
 import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
+import com.zbs.de.util.UtilTransaction;
 
 @Service("serviceDecorExtrasOption")
 public class ServiceDecorExtrasOptionImpl implements ServiceDecorExtrasOption {
@@ -48,7 +50,12 @@ public class ServiceDecorExtrasOptionImpl implements ServiceDecorExtrasOption {
 		}
 	}
 
+	/*
+	 * Writes the option and its uploaded images together. An option that
+	 * commits without its images shows in the catalogue as a blank card.
+	 */
 	@Override
+	@Transactional
 	public DtoResult saveExtrasOptionWithDoc(DtoDecorExtrasOption dto, List<MultipartFile> files) {
 		DtoResult dtoResult = new DtoResult();
 		try {
@@ -120,6 +127,7 @@ public class ServiceDecorExtrasOptionImpl implements ServiceDecorExtrasOption {
 			dtoResult.setTxtMessage("Success");
 
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			LOGGER.debug(e.getMessage(), e);
 			dtoResult.setTxtMessage(e.getMessage());
 		}

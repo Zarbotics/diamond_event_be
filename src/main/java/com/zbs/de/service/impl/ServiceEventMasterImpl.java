@@ -163,6 +163,14 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
 
+	/*
+	 * Writes the event, its running order, its guest counts and its budget
+	 * lines. Without a transaction a failure part-way leaves a booking that
+	 * exists but has no running order, or has one that does not match the
+	 * guest count it was sized from — and the customer's next screen is
+	 * populated from exactly that half-written row.
+	 */
+	@Transactional
 	public DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster) {
 		// Validate required IDs
 		DtoResult dtoResult = new DtoResult();

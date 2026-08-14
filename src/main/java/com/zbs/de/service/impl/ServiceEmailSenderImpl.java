@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.zbs.de.model.EmailVerificationToken;
 import com.zbs.de.model.UserMaster;
@@ -67,7 +68,14 @@ public class ServiceEmailSenderImpl implements ServiceEmailSender, ServiceEmailV
 		return tokenRepository.save(token);
 	}
 
+	/*
+	 * Marks the address verified and consumes the token. If only the first
+	 * lands the token stays live and can be replayed; if only the second does,
+	 * the customer has burned their one verification link and is locked out of
+	 * their own account.
+	 */
 	@Override
+	@Transactional
 	public boolean verifyToken(String token) {
 		Optional<EmailVerificationToken> optToken = tokenRepository.findByToken(token);
 		if (optToken.isPresent()) {

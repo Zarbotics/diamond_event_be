@@ -42,7 +42,15 @@ public class ServiceRefreshTokenImpl implements ServiceRefreshToken {
 //		return refreshTokenRepository.save(refreshToken);
 //	}
 
+	/*
+	 * Reads the user's current token and then overwrites it. Unannotated, the
+	 * read and the write are two separate transactions with the entity
+	 * detached in between, so the update goes through as a merge against
+	 * whatever the row holds by then. One transaction keeps the token being
+	 * replaced the same one that was read.
+	 */
 	@Override
+	@Transactional
 	public RefreshToken createRefreshToken(UserMaster user) {
 		Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser_SerUserId(user.getSerUserId());
 	    Date expiryDate = new Date(System.currentTimeMillis() + refreshTokenDurationMs);

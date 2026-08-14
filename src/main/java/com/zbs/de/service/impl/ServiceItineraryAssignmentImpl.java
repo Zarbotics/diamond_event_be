@@ -35,6 +35,7 @@ import com.zbs.de.repository.RepositoryItineraryItem;
 import com.zbs.de.repository.RepositoryMenuItem;
 import com.zbs.de.service.ServiceItineraryAssignment;
 import com.zbs.de.util.UtilDateAndTime;
+import com.zbs.de.util.UtilTransaction;
 import com.zbs.de.util.enums.EnmItineraryUnitType;
 import com.zbs.de.util.enums.EnmMenuItemRole;
 
@@ -472,7 +473,14 @@ public class ServiceItineraryAssignmentImpl implements ServiceItineraryAssignmen
 		}
 	}
 
+	/*
+	 * One assignment per menu item, plus a detail row per item, plus a count
+	 * refresh over every assignment touched. Half of that applied is a kitchen
+	 * itinerary that lists some dishes' prep steps and silently omits others —
+	 * and the count on the assignment says otherwise.
+	 */
 	@Override
+	@Transactional
 	public DtoResult assignListOfItineraryItemsToMultipleItems(DtoItineraryBulkAssignmentRequest request) {
 		try {
 			if (request.getMenuItemIds() == null || request.getMenuItemIds().isEmpty()) {
@@ -580,12 +588,27 @@ public class ServiceItineraryAssignmentImpl implements ServiceItineraryAssignmen
 				detailRepository.updateTotalItinerariesCount(assignment.getSerItineraryAssignmentId());
 			}
 
-			String message = String.format("Bulk assignment completed. Success: %d, Skipped: %d, Failed: %d",
-					successCount, skipCount, errorCount);
+			/*
+			 * The batch is one transaction, so it commits whole or not at all.
+			 * Reporting per-item successes alongside failures described an
+			 * outcome the database will not produce.
+			 */
+			if (errorCount > 0) {
+				UtilTransaction.markRollbackOnly();
+				return new DtoResult(
+						String.format("Bulk assignment failed for %d of %d menu items; nothing was assigned. "
+								+ "Correct the items listed and run it again.", errorCount,
+								request.getMenuItemIds().size()),
+						errors, null, null);
+			}
+
+			String message = String.format("Bulk assignment completed. Assigned: %d, Skipped: %d", successCount,
+					skipCount);
 
 			return new DtoResult(message, errors, null, null);
 
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			LOGGER.error("Error in bulk assignment", e);
 			return new DtoResult("Failed to perform bulk assignment: " + e.getMessage(), null, null, null);
 		}
