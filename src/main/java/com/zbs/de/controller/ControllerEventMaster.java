@@ -62,8 +62,20 @@ public class ControllerEventMaster {
 	@PostMapping(value = "/saveWithDocs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithDocs(@RequestPart("eventMaster") String eventMaster,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
-		LOGGER.info("Saving Event Master: {}", eventMaster);
 		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
+		/*
+		 * The booking's identity, not its contents. This logged the whole
+		 * request body — around eight kilobytes per save, twelve saves per
+		 * booking, carrying the customer's name, their contact's name and
+		 * phone number, the couple's names and the full menu. Personal data
+		 * in an application log is processing nobody has accounted for: logs
+		 * are shipped to aggregators, copied onto laptops and kept
+		 * indefinitely, none of it covered by the retention that applies to
+		 * the database. The id and the reference are what you actually need
+		 * to correlate a log line with a booking.
+		 */
+		LOGGER.info("Saving event {} ({})", dtoEventMaster.getSerEventMasterId(),
+				dtoEventMaster.getTxtEventMasterCode());
 
 		// Ownership is asserted before the try/catch below: an AccessDeniedException
 		// must reach the exception handler as a 403, not be flattened into a 400 by
@@ -96,8 +108,9 @@ public class ControllerEventMaster {
 	@PostMapping(value = "/saveWithDocsCE", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithDocsCE(@RequestPart("eventMaster") String eventMaster,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
-		LOGGER.info("Saving Event Master: {}", eventMaster);
 		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
+		LOGGER.info("Saving event {} ({})", dtoEventMaster.getSerEventMasterId(),
+				dtoEventMaster.getTxtEventMasterCode());
 		try {
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsCE(dtoEventMaster, files);
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
@@ -209,8 +222,9 @@ public class ControllerEventMaster {
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) {
 		DtoEventMasterAdminPortal dtoEventMaster = null;
 		try {
-			LOGGER.info("Saving Event Master: {}", eventMaster);
 			dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMasterAdminPortal.class);
+			LOGGER.info("Saving event {} ({}) from the admin portal",
+					dtoEventMaster.getSerEventMasterId(), dtoEventMaster.getTxtEventMasterCode());
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dtoEventMaster, files);
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,

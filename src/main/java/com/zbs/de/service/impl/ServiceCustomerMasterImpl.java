@@ -128,7 +128,13 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 				customerMaster.setBlnIsDeleted(false);
 				customerMaster.setBlnIsApproved(true);
 
-				LOGGER.info("Updating existing customer with email: " + email);
+				/*
+				 * The customer's id, not their email address. An email address
+				 * is personal data, and this ran on every save the journey
+				 * makes — twelve times per booking, into a log with none of
+				 * the retention that applies to the customer record itself.
+				 */
+				LOGGER.info("Updating existing customer {}", customerMaster.getSerCustId());
 			} else {
 				// Create new
 				blnIsNewCustomer = true;

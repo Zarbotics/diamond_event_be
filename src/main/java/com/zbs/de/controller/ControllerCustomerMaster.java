@@ -124,7 +124,13 @@ public class ControllerCustomerMaster {
 
 	@RequestMapping(value = "/getById", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
 	public ResponseMessage getById(@RequestBody DtoSearch dtoSearch) {
-		LOGGER.info("Fetching customer by ID" + dtoSearch);
+		/*
+		 * The id, not the whole DtoSearch. That object carries searchKeyword,
+		 * which callers populate with the customer's email address — so every
+		 * lookup wrote an email into the log, three times over, on a request
+		 * the journey makes on every step.
+		 */
+		LOGGER.info("Fetching customer {}", dtoSearch.getId());
 		ResponseMessage responseMessage = new ResponseMessage();
 		try {
 			ResponseMessage res = serviceCustomerMaster.getById(dtoSearch.getId());
@@ -135,7 +141,6 @@ public class ControllerCustomerMaster {
 			responseMessage = new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
 					"Customer not found", null);
 		}
-		LOGGER.info("Fetching customer by ID" + dtoSearch);
 		return responseMessage;
 	}
 
@@ -174,7 +179,6 @@ public class ControllerCustomerMaster {
 			responseMessage = new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
 					"Customer not found", null);
 		}
-		LOGGER.info("Fetching customer by ID" + dtoSearch);
 		return responseMessage;
 	}
 
