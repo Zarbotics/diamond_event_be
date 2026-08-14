@@ -84,7 +84,7 @@ Three applications serve that:
 | `EventDecorPropertyValueSelection` | ✅ | Cascaded. |
 | `EventDecorExtrasSelection` | ✅ | Services and extras both land here. |
 | `EventDecorReferenceDocument` | ✅ | Customer's uploaded inspiration images. |
-| `EventVendorMasterSelection` | 🟡 | Written by the external-suppliers step, but **0 rows in dev** after many test journeys — worth confirming it persists. See §9. |
+| `EventVendorMasterSelection` | 💀 ❓ | 0 rows, correctly: the supplier picker is commented out of the journey. See §5.6. |
 | `EventFoodSelection` | 💀 | **Orphaned.** Superseded by `EventMenuFoodSelection`. |
 | `EventServicesMaster` | 💀 | **Orphaned.** Services are stored as `EventDecorExtrasSelection`. |
 
@@ -255,7 +255,9 @@ Anything not marked ✅/✔︎ is an open item and is carried into §10.
 | Two customers race for the same reference | ✅ Partial unique index |
 | A step half-saves | ✅ One transaction; a caught failure rolls back |
 | Backend unreachable mid-journey | 🟡 Toast, no retry offered |
-| Customer uploads a huge or non-image file | ❌ No client-side size or type check found |
+| Customer uploads a huge or non-image file | ✅ Client checks type and 3MB; server now allowlists extensions and caps at 3MB/30MB |
+| Upload named `../../../etc/…` | ✅ Was an arbitrary file write **as root**. See §9 |
+| Uploaded SVG or HTML served back from the API origin | ✅ Refused at write; content type now mapped from the extension, `nosniff` set |
 | Customer books with 0 guests | ❌ Not validated |
 | Customer picks a date years out | 🟡 No upper bound |
 | Journey completed twice in two tabs | ❌ Not considered |
@@ -272,6 +274,24 @@ exists, but **nothing can reach it**: the "Book Food Delivery" selector in
 It has been repaired anyway (real checkboxes, named info button) so it works if
 it comes back, and the finding is recorded at the top of the file. **Whether it
 comes back is a business decision, not a technical one.**
+
+### 5.6 External suppliers 💀 ❓
+
+Step 12 is named `externalSuuppliers` and the entity, the admin `vendors`
+screen and five seeded suppliers all exist. **The customer is never shown
+them.** `fetchVendors()` is commented out, so is the picker that would render
+them, and so is the notes box beside it.
+
+What the step actually renders now is two static informational blocks — "Table
+plan" and "Room layout", both *"to be sent no later than 4 weeks before
+event"* — plus the terms checkbox and Submit. It is a notes-and-terms step
+wearing a supplier step's name.
+
+The payload still carries `vendorMasterSelections` and
+`txtExternalSupplierRemarks` on every submission; both are always empty. That
+is why `event_vendor_master_selection` has no rows: nothing is broken, there is
+simply nothing to choose. Recorded here because "the table is empty" reads like
+data loss until you find out why, and I spent time on exactly that.
 
 ### 5.5 Marketing site 💀 ❓
 
@@ -399,6 +419,30 @@ test that passes with and without the fix proves nothing.
 - ✅ **Two-second blocking overlay per step** — ~24 seconds of imposed waiting
   across the journey, with nothing loading.
 
+### File uploads — the most serious finding since the signup endpoint
+- ✅ **Arbitrary file write, as root.** The stored path was
+  `folder + "/" + UUID + "_" + file.getOriginalFilename()`. That name arrives
+  in the multipart body, not the URL, so nothing in Tomcat or Spring inspects
+  it — worth being precise about, because the same `../` in a *URL* is rejected
+  with a 400 before any controller runs, which made the write path look safer
+  than it was. I checked that separately rather than assuming it. Six `../`
+  segments cleared the folder, the category and the UUID prefix; a test shows
+  the old code landing a file in `/tmp`. The application writes under
+  `/root/`, so it runs as root. Anyone who could reach an upload endpoint
+  could write anywhere.
+- ✅ **Stored cross-site scripting.** `/deimg` is fully public and served a
+  content type from `Files.probeContentType`, which reports what a file
+  actually is — so an uploaded `.svg` or `.html` came back as
+  `image/svg+xml` or `text/html` from the API's own origin. Uploads are now
+  restricted to real image formats and PDF at the point of writing, and the
+  served type is mapped from the stored extension with `nosniff`.
+- ✅ **Hardcoded paths.** The writer used `/root/diamondevent_be/uploads/` and
+  returned a URL hardcoded to `https://diamondevents.uk:8081`, so a file
+  uploaded on a developer's machine came back with a URL pointing at
+  production. The reader carried three copies of the path, two commented out,
+  one of them a `C:/Users/hp/Pictures` directory. An `app.upload.dir` property
+  already existed and was ignored. Both now read it.
+
 ### Data protection
 - ✅ **Customer data out of the logs.** Every booking save wrote the full
   request body at INFO — ~8KB, twelve times per booking, carrying the
@@ -443,9 +487,9 @@ Ordered by what actually costs the business the most.
 | A1 | Pagination on `event_master` and `customer_master` | ⬜ | These grow forever. Every list endpoint returns every row. First real client with a few thousand bookings meets a wall. Additive; no breaking change. |
 | A2 | Optimistic locking on `EventMaster` | ⬜ | Admin and customer can edit the same booking; last writer wins silently. |
 | A3 | Database constraint behind date availability | ⬜ | The race is currently caught in application code only. |
-| A4 | File upload validation (size, type) | ⬜ | Decor reference images accept anything. |
+| ~~A4~~ | ~~File upload validation~~ | ✅ | Done, and it was worse than the row said — see §9. |
 | A5 | Guest count and date sanity bounds | ⬜ | 0 guests and dates decades out are both accepted. |
-| A6 | Confirm `EventVendorMasterSelection` persists | ⬜ | 0 rows after many complete test journeys. Either it does not save or the seed has no vendors selected. |
+| ~~A6~~ | ~~Confirm `EventVendorMasterSelection` persists~~ | ✅ | **Investigated: not a bug.** The supplier picker is commented out of the journey — see §5.6. Moved to D5. |
 | A7 | Turn off `ddl-auto=update` | ⬜ | Flyway owns the schema; leaving Hibernate able to add columns means orphan entities keep materialising tables. |
 
 ### B. Architecture
@@ -476,6 +520,7 @@ Ordered by what actually costs the business the most.
 | D2 | **Does the React marketing site return, or does WordPress stay?** Six page components and the whole `Layout` route are commented out. If WordPress stays, delete them and the Navbar with them. |
 | D3 | **Should Apple sign-in be available in development?** Currently Google-only because the one Apple developer account is bound to production. |
 | D4 | **Is `menu_component` / `ingredient` a live feature?** Entities, controllers and admin screens exist; no rows anywhere and nothing in the journey uses them. |
+| D5 | **Should customers pick external suppliers?** Five are seeded and the admin manages them, but the picker is commented out and the step now shows notes and terms instead. If suppliers are not returning, the step should be renamed for what it does. |
 
 ---
 
