@@ -258,7 +258,9 @@ Anything not marked ✅/✔︎ is an open item and is carried into §10.
 | Customer uploads a huge or non-image file | ✅ Client checks type and 3MB; server now allowlists extensions and caps at 3MB/30MB |
 | Upload named `../../../etc/…` | ✅ Was an arbitrary file write **as root**. See §9 |
 | Uploaded SVG or HTML served back from the API origin | ✅ Refused at write; content type now mapped from the extension, `nosniff` set |
-| Customer books with 0 guests | ❌ Not validated |
+| Customer books with 0 guests | ✅ Refused, with the message on the field |
+| Guest count larger than every room the company has | ✅ Was an unwinnable screen — see §9 |
+| Guest count larger than a particular room | ✅ Refused up front and says why, rather than on click |
 | Customer picks a date years out | 🟡 No upper bound |
 | Journey completed twice in two tabs | ❌ Not considered |
 | Admin edits a booking a customer has open | ❌ No optimistic locking anywhere |
@@ -349,9 +351,9 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 
 | Suite | Count | Runs with |
 |---|---|---|
-| Backend unit | 46 | `mvn test` |
+| Backend unit | 55 | `mvn test` |
 | Backend integration | 16 | `mvn verify` (skips itself without a database) |
-| Journey end-to-end | 16 | `npm run test:e2e` — desktop and mobile |
+| Journey end-to-end | 20 | `npm run test:e2e` — desktop and mobile |
 | Admin | 0 | ❌ |
 
 The end-to-end tests write real bookings and must be pointed at a development
@@ -418,6 +420,19 @@ test that passes with and without the fix proves nothing.
   buttons around the one date the customer must get right.
 - ✅ **Two-second blocking overlay per step** — ~24 seconds of imposed waiting
   across the journey, with nothing loading.
+
+### Venue step
+- ✅ **A room too small looked identical to one that fits**, and refused on
+  click with a toast. The capacity was on screen but nothing tied it to the
+  guest count, so the only way to find out was to press and be refused. It is
+  now disabled and says *"Too small for 300 guests"* in words beside the
+  capacity — not by being dimmed, which is colour alone.
+- ✅ **A party larger than every room was an unwinnable screen.** The customer
+  could press every hall in every venue, get the same message each time, and
+  never learn that the problem was the number rather than the choice. The step
+  now says so once, gives the largest size available, and names both ways out.
+  Checked across every city, because discovering it city by city is the same
+  dead end with more steps.
 
 ### File uploads — the most serious finding since the signup endpoint
 - ✅ **Arbitrary file write, as root.** The stored path was
@@ -488,7 +503,8 @@ Ordered by what actually costs the business the most.
 | A2 | Optimistic locking on `EventMaster` | ⬜ | Admin and customer can edit the same booking; last writer wins silently. |
 | A3 | Database constraint behind date availability | ⬜ | The race is currently caught in application code only. |
 | ~~A4~~ | ~~File upload validation~~ | ✅ | Done, and it was worse than the row said — see §9. |
-| A5 | Guest count and date sanity bounds | ⬜ | 0 guests and dates decades out are both accepted. |
+| ~~A5~~ | ~~Guest count bounds~~ | ✅ | My row was wrong: 0 guests **is** validated. The real gap was the upper end, and it was a dead-end screen rather than a missing bound. See §9. |
+| A5b | Upper bound on the event date | ⬜ | The year stepper goes forward indefinitely. Low priority — a booking three years out may well be legitimate, so this needs a business answer before a number. |
 | ~~A6~~ | ~~Confirm `EventVendorMasterSelection` persists~~ | ✅ | **Investigated: not a bug.** The supplier picker is commented out of the journey — see §5.6. Moved to D5. |
 | A7 | Turn off `ddl-auto=update` | ⬜ | Flyway owns the schema; leaving Hibernate able to add columns means orphan entities keep materialising tables. |
 
