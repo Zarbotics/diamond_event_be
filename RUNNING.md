@@ -80,12 +80,33 @@ would mean never exercising the authorisation rules a real customer hits.
 
 ### Configuring Google
 
-Two environment variables, and one setting in the Google console:
+Pick either. Both do the same thing; the file is easier on Windows, where
+setting a variable for one command is awkward.
+
+**A file on your machine, not in the repository:**
+
+```bash
+cp src/main/resources/application-local.properties.example \
+   src/main/resources/application-local.properties
+# fill in the id and secret, then:
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+`application-local.properties` is gitignored.
+
+**Or environment variables:**
 
 ```bash
 GOOGLE_CLIENT_ID=...apps.googleusercontent.com \
 GOOGLE_CLIENT_SECRET=... \
 ./mvnw spring-boot:run
+```
+
+```powershell
+# PowerShell
+$env:GOOGLE_CLIENT_ID="...apps.googleusercontent.com"
+$env:GOOGLE_CLIENT_SECRET="..."
+.\mvnw spring-boot:run
 ```
 
 The **Authorised redirect URI** on the OAuth client must be exactly:
@@ -112,6 +133,28 @@ Correct, and no use — nothing in it points at an unset variable on your own
 backend, so it reads as a broken application. The backend now refuses the
 sign-in itself and says which variables are missing and what the redirect URI
 should be.
+
+### The credentials that were committed
+
+These used to be written into `application.properties` directly:
+
+```
+spring.security.oauth2.client.registration.google.client-id=910542917624-....apps.googleusercontent.com
+spring.security.oauth2.client.registration.google.client-secret=GOCSPX-...
+```
+
+That is why sign-in worked from a clean checkout with no setup, and it is why
+it stopped when they were replaced with environment variables.
+
+**The secret is still in this repository's git history.** Removing it from the
+current file does not remove it from the commits that carried it, and anyone
+who can read the repository can read those. Rewriting history would not help
+either: every existing clone still has it.
+
+The only thing that actually closes it is **rotating the secret in the Google
+console** — create a new client secret, put the new one in your local file or
+environment, and delete the old one. Until that is done, treat the committed
+secret as compromised.
 
 ### How the handoff works
 

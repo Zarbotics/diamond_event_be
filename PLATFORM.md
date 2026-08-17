@@ -189,6 +189,14 @@ every booking forever.
 
 ## 4. Security model
 
+> **Open action, not a code change.** The Google client secret was committed to
+> `application.properties` and is still in this repository's git history.
+> Removing it from the current file does not remove it from the commits that
+> carried it, and rewriting history would not help — every existing clone still
+> has it. The only thing that closes it is **rotating the secret in the Google
+> console**. See RUNNING.md.
+
+
 | Concern | Status | Note |
 |---|---|---|
 | Sign-in | ✅ | Needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`; unset, the backend now refuses the sign-in and says so rather than letting Google answer `invalid_client`. Google OAuth2 in development; **master also has Apple**, kept out of dev branches because there is one Apple developer account and it is bound to production. `VITE_APPLE_SIGNIN_ENABLED` gates the button. |

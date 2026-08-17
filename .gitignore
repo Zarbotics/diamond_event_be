@@ -36,3 +36,10 @@ build/
 .env
 .env.local
 application-local.properties
+
+### Local credentials ###
+# Real client ids and secrets for a developer's own machine. Committed
+# credentials are how the Google secret ended up in this repository's history —
+# see RUNNING.md. Copy application-local.properties.example and fill it in.
+src/main/resources/application-local.properties
+.env
