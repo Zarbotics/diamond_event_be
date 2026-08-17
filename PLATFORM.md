@@ -255,6 +255,7 @@ Anything not marked ✅/✔︎ is an open item and is carried into §10.
 | Two customers race for the same reference | ✅ Partial unique index |
 | A step half-saves | ✅ One transaction; a caught failure rolls back |
 | Backend unreachable mid-journey | 🟡 Toast, no retry offered |
+| Vite falls back to 5174 because 5173 is busy | ✅ Fallback ports in the dev CORS default; both failure modes documented in the CJ README |
 | Customer uploads a huge or non-image file | ✅ Client checks type and 3MB; server now allowlists extensions and caps at 3MB/30MB |
 | Upload named `../../../etc/…` | ✅ Was an arbitrary file write **as root**. See §9 |
 | Uploaded SVG or HTML served back from the API origin | ✅ Refused at write; content type now mapped from the extension, `nosniff` set |
