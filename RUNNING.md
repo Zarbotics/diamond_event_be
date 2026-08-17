@@ -78,6 +78,43 @@ would mean never exercising the authorisation rules a real customer hits.
 
 ## Sign-in
 
+### Configuring Google
+
+Two environment variables, and one setting in the Google console:
+
+```bash
+GOOGLE_CLIENT_ID=...apps.googleusercontent.com \
+GOOGLE_CLIENT_SECRET=... \
+./mvnw spring-boot:run
+```
+
+The **Authorised redirect URI** on the OAuth client must be exactly:
+
+```
+http://localhost:8080/diamond/login/oauth2/code/google
+```
+
+That comes from the port and context path — change either and this changes with
+it, and the Google console has to be updated to match or sign-in fails with
+`redirect_uri_mismatch`.
+
+Both settings have development placeholders so the application starts without
+them, which is the right behaviour on a machine that has no Google project.
+But an unconfigured backend used to send you to Google anyway, with a client id
+of `local-dev-google-client-id`, and Google answered:
+
+```
+The OAuth client was not found.
+Error 401: invalid_client
+```
+
+Correct, and no use — nothing in it points at an unset variable on your own
+backend, so it reads as a broken application. The backend now refuses the
+sign-in itself and says which variables are missing and what the redirect URI
+should be.
+
+### How the handoff works
+
 After Google or Apple sign-in the backend redirects to the frontend with a
 single-use `?code=`, which the frontend exchanges over `POST /auth/exchange`
 for the real tokens. It used to put the tokens directly in the URL, where they

@@ -9,6 +9,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -17,6 +18,7 @@ import com.zbs.de.config.security.ApiAuthenticationEntryPoint;
 import com.zbs.de.config.security.DelegatingTokenResponseClient;
 import com.zbs.de.config.security.JwtAuthenticationFilter;
 import com.zbs.de.config.security.PortalEndpoints;
+import com.zbs.de.config.security.UnconfiguredProviderFilter;
 import com.zbs.de.config.security.SecurityRoles;
 
 /**
@@ -56,6 +58,9 @@ public class SecurityConfig {
 	@Autowired
 	private ApiAuthenticationEntryPoint apiAuthenticationEntryPoint;
 
+	@Autowired
+	private UnconfiguredProviderFilter unconfiguredProviderFilter;
+
 	@Value("${app.frontend.logout-redirect-url}")
 	private String logoutRedirectUrl;
 
@@ -88,6 +93,13 @@ public class SecurityConfig {
 				.logout(logout -> logout.logoutSuccessUrl(logoutRedirectUrl).permitAll());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+		/*
+		 * Ahead of oauth2Login's own redirect. Once that filter has run the
+		 * browser is already on its way to the provider, and the only party who
+		 * can explain a placeholder credential has lost its chance to.
+		 */
+		http.addFilterBefore(unconfiguredProviderFilter, OAuth2AuthorizationRequestRedirectFilter.class);
 
 		return http.build();
 	}

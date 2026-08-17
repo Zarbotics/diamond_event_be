@@ -191,7 +191,7 @@ every booking forever.
 
 | Concern | Status | Note |
 |---|---|---|
-| Sign-in | ✅ | Google OAuth2 in development; **master also has Apple**, kept out of dev branches because there is one Apple developer account and it is bound to production. `VITE_APPLE_SIGNIN_ENABLED` gates the button. |
+| Sign-in | ✅ | Needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`; unset, the backend now refuses the sign-in and says so rather than letting Google answer `invalid_client`. Google OAuth2 in development; **master also has Apple**, kept out of dev branches because there is one Apple developer account and it is bound to production. `VITE_APPLE_SIGNIN_ENABLED` gates the button. |
 | Handoff to the SPA | ✅ | Single-use `SsoHandoffCode`. A token-in-URL path still exists and the tests use it. 🟡 Worth retiring — see §10. |
 | Roles | ✅ | `ROLE_ADMIN`, `ROLE_USER`. |
 | Privilege escalation | ✅ | `/auth/signup` is public and set `ROLE_ADMIN` on every new account — anyone who posted an email and password became an administrator. Now `ROLE_USER`. |
@@ -359,7 +359,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 
 | Suite | Count | Runs with |
 |---|---|---|
-| Backend unit | 55 | `mvn test` |
+| Backend unit | 60 | `mvn test` |
 | Backend integration | 16 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 20 | `npm run test:e2e` — desktop and mobile |
 | Admin | 0 | ❌ |
