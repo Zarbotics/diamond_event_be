@@ -72,7 +72,7 @@ public final class UtilFileStorage {
 	 */
 	private static volatile Path baseDirectory =
 			Paths.get("./uploads").toAbsolutePath().normalize();
-	private static volatile String publicBaseUrl = "/api/diamond/deimg";
+	private static volatile String publicBaseUrl = "/diamond/deimg";
 
 	static void configure(String directory, String urlPrefix) {
 		baseDirectory = Paths.get(directory).toAbsolutePath().normalize();

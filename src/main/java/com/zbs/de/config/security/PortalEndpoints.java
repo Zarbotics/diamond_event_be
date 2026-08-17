@@ -12,7 +12,7 @@ package com.zbs.de.config.security;
  * controller is admin-only until someone consciously adds it below.
  *
  * <p>
- * Paths are relative to the servlet context path ({@code /api/diamond}).
+ * Paths are relative to the servlet context path ({@code /diamond}).
  *
  * <p>
  * <strong>Being on this list is not sufficient on its own.</strong> Endpoints

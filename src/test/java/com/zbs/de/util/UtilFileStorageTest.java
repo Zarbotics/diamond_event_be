@@ -39,7 +39,7 @@ class UtilFileStorageTest {
 
 	@BeforeEach
 	void pointStorageAtTheTempDirectory() {
-		UtilFileStorage.configure(uploads.toString(), "/api/diamond/deimg");
+		UtilFileStorage.configure(uploads.toString(), "/diamond/deimg");
 	}
 
 	private MockMultipartFile upload(String filename) {
@@ -65,7 +65,7 @@ class UtilFileStorageTest {
 				.as("the upload wrote outside its directory, to %s", escaped)
 				.isFalse();
 
-		assertThat(url).startsWith("/api/diamond/deimg/decor/");
+		assertThat(url).startsWith("/diamond/deimg/decor/");
 		assertThat(Files.list(uploads.resolve("decor")))
 				.as("exactly one file, inside the category folder")
 				.hasSize(1);
@@ -142,7 +142,7 @@ class UtilFileStorageTest {
 		// running, so a file uploaded in development came back with a URL pointing
 		// at a machine that does not have it.
 		assertThat(url).doesNotContain("diamondevents.uk");
-		assertThat(url).startsWith("/api/diamond/deimg/");
+		assertThat(url).startsWith("/diamond/deimg/");
 	}
 
 	@Test

@@ -36,7 +36,7 @@ public class UploadStorageConfiguration {
 	 * machine serves its own files through its own host rather than handing the
 	 * browser a production URL for a file that only exists locally.
 	 */
-	@Value("${app.upload.public-base-url:/api/diamond/deimg}")
+	@Value("${app.upload.public-base-url:/diamond/deimg}")
 	private String publicBaseUrl;
 
 	@PostConstruct

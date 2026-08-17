@@ -9,9 +9,18 @@ createdb diamond_ev
 ./mvnw spring-boot:run
 ```
 
-That is the whole setup. Every setting has a development default:
+That serves the API at **`http://localhost:8080/diamond`** — port and context
+path together are what the frontends and the Google OAuth redirect URI are
+configured against, so changing either means changing them too. The three
+places that need to agree are `server.port` and
+`server.servlet.context-path` here, `VITE_API_BASE_URL` in each frontend, and
+the authorised redirect URI on the Google client
+(`http://localhost:8080/diamond/login/oauth2/code/google`).
+
+That is the whole setup otherwise. Every setting has a development default:
 `localhost:5432/diamond_ev` as `postgres`/`postgres`, TLS off, CORS open to
-`localhost:5173` and `localhost:3000`, and a development JWT signing secret.
+`localhost:5173`–`5175` and `localhost:3000`, and a development JWT signing
+secret.
 
 The application starts without Google credentials, without mail credentials
 and without Apple. Those features do not work until configured — which is the

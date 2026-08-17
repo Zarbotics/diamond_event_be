@@ -33,7 +33,7 @@ whether or not it gets fixed straight away.
 
 | Repository | Branch | What it is |
 |---|---|---|
-| `diamond_event_be` | `feat/platform-rebuild` | Spring Boot 3.4.5 / Java 21 API, PostgreSQL 16 |
+| `diamond_event_be` | `feat/platform-rebuild` | Spring Boot 3.4.5 / Java 21 API, PostgreSQL 16. Serves `http://localhost:8080/diamond` |
 | `diamond_ev_cj` | `feat/platform-rebuild` | React 19 / Vite customer booking journey |
 | `diamond_ev_admin` | `feat/platform-rebuild` | React admin portal (CRA + craco) |
 
@@ -157,6 +157,13 @@ done — see §10.*
 ---
 
 ## 3. API surface
+
+**Base address: `http://localhost:8080/diamond`.** Port and context path are
+set in `application.properties` and three things are configured against them —
+`VITE_API_BASE_URL` in each frontend, and the authorised redirect URI on the
+Google OAuth client (`/diamond/login/oauth2/code/google`). Changing either half
+means changing all three.
+
 
 40 controllers, roughly 340 endpoints.
 
