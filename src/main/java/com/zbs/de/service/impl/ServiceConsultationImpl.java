@@ -32,6 +32,8 @@ import com.zbs.de.service.ConsultationSlotFinder;
 import com.zbs.de.service.ConsultationSlotFinder.Busy;
 import com.zbs.de.service.ConsultationSlotFinder.Slot;
 import com.zbs.de.service.ServiceConsultation;
+import com.zbs.de.service.ServiceConsultationNotifier;
+import com.zbs.de.util.UtilTransaction;
 
 /**
  * Booking consultations.
@@ -63,6 +65,9 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 
 	@Autowired
 	private RepositoryConsultationHost repositoryHost;
+
+	@Autowired
+	private ServiceConsultationNotifier notifier;
 
 	@Autowired
 	private RepositoryConsultationType repositoryType;
@@ -289,6 +294,20 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 
 		LOGGER.info("Consultation {} booked with host {} at {}",
 				booking.getSerConsultationBookingId(), hostId, startsAt);
+
+		/*
+		 * Told about after the write, never before it, and never in a way that
+		 * can undo it. book() is not transactional (see the note on the method),
+		 * so afterCommit runs this immediately — the row is already there.
+		 */
+		UtilTransaction.afterCommit(() -> {
+			if (needsConfirming) {
+				notifier.bookingRequested(booking);
+			} else {
+				notifier.bookingConfirmed(booking);
+			}
+		});
+
 		return BookingOutcome.confirmed(booking);
 	}
 
@@ -378,6 +397,7 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		 * than by pretending.
 		 */
 		LOGGER.info("Consultation {} confirmed", booking.getSerConsultationBookingId());
+		UtilTransaction.afterCommit(() -> notifier.requestApproved(booking));
 		return new BookingOutcome(true, "That consultation has been confirmed.", booking);
 	}
 
@@ -400,6 +420,7 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		repositoryBooking.save(booking);
 
 		LOGGER.info("Consultation request {} declined", booking.getSerConsultationBookingId());
+		UtilTransaction.afterCommit(() -> notifier.requestDeclined(booking, reason));
 		return new BookingOutcome(true, "That request has been declined and the slot released.", booking);
 	}
 
@@ -439,7 +460,7 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 	@Override
 	@Transactional
 	public BookingOutcome cancel(Integer serConsultationBookingId, String reason) {
-		return cancelBooking(repositoryBooking.findById(serConsultationBookingId), reason);
+		return cancelBooking(repositoryBooking.findById(serConsultationBookingId), reason, false);
 	}
 
 	@Override
@@ -448,10 +469,17 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		if (managementToken == null || managementToken.isBlank()) {
 			return BookingOutcome.refused("That link is not valid.");
 		}
-		return cancelBooking(repositoryBooking.findByTxtManagementToken(managementToken), reason);
+		return cancelBooking(repositoryBooking.findByTxtManagementToken(managementToken), reason, true);
 	}
 
-	private BookingOutcome cancelBooking(Optional<ConsultationBooking> found, String reason) {
+	/**
+	 * @param byCustomer which side called it off. The two are not the same
+	 *                   event: the customer needs a receipt and the host needs
+	 *                   telling, whereas a cancellation by the team owes the
+	 *                   customer an apology and another time.
+	 */
+	private BookingOutcome cancelBooking(Optional<ConsultationBooking> found, String reason,
+			boolean byCustomer) {
 		ConsultationBooking booking = found.orElse(null);
 		if (booking == null) {
 			return BookingOutcome.refused("That consultation could not be found.");
@@ -474,6 +502,7 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		repositoryBooking.save(booking);
 
 		LOGGER.info("Consultation {} cancelled", booking.getSerConsultationBookingId());
+		UtilTransaction.afterCommit(() -> notifier.bookingCancelled(booking, reason, byCustomer));
 		return new BookingOutcome(true, "That consultation has been cancelled.", booking);
 	}
 

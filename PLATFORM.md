@@ -375,8 +375,8 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 | Suite | Count | Runs with |
 |---|---|---|
 | Backend unit | 83 | `mvn test` |
-| Backend integration | 68 | `mvn verify` (skips itself without a database) |
-| Journey end-to-end | 26 | `npm run test:e2e` — desktop and mobile |
+| Backend integration | 78 | `mvn verify` (skips itself without a database) |
+| Journey end-to-end | 34 | `npm run test:e2e` — desktop and mobile |
 | Admin portal | 0 | ❌ — C4 |
 
 The end-to-end tests write real bookings and must be pointed at a development
@@ -588,6 +588,7 @@ Specified in §12. Requested 19 August 2026.
 | E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Done — 21 unit + 15 integration tests |
 | E2 | Customer books a consultation at the end of the journey | ✅ Calendly removed; 3 tests, desktop and mobile |
 | E3 | Admin: hosts, availability, meeting types, pending queue, manual booking | ✅ Done — 25 backend integration tests, 4 screens |
+| E3b | Consultation emails, and the page the cancel link opens | ✅ Done — 10 integration + 4 end-to-end tests |
 | E4 | Google and Microsoft calendar sync behind one provider port | ⬜ Approach decided — §12.6 |
 | E5 | Admin: connect accounts, choose calendar, sync health | ⬜ |
 
@@ -705,8 +706,12 @@ The list is the point of writing this down. Anything unticked is unbuilt.
 | A request is left unanswered | ✅ The hold lapses, the slot returns, and confirming late is refused |
 | Two customers request the same slot before either is confirmed | ✅ `PENDING` holds the slot under the same constraint as `BOOKED` |
 | No slots available at all | ✅ Says so plainly and offers the phone number — the venue-capacity lesson |
-| Admin manually books over a customer slot | ⬜ Same constraint applies to admin writes |
-| Customer cancels | ✅ Single-use link, slot released. Calendar event removal comes with E4 |
+| Admin manually books over a customer slot | ✅ Manual booking goes through the same service, so the same exclusion constraint applies; proven by a test |
+| Customer cancels | ✅ Single-use link, slot released, both sides emailed. Calendar event removal comes with E4 |
+| A mail server is down or has no credentials | ✅ The booking still succeeds — sending is after commit and swallows its own failures. This is the *ordinary* case in development, where there are no SMTP credentials at all |
+| An email scanner follows the cancel link | ✅ The link only opens a page; cancelling takes a press. Outlook Safe Links and similar fetch every URL in an email, so a page that acted on load would cancel meetings by itself |
+| The cancel link is used twice, or forwarded | ✅ The token is spent on use; the second attempt says the meeting is already cancelled rather than reading as a fault |
+| Customer is in another timezone when the email arrives | ✅ Every time in every email is written in the zone they booked from, and the host's copy carries both clocks |
 | Event booking is cancelled after the consultation is set | ⬜ Consultation flagged for the team, not silently cancelled |
 | Two hosts, one customer | ✅ Round-robin by least-recently-booked, skipping anyone not actually free; a named host can be requested |
 
@@ -775,6 +780,50 @@ somebody depended on them.
    removes its neighbours. That is why an empty three-hour morning offers five
    hour-long starts and not three, and it is the thing that confuses everybody
    the first time, so the portal spells it out on the field.
+
+#### The emails
+
+The loop the business described — a customer requests, the team confirms, and
+the confirmation carries the link — is complete. Five messages:
+
+| What happened | Customer gets | Host gets |
+|---|---|---|
+| Booked outright | "Your consultation is booked", joining link, cancel link | The booking, with both clocks |
+| Requested | "We have your request" — says plainly it is **not a booking yet**, and when the hold runs out | "A request is waiting for you" |
+| Confirmed | "Your consultation is confirmed", joining link, cancel link | — |
+| Declined | The reason, and an invitation to pick another time | — |
+| Cancelled | A receipt if they cancelled; an apology and another time if the team did | Told, either way |
+
+Three decisions worth recording:
+
+1. **Nothing an email does can undo a booking.** Sending happens after the
+   transaction commits, through `UtilTransaction.afterCommit`, and every send
+   swallows its own failure. The mail server is somebody else's machine, reached
+   over the network, and in development it has no credentials at all — so it
+   failing is not an edge case, it is what happens on every developer laptop
+   every time. A test proves a booking still succeeds when the mail server
+   throws.
+
+2. **Every time is written in the customer's own zone.** That is what the
+   `txtCustomerTimeZone` column has been for. An email telling somebody in Dubai
+   their consultation is at 10:00, meaning 10:00 in London, is a missed meeting
+   and a customer who believes they were stood up. The host's copy carries both,
+   because ringing somebody at their midnight is the other half of the same
+   mistake.
+
+3. **The cancel link opens a page; it does not cancel.** Mail clients, corporate
+   security gateways and link scanners fetch the URLs in an email before a person
+   sees them — Outlook's Safe Links does it as a matter of course. A page that
+   acted on load would have meetings cancelled by a spam filter, and the customer
+   would find out by turning up to nothing. Four end-to-end tests cover this,
+   including one that was checked by making the page cancel on load and watching
+   three of them fail.
+
+The page lives at `/consultation/manage?token=…` in the customer journey,
+deliberately outside `ProtectedRoute`: the customer may not be signed in, may
+not have an account, and may be opening it weeks later on a different device.
+The unguessable single-use token is what authorises it, and the server spends
+it on use.
 
 #### Access, and how it is proved
 

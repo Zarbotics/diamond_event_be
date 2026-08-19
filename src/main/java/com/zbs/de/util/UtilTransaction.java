@@ -1,7 +1,11 @@
 package com.zbs.de.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Marks the current transaction so that it cannot commit.
@@ -36,6 +40,8 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
  */
 public final class UtilTransaction {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(UtilTransaction.class);
+
 	private UtilTransaction() {
 	}
 
@@ -51,6 +57,45 @@ public final class UtilTransaction {
 			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 		} catch (NoTransactionException ignored) {
 			// Nothing to roll back. The caller is handling its own error.
+		}
+	}
+
+	/**
+	 * Runs something once the surrounding transaction has actually committed.
+	 *
+	 * <p>
+	 * For side effects that reach outside the database and cannot be taken back
+	 * — sending an email being the obvious one. Doing that inline is wrong in a
+	 * way that is easy to miss: the work has not committed yet, so a failure
+	 * later in the same method rolls the change back and leaves the customer
+	 * holding a confirmation for a booking that does not exist. The reverse
+	 * mistake, waiting for a commit that never comes, is why this runs the task
+	 * immediately when there is no transaction to wait for.
+	 *
+	 * <p>
+	 * Failures in the task are swallowed. It runs after commit, so throwing
+	 * cannot undo anything — it would only turn a completed operation into an
+	 * error the caller cannot act on.
+	 */
+	public static void afterCommit(Runnable task) {
+		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+			runQuietly(task);
+			return;
+		}
+
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				runQuietly(task);
+			}
+		});
+	}
+
+	private static void runQuietly(Runnable task) {
+		try {
+			task.run();
+		} catch (Exception e) {
+			LOGGER.warn("An after-commit task failed: {}", e.getMessage());
 		}
 	}
 }
