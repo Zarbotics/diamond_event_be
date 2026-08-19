@@ -376,7 +376,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 |---|---|---|
 | Backend unit | 79 | `mvn test` |
 | Backend integration | 38 | `mvn verify` (skips itself without a database) |
-| Journey end-to-end | 20 | `npm run test:e2e` — desktop and mobile |
+| Journey end-to-end | 26 | `npm run test:e2e` — desktop and mobile |
 | Admin | 0 | ❌ |
 
 The end-to-end tests write real bookings and must be pointed at a development
@@ -457,6 +457,19 @@ test that passes with and without the fix proves nothing.
   debounced and resets to page one, since page five of the previous results
   almost never exists in the new ones and an empty table reads as "no such
   customer" when it means "no such page".
+
+### Consultations
+- ✅ **Calendly is gone.** The widget was an iframe from calendly.com pointed at
+  two hardcoded personal links, so the consultation lived where this system
+  could not see it and the last screen of the journey depended on a third
+  party's script loading.
+- ✅ **Two bugs found only by the end-to-end tests.** The booking sent an empty
+  email, because I read it from the event and `event_master` has no customer
+  email column — its only email fields are flags about whether a notification
+  was sent. And on a conflict I set the error message then refreshed the list,
+  and the refresh clears the error as it starts: the message appeared and
+  vanished in the same tick, so pressing a slot somebody had just taken looked
+  exactly like pressing a slot and nothing happening.
 
 ### Venue step
 - ✅ **A room too small looked identical to one that fits**, and refused on
@@ -573,8 +586,8 @@ Specified in §12. Requested 19 August 2026.
 | # | Item | Status |
 |---|---|---|
 | E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Done — 19 unit + 7 integration tests |
-| E2 | Customer books a consultation at the end of the journey | ⬜ |
-| E3 | Admin: hosts, availability, view and add bookings | ⬜ |
+| E2 | Customer books a consultation at the end of the journey | ✅ Calendly removed; 3 tests, desktop and mobile |
+| E3 | Admin: hosts, availability, meeting types, pending queue | 🔨 In progress |
 | E4 | Google and Microsoft calendar sync behind one provider port | ⬜ Approach decided — §12.6 |
 | E5 | Admin: connect accounts, choose calendar, sync health | ⬜ |
 
@@ -683,7 +696,7 @@ The list is the point of writing this down. Anything unticked is unbuilt.
 | A booking is deleted in Google by the host | ⬜ Reconciled on next sync; the host cancelled it, so the system agrees |
 | Host disconnects a calendar with future bookings | ⬜ Refused unless the bookings are reassigned or cancelled |
 | Clocks change between listing and the meeting | ✅ Four tests: BST, GMT, the 25-hour day and the 23-hour day |
-| Customer is in another timezone | ⬜ Slots rendered in their browser's zone, with the zone named |
+| Customer is in another timezone | ✅ Slots rendered in their browser's zone, with the zone named on screen |
 | Customer books five minutes from now | ✅ Minimum notice on the consultation type |
 | Customer books three years out | ✅ Maximum advance on the consultation type |
 | Back-to-back meetings with no gap | ✅ Buffers before and after, counted as busy |
@@ -691,7 +704,7 @@ The list is the point of writing this down. Anything unticked is unbuilt.
 | Customer already has a consultation for this booking | ⬜ Offered the existing one to move, rather than a second |
 | A request is left unanswered | ✅ The hold lapses, the slot returns, and confirming late is refused |
 | Two customers request the same slot before either is confirmed | ✅ `PENDING` holds the slot under the same constraint as `BOOKED` |
-| No slots available at all | ⬜ Says so plainly and offers the contact route — the venue-capacity lesson |
+| No slots available at all | ✅ Says so plainly and offers the phone number — the venue-capacity lesson |
 | Admin manually books over a customer slot | ⬜ Same constraint applies to admin writes |
 | Customer cancels | ✅ Single-use link, slot released. Calendar event removal comes with E4 |
 | Event booking is cancelled after the consultation is set | ⬜ Consultation flagged for the team, not silently cancelled |
