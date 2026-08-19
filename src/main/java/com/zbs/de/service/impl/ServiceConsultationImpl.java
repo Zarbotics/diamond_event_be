@@ -33,6 +33,7 @@ import com.zbs.de.service.ConsultationSlotFinder.Busy;
 import com.zbs.de.service.ConsultationSlotFinder.Slot;
 import com.zbs.de.service.ServiceConsultation;
 import com.zbs.de.service.ServiceConsultationNotifier;
+import com.zbs.de.service.calendar.ServiceCalendarSync;
 import com.zbs.de.util.UtilTransaction;
 
 /**
@@ -68,6 +69,9 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 
 	@Autowired
 	private ServiceConsultationNotifier notifier;
+
+	@Autowired
+	private ServiceCalendarSync serviceCalendarSync;
 
 	@Autowired
 	private RepositoryConsultationType repositoryType;
@@ -302,8 +306,14 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		 */
 		UtilTransaction.afterCommit(() -> {
 			if (needsConfirming) {
+				// No calendar entry and no link yet: a request is not a meeting,
+				// and putting it in the host's diary before they have agreed
+				// would have them turning down other work for it.
 				notifier.bookingRequested(booking);
 			} else {
+				// The calendar first, so that if it produced a joining link the
+				// customer's email carries it rather than arriving without one.
+				serviceCalendarSync.publish(booking);
 				notifier.bookingConfirmed(booking);
 			}
 		});
@@ -397,7 +407,10 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		 * than by pretending.
 		 */
 		LOGGER.info("Consultation {} confirmed", booking.getSerConsultationBookingId());
-		UtilTransaction.afterCommit(() -> notifier.requestApproved(booking));
+		UtilTransaction.afterCommit(() -> {
+			serviceCalendarSync.publish(booking);
+			notifier.requestApproved(booking);
+		});
 		return new BookingOutcome(true, "That consultation has been confirmed.", booking);
 	}
 
@@ -502,7 +515,10 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		repositoryBooking.save(booking);
 
 		LOGGER.info("Consultation {} cancelled", booking.getSerConsultationBookingId());
-		UtilTransaction.afterCommit(() -> notifier.bookingCancelled(booking, reason, byCustomer));
+		UtilTransaction.afterCommit(() -> {
+			serviceCalendarSync.withdraw(booking);
+			notifier.bookingCancelled(booking, reason, byCustomer);
+		});
 		return new BookingOutcome(true, "That consultation has been cancelled.", booking);
 	}
 

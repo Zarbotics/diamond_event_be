@@ -375,7 +375,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 | Suite | Count | Runs with |
 |---|---|---|
 | Backend unit | 83 | `mvn test` |
-| Backend integration | 80 | `mvn verify` (skips itself without a database) |
+| Backend integration | 88 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 34 | `npm run test:e2e` — desktop and mobile |
 | Admin portal | 0 | ❌ — C4 |
 
@@ -590,7 +590,8 @@ Specified in §12. Requested 19 August 2026.
 | E2 | Customer books a consultation at the end of the journey | ✅ Calendly removed; 3 tests, desktop and mobile |
 | E3 | Admin: hosts, availability, meeting types, pending queue, manual booking | ✅ Done — 25 backend integration tests, 4 screens |
 | E3b | Consultation emails, and the page the cancel link opens | ✅ Done — 12 integration + 4 end-to-end tests |
-| E4 | Google and Microsoft calendar sync behind one provider port | ⬜ Approach decided — §12.6 |
+| E4a | `CalendarProvider` port, write-target rule, video link on confirmation | ✅ Done — 8 integration tests against a stand-in provider |
+| E4b | The Google and Microsoft adapters themselves | ⬜ Needs real credentials — see §12.7 |
 | E5 | Admin: connect accounts, choose calendar, sync health | ⬜ |
 
 ### D. Blocked on a business decision ❓
@@ -726,7 +727,8 @@ them — the same constraint as Apple sign-in.
 | **E1** | Domain, availability rules, slot generation, booking with the exclusion constraint | ✅ Fully |
 | **E2** | Customer-facing booking at the end of the journey, replacing the Calendly widget | ✅ Fully, end to end |
 | **E3** | Admin: hosts, availability, meeting types, request queue, manual booking | ✅ Fully |
-| **E4** | `CalendarProvider` port, Google and Microsoft adapters, busy import and event push | 🟡 Against a fake provider only — the adapters need real credentials to prove |
+| **E4a** | `CalendarProvider` port, write-target rule, video link on confirmation | ✅ Fully, against a stand-in provider |
+| **E4b** | The Google and Microsoft adapters behind that port | 🟡 Needs real credentials to prove |
 | **E5** | Admin: connect and disconnect accounts, choose calendar, sync health | 🟡 UI and flow yes; the OAuth round trip needs credentials |
 
 E1–E3 give a working consultation system with no external dependency at all.
@@ -881,6 +883,41 @@ meeting nobody has said yes to is a link to nothing.
 | `blnRequiresConfirmation` | off — book outright |
 | `numConfirmationWindowHours` | 48 |
 | `blnCreateVideoLink` | on |
+
+#### What E4a built, and the trap it fell into
+
+The port is in and everything above it is finished: which calendar gets written
+to, when the write happens, whether a joining link is asked for, and what
+happens when the provider fails. Only the two adapters are left, and they are
+the part that cannot be written without credentials.
+
+Four rules the tests pin down:
+
+- **A provider that is down cannot cost a customer their booking.** Google being
+  unreachable, a revoked token and an expired refresh token all land in the same
+  place, and none of them is a reason to tell somebody their meeting did not
+  happen. The failure is recorded on the row as `SYNC_FAILED` for a person to
+  chase.
+- **A host with nothing connected still takes consultations.** That is the state
+  every installation is in before anybody connects anything, and a small team may
+  stay in it for ever.
+- **Read from every connected calendar, write to exactly one.** Enforced by a
+  partial unique index rather than by remembering to clear the old target.
+- **A request is not put in anybody's diary until it is confirmed.** Otherwise a
+  host turns down other work for something they may well decline.
+
+**The trap.** Publishing runs from `afterCommit`, and a `save()` there quietly
+does nothing: the EntityManager is still bound to the thread so there is no
+error, but its transaction has already finished and the flush never reaches the
+database. The symptom is nastier than a failure would be — the provider is
+called, the calendar entry really is created, the joining link really is
+returned, and the column stays null. So the customer's email goes out without
+the link, and a later retry creates a *second* calendar entry because the row
+still looks unwritten.
+
+`REQUIRES_NEW` on the two public methods fixes it. It was checked by taking the
+annotation off and watching the test fail, because an annotation that turns out
+to be decoration is worse than none.
 
 ### 12.6 Calendar providers — the approach, and why
 
