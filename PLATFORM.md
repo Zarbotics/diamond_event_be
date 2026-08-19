@@ -375,7 +375,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 | Suite | Count | Runs with |
 |---|---|---|
 | Backend unit | 79 | `mvn test` |
-| Backend integration | 23 | `mvn verify` (skips itself without a database) |
+| Backend integration | 30 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 20 | `npm run test:e2e` — desktop and mobile |
 | Admin | 0 | ❌ |
 
@@ -572,7 +572,7 @@ Specified in §12. Requested 19 August 2026.
 
 | # | Item | Status |
 |---|---|---|
-| E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Schema, entities and the slot finder done — 19 tests |
+| E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Done — 19 unit + 7 integration tests |
 | E2 | Customer books a consultation at the end of the journey | ⬜ |
 | E3 | Admin: hosts, availability, view and add bookings | ⬜ |
 | E4 | Google and Microsoft calendar sync behind one provider port | ⬜ Approach decided — §12.6 |
@@ -675,8 +675,8 @@ The list is the point of writing this down. Anything unticked is unbuilt.
 
 | Edge case | Handling |
 |---|---|
-| Two customers book the same slot at once | ✅ Exclusion constraint proven against a real database; loser is told the slot has gone and shown fresh ones |
-| Host's own calendar gains a meeting after slots were displayed | ⬜ Re-checked at the moment of booking, not only when listing |
+| Two customers book the same slot at once | ✅ Constraint proven against a real database, and two threads racing through the service prove exactly one wins; loser is told the slot has gone and shown fresh ones |
+| Host's own calendar gains a meeting after slots were displayed | ✅ Re-checked at the moment of booking, not only when listing |
 | Provider unreachable when confirming | ⬜ Booking is confirmed and the calendar write retried — the customer's booking must not depend on Google being up |
 | Provider unreachable when listing slots | ⬜ Fall back to last imported busy periods, and mark them stale |
 | Refresh token expired or access revoked | ⬜ Connection marked broken, admin told, slots fall back to rules and known bookings |
@@ -691,9 +691,9 @@ The list is the point of writing this down. Anything unticked is unbuilt.
 | Customer already has a consultation for this booking | ⬜ Offered the existing one to move, rather than a second |
 | No slots available at all | ⬜ Says so plainly and offers the contact route — the venue-capacity lesson |
 | Admin manually books over a customer slot | ⬜ Same constraint applies to admin writes |
-| Customer cancels | ⬜ Single-use link, calendar event removed, slot released |
+| Customer cancels | ✅ Single-use link, slot released. Calendar event removal comes with E4 |
 | Event booking is cancelled after the consultation is set | ⬜ Consultation flagged for the team, not silently cancelled |
-| Two hosts, one customer | ⬜ Round-robin by least-recently-booked; a named host can be requested |
+| Two hosts, one customer | ✅ Round-robin by least-recently-booked, skipping anyone not actually free; a named host can be requested |
 
 ### 12.5 Delivery, and what I cannot verify here
 
