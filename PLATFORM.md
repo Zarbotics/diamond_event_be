@@ -575,7 +575,7 @@ Specified in §12. Requested 19 August 2026.
 | E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Schema, entities and the slot finder done — 19 tests |
 | E2 | Customer books a consultation at the end of the journey | ⬜ |
 | E3 | Admin: hosts, availability, view and add bookings | ⬜ |
-| E4 | Google and Microsoft calendar sync behind one provider port | ⬜ |
+| E4 | Google and Microsoft calendar sync behind one provider port | ⬜ Approach decided — §12.6 |
 | E5 | Admin: connect accounts, choose calendar, sync health | ⬜ |
 
 ### D. Blocked on a business decision ❓
@@ -586,8 +586,9 @@ Specified in §12. Requested 19 August 2026.
 | D2 | **Does the React marketing site return, or does WordPress stay?** Six page components and the whole `Layout` route are commented out. If WordPress stays, delete them and the Navbar with them. |
 | D3 | **Should Apple sign-in be available in development?** Currently Google-only because the one Apple developer account is bound to production. |
 | D4 | **Is `menu_component` / `ingredient` a live feature?** Entities, controllers and admin screens exist; no rows anywhere and nothing in the journey uses them. |
-| D6 | **Who takes consultations, and when?** The system needs at least one host and their working hours. Names, hours and meeting length are business answers; sensible defaults will be seeded meanwhile. |
-| D7 | **Google Workspace, Microsoft 365, or both?** Both are being built, but only the one you use needs credentials. Each needs an OAuth app registered with calendar scopes. |
+| ~~D6~~ | ~~Who takes consultations, and when?~~ **Answered:** all of it configurable in the admin portal — hosts, hours, meeting lengths, buffers, notice. Nothing hardcoded; seed data is starting data, not defaults. |
+| ~~D7~~ | ~~Google, Microsoft, or both?~~ **Answered:** both, connected per person. Busy read from every connected calendar, consultations written to one nominated calendar. See §12.6. |
+| D8 | **Should a consultation create a Google Meet or Teams link automatically?** Assumed yes. Cheap now, awkward to retrofit. |
 | D5 | **Should customers pick external suppliers?** Five are seeded and the admin manages them, but the picker is commented out and the step now shows notes and terms instead. If suppliers are not returning, the step should be renamed for what it does. |
 
 ---
@@ -710,6 +711,84 @@ them — the same constraint as Apple sign-in.
 E1–E3 give a working consultation system with no external dependency at all.
 E4–E5 make the team's existing calendars part of it. Built in that order so
 there is something working before anything depends on a third party.
+
+### 12.6 Calendar providers — the approach, and why
+
+Answering "Google, Microsoft, or both?" and "should it sync with both or only
+one?". Decided 19 August 2026.
+
+**Both providers, connected per person, not per company.**
+
+A team does not all use the same thing, and the person who joins next may not
+use what everyone else does. Every scheduling product of consequence — Calendly,
+Cal.com, SavvyCal — connects each individual's own account for that reason. It
+also avoids the alternative: a domain-wide installation that can read every
+mailbox in the company whether or not its owner agreed. That needs an
+administrator's blessing, is a far larger thing to be responsible for, and buys
+nothing here.
+
+**Read busy from every connected calendar. Write consultations to exactly one.**
+
+This is the part that is easy to get wrong, and it is the real answer to
+"both or only one":
+
+| Direction | Which calendars | Why |
+|---|---|---|
+| **Read** — when is this person busy? | *All* of them | Someone with work in Outlook and personal life in Google is genuinely unavailable for both. Reading only one produces a system that books meetings over their dentist. |
+| **Write** — where does this consultation go? | *One*, nominated per host | Writing to several means the same meeting exists two or three times, and every later edit has to find and match all the copies. |
+
+Put another way: their calendars are the authority on when they are busy; this
+system is the authority on consultations. Nothing is authoritative for the same
+fact in two places, which is where sync loops and duplicated meetings come from.
+
+**Busy times only, never event contents.** Both providers have an API for
+exactly this — Google's `freeBusy.query`, Microsoft's `getSchedule` — which
+returns periods and nothing else. Asking for less means the team's private
+meetings never enter this database, there is nothing sensitive to leak, and the
+permission being requested is one a person can reasonably agree to.
+
+**The narrowest scopes that do the job.**
+
+| | Read availability | Write the consultation |
+|---|---|---|
+| Google | `calendar.freebusy` | `calendar.app.created` — a calendar this app makes and only it can touch |
+| Microsoft | `Calendars.ReadBasic` | `Calendars.ReadWrite`, delegated |
+
+`calendar.app.created` is worth the specific mention: Google added it so a
+scheduling app need not ask for access to everything in someone's calendar, and
+it keeps this out of the heavier verification review that the broad `calendar`
+scope now attracts.
+
+**Push notifications, with polling underneath.** Google's watch channels and
+Microsoft's Graph subscriptions both tell us when something changes, which
+beats asking every few minutes. Both need a public HTTPS endpoint to call, so
+polling stays as the fallback for development and for when a subscription
+lapses.
+
+### 12.7 What this needs from the business
+
+Nothing, to start with. E1–E3 are a complete consultation system with no
+provider connected at all: hosts, hours, slots, bookings, admin management. A
+calendar connection makes it better, and nothing waits on one.
+
+When you want the sync, each provider needs an OAuth app registered once:
+
+| | What to register | Redirect URI |
+|---|---|---|
+| Google | A project in Google Cloud Console with the Calendar API enabled | `{backend}/login/oauth2/code/google-calendar` |
+| Microsoft | An app registration in Entra ID with delegated Graph permissions | `{backend}/login/oauth2/code/microsoft-calendar` |
+
+Either can be done without the other, and either can be added later. Hosts
+connect their own accounts from the admin screen; nobody needs to hand over a
+password.
+
+**Still open, and worth an answer before E4:**
+
+- Should a consultation carry a video link — Google Meet or Teams — created
+  automatically with the meeting? It is a small amount of extra work at the
+  time and an awkward retrofit later. Assumed yes unless told otherwise.
+- Should the customer receive a calendar invitation they can add to their own
+  calendar? Assumed yes; it is an `.ics` attachment and needs no provider.
 
 ## 11. Decisions taken
 
