@@ -374,7 +374,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 
 | Suite | Count | Runs with |
 |---|---|---|
-| Backend unit | 60 | `mvn test` |
+| Backend unit | 79 | `mvn test` |
 | Backend integration | 23 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 20 | `npm run test:e2e` — desktop and mobile |
 | Admin | 0 | ❌ |
@@ -572,7 +572,7 @@ Specified in §12. Requested 19 August 2026.
 
 | # | Item | Status |
 |---|---|---|
-| E1 | Domain, availability rules, slot generation, double-booking constraint | 🔨 In progress |
+| E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Schema, entities and the slot finder done — 19 tests |
 | E2 | Customer books a consultation at the end of the journey | ⬜ |
 | E3 | Admin: hosts, availability, view and add bookings | ⬜ |
 | E4 | Google and Microsoft calendar sync behind one provider port | ⬜ |
@@ -674,19 +674,19 @@ The list is the point of writing this down. Anything unticked is unbuilt.
 
 | Edge case | Handling |
 |---|---|
-| Two customers book the same slot at once | ⬜ Exclusion constraint; loser is told the slot has gone and shown fresh ones |
+| Two customers book the same slot at once | ✅ Exclusion constraint proven against a real database; loser is told the slot has gone and shown fresh ones |
 | Host's own calendar gains a meeting after slots were displayed | ⬜ Re-checked at the moment of booking, not only when listing |
 | Provider unreachable when confirming | ⬜ Booking is confirmed and the calendar write retried — the customer's booking must not depend on Google being up |
 | Provider unreachable when listing slots | ⬜ Fall back to last imported busy periods, and mark them stale |
 | Refresh token expired or access revoked | ⬜ Connection marked broken, admin told, slots fall back to rules and known bookings |
 | A booking is deleted in Google by the host | ⬜ Reconciled on next sync; the host cancelled it, so the system agrees |
 | Host disconnects a calendar with future bookings | ⬜ Refused unless the bookings are reassigned or cancelled |
-| Clocks change between listing and the meeting | ⬜ UTC storage makes this arithmetic rather than a special case |
+| Clocks change between listing and the meeting | ✅ Four tests: BST, GMT, the 25-hour day and the 23-hour day |
 | Customer is in another timezone | ⬜ Slots rendered in their browser's zone, with the zone named |
-| Customer books five minutes from now | ⬜ Minimum notice on the consultation type |
-| Customer books three years out | ⬜ Maximum advance on the consultation type |
-| Back-to-back meetings with no gap | ⬜ Buffers before and after, counted as busy |
-| Bank holidays | ⬜ Availability exceptions |
+| Customer books five minutes from now | ✅ Minimum notice on the consultation type |
+| Customer books three years out | ✅ Maximum advance on the consultation type |
+| Back-to-back meetings with no gap | ✅ Buffers before and after, counted as busy |
+| Bank holidays | ✅ Availability exceptions, and a closure beats a weekly rule |
 | Customer already has a consultation for this booking | ⬜ Offered the existing one to move, rather than a second |
 | No slots available at all | ⬜ Says so plainly and offers the contact route — the venue-capacity lesson |
 | Admin manually books over a customer slot | ⬜ Same constraint applies to admin writes |
