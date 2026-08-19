@@ -550,7 +550,7 @@ Ordered by what actually costs the business the most.
 | # | Item | Status | Why |
 |---|---|---|---|
 | ~~A1~~ | ~~Pagination on `event_master` and `customer_master`~~ | ✅ | Both done. `event_master` already had it; `customer_master` now does, end to end. See §9. |
-| A1b | `eventMaster/getAllData` still returns every event | ⬜ | Maps each to a full `DtoEventMaster` — roughly 8KB apiece with menu, running order and budget. The heaviest unbounded read left. |
+| A1b | **`eventMaster/getAllDataAdminPortal` returns every event, in full, on every page load** | ⬜ | **Measured on the development database: 624 KB, 296 events, 60 fields each** — including the nested `foodSelections`, `extrasSelections`, `dtoEventDecorSelections` and `dtoEventRunningOrder` collections. This is what the admin Events grid calls, unbounded, every time it opens. 296 events is a development database; a few years of real trading is thousands, and this grows linearly with all of them. `eventMaster/search` is already paginated — the grid should use it. Same class as A8b, and the same fix: a summary for the list, the full event only when one is opened. |
 | A2 | Optimistic locking on `EventMaster` | ⬜ | Admin and customer can edit the same booking; last writer wins silently. |
 | A3 | Database constraint behind date availability | ⬜ | The race is currently caught in application code only. |
 | ~~A4~~ | ~~File upload validation~~ | ✅ | Done, and it was worse than the row said — see §9. |
