@@ -566,6 +566,18 @@ Ordered by what actually costs the business the most.
 | C5 | API documentation | ⬜ |
 | C6 | Error monitoring | ⬜ |
 
+### E. Consultations — replacing Calendly
+
+Specified in §12. Requested 19 August 2026.
+
+| # | Item | Status |
+|---|---|---|
+| E1 | Domain, availability rules, slot generation, double-booking constraint | 🔨 In progress |
+| E2 | Customer books a consultation at the end of the journey | ⬜ |
+| E3 | Admin: hosts, availability, view and add bookings | ⬜ |
+| E4 | Google and Microsoft calendar sync behind one provider port | ⬜ |
+| E5 | Admin: connect accounts, choose calendar, sync health | ⬜ |
+
 ### D. Blocked on a business decision ❓
 
 | # | Question |
@@ -574,9 +586,130 @@ Ordered by what actually costs the business the most.
 | D2 | **Does the React marketing site return, or does WordPress stay?** Six page components and the whole `Layout` route are commented out. If WordPress stays, delete them and the Navbar with them. |
 | D3 | **Should Apple sign-in be available in development?** Currently Google-only because the one Apple developer account is bound to production. |
 | D4 | **Is `menu_component` / `ingredient` a live feature?** Entities, controllers and admin screens exist; no rows anywhere and nothing in the journey uses them. |
+| D6 | **Who takes consultations, and when?** The system needs at least one host and their working hours. Names, hours and meeting length are business answers; sensible defaults will be seeded meanwhile. |
+| D7 | **Google Workspace, Microsoft 365, or both?** Both are being built, but only the one you use needs credentials. Each needs an OAuth app registered with calendar scopes. |
 | D5 | **Should customers pick external suppliers?** Five are seeded and the admin manages them, but the picker is commented out and the step now shows notes and terms instead. If suppliers are not returning, the step should be renamed for what it does. |
 
 ---
+
+---
+
+## 12. Consultations — replacing Calendly
+
+**Status:** specified, build in progress. Tracked as E1–E5 in §10.
+
+At the end of the booking journey the customer is offered a consultation. That
+is currently a Calendly widget (`react-calendly`), pointed at what used to be
+two hardcoded personal Calendly links. It is being replaced with a first-party
+scheduling system that reads and writes the team's own Google and Microsoft
+calendars.
+
+### 12.1 What it has to do
+
+| | |
+|---|---|
+| **Customer** | Sees real available slots at the end of the journey and books one. Gets a confirmation, a calendar invitation, and a way to cancel or move it. |
+| **Team** | Their existing calendar is respected — anything already in it blocks a slot. A booked consultation appears in their own calendar, not only in this system. |
+| **Admin** | Connects and disconnects calendar accounts, sets who takes consultations and when, sees what is booked, and adds or reschedules a meeting by hand. |
+
+### 12.2 Design decisions
+
+Taken up front, because they are the ones that are expensive to change later.
+
+**Times are stored in UTC** (`timestamptz`) and rendered in the reader's zone.
+The business is in the UK, so hosts see Europe/London and the clocks change
+twice a year under them; a customer may be anywhere. Storing local time and a
+zone name means every query has to convert before it can compare, and the hour
+that repeats each October is genuinely ambiguous. UTC in the database is the
+only representation with no ambiguous values in it.
+
+**Double booking is prevented by the database, not by the application.** Two
+customers pressing the same slot at the same moment is the defining failure of
+a booking system, and a check-then-insert in application code cannot prevent
+it — between the check and the insert is exactly where the other booking
+lands. PostgreSQL can express the constraint directly:
+
+```sql
+EXCLUDE USING gist (
+    ser_host_id WITH =,
+    tstzrange(dte_starts_at, dte_ends_at) WITH &&
+) WHERE (txt_status = 'BOOKED')
+```
+
+Needs `btree_gist`, which joins `ltree` in the extensions migration. The
+application still checks first, so the customer gets a civil "that slot has
+just gone" rather than a constraint violation — but the constraint is what
+makes it true.
+
+**One port, two providers.** Google Calendar and Microsoft Graph differ in
+their APIs and agree on everything that matters here: list busy periods,
+create an event, update it, delete it. A `CalendarProvider` interface with an
+adapter each keeps the scheduling logic free of either, and means the domain
+can be built and tested before any provider credentials exist.
+
+**Availability is rules, not slots.** Storing generated slots means
+regenerating them whenever anything changes and having stale rows the moment a
+host adds a meeting. Slots are computed on request from recurring rules minus
+exceptions, existing bookings, and imported busy periods.
+
+**Refresh tokens are encrypted at rest.** A token in the database in plaintext
+is a standing grant to read and write the team's calendars for anyone who
+reaches the database or a backup of it.
+
+### 12.3 Domain
+
+| Entity | What it is |
+|---|---|
+| `ConsultationHost` | A team member who takes consultations. Linked to `UserMaster`. |
+| `CalendarConnection` | One host's connected Google or Microsoft account: provider, account email, selected calendar, encrypted tokens, sync state. |
+| `AvailabilityRule` | Recurring weekly availability — day, start, end, per host. |
+| `AvailabilityException` | A one-off: a bank holiday closed, a Saturday opened. |
+| `ConsultationType` | Duration, buffer before and after, minimum notice, how far ahead bookings are allowed, and where it happens. |
+| `ConsultationBooking` | The meeting. Host, customer, optional `EventMaster`, start and end in UTC, status, the external calendar event it created, and a single-use token for the customer's cancel/reschedule link. |
+| `ExternalBusyBlock` | Busy periods imported from a connected calendar, so a host's own meetings block slots without this system reading what those meetings are. |
+
+### 12.4 Edge cases
+
+The list is the point of writing this down. Anything unticked is unbuilt.
+
+| Edge case | Handling |
+|---|---|
+| Two customers book the same slot at once | ⬜ Exclusion constraint; loser is told the slot has gone and shown fresh ones |
+| Host's own calendar gains a meeting after slots were displayed | ⬜ Re-checked at the moment of booking, not only when listing |
+| Provider unreachable when confirming | ⬜ Booking is confirmed and the calendar write retried — the customer's booking must not depend on Google being up |
+| Provider unreachable when listing slots | ⬜ Fall back to last imported busy periods, and mark them stale |
+| Refresh token expired or access revoked | ⬜ Connection marked broken, admin told, slots fall back to rules and known bookings |
+| A booking is deleted in Google by the host | ⬜ Reconciled on next sync; the host cancelled it, so the system agrees |
+| Host disconnects a calendar with future bookings | ⬜ Refused unless the bookings are reassigned or cancelled |
+| Clocks change between listing and the meeting | ⬜ UTC storage makes this arithmetic rather than a special case |
+| Customer is in another timezone | ⬜ Slots rendered in their browser's zone, with the zone named |
+| Customer books five minutes from now | ⬜ Minimum notice on the consultation type |
+| Customer books three years out | ⬜ Maximum advance on the consultation type |
+| Back-to-back meetings with no gap | ⬜ Buffers before and after, counted as busy |
+| Bank holidays | ⬜ Availability exceptions |
+| Customer already has a consultation for this booking | ⬜ Offered the existing one to move, rather than a second |
+| No slots available at all | ⬜ Says so plainly and offers the contact route — the venue-capacity lesson |
+| Admin manually books over a customer slot | ⬜ Same constraint applies to admin writes |
+| Customer cancels | ⬜ Single-use link, calendar event removed, slot released |
+| Event booking is cancelled after the consultation is set | ⬜ Consultation flagged for the team, not silently cancelled |
+| Two hosts, one customer | ⬜ Round-robin by least-recently-booked; a named host can be requested |
+
+### 12.5 Delivery, and what I cannot verify here
+
+Staged, because Google and Microsoft credentials are needed and I cannot obtain
+them — the same constraint as Apple sign-in.
+
+| Stage | | Verifiable here |
+|---|---|---|
+| **E1** | Domain, availability rules, slot generation, booking with the exclusion constraint | ✅ Fully |
+| **E2** | Customer-facing booking at the end of the journey, replacing the Calendly widget | ✅ Fully, end to end |
+| **E3** | Admin: hosts, availability, view and manually add bookings | ✅ Fully |
+| **E4** | `CalendarProvider` port, Google and Microsoft adapters, busy import and event push | 🟡 Against a fake provider only — the adapters need real credentials to prove |
+| **E5** | Admin: connect and disconnect accounts, choose calendar, sync health | 🟡 UI and flow yes; the OAuth round trip needs credentials |
+
+E1–E3 give a working consultation system with no external dependency at all.
+E4–E5 make the team's existing calendars part of it. Built in that order so
+there is something working before anything depends on a third party.
 
 ## 11. Decisions taken
 
