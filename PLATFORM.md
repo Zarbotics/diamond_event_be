@@ -558,8 +558,8 @@ Ordered by what actually costs the business the most.
 | A5b | Upper bound on the event date | ⬜ | The year stepper goes forward indefinitely. Low priority — a booking three years out may well be legitimate, so this needs a business answer before a number. |
 | ~~A6~~ | ~~Confirm `EventVendorMasterSelection` persists~~ | ✅ | **Investigated: not a bug.** The supplier picker is commented out of the journey — see §5.6. Moved to D5. |
 | A9 | **SSE heartbeat fired every 60s, with comments either side saying 15** | ✅ | Fixed to 15s. The emitters are created with `Long.MAX_VALUE`, so nothing on this side ever closes an idle connection — the ping is the only thing stopping nginx or a load balancer doing it at their 60-second default. A heartbeat *at* the timeout is a race against it, and losing drops the notification stream silently: nothing errors, notifications just stop until the page is reloaded. Found by auditing the other `@Scheduled` work after the lapsed-hold job turned out never to have been wired. |
-| A7 | **Turn off `ddl-auto=update` — but it cannot be turned off yet** | ⬜ | **Measured, and worse than this row said.** Flyway does *not* own the schema: on a database built only by the migrations, **9 tables exist out of the 68 the entities need**. There is no V1 at all — `baseline-version=1` stamps whatever Hibernate built as "version 1" and starts at V2, so the other 59 tables (`event_master`, `customer_master`, `user_master`, `venue_master`, the whole menu and decor trees) exist *only* because `ddl-auto=update` creates them. Setting `validate` today fails immediately on `catering_delivery_booking`. **The concrete harm:** every statement in V2 is guarded on its table existing — it has to be, or an empty database cannot start — so on a *fresh* database Flyway runs before Hibernate, finds nothing, and silently applies **none** of its integrity repairs. A new environment therefore comes up without the constraints V2 exists to add, and nothing says so. The fix is a real V1 baseline; see A7b. |
-| A7b | **Capture a V1 baseline so Flyway owns the schema** | ⬜ ❓ | Hibernate can export exactly what the entities describe (`jakarta.persistence.schema-generation` — verified, produces all 68 tables), and that is viable raw material. Two things need a human decision first, which is why this is not simply done: **(1)** the export describes the *entities*, not production — production was grown by `ddl-auto=update`, which never drops, so it will hold columns and tables the entities no longer mention. A baseline from a **production schema dump** describes what is really there; a baseline from the entity export describes what the code expects. **(2)** sequencing on existing databases has to be got right or a deploy breaks, which makes this the single most dangerous change outstanding. Recommended: take `pg_dump --schema-only` of production, land it as V1, leave existing databases baselined past it, then move `ddl-auto` to `validate`. |
+| ~~A7~~ | ~~Turn off `ddl-auto=update`~~ | ✅ | Now `validate`. It compares the entities against the real schema at startup and refuses to run if they have drifted — turning a class of bug that used to surface as a runtime error on one unlucky screen into a failure to start that nobody can miss. |
+| ~~A7b~~ | ~~Capture a V1 baseline so Flyway owns the schema~~ | ✅ | **Done, from a production dump.** `V1__baseline_schema.sql` is production's schema as it actually is, so a database can now be built from nothing by the migrations alone. Verified against a restored dump in all three shapes it has to handle — see §13. |
 | ~~A8~~ | ~~The "choose an event" step renders every event a customer has ever had~~ | ✅ | **The screen is fixed.** Newest first, six shown, the rest behind a press, and a search once there are more than six. Ordered by id rather than event date: a booking being worked on this week may be for next summer, and sorting by date buries it behind everything already booked. Four end-to-end tests, one checked by removing the trim and watching it fail. |
 | A8b | **`eventMaster/getByCustomerId` still returns every event in full** | ⬜ | Measured on the development database: **1.1 MB, 278 events, 60 fields each** — for the second screen of the journey, on a phone, on mobile data. The screen fix above bounds what is *drawn*, not what is *sent*. The proper fix is the usual list/detail split: a summary for the list (name, type, date, guests, whether it can still be edited) and the full event fetched only when one is chosen. It is not a five-minute change, because `computeNextStepFromEvent` reads eight fields off the full DTO to decide which step to resume at — so this touches resume, which is the most fragile thing in the journey and the one I have broken before. Worth doing, worth doing carefully. |
 
@@ -611,6 +611,64 @@ Specified in §12. Requested 19 August 2026.
 | D5 | **Should customers pick external suppliers?** Five are seeded and the admin manages them, but the picker is commented out and the step now shows notes and terms instead. If suppliers are not returning, the step should be renamed for what it does. |
 
 ---
+
+---
+
+## 13. The schema, and who owns it
+
+**Status:** done, 19 August 2026. Was A7/A7b in §10.
+
+### What was actually wrong
+
+Flyway did not own this schema. There was no `V1` at all: `baseline-version=1`
+stamped whatever Hibernate had built as "version 1" and started at `V2`. On a
+database built by the migrations alone, **9 tables existed out of the 68 the
+entities need** — the other 59, including `event_master`, `customer_master`,
+`user_master` and the whole menu and decor trees, came from
+`ddl-auto=update` at startup.
+
+The consequence was sharper than the drift, and it is the part worth
+remembering. Every statement in `V2` is guarded on its table existing — it has
+to be, or an empty database cannot start — and **Flyway runs before Hibernate**.
+So on a *fresh* database `V2` found nothing, applied none of its integrity
+repairs, and reported nothing. Every new environment came up without the
+constraints `V2` was written to add. `V5`'s `ux_event_master_code`, the index
+that stops two events sharing a reference, was among them.
+
+### The fix
+
+`V1__baseline_schema.sql`, captured from a production `pg_dump --schema-only`.
+`ddl-auto` moved to `validate`.
+
+**From production rather than from the entities**, deliberately. Hibernate can
+export what the entities describe and that was the tempting shortcut, but
+`ddl-auto=update` never drops and never narrows, so production holds things the
+entities no longer mention: `decor_event_extras` and `detail_seq` map to no
+entity at all, and there are four views the Java code knows nothing about. An
+entity export would have silently omitted every one of them, and the first fresh
+environment would have differed from production in ways nobody would notice
+until something failed.
+
+### Three shapes of database, all verified against the real dump
+
+| | What happens | Verified |
+|---|---|---|
+| **Empty** | Runs `V1`, then `V2`–`V9`; ends up matching production | ✅ 71 tables, starts under `validate` |
+| **Production** | No Flyway history at all, so `baseline-on-migrate` adopts the schema at version 1 and **skips `V1`** — running it would try to create tables holding live data | ✅ Simulated by restoring the dump into an empty database: baselined at 1, applied 8 migrations, started under `validate` |
+| **Made during this branch** | History starts at `2`; Flyway refuses to start — *"Detected resolved migration not applied to database: 1"* | ✅ Reproduced the failure, then fixed it with `FlywayBaselineStamp` |
+
+That third case is why `FlywayBaselineStamp` exists. The alternatives were a
+line in a release note plus a hard startup failure for anybody who did not read
+it, or `ignore-migration-patterns=*:ignored` — which would have silenced this
+and also silenced a genuinely forgotten migration for ever afterwards. That last
+one was the option worth refusing. The stamp is tightly scoped, self-disabling,
+and deletable once every database has started once.
+
+### What this also proved
+
+Production's schema **already matches the entities**. `validate` passes against
+it untouched, which means `ddl-auto=update` had nothing left to do — it was
+carrying risk without doing work.
 
 ---
 

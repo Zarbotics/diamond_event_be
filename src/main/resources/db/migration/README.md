@@ -14,23 +14,63 @@ reproduce the schema or roll one back. Much of the duplication in
 
 ## How the baseline works
 
-`V1` is not a file. The existing production schema *is* V1: on first run against
-a non-empty database, `spring.flyway.baseline-on-migrate=true` records it as
-baseline version 1 without executing anything. Migrations therefore start at
-`V2`.
+`V1__baseline_schema.sql` is the schema as it actually exists, captured from a
+production `pg_dump --schema-only` on 19 August 2026.
+
+Until then this section said "V1 is not a file" — the existing schema *was* the
+baseline, adopted by `baseline-on-migrate` and never written down. That worked
+for production and failed everywhere else: **9 tables existed out of the 68 the
+entities need** on a database built by the migrations alone. The other 59 came
+from `ddl-auto=update` at startup.
+
+The consequence was sharper than the drift. Every statement in `V2` is guarded
+on its table existing — it has to be, or an empty database cannot start — and
+Flyway runs before Hibernate. On a *fresh* database `V2` therefore found
+nothing, applied none of its repairs, and said nothing about it. New
+environments came up without the constraints `V2` exists to add.
+
+### What runs V1, and what does not
+
+| Database | What happens |
+|---|---|
+| **Empty** | Runs `V1`, then `V2`–`V9`. Ends up matching production, constraints included. |
+| **Production** | Has no `flyway_schema_history` at all, so `baseline-on-migrate` adopts the schema as version 1 and **skips `V1`** — which is right, because `V1` *is* that schema and running it would try to create tables holding live data. |
+| **Created during this branch's development** | History starts at `2`, because `V1` did not exist yet. Flyway refuses to start on these: *"Detected resolved migration not applied to database: 1"*. `FlywayBaselineStamp` stamps them on startup, once, and then never again. |
+
+All three were verified against a restored production dump before this landed,
+including a full simulation of the production deploy.
+
+### Why from production rather than from the entities
+
+Hibernate can export what the entities describe, and that was the tempting
+shortcut. But `ddl-auto=update` never drops and never narrows, so production
+holds things the entities no longer mention: `decor_event_extras` and
+`detail_seq` map to no entity at all, and there are four views the Java code
+knows nothing about. An entity export would have silently omitted every one of
+them, and the first fresh environment would have differed from production in
+ways nobody would notice until something failed.
 
 ## Before the first deploy of this branch
 
-`ddl-auto=validate` is stricter than `update` was. Validate against a **copy** of
-production before deploying:
+`ddl-auto=validate` is stricter than `update` was, so this was checked against a
+restored production dump before the switch: the schema validates, and `update`
+had nothing left to do. Worth repeating against a current copy anyway, because
+production moves:
 
 ```bash
-# restore a production dump into a scratch database, then:
+createdb scratch_diamond_ev
+pg_restore --schema-only --no-owner --no-privileges \
+    -d postgresql://localhost:5432/scratch_diamond_ev production.dump
 DB_URL=jdbc:postgresql://localhost:5432/scratch_diamond_ev ./mvnw spring-boot:run
 ```
 
 If startup fails, the message names the table and column that disagree. Fix by
-adding a migration, not by reverting to `update`.
+adding a migration, not by reverting to `update` — reverting hides the drift
+again rather than resolving it.
+
+`DDL_AUTO=update` still exists as an escape hatch for an emergency. Using it
+means the schema is no longer described by these files, so it should be followed
+by a migration that captures whatever it did.
 
 ## Naming
 
