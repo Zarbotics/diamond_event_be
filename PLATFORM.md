@@ -376,7 +376,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 |---|---|---|
 | Backend unit | 122 | `mvn test` |
 | Backend integration | 90 | `mvn verify` (skips itself without a database) |
-| Journey end-to-end | 34 | `npm run test:e2e` — desktop and mobile |
+| Journey end-to-end | 42 | `npm run test:e2e` — desktop and mobile |
 | Admin portal | 0 | ❌ — C4 |
 
 The end-to-end tests write real bookings and must be pointed at a development
@@ -557,8 +557,10 @@ Ordered by what actually costs the business the most.
 | ~~A5~~ | ~~Guest count bounds~~ | ✅ | My row was wrong: 0 guests **is** validated. The real gap was the upper end, and it was a dead-end screen rather than a missing bound. See §9. |
 | A5b | Upper bound on the event date | ⬜ | The year stepper goes forward indefinitely. Low priority — a booking three years out may well be legitimate, so this needs a business answer before a number. |
 | ~~A6~~ | ~~Confirm `EventVendorMasterSelection` persists~~ | ✅ | **Investigated: not a bug.** The supplier picker is commented out of the journey — see §5.6. Moved to D5. |
+| A9 | **SSE heartbeat fired every 60s, with comments either side saying 15** | ✅ | Fixed to 15s. The emitters are created with `Long.MAX_VALUE`, so nothing on this side ever closes an idle connection — the ping is the only thing stopping nginx or a load balancer doing it at their 60-second default. A heartbeat *at* the timeout is a race against it, and losing drops the notification stream silently: nothing errors, notifications just stop until the page is reloaded. Found by auditing the other `@Scheduled` work after the lapsed-hold job turned out never to have been wired. |
 | A7 | Turn off `ddl-auto=update` | ⬜ | Flyway owns the schema; leaving Hibernate able to add columns means orphan entities keep materialising tables. |
-| A8 | **The "choose an event" step renders every event a customer has ever had** | ⬜ | `getByCustomerId` returns all of them and the step maps each to a 224px card, unpaginated, with no search or ordering. Found while investigating a flaky mobile test against a development database with 233 events for one customer: that is one column roughly fifty thousand pixels tall on a phone. Unrealistic as a number, but a repeat corporate client with twenty is not, and twenty cards is already a step you scroll rather than read. Wants most-recent-first, a handful shown, and the rest behind a search. |
+| ~~A8~~ | ~~The "choose an event" step renders every event a customer has ever had~~ | ✅ | **The screen is fixed.** Newest first, six shown, the rest behind a press, and a search once there are more than six. Ordered by id rather than event date: a booking being worked on this week may be for next summer, and sorting by date buries it behind everything already booked. Four end-to-end tests, one checked by removing the trim and watching it fail. |
+| A8b | **`eventMaster/getByCustomerId` still returns every event in full** | ⬜ | Measured on the development database: **1.1 MB, 278 events, 60 fields each** — for the second screen of the journey, on a phone, on mobile data. The screen fix above bounds what is *drawn*, not what is *sent*. The proper fix is the usual list/detail split: a summary for the list (name, type, date, guests, whether it can still be edited) and the full event fetched only when one is chosen. It is not a five-minute change, because `computeNextStepFromEvent` reads eight fields off the full DTO to decide which step to resume at — so this touches resume, which is the most fragile thing in the journey and the one I have broken before. Worth doing, worth doing carefully. |
 
 ### B. Architecture
 

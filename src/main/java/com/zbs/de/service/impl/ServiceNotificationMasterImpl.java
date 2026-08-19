@@ -121,13 +121,37 @@ public class ServiceNotificationMasterImpl implements ServiceNotificationMaster 
 		return notificationRepo.countByUserMasterAndBlnIsReadFalse(user);
 	}
 
-	// Send heartbeat every 15 seconds to keep connection alive
-	@Scheduled(fixedRate = 60000) // 15 seconds
+	/**
+	 * Keeps the notification streams open.
+	 *
+	 * <p>
+	 * The emitters are created with {@code Long.MAX_VALUE}, so nothing on this
+	 * side ever closes an idle connection. What does close them is whatever sits
+	 * in between: nginx's {@code proxy_read_timeout} and most cloud load
+	 * balancers default to sixty seconds of silence. This ping is the only thing
+	 * preventing that, which makes the interval load-bearing rather than
+	 * cosmetic.
+	 *
+	 * <p>
+	 * It was set to sixty seconds, with a comment either side of it saying
+	 * fifteen. Fifteen is both what was intended and what is correct — a
+	 * heartbeat at exactly the timeout is a race against it, and losing that race
+	 * drops the stream silently. Nothing errors; notifications simply stop
+	 * arriving until the page is reloaded, which is close to unreportable.
+	 */
+	@Scheduled(fixedRate = 15_000)
 	public void sendHeartbeats() {
 		clients.forEach((userId, emitter) -> {
 			try {
 				emitter.send(SseEmitter.event().name("heartbeat").data("ping"));
-			} catch (IOException e) {
+			} catch (Exception e) {
+				/*
+				 * Any failure, not only IOException. A client that has gone away
+				 * also surfaces as IllegalStateException from an emitter that has
+				 * already completed, and letting that escape the lambda would
+				 * abandon the rest of the map — one dead connection would stop
+				 * every other user's stream being kept alive.
+				 */
 				clients.remove(userId);
 			}
 		});
