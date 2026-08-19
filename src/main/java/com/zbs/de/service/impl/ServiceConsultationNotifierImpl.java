@@ -51,8 +51,39 @@ public class ServiceConsultationNotifierImpl implements ServiceConsultationNotif
 			.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT)
 			.withLocale(Locale.UK);
 
-	/** Named so the reader can check it, rather than shown as "Europe/London". */
-	private static final DateTimeFormatter ZONE_NAME = DateTimeFormatter.ofPattern("zzz", Locale.UK);
+	/*
+	 * Deliberately NOT DateTimeFormatter.ofPattern("zzz").
+	 *
+	 * The zone is printed so the reader can check it, which means it has to be
+	 * something they recognise. The JDK's short names are not reliably that: on
+	 * this JVM Asia/Dubai comes out as "GTS", which is not an abbreviation
+	 * anybody uses — the real one is GST — and America/New_York comes out as
+	 * "GMT-04:00", so the format is not even consistent between zones. A label
+	 * that is wrong is worse than no label, because the whole reason it is there
+	 * is to let somebody catch a mistake.
+	 *
+	 * An offset cannot be wrong and needs no locale data to be right. It is also
+	 * what browsers show for most of the world, so it matches what the customer
+	 * saw when they picked the time.
+	 */
+	private static String zoneLabel(java.time.ZonedDateTime moment) {
+		String offset = moment.getOffset().getId();
+		if ("Z".equals(offset)) {
+			return "GMT";
+		}
+		/*
+		 * "+04:00" reads better as "+4". A whole-hour offset drops its minutes;
+		 * "+05:30" must keep them, or every customer in India is told a time
+		 * half an hour out. The leading zero goes either way, so the two do not
+		 * come out in different shapes.
+		 */
+		String sign = offset.substring(0, 1);
+		String hours = offset.substring(1, 3);
+		String minutes = offset.length() >= 6 ? offset.substring(4, 6) : "00";
+
+		String hour = hours.startsWith("0") ? hours.substring(1) : hours;
+		return "GMT" + sign + hour + ("00".equals(minutes) ? "" : ":" + minutes);
+	}
 
 	@Autowired
 	private ServiceEmailSender serviceEmailSender;
@@ -271,7 +302,7 @@ public class ServiceConsultationNotifierImpl implements ServiceConsultationNotif
 
 	private String inZone(Instant instant, ZoneId zone) {
 		var zoned = instant.atZone(zone);
-		return WHEN.format(zoned) + " (" + ZONE_NAME.format(zoned) + ")";
+		return WHEN.format(zoned) + " (" + zoneLabel(zoned) + ")";
 	}
 
 	/**

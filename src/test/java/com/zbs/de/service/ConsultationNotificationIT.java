@@ -284,6 +284,42 @@ class ConsultationNotificationIT {
 	}
 
 	@Test
+	@DisplayName("the zone label is an offset anybody can check, not a made-up abbreviation")
+	void theZoneLabelIsAnOffset() {
+		/*
+		 * The JDK's short zone names are not dependable: on this JVM Asia/Dubai
+		 * formats as "GTS", which is not an abbreviation anybody uses — the real
+		 * one is GST — while America/New_York formats as "GMT-04:00", so the
+		 * shape is not even consistent between zones.
+		 *
+		 * That matters more than it looks. The zone is printed precisely so the
+		 * reader can catch a mistake, and a label they do not recognise cannot
+		 * do that job. An offset needs no locale data to be right.
+		 */
+		recordMail();
+
+		book("Asia/Dubai");
+
+		String body = to(CUSTOMER_EMAIL).get(0).body();
+		assertThat(body).contains("GMT+4");
+		assertThat(body)
+				.as("the JDK's unrecognisable short name reached the customer")
+				.doesNotContain("GTS");
+	}
+
+	@Test
+	@DisplayName("a half-hour offset keeps its minutes")
+	void halfHourOffsetsSurvive() {
+		// India is GMT+5:30. Trimming ":00" off an offset is right; trimming the
+		// minutes off this one would put every Indian customer half an hour out.
+		recordMail();
+
+		book("Asia/Kolkata");
+
+		assertThat(to(CUSTOMER_EMAIL).get(0).body()).contains("GMT+5:30");
+	}
+
+	@Test
 	@DisplayName("the host's copy carries both clocks when they differ")
 	void theHostSeesBothClocks() {
 		recordMail();

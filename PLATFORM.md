@@ -375,7 +375,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 | Suite | Count | Runs with |
 |---|---|---|
 | Backend unit | 83 | `mvn test` |
-| Backend integration | 78 | `mvn verify` (skips itself without a database) |
+| Backend integration | 80 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 34 | `npm run test:e2e` — desktop and mobile |
 | Admin portal | 0 | ❌ — C4 |
 
@@ -589,7 +589,7 @@ Specified in §12. Requested 19 August 2026.
 | E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Done — 21 unit + 15 integration tests |
 | E2 | Customer books a consultation at the end of the journey | ✅ Calendly removed; 3 tests, desktop and mobile |
 | E3 | Admin: hosts, availability, meeting types, pending queue, manual booking | ✅ Done — 25 backend integration tests, 4 screens |
-| E3b | Consultation emails, and the page the cancel link opens | ✅ Done — 10 integration + 4 end-to-end tests |
+| E3b | Consultation emails, and the page the cancel link opens | ✅ Done — 12 integration + 4 end-to-end tests |
 | E4 | Google and Microsoft calendar sync behind one provider port | ⬜ Approach decided — §12.6 |
 | E5 | Admin: connect accounts, choose calendar, sync health | ⬜ |
 
@@ -805,7 +805,13 @@ Three decisions worth recording:
    every time. A test proves a booking still succeeds when the mail server
    throws.
 
-2. **Every time is written in the customer's own zone.** That is what the
+2. **Every time is written in the customer's own zone**, and labelled with an
+   offset rather than an abbreviation. The JDK's short zone names are not
+   dependable — on this JVM `Asia/Dubai` formats as "GTS", which nobody uses
+   (the real abbreviation is GST), and `America/New_York` formats as
+   "GMT-04:00", so the shape is not even consistent. The label exists so the
+   reader can catch a mistake, and one they do not recognise cannot do that.
+   An offset needs no locale data to be right. That is what the
    `txtCustomerTimeZone` column has been for. An email telling somebody in Dubai
    their consultation is at 10:00, meaning 10:00 in London, is a missed meeting
    and a customer who believes they were stood up. The host's copy carries both,
