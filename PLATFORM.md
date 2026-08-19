@@ -558,6 +558,7 @@ Ordered by what actually costs the business the most.
 | A5b | Upper bound on the event date | ⬜ | The year stepper goes forward indefinitely. Low priority — a booking three years out may well be legitimate, so this needs a business answer before a number. |
 | ~~A6~~ | ~~Confirm `EventVendorMasterSelection` persists~~ | ✅ | **Investigated: not a bug.** The supplier picker is commented out of the journey — see §5.6. Moved to D5. |
 | A7 | Turn off `ddl-auto=update` | ⬜ | Flyway owns the schema; leaving Hibernate able to add columns means orphan entities keep materialising tables. |
+| A8 | **The "choose an event" step renders every event a customer has ever had** | ⬜ | `getByCustomerId` returns all of them and the step maps each to a 224px card, unpaginated, with no search or ordering. Found while investigating a flaky mobile test against a development database with 233 events for one customer: that is one column roughly fifty thousand pixels tall on a phone. Unrealistic as a number, but a repeat corporate client with twenty is not, and twenty cards is already a step you scroll rather than read. Wants most-recent-first, a handful shown, and the rest behind a search. |
 
 ### B. Architecture
 
