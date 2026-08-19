@@ -198,6 +198,39 @@ class ConsultationSlotFinderTest {
 		}
 
 		@Test
+		@DisplayName("a one-off opening works even when there are no weekly rules at all")
+		void anOpeningStandsWithoutAnyWeeklyPattern() {
+			/*
+			 * "We are not normally available, but we are open this Saturday for
+			 * the wedding fair."
+			 *
+			 * The finder used to return nothing the instant the rules list was
+			 * empty, so this produced a blank calendar with no error anywhere —
+			 * the opening had saved perfectly well and simply had no effect. The
+			 * other opening tests all happen to pass a weekly rule as well, which
+			 * is what hid it.
+			 */
+			List<Slot> slots = find(type(60, 0, 0, 0),
+					List.of(),
+					List.of(opened("2026-09-05", "10:00", "12:00")), List.of(),
+					"2026-09-05T00:00", "2026-09-06T00:00", "2026-09-01T09:00");
+
+			assertThat(slots).extracting(s -> asLondon(s.startsAt()))
+					.containsExactly("2026-09-05T10:00", "2026-09-05T10:30", "2026-09-05T11:00");
+		}
+
+		@Test
+		@DisplayName("a closure on its own is still nothing on offer")
+		void aClosureAloneIsNotAvailability() {
+			// The mirror of the case above: only an opening creates hours. A day
+			// marked closed on a host with no weekly pattern stays empty.
+			assertThat(find(type(60, 0, 0, 0),
+					List.of(),
+					List.of(closed("2026-09-05", "Bank holiday")), List.of(),
+					"2026-09-05T00:00", "2026-09-06T00:00", "2026-09-01T09:00")).isEmpty();
+		}
+
+		@Test
 		@DisplayName("an opening replaces that day's hours rather than adding to them")
 		void anOpeningReplacesTheDay() {
 			// "This Wednesday, 14:00 to 16:00" means those hours, not those plus

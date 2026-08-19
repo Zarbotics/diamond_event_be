@@ -78,6 +78,38 @@ class PortalEndpointPolicyTest {
 				.allSatisfy(path -> assertThat(path).doesNotContain("**"));
 	}
 
+	@Test
+	@DisplayName("no consultation administration endpoint is customer-accessible")
+	void consultationAdministrationStaysAdminOnly() {
+		/*
+		 * /admin is not a protected prefix in itself — several menu reads live
+		 * under /admin/menu because the customer journey has always called them
+		 * there, and they are on the allowlist. So "it starts with /admin" is not
+		 * what keeps these safe; being absent from the allowlist is.
+		 *
+		 * Worth a test of its own because the consequence of a slip is not a 403
+		 * a customer notices. It is a customer being able to rewrite the team's
+		 * working hours, read every consultation booked by every other customer,
+		 * or confirm their own request.
+		 */
+		assertThat(PortalEndpoints.allCustomerAccessible())
+				.as("consultation administration must never be reachable by a customer")
+				.allSatisfy(path -> assertThat(path).doesNotStartWith("/admin/consultation"));
+	}
+
+	@Test
+	@DisplayName("the customer's own consultation endpoints are still reachable")
+	void consultationBookingStaysReachable() {
+		// The mirror of the test above: default-deny fails silently, so the
+		// endpoints the booking journey depends on need asserting positively.
+		assertThat(PortalEndpoints.allCustomerAccessible())
+				.contains("/consultation/types", "/consultation/slots",
+						"/consultation/book", "/consultation/forEvent");
+		assertThat(PortalEndpoints.PUBLIC)
+				.as("cancelling comes from a link in an email, by somebody who may not be signed in")
+				.contains("/consultation/cancel");
+	}
+
 	/** Every request path declared by an @RestController in the application. */
 	private Set<String> declaredEndpointPaths() {
 		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);

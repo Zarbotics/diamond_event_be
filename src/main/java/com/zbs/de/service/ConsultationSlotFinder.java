@@ -92,7 +92,24 @@ public final class ConsultationSlotFinder {
 			Instant now,
 			int stepMinutes) {
 
-		if (type == null || rules == null || rules.isEmpty()) {
+		/*
+		 * No weekly pattern is not the same as nothing on offer. An exception
+		 * that opens a day stands on its own: "we are not normally available,
+		 * but we are open this Saturday for the wedding fair" is a real thing to
+		 * want, and a host taken off the weekly rota should still be bookable on
+		 * the days somebody deliberately opened.
+		 *
+		 * This used to give up the moment the rules list was empty, so a one-off
+		 * opening on a host with no weekly hours produced an empty calendar and
+		 * no error anywhere to say why.
+		 */
+		boolean hasWeeklyHours = rules != null && rules.stream()
+				.anyMatch(r -> !Boolean.TRUE.equals(r.getBlnIsDeleted()));
+		boolean hasOpenings = exceptions != null && exceptions.stream()
+				.anyMatch(e -> !Boolean.TRUE.equals(e.getBlnIsDeleted())
+						&& Boolean.TRUE.equals(e.getBlnIsAvailable()));
+
+		if (type == null || (!hasWeeklyHours && !hasOpenings)) {
 			return List.of();
 		}
 
@@ -111,7 +128,8 @@ public final class ConsultationSlotFinder {
 			return List.of();
 		}
 
-		Map<Integer, List<ConsultationAvailabilityRule>> rulesByDay = rules.stream()
+		Map<Integer, List<ConsultationAvailabilityRule>> rulesByDay =
+				(rules == null ? List.<ConsultationAvailabilityRule>of() : rules).stream()
 				.filter(r -> !Boolean.TRUE.equals(r.getBlnIsDeleted()))
 				.collect(Collectors.groupingBy(ConsultationAvailabilityRule::getNumDayOfWeek));
 

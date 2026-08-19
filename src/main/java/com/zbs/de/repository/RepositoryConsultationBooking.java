@@ -71,15 +71,45 @@ public interface RepositoryConsultationBooking extends JpaRepository<Consultatio
 			""")
 	List<ConsultationBooking> liveBookingsForEvent(@Param("eventId") Integer eventId);
 
+	/**
+	 * The diary, filtered.
+	 *
+	 * <p>
+	 * The date bounds are always bound to a real instant, never to null. An
+	 * absent bound written as {@code :from IS NULL} sends PostgreSQL a parameter
+	 * with no type it can resolve — it answers "could not determine data type of
+	 * parameter $5" and the whole screen fails with a 500. The id and status
+	 * filters get away with the same pattern only because their types are
+	 * inferable from the columns they are compared against; a bound that appears
+	 * solely inside an {@code IS NULL} has nothing to infer from.
+	 *
+	 * <p>
+	 * So {@link #search} widens an absent bound to one that excludes nothing,
+	 * and this query does no null-handling on dates at all.
+	 */
 	@Query("""
 			SELECT b FROM ConsultationBooking b
 			WHERE b.blnIsDeleted = false
 			  AND (:hostId IS NULL OR b.serHostId = :hostId)
 			  AND (:status IS NULL OR b.txtStatus = :status)
-			  AND (:from IS NULL OR b.dteStartsAt >= :from)
-			  AND (:to   IS NULL OR b.dteStartsAt <  :to)
+			  AND b.dteStartsAt >= :from
+			  AND b.dteStartsAt <  :to
 			ORDER BY b.dteStartsAt DESC
 			""")
-	Page<ConsultationBooking> search(@Param("hostId") Integer hostId, @Param("status") String status,
+	Page<ConsultationBooking> searchBetween(@Param("hostId") Integer hostId, @Param("status") String status,
 			@Param("from") Instant from, @Param("to") Instant to, Pageable pageable);
+
+	/** Earlier than any consultation this system could be holding. */
+	Instant BEGINNING_OF_TIME = Instant.parse("1970-01-01T00:00:00Z");
+
+	/** And later than any of them, while staying well inside a timestamptz. */
+	Instant END_OF_TIME = Instant.parse("9999-12-31T00:00:00Z");
+
+	default Page<ConsultationBooking> search(Integer hostId, String status,
+			Instant from, Instant to, Pageable pageable) {
+		return searchBetween(hostId, status,
+				from == null ? BEGINNING_OF_TIME : from,
+				to == null ? END_OF_TIME : to,
+				pageable);
+	}
 }

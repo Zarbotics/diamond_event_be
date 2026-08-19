@@ -46,8 +46,15 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConsultationImpl.class);
 
-	/** How far apart offered start times are placed. */
-	private static final int SLOT_STEP_MINUTES = 30;
+	/**
+	 * How far apart offered start times are placed, when the type does not say.
+	 *
+	 * <p>
+	 * A fallback, not a policy — the interval is a column on the consultation
+	 * type so the portal can set it per kind of meeting. This value only applies
+	 * to a row written before that column existed.
+	 */
+	private static final int DEFAULT_SLOT_STEP_MINUTES = 30;
 
 	/** How far ahead a request may look, whatever it asks for. */
 	private static final int MAX_WINDOW_DAYS = 120;
@@ -120,7 +127,7 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 					repositoryException.findBySerHostIdAndDteOnDateBetweenAndBlnIsDeletedFalse(
 							host.getSerHostId(), windowFrom, windowTo),
 					busyFor(host.getSerHostId(), windowStart, windowEnd),
-					windowStart, windowEnd, now, SLOT_STEP_MINUTES)) {
+					windowStart, windowEnd, now, slotStepFor(type))) {
 
 				offered.add(new OfferedSlot(host.getSerHostId(), host.getTxtDisplayName(), slot));
 			}
@@ -285,6 +292,12 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		return BookingOutcome.confirmed(booking);
 	}
 
+	/** The interval this kind of meeting is offered on. */
+	private int slotStepFor(ConsultationType type) {
+		Integer configured = type.getNumSlotIntervalMinutes();
+		return configured == null || configured < 5 ? DEFAULT_SLOT_STEP_MINUTES : configured;
+	}
+
 	/** Whether the finder still offers this exact start for this host. */
 	private boolean isStillOffered(ConsultationType type, ConsultationHost host, Instant startsAt) {
 		ZoneId zone = host.zone();
@@ -299,7 +312,7 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 				repositoryException.findBySerHostIdAndDteOnDateBetweenAndBlnIsDeletedFalse(
 						host.getSerHostId(), day, day),
 				busyFor(host.getSerHostId(), windowStart, windowEnd),
-				windowStart, windowEnd, Instant.now(), SLOT_STEP_MINUTES)
+				windowStart, windowEnd, Instant.now(), slotStepFor(type))
 				.stream()
 				.anyMatch(slot -> slot.startsAt().equals(startsAt));
 	}

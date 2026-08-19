@@ -41,6 +41,19 @@ public class ConsultationType {
 	@Column(name = "num_buffer_after_minutes", nullable = false)
 	private Integer numBufferAfterMinutes = 0;
 
+	/**
+	 * How far apart the offered start times are.
+	 *
+	 * <p>
+	 * Not the same as the duration. A 60-minute meeting on a 30-minute interval
+	 * is offered at 09:00, 09:30, 10:00 — overlapping candidates, of which
+	 * booking one removes its neighbours. An empty three-hour morning therefore
+	 * offers five hour-long starts, not three, which is how these systems
+	 * normally behave and the reason this is worth spelling out.
+	 */
+	@Column(name = "num_slot_interval_minutes", nullable = false)
+	private Integer numSlotIntervalMinutes = 30;
+
 	/** How soon from now a meeting may start. */
 	@Column(name = "num_minimum_notice_hours", nullable = false)
 	private Integer numMinimumNoticeHours = 24;
