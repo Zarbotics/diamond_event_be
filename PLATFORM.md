@@ -374,8 +374,8 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 
 | Suite | Count | Runs with |
 |---|---|---|
-| Backend unit | 114 | `mvn test` |
-| Backend integration | 88 | `mvn verify` (skips itself without a database) |
+| Backend unit | 122 | `mvn test` |
+| Backend integration | 90 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 34 | `npm run test:e2e` — desktop and mobile |
 | Admin portal | 0 | ❌ — C4 |
 
@@ -592,7 +592,7 @@ Specified in §12. Requested 19 August 2026.
 | E3b | Consultation emails, and the page the cancel link opens | ✅ Done — 12 integration + 4 end-to-end tests |
 | E4a | `CalendarProvider` port, write-target rule, video link on confirmation | ✅ Done — 8 integration tests against a stand-in provider |
 | E4b | The Google and Microsoft adapters, and token encryption | ✅ Written and tested up to the socket; needs credentials to run against the real thing |
-| E5 | Admin: connect accounts, choose calendar, sync health | ⬜ |
+| E5 | Admin: connect and disconnect accounts, choose the write target, sync health | ✅ Done — OAuth flow, busy import on a timer, and a fifth admin tab |
 
 ### D. Blocked on a business decision ❓
 
@@ -693,11 +693,11 @@ The list is the point of writing this down. Anything unticked is unbuilt.
 |---|---|
 | Two customers book the same slot at once | ✅ Constraint proven against a real database, and two threads racing through the service prove exactly one wins; loser is told the slot has gone and shown fresh ones |
 | Host's own calendar gains a meeting after slots were displayed | ✅ Re-checked at the moment of booking, not only when listing |
-| Provider unreachable when confirming | ⬜ Booking is confirmed and the calendar write retried — the customer's booking must not depend on Google being up |
-| Provider unreachable when listing slots | ⬜ Fall back to last imported busy periods, and mark them stale |
-| Refresh token expired or access revoked | ⬜ Connection marked broken, admin told, slots fall back to rules and known bookings |
-| A booking is deleted in Google by the host | ⬜ Reconciled on next sync; the host cancelled it, so the system agrees |
-| Host disconnects a calendar with future bookings | ⬜ Refused unless the bookings are reassigned or cancelled |
+| Provider unreachable when confirming | ✅ Booking stands, failure recorded as `SYNC_FAILED` on the row; proven by a test |
+| Provider unreachable when listing slots | ✅ Last imported busy periods are kept rather than cleared — erring towards the host looking busier, because the other way double-books them |
+| Refresh token expired or access revoked | ✅ Marked `NEEDS_RECONNECT`, taken out of the retry sweep and shown on the Connected calendars tab |
+| A booking is deleted in Google by the host | ⬜ Not reconciled — the consultation stays booked here. Needs a decision: silently cancelling on the strength of a calendar edit is a strong reading of a delete |
+| Host disconnects a calendar with future bookings | 🟡 Allowed, with the consequence stated in the confirmation. Removing the *host* is still refused, which is the case that leaves a customer with nobody |
 | Clocks change between listing and the meeting | ✅ Four tests: BST, GMT, the 25-hour day and the 23-hour day |
 | Customer is in another timezone | ✅ Slots rendered in their browser's zone, with the zone named on screen |
 | Customer books five minutes from now | ✅ Minimum notice on the consultation type |
@@ -705,13 +705,14 @@ The list is the point of writing this down. Anything unticked is unbuilt.
 | Back-to-back meetings with no gap | ✅ Buffers before and after, counted as busy |
 | Bank holidays | ✅ Availability exceptions, and a closure beats a weekly rule |
 | Customer already has a consultation for this booking | ⬜ Offered the existing one to move, rather than a second |
-| A request is left unanswered | ✅ The hold lapses, the slot returns, and confirming late is refused |
+| A request is left unanswered | ✅ The hold lapses on a five-minute sweep, the slot returns, the customer is told, and confirming late is refused. **The sweep had no caller until E5** — see §12.6 |
 | Two customers request the same slot before either is confirmed | ✅ `PENDING` holds the slot under the same constraint as `BOOKED` |
 | No slots available at all | ✅ Says so plainly and offers the phone number — the venue-capacity lesson |
 | Admin manually books over a customer slot | ✅ Manual booking goes through the same service, so the same exclusion constraint applies; proven by a test |
 | Customer cancels | ✅ Single-use link, slot released, both sides emailed. Calendar event removal comes with E4 |
 | A mail server is down or has no credentials | ✅ The booking still succeeds — sending is after commit and swallows its own failures. This is the *ordinary* case in development, where there are no SMTP credentials at all |
 | An email scanner follows the cancel link | ✅ The link only opens a page; cancelling takes a press. Outlook Safe Links and similar fetch every URL in an email, so a page that acted on load would cancel meetings by itself |
+| An OAuth callback arrives with a forged or stale state | ✅ Refused before anything is done — HMAC-signed, ten-minute expiry, constant-time comparison. It is the only thing protecting a necessarily public endpoint |
 | The cancel link is used twice, or forwarded | ✅ The token is spent on use; the second attempt says the meeting is already cancelled rather than reading as a fault |
 | Customer is in another timezone when the email arrives | ✅ Every time in every email is written in the zone they booked from, and the host's copy carries both clocks |
 | Event booking is cancelled after the consultation is set | ⬜ Consultation flagged for the team, not silently cancelled |
@@ -729,7 +730,7 @@ them — the same constraint as Apple sign-in.
 | **E3** | Admin: hosts, availability, meeting types, request queue, manual booking | ✅ Fully |
 | **E4a** | `CalendarProvider` port, write-target rule, video link on confirmation | ✅ Fully, against a stand-in provider |
 | **E4b** | The Google and Microsoft adapters, and encryption of the stored tokens | 🟡 Everything on this side of the socket; the round trip needs credentials |
-| **E5** | Admin: connect and disconnect accounts, choose calendar, sync health | 🟡 UI and flow yes; the OAuth round trip needs credentials |
+| **E5** | Admin: connect and disconnect, choose the write target, sync health, busy import | 🟡 Everything but the click-through on a real consent screen |
 
 E1–E3 give a working consultation system with no external dependency at all.
 E4–E5 make the team's existing calendars part of it. Built in that order so
@@ -1015,6 +1016,48 @@ installation — present and failing on use, where the entire design is that an
 unconfigured provider is *absent*. It surfaced as two adapters both claiming to
 be Google; without that collision it would have reached production as
 consultations failing to sync on a system nobody had connected anything to.
+
+#### E5: connecting a calendar, and the bug underneath it
+
+A fifth admin tab, **Connected calendars**: connect Google or Microsoft per
+person, disconnect, choose which one consultations are written to, and see
+whether syncing is working. Busy times are imported on a ten-minute timer.
+
+**The callback is the security-critical part.** It has to be publicly reachable
+— the provider redirects the administrator's *browser* to it, so it arrives as
+a plain GET with no bearer token and no way to ask for one. That makes the
+signed `state` parameter the only thing standing between it and anyone on the
+internet.
+
+Without it the attack is quiet and complete: someone finishes an OAuth flow
+against *their own* Google account, then sends an administrator a link to the
+callback carrying that code and a chosen `serHostId`. The system connects the
+attacker's calendar to a member of the team, and from then on every consultation
+booked with that person — name, email, phone, time — is written into a calendar
+the attacker controls, automatically. The state is HMAC-signed, carries the host
+and provider it was issued for, expires in ten minutes, and is compared in
+constant time. Eight unit tests and one over HTTP.
+
+**A bug found on the way.** `releaseLapsedHolds()` was written in E1, tested,
+documented — and **nothing ever called it**. So the half of "requested, then
+confirmed" that makes the other half safe simply did not happen: every
+unanswered request held its slot for ever, which is precisely the failure the
+lapse window exists to prevent. It is on a timer now, and the customer is told
+when their request lapses rather than being left expecting a meeting.
+
+Worth recording as a category, not an incident. A scheduled job that was never
+scheduled produces no error and no log line; the only symptom is slots that
+quietly never come back. Nothing in the test suite could have caught it, because
+every test called the method directly.
+
+**Two deliberate choices in the import.** A failed sync *keeps* the busy times
+it imported before, rather than clearing them — stale busy times block slots the
+host probably still cannot take, whereas deleting them offers those times out
+the moment a provider has a bad five minutes. Erring towards a host looking
+busier than they are costs a missed booking; the other way costs somebody a
+double-booked afternoon. And a revoked grant is marked `NEEDS_RECONNECT` rather
+than `ERROR`, which takes it out of the retry sweep and puts it on the screen —
+otherwise it is retried every ten minutes for ever while the slots stay wrong.
 
 ### 12.7 What this needs from the business
 

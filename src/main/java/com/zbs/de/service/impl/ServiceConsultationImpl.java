@@ -449,6 +449,17 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		List<ConsultationBooking> lapsed = repositoryBooking.lapsedHolds(Instant.now());
 		for (ConsultationBooking booking : lapsed) {
 			releaseHold(booking, "Nobody confirmed this within the window.");
+
+			/*
+			 * And the customer is told. They were promised the time would be
+			 * held until a stated moment; letting it pass in silence leaves them
+			 * believing they have a request outstanding, and possibly turning up.
+			 *
+			 * Worded as the team's failure rather than theirs, because it is.
+			 */
+			UtilTransaction.afterCommit(() -> notifier.requestDeclined(booking,
+					"We are sorry — we did not manage to confirm this in time, "
+							+ "so the slot has gone back on the calendar."));
 		}
 		if (!lapsed.isEmpty()) {
 			LOGGER.info("Released {} consultation holds that ran out", lapsed.size());

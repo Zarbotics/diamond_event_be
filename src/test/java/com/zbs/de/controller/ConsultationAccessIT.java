@@ -1,6 +1,7 @@
 package com.zbs.de.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import java.sql.Connection;
@@ -70,6 +71,10 @@ class ConsultationAccessIT {
 			"/admin/consultation/bookings/decline",
 			"/admin/consultation/bookings/cancel",
 			"/admin/consultation/bookings/add",
+			"/admin/consultation/calendars",
+			"/admin/consultation/calendars/connect",
+			"/admin/consultation/calendars/disconnect",
+			"/admin/consultation/calendars/writeTo",
 	};
 
 	@Autowired
@@ -189,6 +194,51 @@ class ConsultationAccessIT {
 			assertThat(statusOf(path, customer))
 					.as("the booking journey could not reach %s", path)
 					.isEqualTo(200);
+		}
+	}
+
+	@Test
+	@DisplayName("the OAuth callback is reachable without signing in, and refuses a forged state")
+	void theCallbackIsPublicButNotOpen() throws Exception {
+		/*
+		 * Public of necessity — it is a redirect from Google, so it carries no
+		 * bearer token and there is no way to ask for one. That makes the signed
+		 * state the only thing standing between it and anybody on the internet,
+		 * and the attack it prevents is quiet: complete an OAuth flow against
+		 * your own Google account, then hand an administrator a link carrying
+		 * that code and a chosen host id. Every consultation booked with that
+		 * person would then be written into a calendar you control.
+		 */
+		MvcResult forged = mockMvc.perform(get("/calendar/oauth/callback")
+				.param("code", "a-code-from-the-attackers-own-account")
+				.param("state", "1:GOOGLE:9999999999:nonce.forged-signature"))
+				.andReturn();
+
+		// Reachable: not a 401, which would mean the real flow could never work.
+		assertThat(forged.getResponse().getStatus())
+				.as("the callback is not reachable, so no calendar could ever be connected")
+				.isNotEqualTo(401);
+
+		// But the forged state got nowhere near connecting anything: the
+		// browser is sent back with a failure rather than a success.
+		assertThat(forged.getResponse().getHeader("Location"))
+				.as("a forged state was not refused")
+				.contains("calendar=failed");
+	}
+
+	@Test
+	@DisplayName("a cancelled consent is not reported as a fault")
+	void cancellingConsentIsOrdinary() {
+		// Somebody pressing cancel on the consent screen is an ordinary outcome
+		// and must not read like something broke.
+		try {
+			MvcResult cancelled = mockMvc.perform(get("/calendar/oauth/callback")
+					.param("error", "access_denied"))
+					.andReturn();
+
+			assertThat(cancelled.getResponse().getHeader("Location")).contains("calendar=cancelled");
+		} catch (Exception e) {
+			throw new AssertionError(e);
 		}
 	}
 

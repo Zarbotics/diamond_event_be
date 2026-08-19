@@ -392,6 +392,63 @@ class ConsultationNotificationIT {
 				.containsIgnoringCase("pick another time");
 	}
 
+	@Test
+	@DisplayName("a hold that runs out releases the slot and tells the customer")
+	void aLapsedHoldIsNotSilent() {
+		/*
+		 * The half of "requested, then confirmed" that makes the other half
+		 * safe. A pending request holds its slot against everybody else, so
+		 * without something to release it one unanswered request takes that time
+		 * off sale for good.
+		 *
+		 * releaseLapsedHolds existed from the start and nothing called it — the
+		 * design was documented and tested and the behaviour simply never
+		 * happened. It is on a timer now, and this proves the work it does.
+		 */
+		requireConfirmation();
+		recordMail();
+
+		BookingOutcome requested = book("Europe/London");
+		Integer id = requested.booking().getSerConsultationBookingId();
+
+		// Wind the hold back so it has already run out.
+		ConsultationBooking held = repositoryBooking.findById(id).orElseThrow();
+		held.setDteHoldExpiresAt(Instant.now().minusSeconds(60));
+		repositoryBooking.saveAndFlush(held);
+		sent.clear();
+
+		assertThat(serviceConsultation.releaseLapsedHolds()).isEqualTo(1);
+
+		// The slot is back.
+		assertThat(repositoryBooking.findById(id).orElseThrow().getTxtStatus())
+				.isEqualTo(ConsultationBooking.STATUS_DECLINED);
+		assertThat(serviceConsultation.availableSlots(typeId, hostId, bookingDay, bookingDay.plusDays(1)))
+				.extracting(s -> s.slot().startsAt())
+				.contains(bookingDay.atTime(10, 0).atZone(LONDON).toInstant());
+
+		// And the customer knows, rather than being left expecting a meeting.
+		assertThat(to(CUSTOMER_EMAIL)).hasSize(1);
+		assertThat(to(CUSTOMER_EMAIL).get(0).body())
+				.as("the customer was not told their request had lapsed")
+				.containsIgnoringCase("did not manage to confirm this in time");
+	}
+
+	@Test
+	@DisplayName("a hold that is still in date is left alone")
+	void aLiveHoldSurvivesTheSweep() {
+		// The mirror. A sweep that released everything would pass the test above
+		// and cancel every outstanding request the moment it ran.
+		requireConfirmation();
+		recordMail();
+
+		BookingOutcome requested = book("Europe/London");
+
+		assertThat(serviceConsultation.releaseLapsedHolds()).isZero();
+		assertThat(repositoryBooking.findById(requested.booking().getSerConsultationBookingId())
+				.orElseThrow().getTxtStatus())
+				.isEqualTo(ConsultationBooking.STATUS_PENDING);
+	}
+
 	// -----------------------------------------------------------------
 
 	/**

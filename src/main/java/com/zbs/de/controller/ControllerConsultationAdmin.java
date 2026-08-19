@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zbs.de.model.CalendarConnection;
 import com.zbs.de.model.ConsultationAvailabilityException;
 import com.zbs.de.model.ConsultationAvailabilityRule;
 import com.zbs.de.model.ConsultationBooking;
@@ -31,6 +32,7 @@ import com.zbs.de.repository.RepositoryConsultationHost;
 import com.zbs.de.repository.RepositoryConsultationType;
 import com.zbs.de.service.ServiceConsultation;
 import com.zbs.de.service.ServiceConsultation.BookingOutcome;
+import com.zbs.de.service.calendar.ServiceCalendarConnection;
 import com.zbs.de.util.ResponseMessage;
 
 /**
@@ -71,6 +73,9 @@ public class ControllerConsultationAdmin {
 
 	@Autowired
 	private RepositoryConsultationBooking repositoryBooking;
+
+	@Autowired
+	private ServiceCalendarConnection serviceCalendarConnection;
 
 	// -----------------------------------------------------------------
 	// Hosts
@@ -405,6 +410,123 @@ public class ControllerConsultationAdmin {
 		described.put("tmeEndTime", exception.getTmeEndTime() == null
 				? null : String.valueOf(exception.getTmeEndTime()));
 		described.put("txtReason", exception.getTxtReason());
+		return described;
+	}
+
+	// -----------------------------------------------------------------
+	// Connected calendars
+	// -----------------------------------------------------------------
+
+	/** A host's connected calendars, and whether connecting is possible at all. */
+	@PostMapping(value = "/calendars", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage calendars(@RequestBody Map<String, Object> request) {
+		Integer hostId = asInteger(request.get("serHostId"));
+		if (hostId == null) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					"A host is needed", null);
+		}
+
+		Map<String, Object> result = new LinkedHashMap<>();
+		result.put("connections", serviceCalendarConnection.forHost(hostId).stream()
+				.map(this::describe).toList());
+
+		/*
+		 * What the server can actually do, so the screen offers "Connect Google"
+		 * only where that will work. Without this the administrator presses a
+		 * button and is told, after a redirect, that the server was never set up
+		 * for it.
+		 */
+		Map<String, Object> available = new LinkedHashMap<>();
+		available.put(CalendarConnection.GOOGLE,
+				serviceCalendarConnection.isConfigured(CalendarConnection.GOOGLE));
+		available.put(CalendarConnection.MICROSOFT,
+				serviceCalendarConnection.isConfigured(CalendarConnection.MICROSOFT));
+		result.put("available", available);
+
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Calendars", result);
+	}
+
+	/**
+	 * Where to send the administrator to grant access.
+	 *
+	 * <p>
+	 * Returns the URL rather than redirecting, because this is called by the
+	 * admin portal's own fetch — a redirect would be followed by the fetch
+	 * instead of by the browser, and the consent screen would arrive as CORS-
+	 * blocked HTML in a JavaScript variable rather than as a page somebody can
+	 * use.
+	 */
+	@PostMapping(value = "/calendars/connect", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage connectCalendar(@RequestBody Map<String, Object> request) {
+		Integer hostId = asInteger(request.get("serHostId"));
+		String provider = asString(request.get("txtProvider"));
+
+		if (hostId == null || provider == null) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					"A host and a provider are needed", null);
+		}
+
+		try {
+			Map<String, Object> result = new LinkedHashMap<>();
+			result.put("txtAuthorisationUrl",
+					serviceCalendarConnection.authorisationUrl(hostId, provider));
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Sign in to continue", result);
+		} catch (ServiceCalendarConnection.NotConfiguredException e) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					e.getMessage(), null);
+		}
+	}
+
+	@PostMapping(value = "/calendars/disconnect", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage disconnectCalendar(@RequestBody Map<String, Object> request) {
+		Integer id = asInteger(request.get("serCalendarConnectionId"));
+		if (id == null) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					"A calendar is needed", null);
+		}
+		serviceCalendarConnection.disconnect(id);
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Disconnected", null);
+	}
+
+	/** Chooses which calendar this host's consultations are written to. */
+	@PostMapping(value = "/calendars/writeTo", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage chooseWriteTarget(@RequestBody Map<String, Object> request) {
+		Integer id = asInteger(request.get("serCalendarConnectionId"));
+		if (id == null) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					"A calendar is needed", null);
+		}
+		try {
+			serviceCalendarConnection.chooseWriteTarget(id);
+			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved", null);
+		} catch (ServiceCalendarConnection.NotConfiguredException e) {
+			return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
+					e.getMessage(), null);
+		}
+	}
+
+	/**
+	 * What the screen shows about one connection.
+	 *
+	 * <p>
+	 * Never the tokens, encrypted or otherwise. They are of no use on a screen
+	 * and every response they appear in is another place they can be captured.
+	 */
+	private Map<String, Object> describe(CalendarConnection connection) {
+		Map<String, Object> described = new LinkedHashMap<>();
+		described.put("serCalendarConnectionId", connection.getSerCalendarConnectionId());
+		described.put("txtProvider", connection.getTxtProvider());
+		described.put("txtAccountEmail", connection.getTxtAccountEmail());
+		described.put("txtCalendarName", connection.getTxtCalendarName());
+		described.put("blnIsWriteTarget", connection.getBlnIsWriteTarget());
+		described.put("txtSyncStatus", connection.getTxtSyncStatus());
+		described.put("txtSyncError", connection.getTxtSyncError());
+		described.put("dteLastSyncedAt", connection.getDteLastSyncedAt() == null
+				? null : connection.getDteLastSyncedAt().toString());
 		return described;
 	}
 

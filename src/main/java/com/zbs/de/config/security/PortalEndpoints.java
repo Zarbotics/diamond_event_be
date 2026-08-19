@@ -35,6 +35,13 @@ public final class PortalEndpoints {
 			// not be signed in — they may not have an account at all — so the
 			// unguessable single-use token is what authorises it.
 			"/consultation/cancel",
+			// Where Google and Microsoft redirect the administrator's browser
+			// after they grant access to a calendar. Public of necessity: it is
+			// a redirect, so it carries no bearer token and there is no way to
+			// ask for one. The signed `state` parameter is what identifies the
+			// request, and it is verified before anything is done — see
+			// CalendarOAuthState for what that is defending against.
+			"/calendar/oauth/callback",
 			"/public/**",
 			"/actuator/health", "/actuator/health/**",
 	};
