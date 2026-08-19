@@ -29,8 +29,12 @@ import lombok.Setter;
 @Setter
 public class ConsultationBooking {
 
-	/** A booking that is still going to happen. Only these reserve a slot. */
+	/** Requested by a customer, not yet agreed by the team. Holds its slot. */
+	public static final String STATUS_PENDING = "PENDING";
+	/** Agreed and going to happen. */
 	public static final String STATUS_BOOKED = "BOOKED";
+	/** The team said no. Not the same as the customer cancelling. */
+	public static final String STATUS_DECLINED = "DECLINED";
 	public static final String STATUS_CANCELLED = "CANCELLED";
 	public static final String STATUS_COMPLETED = "COMPLETED";
 	public static final String STATUS_NO_SHOW = "NO_SHOW";
@@ -107,6 +111,20 @@ public class ConsultationBooking {
 	@Column(name = "txt_external_sync_error")
 	private String txtExternalSyncError;
 
+	/** When an unconfirmed request stops holding its slot. */
+	@Column(name = "dte_hold_expires_at")
+	private Instant dteHoldExpiresAt;
+
+	/** The Meet or Teams link, once there is one. */
+	@Column(name = "txt_video_join_url")
+	private String txtVideoJoinUrl;
+
+	@Column(name = "dte_confirmed_at")
+	private Instant dteConfirmedAt;
+
+	@Column(name = "txt_declined_reason")
+	private String txtDeclinedReason;
+
 	@Column(name = "bln_is_deleted", nullable = false)
 	private Boolean blnIsDeleted = false;
 
@@ -122,7 +140,20 @@ public class ConsultationBooking {
 	@Column(name = "updated_by", nullable = false)
 	private Integer updatedBy = 0;
 
+	/** Holds a slot: either agreed, or requested and still within its window. */
 	public boolean isLive() {
-		return STATUS_BOOKED.equals(txtStatus) && !Boolean.TRUE.equals(blnIsDeleted);
+		return (STATUS_BOOKED.equals(txtStatus) || STATUS_PENDING.equals(txtStatus))
+				&& !Boolean.TRUE.equals(blnIsDeleted);
+	}
+
+	public boolean isAwaitingConfirmation() {
+		return STATUS_PENDING.equals(txtStatus) && !Boolean.TRUE.equals(blnIsDeleted);
+	}
+
+	/** A request nobody answered in time. Its slot goes back on sale. */
+	public boolean hasLapsed(Instant now) {
+		return isAwaitingConfirmation()
+				&& dteHoldExpiresAt != null
+				&& dteHoldExpiresAt.isBefore(now);
 	}
 }

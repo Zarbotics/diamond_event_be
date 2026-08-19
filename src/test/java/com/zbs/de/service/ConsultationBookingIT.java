@@ -137,6 +137,14 @@ class ConsultationBookingIT {
 				.forEach(repositoryType::delete);
 	}
 
+	/** Switches the seeded type to "the team has to agree to this". */
+	private void requireConfirmation(int windowHours) {
+		ConsultationType type = repositoryType.findById(typeId).orElseThrow();
+		type.setBlnRequiresConfirmation(true);
+		type.setNumConfirmationWindowHours(windowHours);
+		repositoryType.saveAndFlush(type);
+	}
+
 	private Instant slotAt(int hour) {
 		return bookingDay.atTime(hour, 0).atZone(LONDON).toInstant();
 	}
@@ -269,5 +277,141 @@ class ConsultationBookingIT {
 		assertThat(live)
 				.as("the database must hold one booking for that slot, not two")
 				.hasSize(1);
+	}
+
+	// -----------------------------------------------------------------
+	// Requested, then confirmed
+	// -----------------------------------------------------------------
+
+	@Test
+	@DisplayName("with confirmation off, a booking is agreed straight away")
+	void instantByDefault() {
+		BookingOutcome outcome = book(slotAt(10), "first");
+
+		assertThat(outcome.accepted()).isTrue();
+		assertThat(outcome.booking().getTxtStatus()).isEqualTo(ConsultationBooking.STATUS_BOOKED);
+		assertThat(outcome.booking().getDteConfirmedAt()).isNotNull();
+		assertThat(outcome.booking().getDteHoldExpiresAt()).isNull();
+	}
+
+	@Test
+	@DisplayName("with confirmation on, a booking starts as a request")
+	void confirmationModeCreatesARequest() {
+		requireConfirmation(48);
+
+		BookingOutcome outcome = book(slotAt(10), "first");
+
+		assertThat(outcome.accepted()).isTrue();
+		assertThat(outcome.booking().getTxtStatus()).isEqualTo(ConsultationBooking.STATUS_PENDING);
+		assertThat(outcome.booking().getDteConfirmedAt()).isNull();
+		assertThat(outcome.booking().getDteHoldExpiresAt())
+				.as("a request has to hold its slot, and the hold has to end")
+				.isNotNull();
+	}
+
+	@Test
+	@DisplayName("a pending request holds the slot against everyone else")
+	void aPendingRequestHoldsTheSlot() {
+		/*
+		 * The reason holds exist. Without this the team could agree to two
+		 * meetings in one slot, having each been told it was free.
+		 */
+		requireConfirmation(48);
+		assertThat(book(slotAt(10), "first").accepted()).isTrue();
+
+		assertThat(serviceConsultation.availableSlots(typeId, hostId, bookingDay, bookingDay.plusDays(1)))
+				.extracting(s -> s.slot().startsAt())
+				.doesNotContain(slotAt(10));
+
+		BookingOutcome second = book(slotAt(10), "second");
+		assertThat(second.accepted()).isFalse();
+	}
+
+	@Test
+	@DisplayName("confirming a request turns it into a meeting")
+	void confirmingARequest() {
+		requireConfirmation(48);
+		BookingOutcome requested = book(slotAt(10), "first");
+
+		BookingOutcome confirmed = serviceConsultation
+				.confirm(requested.booking().getSerConsultationBookingId());
+
+		assertThat(confirmed.accepted()).isTrue();
+		assertThat(confirmed.booking().getTxtStatus()).isEqualTo(ConsultationBooking.STATUS_BOOKED);
+		assertThat(confirmed.booking().getDteConfirmedAt()).isNotNull();
+		assertThat(confirmed.booking().getDteHoldExpiresAt())
+				.as("once agreed it is not a hold any more")
+				.isNull();
+	}
+
+	@Test
+	@DisplayName("declining a request puts the slot back on sale")
+	void decliningReleasesTheSlot() {
+		requireConfirmation(48);
+		BookingOutcome requested = book(slotAt(10), "first");
+
+		assertThat(serviceConsultation
+				.decline(requested.booking().getSerConsultationBookingId(), "Fully booked that week")
+				.accepted()).isTrue();
+
+		assertThat(serviceConsultation.availableSlots(typeId, hostId, bookingDay, bookingDay.plusDays(1)))
+				.extracting(s -> s.slot().startsAt())
+				.contains(slotAt(10));
+		assertThat(book(slotAt(10), "second").accepted()).isTrue();
+	}
+
+	@Test
+	@DisplayName("a request nobody answers stops holding its slot")
+	void lapsedHoldsAreReleased() {
+		// A window already in the past, so the hold is born expired — which is
+		// the same state as one nobody answered for two days.
+		requireConfirmation(48);
+		BookingOutcome requested = book(slotAt(10), "first");
+
+		ConsultationBooking booking = repositoryBooking
+				.findById(requested.booking().getSerConsultationBookingId()).orElseThrow();
+		booking.setDteHoldExpiresAt(Instant.now().minusSeconds(60));
+		repositoryBooking.saveAndFlush(booking);
+
+		assertThat(serviceConsultation.releaseLapsedHolds()).isEqualTo(1);
+
+		assertThat(serviceConsultation.availableSlots(typeId, hostId, bookingDay, bookingDay.plusDays(1)))
+				.extracting(s -> s.slot().startsAt())
+				.as("the slot goes back on sale")
+				.contains(slotAt(10));
+	}
+
+	@Test
+	@DisplayName("confirming a request after its hold ran out is refused")
+	void confirmingTooLateIsRefused() {
+		/*
+		 * Answering late has to fail rather than succeed quietly: the slot went
+		 * back on sale when the hold lapsed, so somebody else may hold it now.
+		 */
+		requireConfirmation(48);
+		BookingOutcome requested = book(slotAt(10), "first");
+
+		ConsultationBooking booking = repositoryBooking
+				.findById(requested.booking().getSerConsultationBookingId()).orElseThrow();
+		booking.setDteHoldExpiresAt(Instant.now().minusSeconds(60));
+		repositoryBooking.saveAndFlush(booking);
+
+		BookingOutcome tooLate = serviceConsultation
+				.confirm(requested.booking().getSerConsultationBookingId());
+
+		assertThat(tooLate.accepted()).isFalse();
+		assertThat(tooLate.message()).contains("expired");
+	}
+
+	@Test
+	@DisplayName("requests waiting on somebody are listed oldest first")
+	void pendingRequestsAreListed() {
+		requireConfirmation(48);
+		book(slotAt(9), "first");
+		book(slotAt(10), "second");
+
+		assertThat(serviceConsultation.awaitingConfirmation())
+				.extracting(ConsultationBooking::getDteStartsAt)
+				.contains(slotAt(9), slotAt(10));
 	}
 }

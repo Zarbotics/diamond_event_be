@@ -53,6 +53,29 @@ public interface ServiceConsultation {
 			String customerName, String customerEmail, String customerPhone,
 			String customerTimeZone, String notes, Integer serCustId, Integer serEventMasterId);
 
+	/**
+	 * Agrees a pending request.
+	 *
+	 * <p>
+	 * This is where a video link is created, if the type asks for one, and
+	 * where the customer is told — a request they made is not news until
+	 * somebody has said yes to it.
+	 */
+	BookingOutcome confirm(Integer serConsultationBookingId);
+
+	/** Declines a pending request, releasing the slot. */
+	BookingOutcome decline(Integer serConsultationBookingId, String reason);
+
+	/** Requests still waiting on somebody, oldest first. */
+	List<ConsultationBooking> awaitingConfirmation();
+
+	/**
+	 * Releases requests nobody answered in time.
+	 *
+	 * @return how many were released
+	 */
+	int releaseLapsedHolds();
+
 	/** Cancels, releasing the slot. */
 	BookingOutcome cancel(Integer serConsultationBookingId, String reason);
 

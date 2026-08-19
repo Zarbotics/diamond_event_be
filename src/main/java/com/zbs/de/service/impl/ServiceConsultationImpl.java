@@ -232,7 +232,26 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 		booking.setTxtNotes(notes);
 		booking.setDteStartsAt(startsAt);
 		booking.setDteEndsAt(endsAt);
-		booking.setTxtStatus(ConsultationBooking.STATUS_BOOKED);
+		/*
+		 * Instant, unless this kind of meeting is set to need agreeing. A
+		 * pending request still holds the slot — the exclusion constraint
+		 * covers PENDING too — because otherwise the team could confirm a
+		 * meeting into a time somebody else took while they were deciding.
+		 */
+		boolean needsConfirming = Boolean.TRUE.equals(type.getBlnRequiresConfirmation());
+		booking.setTxtStatus(needsConfirming
+				? ConsultationBooking.STATUS_PENDING
+				: ConsultationBooking.STATUS_BOOKED);
+		if (needsConfirming) {
+			// And the hold lapses, so one request nobody answers does not take
+			// a slot off sale for good.
+			booking.setDteHoldExpiresAt(Instant.now().plus(Duration.ofHours(
+					type.getNumConfirmationWindowHours() == null
+							? 48
+							: type.getNumConfirmationWindowHours())));
+		} else {
+			booking.setDteConfirmedAt(Instant.now());
+		}
 		booking.setTxtManagementToken(newManagementToken());
 		booking.setTxtExternalSyncStatus(ConsultationBooking.SYNC_PENDING);
 
@@ -294,6 +313,103 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 								: h.getDteLastAssigned()))
 				.map(ConsultationHost::getSerHostId)
 				.orElse(null);
+	}
+
+	// -----------------------------------------------------------------
+	// Confirming
+	// -----------------------------------------------------------------
+
+	@Override
+	@Transactional
+	public BookingOutcome confirm(Integer serConsultationBookingId) {
+		ConsultationBooking booking = repositoryBooking.findById(serConsultationBookingId).orElse(null);
+		if (booking == null) {
+			return BookingOutcome.refused("That request could not be found.");
+		}
+		if (ConsultationBooking.STATUS_BOOKED.equals(booking.getTxtStatus())) {
+			return new BookingOutcome(true, "That consultation was already confirmed.", booking);
+		}
+		if (!booking.isAwaitingConfirmation()) {
+			return BookingOutcome.refused("That request is no longer waiting to be confirmed.");
+		}
+		if (booking.hasLapsed(Instant.now())) {
+			/*
+			 * Answered too late. Refusing rather than confirming is the safe
+			 * side: the slot went back on sale when the hold ran out, and
+			 * somebody else may already have it.
+			 */
+			releaseHold(booking, "The confirmation window ran out.");
+			return BookingOutcome.refused(
+					"That request expired before it was confirmed, and the slot has been released.");
+		}
+
+		booking.setTxtStatus(ConsultationBooking.STATUS_BOOKED);
+		booking.setDteConfirmedAt(Instant.now());
+		booking.setDteHoldExpiresAt(null);
+		booking.setUpdatedDate(Instant.now());
+		repositoryBooking.save(booking);
+
+		/*
+		 * The video link belongs here rather than at request time. A link for a
+		 * meeting nobody has agreed to is a link to nothing, and sending one
+		 * before confirmation tells the customer they have a meeting when they
+		 * have a request. Creating it needs a connected calendar, which is E4 —
+		 * until then the flag is honoured by leaving the field empty rather
+		 * than by pretending.
+		 */
+		LOGGER.info("Consultation {} confirmed", booking.getSerConsultationBookingId());
+		return new BookingOutcome(true, "That consultation has been confirmed.", booking);
+	}
+
+	@Override
+	@Transactional
+	public BookingOutcome decline(Integer serConsultationBookingId, String reason) {
+		ConsultationBooking booking = repositoryBooking.findById(serConsultationBookingId).orElse(null);
+		if (booking == null) {
+			return BookingOutcome.refused("That request could not be found.");
+		}
+		if (!booking.isAwaitingConfirmation()) {
+			return BookingOutcome.refused("That request is no longer waiting to be confirmed.");
+		}
+
+		booking.setTxtStatus(ConsultationBooking.STATUS_DECLINED);
+		booking.setTxtDeclinedReason(reason);
+		booking.setDteHoldExpiresAt(null);
+		booking.setTxtManagementToken(null);
+		booking.setUpdatedDate(Instant.now());
+		repositoryBooking.save(booking);
+
+		LOGGER.info("Consultation request {} declined", booking.getSerConsultationBookingId());
+		return new BookingOutcome(true, "That request has been declined and the slot released.", booking);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ConsultationBooking> awaitingConfirmation() {
+		return repositoryBooking.awaitingConfirmation();
+	}
+
+	@Override
+	@Transactional
+	public int releaseLapsedHolds() {
+		List<ConsultationBooking> lapsed = repositoryBooking.lapsedHolds(Instant.now());
+		for (ConsultationBooking booking : lapsed) {
+			releaseHold(booking, "Nobody confirmed this within the window.");
+		}
+		if (!lapsed.isEmpty()) {
+			LOGGER.info("Released {} consultation holds that ran out", lapsed.size());
+		}
+		return lapsed.size();
+	}
+
+	/** Sends a lapsed request to DECLINED, which puts its slot back on sale. */
+	private void releaseHold(ConsultationBooking booking, String reason) {
+		booking.setTxtStatus(ConsultationBooking.STATUS_DECLINED);
+		booking.setTxtDeclinedReason(reason);
+		booking.setDteHoldExpiresAt(null);
+		booking.setTxtManagementToken(null);
+		booking.setUpdatedDate(Instant.now());
+		repositoryBooking.save(booking);
 	}
 
 	// -----------------------------------------------------------------

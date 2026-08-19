@@ -17,7 +17,12 @@ import com.zbs.de.model.ConsultationBooking;
 public interface RepositoryConsultationBooking extends JpaRepository<ConsultationBooking, Integer> {
 
 	/**
-	 * Live bookings overlapping a window.
+	 * Bookings holding a slot in a window.
+	 *
+	 * <p>
+	 * A pending request counts. It has not been agreed yet, but it is holding
+	 * the time, and offering that time to somebody else would mean the team
+	 * could confirm two meetings into one slot.
 	 *
 	 * <p>
 	 * Overlap, not containment: a meeting that began before the window and runs
@@ -27,7 +32,7 @@ public interface RepositoryConsultationBooking extends JpaRepository<Consultatio
 	@Query("""
 			SELECT b FROM ConsultationBooking b
 			WHERE b.serHostId = :hostId
-			  AND b.txtStatus = 'BOOKED'
+			  AND b.txtStatus IN ('BOOKED', 'PENDING')
 			  AND b.blnIsDeleted = false
 			  AND b.dteStartsAt < :windowEnd
 			  AND b.dteEndsAt   > :windowStart
@@ -37,11 +42,30 @@ public interface RepositoryConsultationBooking extends JpaRepository<Consultatio
 
 	Optional<ConsultationBooking> findByTxtManagementToken(String token);
 
+	/** Requests whose hold has run out, so their slots can go back on sale. */
+	@Query("""
+			SELECT b FROM ConsultationBooking b
+			WHERE b.txtStatus = 'PENDING'
+			  AND b.blnIsDeleted = false
+			  AND b.dteHoldExpiresAt IS NOT NULL
+			  AND b.dteHoldExpiresAt < :now
+			""")
+	List<ConsultationBooking> lapsedHolds(@Param("now") Instant now);
+
+	/** Requests waiting on somebody, oldest first. */
+	@Query("""
+			SELECT b FROM ConsultationBooking b
+			WHERE b.txtStatus = 'PENDING'
+			  AND b.blnIsDeleted = false
+			ORDER BY b.createdDate ASC
+			""")
+	List<ConsultationBooking> awaitingConfirmation();
+
 	/** A customer's live consultation for one event, so a second is not offered. */
 	@Query("""
 			SELECT b FROM ConsultationBooking b
 			WHERE b.serEventMasterId = :eventId
-			  AND b.txtStatus = 'BOOKED'
+			  AND b.txtStatus IN ('BOOKED', 'PENDING')
 			  AND b.blnIsDeleted = false
 			ORDER BY b.dteStartsAt ASC
 			""")

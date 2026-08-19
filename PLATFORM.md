@@ -375,7 +375,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 | Suite | Count | Runs with |
 |---|---|---|
 | Backend unit | 79 | `mvn test` |
-| Backend integration | 30 | `mvn verify` (skips itself without a database) |
+| Backend integration | 38 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 20 | `npm run test:e2e` — desktop and mobile |
 | Admin | 0 | ❌ |
 
@@ -588,7 +588,7 @@ Specified in §12. Requested 19 August 2026.
 | D4 | **Is `menu_component` / `ingredient` a live feature?** Entities, controllers and admin screens exist; no rows anywhere and nothing in the journey uses them. |
 | ~~D6~~ | ~~Who takes consultations, and when?~~ **Answered:** all of it configurable in the admin portal — hosts, hours, meeting lengths, buffers, notice. Nothing hardcoded; seed data is starting data, not defaults. |
 | ~~D7~~ | ~~Google, Microsoft, or both?~~ **Answered:** both, connected per person. Busy read from every connected calendar, consultations written to one nominated calendar. See §12.6. |
-| D8 | **Should a consultation create a Google Meet or Teams link automatically?** Assumed yes. Cheap now, awkward to retrofit. |
+| ~~D8~~ | ~~Automatic Meet/Teams link?~~ **Answered:** yes, and configurable — `blnCreateVideoLink` per consultation type. Created on confirmation, not on request. |
 | D5 | **Should customers pick external suppliers?** Five are seeded and the admin manages them, but the picker is commented out and the step now shows notes and terms instead. If suppliers are not returning, the step should be renamed for what it does. |
 
 ---
@@ -689,6 +689,8 @@ The list is the point of writing this down. Anything unticked is unbuilt.
 | Back-to-back meetings with no gap | ✅ Buffers before and after, counted as busy |
 | Bank holidays | ✅ Availability exceptions, and a closure beats a weekly rule |
 | Customer already has a consultation for this booking | ⬜ Offered the existing one to move, rather than a second |
+| A request is left unanswered | ✅ The hold lapses, the slot returns, and confirming late is refused |
+| Two customers request the same slot before either is confirmed | ✅ `PENDING` holds the slot under the same constraint as `BOOKED` |
 | No slots available at all | ⬜ Says so plainly and offers the contact route — the venue-capacity lesson |
 | Admin manually books over a customer slot | ⬜ Same constraint applies to admin writes |
 | Customer cancels | ✅ Single-use link, slot released. Calendar event removal comes with E4 |
@@ -711,6 +713,41 @@ them — the same constraint as Apple sign-in.
 E1–E3 give a working consultation system with no external dependency at all.
 E4–E5 make the team's existing calendars part of it. Built in that order so
 there is something working before anything depends on a third party.
+
+### 12.5a Requested, or booked outright
+
+Asked for by the business on 19 August: a customer requests a meeting, the team
+confirms it, and the confirmation email carries the link.
+
+**It is a good approach, and it is a setting rather than the only mode.** Both
+Calendly and Cal.com have exactly this — "requires confirmation" — and both
+default it off. Three reasons the default matters:
+
+- A customer who has just finished a fourteen-step journey is at the point of
+  most commitment. "Somebody will confirm this later" is where that goes.
+- Somebody has to act. A request made on a Friday evening waits until Monday.
+- **The slot question.** While a request is pending, is the slot held? If not,
+  the team can confirm a meeting into a time somebody else has since taken. If
+  it is, one request nobody answers takes a slot off sale for good.
+
+So: per consultation type, off by default; a pending request **does** hold its
+slot — the exclusion constraint covers `PENDING` as well as `BOOKED` — and the
+hold **lapses** after a configurable window, which puts the slot back on sale.
+Confirming after the hold has lapsed is refused rather than granted, because by
+then somebody else may have the time.
+
+`DECLINED` is separate from `CANCELLED`. The team saying no and the customer
+pulling out are different events and should not read as the same one in a list.
+
+The video link is created **on confirmation**, which suits both modes: instant
+bookings confirm immediately, requested ones when somebody agrees. A link for a
+meeting nobody has said yes to is a link to nothing.
+
+| Setting (per consultation type) | Default |
+|---|---|
+| `blnRequiresConfirmation` | off — book outright |
+| `numConfirmationWindowHours` | 48 |
+| `blnCreateVideoLink` | on |
 
 ### 12.6 Calendar providers — the approach, and why
 
