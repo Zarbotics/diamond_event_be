@@ -168,9 +168,16 @@ means changing all three.
 40 controllers, roughly 340 endpoints.
 
 **Every endpoint is `POST`**, including reads (`POST /customerMaster/getAllData`).
-Only `/notifications` paginates. Nothing else does, so any list endpoint returns
-every row — fine for a catalogue, not fine for `event_master`, which grows with
-every booking forever.
+
+Pagination is partial. `eventMaster/search`, `customerMaster/search` and
+`/notifications` page properly, each capping the requested size at 250 so a
+client cannot opt out of it. Everything else returns every row — fine for a
+catalogue that grows when someone adds a venue, not fine for anything that
+grows with trade.
+
+*(An earlier version of this section said only `/notifications` paginated.
+That was wrong: `eventMaster/search` already did, with the same cap. Found
+while implementing A1.)*
 
 | Area | Base path |
 |---|---|
@@ -368,7 +375,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 | Suite | Count | Runs with |
 |---|---|---|
 | Backend unit | 60 | `mvn test` |
-| Backend integration | 16 | `mvn verify` (skips itself without a database) |
+| Backend integration | 23 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 20 | `npm run test:e2e` — desktop and mobile |
 | Admin | 0 | ❌ |
 
@@ -436,6 +443,20 @@ test that passes with and without the fix proves nothing.
   buttons around the one date the customer must get right.
 - ✅ **Two-second blocking overlay per step** — ~24 seconds of imposed waiting
   across the journey, with nothing loading.
+
+### Pagination
+- ✅ **The admin's customer table fetched every customer to show ten.** It
+  paged and searched in the browser over the whole table. Invisible at fifty
+  customers; the kind of thing that stops working all at once rather than
+  gradually. `customerMaster/search` now pages server-side, capped at 250 —
+  paging a client can opt out of by asking for a million rows is not paging,
+  and that is the assertion the test leans on hardest.
+- ✅ **A search box, because paging without one is a step backwards.** Ten rows
+  at a time and no way to reach someone on page ninety is worse than what was
+  there before. The query matches name, code, email and phone; the input is
+  debounced and resets to page one, since page five of the previous results
+  almost never exists in the new ones and an empty table reads as "no such
+  customer" when it means "no such page".
 
 ### Venue step
 - ✅ **A room too small looked identical to one that fits**, and refused on
@@ -515,7 +536,8 @@ Ordered by what actually costs the business the most.
 
 | # | Item | Status | Why |
 |---|---|---|---|
-| A1 | Pagination on `event_master` and `customer_master` | ⬜ | These grow forever. Every list endpoint returns every row. First real client with a few thousand bookings meets a wall. Additive; no breaking change. |
+| ~~A1~~ | ~~Pagination on `event_master` and `customer_master`~~ | ✅ | Both done. `event_master` already had it; `customer_master` now does, end to end. See §9. |
+| A1b | `eventMaster/getAllData` still returns every event | ⬜ | Maps each to a full `DtoEventMaster` — roughly 8KB apiece with menu, running order and budget. The heaviest unbounded read left. |
 | A2 | Optimistic locking on `EventMaster` | ⬜ | Admin and customer can edit the same booking; last writer wins silently. |
 | A3 | Database constraint behind date availability | ⬜ | The race is currently caught in application code only. |
 | ~~A4~~ | ~~File upload validation~~ | ✅ | Done, and it was worse than the row said — see §9. |

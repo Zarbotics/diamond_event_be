@@ -5,12 +5,16 @@ import java.util.List;
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.dto.DtoCustomerMasterDropDown;
 import com.zbs.de.model.dto.DtoCustomerMaster;
+import com.zbs.de.model.dto.DtoSearch;
+import org.springframework.data.domain.Page;
 import com.zbs.de.model.dto.DtoDashboardCustomer;
 import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.util.ResponseMessage;
 
 public interface ServiceCustomerMaster {
 	List<DtoCustomerMaster> getAllData();
+
+	Page<DtoCustomerMaster> search(DtoSearch dtoSearch);
 	ResponseMessage saveAndUpdate(DtoCustomerMaster dtoCustomerMaster);
 	ResponseMessage getById(Integer id);
 	DtoResult getByEmail(String txtEmail);

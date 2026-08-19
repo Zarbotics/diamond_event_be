@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zbs.de.config.security.AccessGuard;
@@ -57,6 +58,23 @@ public class ControllerCustomerMaster {
 	 * @return the all data
 	 * @throws Exception the exception
 	 */
+	/**
+	 * One page of customers, for the admin's customer table.
+	 *
+	 * <p>
+	 * {@code /getAllData} below returns every customer, and the table used it to
+	 * show ten rows. This is the same list with the paging done where the data
+	 * is, rather than in the browser after all of it has crossed the wire.
+	 */
+	@PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage search(@RequestBody(required = false) DtoSearch dtoSearch) {
+		DtoSearch criteria = dtoSearch != null ? dtoSearch : new DtoSearch();
+		LOGGER.info("Searching customers: page {} size {}", criteria.getPageNumber(), criteria.getPageSize());
+
+		Page<DtoCustomerMaster> page = serviceCustomerMaster.search(criteria);
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "GET ALL CUSTOMERS", page);
+	}
+
 	@RequestMapping(value = "/getAllData", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, headers = "Accept=application/json")
 	public ResponseMessage getAllData(HttpServletRequest request) throws Exception {
 		LOGGER.info("Search ItemClassAccountSetup Method");

@@ -23,6 +23,11 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import com.zbs.de.model.dto.DtoSearch;
 import org.springframework.stereotype.Service;
 
 @Service("serviceCustomerMaster")
@@ -41,7 +46,45 @@ public class ServiceCustomerMasterImpl implements ServiceCustomerMaster {
 	private ServiceCityMaster serviceCityMaster;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCustomerMasterImpl.class);
+
+	private static final int DEFAULT_PAGE_SIZE = 20;
+	private static final int MAX_PAGE_SIZE = 250;
 	
+	/**
+	 * One page of customers.
+	 *
+	 * <p>
+	 * {@link #getAllData()} below returns every customer the business has ever
+	 * had. The admin's customer table called it to render ten rows at a time and
+	 * paginated the rest away in the browser, so every visit to that screen
+	 * transferred and mapped the whole table to show a tenth of a percent of it.
+	 * That is invisible at fifty customers and fatal well before the number a
+	 * growing business wants to reach.
+	 *
+	 * <p>
+	 * The size is capped rather than trusted: a client asking for a million rows
+	 * is either mistaken or malicious, and the cap is what stops one request
+	 * being a denial of service. The same 250 that eventMaster/search uses, so
+	 * the two behave alike.
+	 */
+	@Override
+	public Page<DtoCustomerMaster> search(DtoSearch dtoSearch) {
+		int page = dtoSearch != null && dtoSearch.getPageNumber() != null && dtoSearch.getPageNumber() >= 0
+				? dtoSearch.getPageNumber()
+				: 0;
+		int size = dtoSearch != null && dtoSearch.getPageSize() != null && dtoSearch.getPageSize() > 0
+				? Math.min(dtoSearch.getPageSize(), MAX_PAGE_SIZE)
+				: DEFAULT_PAGE_SIZE;
+
+		String term = dtoSearch != null ? dtoSearch.getSearchKeyword() : null;
+
+		Pageable pageable = PageRequest.of(page, size,
+				Sort.by(Sort.Direction.DESC, "serCustId"));
+
+		return repositoryCustomerMaster.search(term, pageable)
+				.map(MapperCustomerMaster::toDto);
+	}
+
 	public List<DtoCustomerMaster> getAllData() {
 		List<CustomerMaster> list = repositoryCustomerMaster.findByBlnIsDeleted(false);
 		List<DtoCustomerMaster> dtolist = new ArrayList<>();
