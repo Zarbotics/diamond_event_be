@@ -18,7 +18,23 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsGlobalConfig {
 
-	@Value("${app.cors.allowed-origins}")
+	/*
+	 * The default is here as well as in application.properties, deliberately.
+	 *
+	 * These four properties — this one and the three frontend URLs — live only
+	 * in the base application.properties. Anyone running with their own
+	 * properties file, which is the normal way to hold local credentials, gets
+	 * them from the base layered underneath. When that layering does not happen
+	 * the application refused to start, four times in a row, each time naming
+	 * one property and saying nothing about why a file full of settings had
+	 * stopped being read.
+	 *
+	 * A development default turns that into an application that starts and
+	 * works on localhost. It is safe to have one because production cannot
+	 * inherit it: ProductionConfigCheck refuses to start when the allowed
+	 * origins still mention localhost, and there is a test for that.
+	 */
+	@Value("${app.cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5175,http://127.0.0.1:5175,http://localhost:3000,http://127.0.0.1:3000}")
 	private String[] allowedOrigins;
 
 	@Bean

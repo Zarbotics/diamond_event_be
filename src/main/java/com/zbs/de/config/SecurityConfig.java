@@ -61,7 +61,7 @@ public class SecurityConfig {
 	@Autowired
 	private UnconfiguredProviderFilter unconfiguredProviderFilter;
 
-	@Value("${app.frontend.logout-redirect-url}")
+	@Value("${app.frontend.logout-redirect-url:http://localhost:5173/client-journey}")
 	private String logoutRedirectUrl;
 
 	@Bean

@@ -29,11 +29,11 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 	private final SsoHandoffService ssoHandoffService;
 
 	/** Where a customer lands after signing in. Configured, not compiled in. */
-	@Value("${app.frontend.base-url}")
+	@Value("${app.frontend.base-url:http://localhost:5173}")
 	private String clientBaseUrl;
 
 	/** Where a member of staff lands after signing in. */
-	@Value("${app.frontend.admin-url}")
+	@Value("${app.frontend.admin-url:http://localhost:3000}")
 	private String adminBaseUrl;
 
 	public CustomOAuth2SuccessHandler(RepositoryUserMaster userRepo, JwtTokenUtil jwtUtil,
