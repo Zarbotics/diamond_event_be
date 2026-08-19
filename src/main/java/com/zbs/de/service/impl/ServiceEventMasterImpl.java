@@ -74,6 +74,7 @@ import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
 import com.zbs.de.model.dto.menu.DtoCustomerMenuSubCategory;
+import com.zbs.de.repository.RepositoryEventDateLock;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
@@ -106,6 +107,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private RepositoryEventMaster repositoryEventMaster;
+
+	@Autowired
+	private RepositoryEventDateLock repositoryEventDateLock;
 
 	@Autowired
 	private RepositoryEventRunningOrder repositoryEventRunningOrder;
@@ -5309,6 +5313,24 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		    return new DtoEventBookingValidationResult(false, "Same-day booking is not allowed");
 		}
 		
+		/*
+		 * Nobody else may be counting this date while we are.
+		 *
+		 * How many events a day can hold is a counting rule, so the check is
+		 * "count what is there, then insert" — and between those two steps a
+		 * second request can do exactly the same thing. Both count one, both see
+		 * room, both insert, and the day ends up over capacity. Neither customer
+		 * did anything wrong and nothing in the log says what happened; the team
+		 * finds out when they try to staff it.
+		 *
+		 * The lock is held to the end of the surrounding transaction and only
+		 * ever contends with another booking for the same day, so two customers
+		 * booking different dates never meet. Every caller of this method reaches
+		 * it, which is why the lock is here rather than at the six call sites —
+		 * one of those would eventually be added without it.
+		 */
+		repositoryEventDateLock.lockForBooking(newStart);
+
 		// Get current count on NEW date (excluding current event if update)
 		int newDateCount = repositoryEventMaster.countEventsOnDate(newStart, newEnd, eventId);
 
