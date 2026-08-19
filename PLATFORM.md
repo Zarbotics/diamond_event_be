@@ -374,10 +374,10 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 
 | Suite | Count | Runs with |
 |---|---|---|
-| Backend unit | 79 | `mvn test` |
-| Backend integration | 38 | `mvn verify` (skips itself without a database) |
+| Backend unit | 83 | `mvn test` |
+| Backend integration | 68 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 26 | `npm run test:e2e` — desktop and mobile |
-| Admin | 0 | ❌ |
+| Admin portal | 0 | ❌ — C4 |
 
 The end-to-end tests write real bookings and must be pointed at a development
 database. They found faults no unit test could: a Save button that saved and
@@ -585,9 +585,9 @@ Specified in §12. Requested 19 August 2026.
 
 | # | Item | Status |
 |---|---|---|
-| E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Done — 19 unit + 7 integration tests |
+| E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Done — 21 unit + 15 integration tests |
 | E2 | Customer books a consultation at the end of the journey | ✅ Calendly removed; 3 tests, desktop and mobile |
-| E3 | Admin: hosts, availability, meeting types, pending queue | 🔨 In progress |
+| E3 | Admin: hosts, availability, meeting types, pending queue, manual booking | ✅ Done — 25 backend integration tests, 4 screens |
 | E4 | Google and Microsoft calendar sync behind one provider port | ⬜ Approach decided — §12.6 |
 | E5 | Admin: connect accounts, choose calendar, sync health | ⬜ |
 
@@ -678,7 +678,7 @@ reaches the database or a backup of it.
 | `CalendarConnection` | One host's connected Google or Microsoft account: provider, account email, selected calendar, encrypted tokens, sync state. |
 | `AvailabilityRule` | Recurring weekly availability — day, start, end, per host. |
 | `AvailabilityException` | A one-off: a bank holiday closed, a Saturday opened. |
-| `ConsultationType` | Duration, buffer before and after, minimum notice, how far ahead bookings are allowed, and where it happens. |
+| `ConsultationType` | Duration, the interval start times are offered on, buffer before and after, minimum notice, how far ahead bookings are allowed, where it happens, whether it needs confirming, and whether confirming makes a video link. |
 | `ConsultationBooking` | The meeting. Host, customer, optional `EventMaster`, start and end in UTC, status, the external calendar event it created, and a single-use token for the customer's cancel/reschedule link. |
 | `ExternalBusyBlock` | Busy periods imported from a connected calendar, so a host's own meetings block slots without this system reading what those meetings are. |
 
@@ -719,13 +719,77 @@ them — the same constraint as Apple sign-in.
 |---|---|---|
 | **E1** | Domain, availability rules, slot generation, booking with the exclusion constraint | ✅ Fully |
 | **E2** | Customer-facing booking at the end of the journey, replacing the Calendly widget | ✅ Fully, end to end |
-| **E3** | Admin: hosts, availability, view and manually add bookings | ✅ Fully |
+| **E3** | Admin: hosts, availability, meeting types, request queue, manual booking | ✅ Fully |
 | **E4** | `CalendarProvider` port, Google and Microsoft adapters, busy import and event push | 🟡 Against a fake provider only — the adapters need real credentials to prove |
 | **E5** | Admin: connect and disconnect accounts, choose calendar, sync health | 🟡 UI and flow yes; the OAuth round trip needs credentials |
 
 E1–E3 give a working consultation system with no external dependency at all.
 E4–E5 make the team's existing calendars part of it. Built in that order so
 there is something working before anything depends on a third party.
+
+#### What E3 actually built
+
+Four screens under **Consultations** in the admin portal, ordered by how often
+they are used rather than by how the data is shaped:
+
+| Screen | What it is for | Who opens it |
+|---|---|---|
+| **Diary** | Every consultation, filtered by person, status and date. Paged on the server — it is the only table here that grows without limit. Cancelling from it releases the slot. | Daily |
+| **Requests** | Requests waiting on somebody, with how long the hold has left. Confirm or decline, with a reason. | Daily |
+| **Who takes them** | Add and remove people, set which zone they work in, and open their working hours. | On a change |
+| **Kinds of meeting** | Length, interval, buffers, notice, how far ahead, whether it needs confirming, how long a request is held, and whether confirming makes a video link. | On a change |
+
+Everything the business asked to be configurable is on those last two screens.
+Nothing about consultations is a constant in the code any more.
+
+Removing somebody with meetings in the diary is refused rather than cascaded,
+and the refusal says how many — customers would otherwise hold an appointment
+with nobody and find out on the day. Booking by hand goes through the same
+service as a customer booking, so the double-booking constraint applies to it
+too; an admin path that bypassed it would have been the one way to double-book.
+
+#### Three bugs E3's tests found
+
+Worth recording because none of them would have shown up in ordinary use until
+somebody depended on them.
+
+1. **A one-off opening did nothing for a host with no weekly hours.** The slot
+   finder gave up the instant the rules list was empty, so "we are not normally
+   available, but we are open this Saturday for the wedding fair" saved
+   correctly and produced an empty calendar, with nothing anywhere saying why.
+   Every existing test of openings happened to pass a weekly rule as well,
+   which is what hid it.
+
+2. **The diary query failed outright on PostgreSQL.** Absent date filters were
+   written `:from IS NULL`; a parameter that appears only inside a null check
+   has no type to infer, so PostgreSQL answered "could not determine data type
+   of parameter $5" and the screen 500'd. The id and status filters get away
+   with the same shape because their types come from the columns they are
+   compared against. Absent bounds are now widened to ones that exclude nothing.
+
+3. **The interval between offered times was a constant.** `SLOT_STEP_MINUTES =
+   30` meant an hour-long meeting was always offered on the hour and the half
+   hour. It is a column on the meeting type now. It is deliberately *not* the
+   same as the duration: a 60-minute meeting on a 30-minute interval is offered
+   at 09:00, 09:30, 10:00 — overlapping candidates, of which booking one
+   removes its neighbours. That is why an empty three-hour morning offers five
+   hour-long starts and not three, and it is the thing that confuses everybody
+   the first time, so the portal spells it out on the field.
+
+#### Access, and how it is proved
+
+Everything under `/admin/consultation` is administrator-only because the
+security policy is default-deny. `/admin` is **not** a protected prefix in
+itself — several menu reads live under `/admin/menu` and are on the customer
+allowlist — so what keeps these closed is being absent from that list, not the
+path they sit on.
+
+That is asserted twice, deliberately. `PortalEndpointPolicyTest` checks the
+rule; `ConsultationAccessIT` drives all sixteen endpoints over HTTP with real
+signed tokens and checks the filter chain enforces it: 401 anonymous, 403 for a
+signed-in customer, 200 for an administrator. The middle one is the case worth
+the test — a customer holds a perfectly valid token, so authentication settles
+nothing, and a slip there means reading every other customer's consultations.
 
 ### 12.5a Requested, or booked outright
 
