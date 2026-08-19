@@ -31,6 +31,10 @@ public final class PortalEndpoints {
 			"/auth/**",
 			"/login/**", "/oauth2/**",
 			"/deimg/**", "/deimg",
+			// Cancelling from the link in a confirmation email. The customer may
+			// not be signed in — they may not have an account at all — so the
+			// unguessable single-use token is what authorises it.
+			"/consultation/cancel",
 			"/public/**",
 			"/actuator/health", "/actuator/health/**",
 	};
@@ -54,6 +58,10 @@ public final class PortalEndpoints {
 			"/admin/menu/getCateringMenu",
 			"/admin/menu/getMenuWithPrices",
 			"/admin/menu/getCateringMenuWithPricing",
+			// What consultations are on offer and when. Reference data: no
+			// customer's details are readable through either.
+			"/consultation/types",
+			"/consultation/slots",
 	};
 
 	/**
@@ -72,6 +80,12 @@ public final class PortalEndpoints {
 			"/eventMaster/isDateAlreadyBooked",
 			"/cateringDelivery/getByCustomerId",
 			"/cateringDelivery/saveOrUpdate",
+			// Booking a consultation and looking up the one attached to an
+			// event. Cancellation is not here: it is reached from a link in an
+			// email, by a customer who may well not be signed in, and is
+			// authorised by the single-use token instead.
+			"/consultation/book",
+			"/consultation/forEvent",
 			// Single-segment wildcard for the {eventId} path variable. Ownership of that
 			// event is asserted in ControllerReport. The other report endpoints
 			// (/report/event/*, /report/kitchen_itinerary/*) are deliberately absent and

@@ -416,3 +416,84 @@ COMMIT;
 SELECT r.txt_name AS level, count(mi.*) AS items
 FROM menu_item_role r LEFT JOIN menu_item mi ON mi.ser_menu_item_role_id = r.ser_menu_item_role_id
 GROUP BY r.txt_name, r.ser_menu_item_role_id ORDER BY r.ser_menu_item_role_id;
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- Consultations
+-- ═══════════════════════════════════════════════════════════════════════
+--
+-- Starting data, not defaults. Every value here is editable in the admin
+-- portal — hosts, hours, meeting lengths, buffers, notice — and the point of
+-- seeding is that a fresh checkout has something to book, not that these are
+-- the settings the business should use.
+--
+-- Two hosts on purpose: one host makes round-robin assignment untestable, and
+-- the second one having different hours is how you notice that slots are
+-- worked out per person rather than for the company.
+
+BEGIN;
+
+INSERT INTO consultation_host (txt_display_name, txt_email, txt_time_zone, bln_is_active, bln_is_deleted)
+SELECT * FROM (VALUES
+    ('Amina Rahman', 'amina@diamondevents.example', 'Europe/London', true, false),
+    ('Tom Whitfield', 'tom@diamondevents.example', 'Europe/London', true, false)
+) AS v(name, email, zone, active, deleted)
+WHERE NOT EXISTS (SELECT 1 FROM consultation_host WHERE lower(txt_email) = lower(v.email));
+
+INSERT INTO consultation_type (
+    txt_name, txt_description, num_duration_minutes,
+    num_buffer_before_minutes, num_buffer_after_minutes,
+    num_minimum_notice_hours, num_maximum_advance_days,
+    txt_location_kind, bln_requires_confirmation, bln_create_video_link,
+    num_confirmation_window_hours, bln_is_active, bln_is_deleted)
+SELECT * FROM (VALUES
+    -- Books outright: the customer has just finished the journey and should
+    -- leave with a time, not a maybe.
+    ('Initial consultation',
+     'A first conversation about your event — the detail, the pricing and what happens next.',
+     45, 0, 15, 24, 90, 'VIDEO', false, true, 48, true, false),
+    -- Needs agreeing: somebody has to be free to travel, so the team decides.
+    ('Venue visit',
+     'Meet us at the venue to walk the room and talk through the layout.',
+     60, 30, 30, 72, 90, 'IN_PERSON', true, false, 48, true, false)
+) AS v(name, descr, mins, bb, ba, notice, advance, kind, confirm, video, confirm_window, active, deleted)
+WHERE NOT EXISTS (SELECT 1 FROM consultation_type WHERE txt_name = v.name);
+
+-- Amina: Monday to Friday, 09:00-17:00 with an hour for lunch.
+INSERT INTO consultation_availability_rule (ser_host_id, num_day_of_week, tme_start_time, tme_end_time, bln_is_deleted)
+SELECT h.ser_host_id, d.day, t.starts, t.ends, false
+FROM consultation_host h
+CROSS JOIN (VALUES (1), (2), (3), (4), (5)) AS d(day)
+CROSS JOIN (VALUES ('09:00'::time, '13:00'::time), ('14:00'::time, '17:00'::time)) AS t(starts, ends)
+WHERE lower(h.txt_email) = 'amina@diamondevents.example'
+  AND NOT EXISTS (
+      SELECT 1 FROM consultation_availability_rule r
+      WHERE r.ser_host_id = h.ser_host_id AND r.num_day_of_week = d.day AND r.tme_start_time = t.starts);
+
+-- Tom: afternoons only, and Saturdays — deliberately different, so anything
+-- that quietly assumes one shared calendar shows up straight away.
+INSERT INTO consultation_availability_rule (ser_host_id, num_day_of_week, tme_start_time, tme_end_time, bln_is_deleted)
+SELECT h.ser_host_id, d.day, '13:00'::time, '18:00'::time, false
+FROM consultation_host h
+CROSS JOIN (VALUES (2), (4), (6)) AS d(day)
+WHERE lower(h.txt_email) = 'tom@diamondevents.example'
+  AND NOT EXISTS (
+      SELECT 1 FROM consultation_availability_rule r
+      WHERE r.ser_host_id = h.ser_host_id AND r.num_day_of_week = d.day);
+
+-- Christmas, as an example of a closure. Bank holidays are managed in the
+-- portal; this is here so the exception path has something in it.
+INSERT INTO consultation_availability_exception (ser_host_id, dte_on_date, bln_is_available, txt_reason, bln_is_deleted)
+SELECT h.ser_host_id, d.on_date, false, 'Closed', false
+FROM consultation_host h
+CROSS JOIN (VALUES ('2026-12-25'::date), ('2026-12-26'::date), ('2027-01-01'::date)) AS d(on_date)
+WHERE h.bln_is_deleted = false
+  AND NOT EXISTS (
+      SELECT 1 FROM consultation_availability_exception e
+      WHERE e.ser_host_id = h.ser_host_id AND e.dte_on_date = d.on_date);
+
+COMMIT;
+
+SELECT h.txt_display_name AS host, count(r.*) AS availability_rules
+FROM consultation_host h
+LEFT JOIN consultation_availability_rule r ON r.ser_host_id = h.ser_host_id
+GROUP BY h.txt_display_name, h.ser_host_id ORDER BY h.ser_host_id;

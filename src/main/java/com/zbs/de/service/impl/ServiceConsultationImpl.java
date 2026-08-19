@@ -200,7 +200,14 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 
 		Integer hostId = serHostId != null ? serHostId : chooseHost(type, startsAt);
 		if (hostId == null) {
-			return BookingOutcome.refused("Nobody is available at that time.");
+			/*
+			 * Either somebody took it, or nobody works then. The customer only
+			 * ever presses a slot that was offered to them, so from where they
+			 * are standing those are the same event and neither is their fault.
+			 * Saying "nobody is available" about a time we had just displayed
+			 * reads as though the list was lying.
+			 */
+			return BookingOutcome.taken();
 		}
 
 		ConsultationHost host = repositoryHost.findBySerHostIdAndBlnIsDeletedFalse(hostId).orElse(null);
