@@ -374,7 +374,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 
 | Suite | Count | Runs with |
 |---|---|---|
-| Backend unit | 83 | `mvn test` |
+| Backend unit | 114 | `mvn test` |
 | Backend integration | 88 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 34 | `npm run test:e2e` — desktop and mobile |
 | Admin portal | 0 | ❌ — C4 |
@@ -591,7 +591,7 @@ Specified in §12. Requested 19 August 2026.
 | E3 | Admin: hosts, availability, meeting types, pending queue, manual booking | ✅ Done — 25 backend integration tests, 4 screens |
 | E3b | Consultation emails, and the page the cancel link opens | ✅ Done — 12 integration + 4 end-to-end tests |
 | E4a | `CalendarProvider` port, write-target rule, video link on confirmation | ✅ Done — 8 integration tests against a stand-in provider |
-| E4b | The Google and Microsoft adapters themselves | ⬜ Needs real credentials — see §12.7 |
+| E4b | The Google and Microsoft adapters, and token encryption | ✅ Written and tested up to the socket; needs credentials to run against the real thing |
 | E5 | Admin: connect accounts, choose calendar, sync health | ⬜ |
 
 ### D. Blocked on a business decision ❓
@@ -728,7 +728,7 @@ them — the same constraint as Apple sign-in.
 | **E2** | Customer-facing booking at the end of the journey, replacing the Calendly widget | ✅ Fully, end to end |
 | **E3** | Admin: hosts, availability, meeting types, request queue, manual booking | ✅ Fully |
 | **E4a** | `CalendarProvider` port, write-target rule, video link on confirmation | ✅ Fully, against a stand-in provider |
-| **E4b** | The Google and Microsoft adapters behind that port | 🟡 Needs real credentials to prove |
+| **E4b** | The Google and Microsoft adapters, and encryption of the stored tokens | 🟡 Everything on this side of the socket; the round trip needs credentials |
 | **E5** | Admin: connect and disconnect accounts, choose calendar, sync health | 🟡 UI and flow yes; the OAuth round trip needs credentials |
 
 E1–E3 give a working consultation system with no external dependency at all.
@@ -971,6 +971,50 @@ Microsoft's Graph subscriptions both tell us when something changes, which
 beats asking every few minutes. Both need a public HTTPS endpoint to call, so
 polling stays as the fallback for development and for when a subscription
 lapses.
+
+#### E4b: the adapters, and what "needs credentials" actually means
+
+Both adapters are written. What cannot be done here is run them against the
+real Google and Microsoft — that needs an account, a consent screen and a
+person to click through it. Everything on this side of the socket is tested:
+the request that would go out, and the reading of a response shaped like
+theirs.
+
+That is not a token gesture, because most of what goes wrong with these
+integrations is on this side. Each of the following is a real failure of this
+kind and each is now pinned by a test:
+
+- **`conferenceDataVersion=1` missing** — the call succeeds, the event appears,
+  and there is simply no Meet link. A silent no-op that reads as Google ignoring
+  the request.
+- **A time sent to Graph without its zone** — interpreted in the mailbox's own
+  zone, moving every consultation by that offset, silently.
+- **A rotated Microsoft refresh token discarded** — everything works for a
+  fortnight, then every connection fails together when the original expires,
+  long after the change that caused it.
+- **A Google per-calendar error inside a 200** — a deleted or unshared calendar
+  comes back as an `errors` array, not an HTTP failure. Read as an empty busy
+  list it means "free all week", and the system starts offering times the host
+  is committed to.
+
+**Token encryption.** The schema had said `txt_refresh_token_encrypted` since
+V6; nothing made that true until now. It matters more than encryption at rest
+usually does: a refresh token is not a password that expires or a session that
+ends, it is a standing grant to read and write the whole team's calendars until
+somebody revokes it. AES-GCM, a fresh IV per value, and — deliberately — **no
+key means refusing to store rather than storing in the clear**. The tempting
+fallback turns a missing setting into a silent permanent leak that nothing ever
+reports.
+
+**One bug the tests caught.** `@ConditionalOnProperty` was the obvious way to
+register an adapter only when configured, and it was wrong: it matches a
+property that *exists*, and an empty one exists, because
+`application.properties` declares every calendar setting with an empty default
+so the application starts without them. Both adapters registered on every
+installation — present and failing on use, where the entire design is that an
+unconfigured provider is *absent*. It surfaced as two adapters both claiming to
+be Google; without that collision it would have reached production as
+consultations failing to sync on a system nobody had connected anything to.
 
 ### 12.7 What this needs from the business
 

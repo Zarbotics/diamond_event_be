@@ -198,7 +198,22 @@ public class ServiceCalendarSync {
 	}
 
 	private Optional<CalendarProvider> providerFor(String name) {
-		return providers.stream().filter(p -> p.name().equals(name)).findFirst();
+		List<CalendarProvider> matching = providers.stream()
+				.filter(p -> p.name().equals(name))
+				.toList();
+
+		if (matching.size() > 1) {
+			/*
+			 * Two adapters claiming the same provider means whichever the bean
+			 * ordering happens to put first wins, and that ordering is not
+			 * something to rely on. Refusing is better than writing somebody's
+			 * consultation to an arbitrary one of two Googles.
+			 */
+			throw new IllegalStateException(
+					"More than one calendar adapter claims to be " + name
+							+ ". Exactly one bean may return that from name().");
+		}
+		return matching.stream().findFirst();
 	}
 
 	private void markSync(ConsultationBooking booking, String status, String error) {
