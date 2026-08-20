@@ -195,6 +195,44 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			return dtoResult;
 		}
 
+		/*
+		 * How many events the day can hold, checked here as it is on every other
+		 * path that writes an event date.
+		 *
+		 * This method used to skip it entirely, and it is reachable — it is what
+		 * /eventMaster/saveOrUpdate calls. Production shows the result: three
+		 * events on Friday 1 May 2026, on a day that holds two, created days
+		 * apart rather than in one race. Every other save path asked; this one
+		 * never did.
+		 *
+		 * Placed before the branch rather than inside it because both halves
+		 * write a date — the update branch by hand, the create branch through
+		 * MapperEventMaster.toEntity — and a check in one of them would leave the
+		 * other exactly as it was.
+		 *
+		 * Existing over-capacity days stay editable, which matters for the rows
+		 * already in production: countEventsOnDate excludes the event being
+		 * edited, the count is only incremented when the date actually changes,
+		 * and the comparison is strictly greater. So saving one of those three
+		 * without moving it counts two against a limit of two and is allowed.
+		 * Moving another event onto that day is not.
+		 */
+		Date requestedDate = UtilDateAndTime.ddmmyyyyStringToDate(dtoEventMaster.getDteEventDate());
+		if (requestedDate != null) {
+			DtoEventBookingValidationResult bookingValidation = this.canBookEvent(
+					requestedDate,
+					optionalExisting.map(EventMaster::getDteEventDate).orElse(null),
+					optionalExisting.map(EventMaster::getSerEventMasterId).orElse(null));
+
+			if (!bookingValidation.isAllowed()) {
+				// "already_booked" is the message the frontends already switch on
+				// for a refused date; the readable reason travels in the result.
+				dtoResult.setTxtMessage("already_booked");
+				dtoResult.setResult(bookingValidation.getMessage());
+				return dtoResult;
+			}
+		}
+
 		EventMaster entity;
 
 		if (optionalExisting.isPresent()) {

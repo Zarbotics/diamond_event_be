@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,6 +48,26 @@ import org.springframework.test.context.TestPropertySource;
 		"server.ssl.enabled=false",
 })
 class FlywayBaselineStampIT {
+
+	/*
+	 * Static and before anything else, so that a machine with no database skips
+	 * this class rather than failing to load the context. Every other
+	 * integration test in the suite does the same; this one only guarded inside
+	 * connect(), which is far too late — the context is built first.
+	 */
+	@BeforeAll
+	static void requireDatabase() {
+		String url = System.getenv().getOrDefault("TEST_DB_URL",
+				"jdbc:postgresql://localhost:5432/diamond_ev_test");
+		String user = System.getenv().getOrDefault("TEST_DB_USERNAME", "postgres");
+		String password = System.getenv().getOrDefault("TEST_DB_PASSWORD", "postgres");
+
+		try (Connection ignored = DriverManager.getConnection(url, user, password)) {
+			// reachable
+		} catch (Exception e) {
+			Assumptions.abort("No test database at " + url + " — skipping. (" + e.getMessage() + ")");
+		}
+	}
 
 	private Connection connect() throws Exception {
 		String url = System.getenv().getOrDefault("TEST_DB_URL",

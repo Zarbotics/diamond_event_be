@@ -374,7 +374,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 
 | Suite | Count | Runs with |
 |---|---|---|
-| Backend unit | 122 | `mvn test` |
+| Backend unit | 124 | `mvn test` |
 | Backend integration | 90 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 42 | `npm run test:e2e` — desktop and mobile |
 | Admin portal | 0 | ❌ — C4 |
@@ -553,7 +553,7 @@ Ordered by what actually costs the business the most.
 | A1b | **`eventMaster/getAllDataAdminPortal` returns every event, in full, on every page load** | ⬜ | **Measured on the development database: 624 KB, 296 events, 60 fields each** — including the nested `foodSelections`, `extrasSelections`, `dtoEventDecorSelections` and `dtoEventRunningOrder` collections. This is what the admin Events grid calls, unbounded, every time it opens. 296 events is a development database; a few years of real trading is thousands, and this grows linearly with all of them. `eventMaster/search` is already paginated — the grid should use it. Same class as A8b, and the same fix: a summary for the list, the full event only when one is opened. |
 | A2 | Optimistic locking on `EventMaster` | ⬜ | Admin and customer can edit the same booking; last writer wins silently. |
 | ~~A3~~ | ~~Database constraint behind date availability~~ | ✅ | **Not a constraint — it could not be one.** How many events a day holds is a *count* (two, or three on a Sunday unless the Monday is used), and a constraint cannot count. It is an advisory lock on the day instead, taken inside `canBookEvent` so all six call sites get it. Proved by racing two real transactions: without the lock both customers are told they have the last place and the day ends with three events; with it, exactly one wins. A second test asserts two *different* days still do not contend, because a lock that serialised the whole journey would pass the first test and be far worse. |
-| A3b | **One save path writes the event date without ever checking capacity** ❓ | ⬜ | `saveAndUpdate` (reached by `/eventMaster/saveOrUpdate`) sets `dteEventDate` and never calls `canBookEvent`; the other three save paths all do. **Production shows the effect**: three events on Friday 1 May 2026, on a day that holds two — created 22nd, 23rd and 25th April, so days apart rather than a race. The endpoint is administrator-only, which is why this is a **question rather than a bug**: an administrator squeezing in a third event may be exactly what the business wants, and the pattern here looks deliberate rather than accidental. Enforcing the cap on that path without asking would break how the team works. **Needs an answer: is the capacity a hard limit, or a default an administrator may override?** If hard, the fix is a database trigger so no path can skip it — but existing over-capacity rows would have to be grandfathered or corrected first. |
+| ~~A3b~~ | ~~One save path writes the event date without ever checking capacity~~ | ✅ | **Answered by the business: the capacity is a hard limit and `canBookEvent` must run wherever an event is created.** `saveAndUpdate` now checks, before the create/update branch rather than inside it — both halves write a date, the update branch directly and the create branch through `MapperEventMaster.toEntity`, so a check in one would have left the other exactly as it was. Existing over-capacity days stay editable, which matters for the rows already in production: the count excludes the event being edited, is only incremented when the date actually changes, and the comparison is strictly greater — so saving one of those three without moving it is allowed, while moving a fourth onto that day is not. |
 | ~~A4~~ | ~~File upload validation~~ | ✅ | Done, and it was worse than the row said — see §9. |
 | ~~A5~~ | ~~Guest count bounds~~ | ✅ | My row was wrong: 0 guests **is** validated. The real gap was the upper end, and it was a dead-end screen rather than a missing bound. See §9. |
 | A5b | Upper bound on the event date | ⬜ | The year stepper goes forward indefinitely. Low priority — a booking three years out may well be legitimate, so this needs a business answer before a number. |
@@ -612,6 +612,62 @@ Specified in §12. Requested 19 August 2026.
 | D5 | **Should customers pick external suppliers?** Five are seeded and the admin manages them, but the picker is commented out and the step now shows notes and terms instead. If suppliers are not returning, the step should be renamed for what it does. |
 
 ---
+
+---
+
+## 14. The capacity rule, and making it unforgettable
+
+**Status:** done. Was A3/A3b in §10.
+
+### The rule
+
+Two events on an ordinary day. Three on a Sunday, unless the Monday after it is
+used, in which case two. A Monday is closed entirely if its Sunday has three. No
+same-day booking. The business confirmed it is a **hard limit**, not a default
+an administrator may override.
+
+### Two separate failures, found together
+
+**The race.** How many events a day holds is a *count*, and counting rules
+cannot be a constraint — there is no row to collide with, only a total to
+exceed. So the check is "count what is there, then insert", and between those
+two steps a second request does the same thing. Both count one, both see room,
+both insert. Fixed with an advisory lock on the day, taken inside
+`canBookEvent` so all six call sites get it. Proved by racing two real
+transactions and then removing the lock to watch both succeed.
+
+**The unguarded path**, which is the one that had actually bitten.
+`saveAndUpdate` wrote the event date and never called `canBookEvent`, where the
+other three save paths did. Production carries the result: **three events on
+Friday 1 May 2026**, on a day that holds two — created on the 22nd, 23rd and
+25th of April, so days apart rather than in one race.
+
+### Why a structural test rather than a note in the review
+
+These save methods are hundreds of lines long, near-identical to one another,
+and one of them carries a comment saying that any change made in it must be
+copied by hand into its twin. The next one added will be a copy of one of these,
+and whether it keeps the check is a matter of which one was copied.
+
+So `EventDateCapacityIsCheckedEverywhereTest` asserts the rule structurally: if
+a method writes an event date — directly or through the mapper — it must also
+call `canBookEvent`. Adding a sixth save path without the check fails the build
+rather than reaching production and being found in the data months later. It was
+verified by taking the new check out and watching the test name the method.
+
+### What was deliberately not done
+
+A database trigger would cover every write path, including any future one that
+bypasses the service entirely, and was the first instinct. It was rejected for
+now on two grounds: it would duplicate a rule with Sunday/Monday coupling into
+SQL, where it would drift from the Java; and it would refuse writes to the
+existing over-capacity rows unless they were grandfathered or corrected first.
+The structural test buys most of the same protection without either problem.
+
+**The existing over-capacity day still needs a decision** — three events on
+1 May 2026 remain in production. Nothing here changes them, and they can still
+be edited; but a fourth cannot be added, and moving another event onto that day
+is now refused.
 
 ---
 
