@@ -377,7 +377,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 | Backend unit | 133 | `mvn test` |
 | Backend integration | 90 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 42 | `npm run test:e2e` — desktop and mobile |
-| Admin portal | 0 | ❌ — C4 |
+| Admin portal | 19 | `npm test` |
 
 The end-to-end tests write real bookings and must be pointed at a development
 database. They found faults no unit test could: a Save button that saved and
@@ -693,10 +693,16 @@ So the standard shape for introducing a constraint over legacy data applies:
 - *Enforced forward* — `canBookEvent` on every path, with a structural test that
   fails the build if a new one forgets.
 - *Surfaced* — `/eventMaster/daysOverCapacity` reports upcoming days holding more
-  than the rule allows, so a day that is over can be staffed for what is
-  actually happening rather than for what the rule assumed. Verified against the
-  restored production dump: it correctly returns nothing today, and correctly
-  reports a planted future breach.
+  than the rule allows, and it is on the dashboard, above the charts. Verified
+  against the restored production dump: it correctly returns nothing today, and
+  correctly reports a planted future breach.
+
+  Two decisions in that panel are worth more than the panel. It **says nothing
+  when there is nothing to say** — a warning that reports "0 problems" every
+  morning is one people stop reading, and then it is worth nothing on the
+  morning it matters. And it **says so loudly when it could not check**, because
+  a swallowed error renders as "nothing to report", which reads as a clear diary:
+  the one thing it must never imply. Both are tested.
 
 Past days are deliberately left out of that report. They are history, and a list
 nobody can act on is a list people learn to ignore.
