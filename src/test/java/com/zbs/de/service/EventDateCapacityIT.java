@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
@@ -143,6 +144,21 @@ class EventDateCapacityIT {
 		}));
 	}
 
+	/**
+	 * Asks the capacity question the way the service does: inside a transaction.
+	 *
+	 * <p>
+	 * Not a convenience. The advisory lock is declared {@code MANDATORY}, so
+	 * calling {@code canBookEvent} without a transaction fails loudly rather than
+	 * taking a lock that would be released immediately and protect nothing. These
+	 * tests called it directly at first and were refused, which is the guard
+	 * working — every real caller is inside a transactional save.
+	 */
+	private boolean mayBook(Date newDate, Date oldDate, Integer eventId) {
+		return Boolean.TRUE.equals(transactionTemplate.execute(
+				status -> serviceEventMaster.canBookEvent(newDate, oldDate, eventId).isAllowed()));
+	}
+
 	// -----------------------------------------------------------------
 
 	@Test
@@ -196,6 +212,77 @@ class EventDateCapacityIT {
 		assertThat(eventsOnTheDay())
 				.as("the day is over capacity")
 				.isEqualTo(2);
+	}
+
+	@Test
+	@DisplayName("a day that is already over capacity can still be edited, but not added to")
+	void anOverCapacityDayIsGrandfathered() {
+		/*
+		 * The property that makes "leave the existing data alone" a safe decision
+		 * rather than a hopeful one.
+		 *
+		 * Production has three events on Friday 1 May 2026, on a day that holds
+		 * two — booked before the rule was enforced everywhere. Those are three
+		 * commitments to three families, and correcting them is a conversation
+		 * with customers, not a data fix. So the requirement is precise: the team
+		 * must still be able to open and save those bookings, while nothing new
+		 * may be added to the day.
+		 *
+		 * It works because of three details that are easy to get wrong
+		 * separately: countEventsOnDate excludes the event being edited, the
+		 * count is only incremented when the date actually changes, and the
+		 * comparison is strictly greater. Change any one of them and the team is
+		 * locked out of their own bookings.
+		 */
+		List<Integer> onTheDay = new ArrayList<>();
+		for (String name : List.of("legacy-one", "legacy-two", "legacy-three")) {
+			EventMaster event = new EventMaster();
+			event.setTxtEventMasterName(MARKER + " " + name);
+			event.setDteEventDate(dayAsDate());
+			event.setBlnIsDeleted(false);
+			// Straight to the repository: this is what an unguarded save path did,
+			// and the point is to reproduce the state it left behind.
+			onTheDay.add(repositoryEventMaster.saveAndFlush(event).getSerEventMasterId());
+		}
+		assertThat(eventsOnTheDay()).isEqualTo(3);
+
+		// Editing one of them, without moving it, must still be allowed.
+		for (Integer id : onTheDay) {
+			assertThat(mayBook(dayAsDate(), dayAsDate(), id))
+					.as("the team was locked out of editing an existing booking on an over-capacity day")
+					.isTrue();
+		}
+
+		// A new one must not be.
+		assertThat(mayBook(dayAsDate(), null, null))
+				.as("a fourth event was accepted onto a day already over capacity")
+				.isFalse();
+	}
+
+	@Test
+	@DisplayName("an event cannot be moved onto a day that is already over capacity")
+	void nothingCanBeMovedOntoAFullDay() {
+		// The other half of grandfathering, and the one that would quietly make
+		// the problem worse: an existing event elsewhere being rescheduled onto
+		// the crowded day.
+		for (String name : List.of("legacy-one", "legacy-two", "legacy-three")) {
+			EventMaster event = new EventMaster();
+			event.setTxtEventMasterName(MARKER + " " + name);
+			event.setDteEventDate(dayAsDate());
+			event.setBlnIsDeleted(false);
+			repositoryEventMaster.saveAndFlush(event);
+		}
+
+		Date elsewhere = Date.from(CONTESTED_DAY.plusDays(10).atStartOfDay(ZoneOffset.UTC).toInstant());
+		EventMaster moving = new EventMaster();
+		moving.setTxtEventMasterName(MARKER + " somewhere-else");
+		moving.setDteEventDate(elsewhere);
+		moving.setBlnIsDeleted(false);
+		Integer movingId = repositoryEventMaster.saveAndFlush(moving).getSerEventMasterId();
+
+		assertThat(mayBook(dayAsDate(), elsewhere, movingId))
+				.as("an event was moved onto a day that is already over capacity")
+				.isFalse();
 	}
 
 	private Callable<Void> racer(CyclicBarrier startTogether, AtomicInteger succeeded, String name) {

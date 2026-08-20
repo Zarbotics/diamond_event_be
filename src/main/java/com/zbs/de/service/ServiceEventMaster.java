@@ -54,6 +54,22 @@ public interface ServiceEventMaster {
 	DtoResult validateEventDateAvailability(Date eventDate);
 	
 	DtoResult getAlreadyBookedDates();
+
+	/**
+	 * Upcoming days holding more events than the capacity rule allows.
+	 *
+	 * <p>
+	 * These exist because the rule was not applied on every save path until
+	 * recently, and the bookings that resulted are real commitments to real
+	 * customers — they are grandfathered rather than corrected. What the team
+	 * needs is not for them to disappear but to know which days they are, so
+	 * those days can be staffed and resourced for what is actually happening.
+	 *
+	 * <p>
+	 * Past days are left out. They are history, and nothing can be done about
+	 * them.
+	 */
+	DtoResult getDaysOverCapacity();
 	
 	DtoResult saveAndUpdateWithDocsCE(DtoEventMaster dtoEventMaster, List<MultipartFile> files)throws IOException;
 	

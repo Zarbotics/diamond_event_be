@@ -48,6 +48,29 @@ public class ControllerEventMaster {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventMaster.class);
 
+	/**
+	 * Upcoming days holding more events than the capacity rule allows.
+	 *
+	 * <p>
+	 * Administrator-only, by being absent from the customer allowlist. These days
+	 * exist because the rule was not applied on every save path until recently,
+	 * and the bookings that resulted are commitments to real customers — they are
+	 * grandfathered rather than corrected. The team cannot act on a day they
+	 * cannot see, and staffing one is the action that matters.
+	 */
+	@PostMapping(value = "/daysOverCapacity", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage daysOverCapacity() {
+		DtoResult result = serviceEventMaster.getDaysOverCapacity();
+
+		if (!"Success".equalsIgnoreCase(result.getTxtMessage())) {
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+					HttpStatus.INTERNAL_SERVER_ERROR, "Could not work out which days are over capacity",
+					null);
+		}
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+				"Days over capacity", result.getResult());
+	}
+
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage saveOrUpdate(@RequestBody DtoEventMaster dtoEventMaster, HttpServletRequest request) {
 		LOGGER.info("Saving Event Master: {}", dtoEventMaster);

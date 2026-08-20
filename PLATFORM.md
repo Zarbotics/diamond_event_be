@@ -374,7 +374,7 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 
 | Suite | Count | Runs with |
 |---|---|---|
-| Backend unit | 124 | `mvn test` |
+| Backend unit | 133 | `mvn test` |
 | Backend integration | 90 | `mvn verify` (skips itself without a database) |
 | Journey end-to-end | 42 | `npm run test:e2e` — desktop and mobile |
 | Admin portal | 0 | ❌ — C4 |
@@ -664,10 +664,42 @@ SQL, where it would drift from the Java; and it would refuse writes to the
 existing over-capacity rows unless they were grandfathered or corrected first.
 The structural test buys most of the same protection without either problem.
 
-**The existing over-capacity day still needs a decision** — three events on
-1 May 2026 remain in production. Nothing here changes them, and they can still
-be edited; but a fourth cannot be added, and moving another event onto that day
-is now refused.
+### The existing over-capacity day: decided
+
+**Grandfathered. Nothing in the data was touched, and nothing should be.**
+
+Three events on Friday 1 May 2026, on a day that holds two. The reasoning, in
+the order it mattered:
+
+1. **Those are three commitments to three families.** Correcting them is a
+   conversation with customers, not a data fix. An engineer who "tidied" that
+   row would be cancelling somebody's wedding to make a number look right.
+2. **It is already in the past.** Checked against the restored dump: today is
+   20 August 2026, so the day has been and gone. There is nothing to staff,
+   move or resource. Editing it now would be rewriting the record of what was
+   delivered, for no operational benefit at all.
+3. **It is the only one.** There are bookings out to August 2029 and not one of
+   them breaches the rule. This is a single historical exception, not a pattern.
+
+So the standard shape for introducing a constraint over legacy data applies:
+**grandfather what exists, enforce forward, surface the exceptions.**
+
+- *Grandfathered* — and proved, not assumed. Two integration tests build an
+  over-capacity day and check the team can still open and save each booking on
+  it, while a fourth is refused and nothing can be moved onto it. That works
+  because of three details that are easy to break separately: the count excludes
+  the event being edited, it is only incremented when the date actually changes,
+  and the comparison is strictly greater.
+- *Enforced forward* — `canBookEvent` on every path, with a structural test that
+  fails the build if a new one forgets.
+- *Surfaced* — `/eventMaster/daysOverCapacity` reports upcoming days holding more
+  than the rule allows, so a day that is over can be staffed for what is
+  actually happening rather than for what the rule assumed. Verified against the
+  restored production dump: it correctly returns nothing today, and correctly
+  reports a planted future breach.
+
+Past days are deliberately left out of that report. They are history, and a list
+nobody can act on is a list people learn to ignore.
 
 ---
 

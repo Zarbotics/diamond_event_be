@@ -86,6 +86,7 @@ import com.zbs.de.service.ServiceEmailSender;
 import com.zbs.de.service.ServiceEventBudget;
 import com.zbs.de.service.ServiceEventDecorCategorySelection;
 import com.zbs.de.service.ServiceEventDecorExtrasSelection;
+import com.zbs.de.service.EventDayCapacity;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.service.ServiceEventMenuFoodSelection;
 import com.zbs.de.service.ServiceEventType;
@@ -5326,6 +5327,60 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			dtoResult.setTxtMessage("Success");
 			dtoResult.setResult(blockedDates);
+			return dtoResult;
+
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Failure");
+			return dtoResult;
+		}
+	}
+
+	@Override
+	// Plain @Transactional: this class imports the Jakarta annotation, which has
+	// no readOnly attribute. Not worth switching the file's import for one hint.
+	@Transactional
+	public DtoResult getDaysOverCapacity() {
+		DtoResult dtoResult = new DtoResult();
+
+		try {
+			/*
+			 * One query for every day that has events, then the rule applied in
+			 * memory. The rule needs the days either side of each date — a Sunday
+			 * looks at its Monday and a Monday at its Sunday — so answering it
+			 * per-day in SQL would be three queries per date for no gain.
+			 */
+			java.util.Map<java.time.LocalDate, Integer> counts = new java.util.HashMap<>();
+			for (Object[] row : repositoryEventMaster.getEventDateCounts()) {
+				Date date = (Date) row[0];
+				if (date == null) {
+					continue;
+				}
+				java.time.LocalDate day = UtilDateAndTime.getStartOfDay(date).toInstant()
+						.atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+				counts.merge(day, ((Long) row[1]).intValue(), Integer::sum);
+			}
+
+			java.time.LocalDate today = java.time.LocalDate.now();
+			List<java.util.Map<String, Object>> over = new ArrayList<>();
+
+			for (java.time.LocalDate day : new java.util.TreeSet<>(counts.keySet())) {
+				// History cannot be staffed differently; only what is still to come.
+				if (day.isBefore(today) || !EventDayCapacity.isOverCapacity(day, counts)) {
+					continue;
+				}
+
+				java.util.Map<String, Object> entry = new java.util.LinkedHashMap<>();
+				entry.put("dteEventDate", day.toString());
+				entry.put("txtDayOfWeek", day.getDayOfWeek().getDisplayName(
+						java.time.format.TextStyle.FULL, java.util.Locale.UK));
+				entry.put("numEvents", counts.get(day));
+				entry.put("numCapacity", EventDayCapacity.of(day, counts));
+				over.add(entry);
+			}
+
+			dtoResult.setTxtMessage("Success");
+			dtoResult.setResult(over);
 			return dtoResult;
 
 		} catch (Exception e) {
