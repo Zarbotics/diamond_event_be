@@ -15,6 +15,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.zbs.de.model.EventMaster;
+import com.zbs.de.model.dto.DtoEventCalendarEntry;
 import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 
@@ -99,6 +100,25 @@ public interface RepositoryEventMaster
 			    AND (:eventId IS NULL OR e.serEventMasterId <> :eventId)
 			""")
 	int countEventsOnDate(@Param("start") Date start, @Param("end") Date end, @Param("eventId") Integer eventId);
+
+	/**
+	 * Every event, as five fields rather than sixty.
+	 *
+	 * <p>
+	 * For the admin calendar, which needs all of them — a month view missing some
+	 * of its events is worse than no month view — but needs almost nothing about
+	 * each one. A calendar cannot be paginated, so the saving has to come from the
+	 * width of a row rather than the number of them.
+	 *
+	 * <p>
+	 * Ordered by date, because that is the only order a calendar has any use for.
+	 */
+	@Query("SELECT new com.zbs.de.model.dto.DtoEventCalendarEntry(e.serEventMasterId, e.txtEventMasterCode, "
+			+ "e.txtEventMasterName, e.dteEventDate, t.txtEventTypeName) "
+			+ "FROM EventMaster e LEFT JOIN e.eventType t "
+			+ "WHERE e.blnIsDeleted = false AND e.dteEventDate IS NOT NULL "
+			+ "ORDER BY e.dteEventDate ASC")
+	List<DtoEventCalendarEntry> getCalendarEntries();
 
 	@Query("""
 			    SELECT e.dteEventDate, COUNT(e)

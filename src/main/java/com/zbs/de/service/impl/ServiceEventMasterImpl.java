@@ -5337,6 +5337,22 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	}
 
 	@Override
+	@Transactional
+	public DtoResult getCalendarEntries() {
+		DtoResult dtoResult = new DtoResult();
+
+		try {
+			dtoResult.setResulList(new ArrayList<>(repositoryEventMaster.getCalendarEntries()));
+			dtoResult.setTxtMessage("Success");
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Could not load the calendar");
+		}
+
+		return dtoResult;
+	}
+
+	@Override
 	// Plain @Transactional: this class imports the Jakarta annotation, which has
 	// no readOnly attribute. Not worth switching the file's import for one hint.
 	@Transactional

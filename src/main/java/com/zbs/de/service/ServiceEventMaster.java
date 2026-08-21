@@ -70,7 +70,18 @@ public interface ServiceEventMaster {
 	 * them.
 	 */
 	DtoResult getDaysOverCapacity();
-	
+
+	/**
+	 * Every event, in the narrow shape the admin calendar draws.
+	 *
+	 * <p>
+	 * Deliberately not paginated — a month view missing some of its events is
+	 * worse than no month view. The saving is in the width of each row: five
+	 * fields instead of sixty, and none of the nested selection collections.
+	 */
+	DtoResult getCalendarEntries();
+
+
 	DtoResult saveAndUpdateWithDocsCE(DtoEventMaster dtoEventMaster, List<MultipartFile> files)throws IOException;
 	
 	DtoEventMaster getEventById(Integer serEventMasterId);

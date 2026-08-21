@@ -71,6 +71,27 @@ public class ControllerEventMaster {
 				"Days over capacity", result.getResult());
 	}
 
+	/**
+	 * Every event, in the shape the admin calendar draws.
+	 *
+	 * <p>
+	 * Administrator-only, by being absent from the customer allowlist. The
+	 * calendar used to call {@code getAllDataAdminPortal}, which answers with the
+	 * whole of every event that has ever existed — 624 KB across 296 events on a
+	 * development database — to draw boxes carrying a reference and a name.
+	 */
+	@PostMapping(value = "/calendarEntries", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage calendarEntries() {
+		DtoResult result = serviceEventMaster.getCalendarEntries();
+
+		if (!"Success".equalsIgnoreCase(result.getTxtMessage())) {
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					result.getTxtMessage(), null);
+		}
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+				result.getResulList());
+	}
+
 	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage saveOrUpdate(@RequestBody DtoEventMaster dtoEventMaster, HttpServletRequest request) {
 		LOGGER.info("Saving Event Master: {}", dtoEventMaster);
