@@ -551,7 +551,7 @@ Ordered by what actually costs the business the most.
 |---|---|---|---|
 | ~~A1~~ | ~~Pagination on `event_master` and `customer_master`~~ | ✅ | Both done. `event_master` already had it; `customer_master` now does, end to end. See §9. |
 | ~~A1b~~ | ~~`eventMaster/getAllDataAdminPortal` returns every event, in full, on every page load~~ | ✅ | **Done, and there were two callers rather than one.** The admin Events *grid* fetched all 296 events — 624 KB measured, 60 fields each with the food, extras, decor and running-order collections nested inside — and then discarded almost all of it with `events.slice()` to show ten. It now reads the page the parent already fetches from the paginated search endpoint for the table view, which also fixed a bug nobody had reported: the status tabs and the search box were silently ignored in card view, so searching and switching to cards showed unfiltered results. The *calendar* was the second caller. A month view cannot be paginated — one missing event makes it wrong — so that one got a narrower row instead: `eventMaster/calendarEntries`, five fields built in the query. Five integration tests, one asserting the shape of the DTO itself, because the way this regresses is somebody needing one more field and putting the whole event back. |
-| A2 | Optimistic locking on `EventMaster` | ⬜ | Admin and customer can edit the same booking; last writer wins silently. |
+| ~~A2~~ | ~~Optimistic locking on `EventMaster`~~ | ✅ | **Done, and the first design was wrong in a way worth recording.** `@Version` alone catches only overlapping transactions — the writes have to land milliseconds apart — while the case that actually happens is an administrator and a customer with the same booking open for several minutes. So the version the client fetched travels back with the save. The first attempt refused on staleness alone, and broke the journey: every step saves, so by the second screen the browser's copy is a revision behind through nothing but its own progress, and the customer was told somebody else had edited their booking — by their own previous click. Caught by the end-to-end suite, not by reasoning. The rule is now *who* rather than *how old*: the save is refused only when the last person to save was somebody else. That needed `updated_by` to be written at all — the column is annotated `@LastModifiedBy` but Spring Data auditing is not switched on, so it had sat at 0 on every booking since the beginning. Refusals come back as 409 with words a person can act on. Five integration tests plus a structural one, matching the capacity guard: a fifth update path that forgets the check fails the build. |
 | ~~A3~~ | ~~Database constraint behind date availability~~ | ✅ | **Not a constraint — it could not be one.** How many events a day holds is a *count* (two, or three on a Sunday unless the Monday is used), and a constraint cannot count. It is an advisory lock on the day instead, taken inside `canBookEvent` so all six call sites get it. Proved by racing two real transactions: without the lock both customers are told they have the last place and the day ends with three events; with it, exactly one wins. A second test asserts two *different* days still do not contend, because a lock that serialised the whole journey would pass the first test and be far worse. |
 | ~~A3b~~ | ~~One save path writes the event date without ever checking capacity~~ | ✅ | **Answered by the business: the capacity is a hard limit and `canBookEvent` must run wherever an event is created.** `saveAndUpdate` now checks, before the create/update branch rather than inside it — both halves write a date, the update branch directly and the create branch through `MapperEventMaster.toEntity`, so a check in one would have left the other exactly as it was. Existing over-capacity days stay editable, which matters for the rows already in production: the count excludes the event being edited, is only incremented when the date actually changes, and the comparison is strictly greater — so saving one of those three without moving it is allowed, while moving a fourth onto that day is not. |
 | ~~A4~~ | ~~File upload validation~~ | ✅ | Done, and it was worse than the row said — see §9. |
@@ -568,8 +568,8 @@ Ordered by what actually costs the business the most.
 
 | # | Item | Status | Why |
 |---|---|---|---|
-| B1 | Booking-above-Event domain model | ⬜ | The largest item. `EventMaster` is doing the job of both a booking and an event; a customer with a nikkah and a walima on consecutive days has two unrelated bookings. |
-| B2 | REST semantics and pagination across the API | ⬜ | ~340 endpoints, all POST. Breaking change across two frontends — needs to be staged. |
+| B1 | Booking-above-Event domain model | 🟡 | **Designed — see §15.** The largest item. `EventMaster` is doing the job of both a booking and an event, so a wedding that is a mehndi, a nikkah and a walima is three rows that know nothing about each other: three budgets, no total, a deposit with no row to live on, and three separate cancellations. §15.3 stages it so that every step before the last is reversible by dropping a column, and the step the business actually wants — "add another day to this wedding" — comes fourth rather than first. Not started. |
+| B2 | REST semantics and pagination across the API | 🟡 | **Designed — see §15.4.** ~340 endpoints, all POST including reads. Rewriting them wholesale means changing every call site in two frontends at once with no way to test the halves separately, in exchange for tidiness — a bad trade. Instead the `/booking` endpoints B1 adds are REST from the first line, and the old surface shrinks as screens move across. Pagination is split out and does **not** wait for any of it: it is where the measured harm is, and it needs no coordination. |
 | B3 | Delete the five orphan entities | ⬜ | Classes only; leave the tables. |
 | B4 | Retire the token-in-URL sign-in path | ⬜ | The single-use code handoff is the real route. Tests use the legacy path and would need moving first. |
 | ~~B5~~ | ~~Two copies of the capacity rule~~ | ✅ | **Folded into `EventDayCapacity`, and the copies had already drifted.** `countEventsOnDate` excludes the event being edited; the old Sunday and Monday branches then subtracted it a second time when it was moving off the adjacent day. Moving an event from a Monday onto the Sunday before it therefore under-counted that Monday by one, the Sunday's limit went up to three, and the booking was accepted while a Monday event still stood — the one pairing the rule exists to prevent, since the team need the Monday to break down. Proved by reintroducing the subtraction and watching the new test name it. Six new integration tests; one of them records a deliberate change of behaviour — a Monday booking beside a full Sunday can now be edited in place, which the old code refused, and which is the same grandfathering already agreed for over-capacity days. |
@@ -707,6 +707,140 @@ So the standard shape for introducing a constraint over legacy data applies:
 
 Past days are deliberately left out of that report. They are history, and a list
 nobody can act on is a list people learn to ignore.
+
+---
+
+## 15. Booking above Event, and the road to a REST API
+
+**Status:** designed, not started. This is B1 and B2 in §10, written down before
+any code moves because both are staged changes across three repositories and a
+live database, and the staging is most of the work.
+
+### 15.1 What is actually wrong
+
+`EventMaster` is doing two jobs at once.
+
+It is the **event** — a date, a venue, a running order, a guest count, a menu,
+a decor scheme. And it is the **booking** — the customer, the contact person,
+the budget, the payments, the consultation, the documents, the quote.
+
+For a single-event customer the two coincide and nothing looks wrong. The
+problem appears in the case the business actually trades on: a wedding is a
+mehndi on the Friday, a nikkah on the Saturday and a walima on the Sunday. That
+is one family, one negotiation, one deposit, one conversation — and three
+`EventMaster` rows that know nothing about each other.
+
+What follows from that today:
+
+- **The customer re-enters everything three times.** Contact details, the
+  couple's names, the venue, the consultation. The journey has no notion of "the
+  same wedding, the next day".
+- **There is no total.** `EventBudget` hangs off `EventMaster`, so the family
+  gets three budgets and nobody can answer "what does the weekend cost".
+- **Payments are per event.** A single deposit against a three-event wedding has
+  no row to live on. In practice it is recorded against one of them, which makes
+  that event's figures wrong and the other two's incomplete.
+- **The capacity rule counts events, correctly, but the diary reads as three
+  unrelated jobs.** Staffing a weekend means noticing the pattern by eye.
+- **Cancelling "the wedding" is three cancellations**, and nothing stops two of
+  them going through and the third being missed.
+
+None of this is hypothetical: it is the shape of the data in production.
+
+### 15.2 The target
+
+Two aggregates, with the booking on top.
+
+```
+Booking                     one negotiation with one family
+├── customer, contact person
+├── budget, payments, deposit
+├── consultation
+├── documents, quote, status
+└── Event (1..n)            one thing that happens on one day
+    ├── date, venue, hall
+    ├── running order, guest count, tables
+    ├── menu selections
+    ├── decor, extras, services
+    └── itinerary
+```
+
+Everything that is *negotiated once* moves up. Everything that is *delivered on
+a day* stays down. That test settles most of the field-by-field questions, and
+where it does not — the couple's names, which belong to the booking but are
+printed on each event's documents — the field lives on the booking and the event
+reads through.
+
+The capacity rule is unaffected: it counts **events on a day**, which is what it
+already counts, and what the kitchen and the venue actually experience.
+
+### 15.3 How to get there without a flag day
+
+The constraint is that production is live, two frontends read this API, and a
+booking in progress must not break mid-journey. So the move is additive first,
+and nothing is deleted until both frontends have stopped reading the old shape.
+
+**Stage 1 — the table, alongside.** Create `booking`, and
+`event_master.ser_booking_id` nullable. Backfill one booking per existing event,
+so every event has a parent and no behaviour changes. Nothing reads the new
+column yet. This stage is reversible by dropping a column.
+
+**Stage 2 — the booking becomes writable.** Group endpoints under `/booking`
+that create a booking and its first event together. The existing endpoints keep
+working and quietly create a one-event booking behind each save, so both shapes
+are always consistent. Still nothing has moved.
+
+**Stage 3 — move what is negotiated once.** Budget, payments, consultation and
+contact details move to hang off `booking`. Each is a separate migration with
+its own backfill, and each keeps a read-through on the event so existing screens
+keep working. Do these one at a time, in production, a week apart. Payments
+first — that is where the wrong figures are today.
+
+**Stage 4 — the journey learns about multiple events.** "Add another day to
+this wedding" appears in the customer journey. This is the stage the business
+actually asked for, and it is only safe once 1–3 are done.
+
+**Stage 5 — remove the read-throughs**, once neither frontend uses them. This is
+the only stage that deletes anything.
+
+The order matters: every stage before 5 can be abandoned without a rollback, and
+stage 4 is the one that pays for the rest.
+
+### 15.4 B2: what to do about 340 POST endpoints
+
+Every endpoint is `POST`, including reads. It is not merely unfashionable — it
+costs real things: nothing is cacheable, a read cannot be retried safely by any
+intermediary, and "which of these 340 changes data" is unanswerable without
+reading each one.
+
+Rewriting them is not the move. A big-bang REST migration means changing 340
+endpoints and every call site in two frontends at once, with no way to test the
+halves separately, in exchange for tidiness. That trade is bad.
+
+**Do it as a by-product of §15.3 instead.** The `/booking` endpoints are new
+code with no callers, so they can be REST-shaped from the first line: `GET
+/booking/{id}`, `POST /booking`, `PATCH /booking/{id}`, `GET
+/booking?customer=…&page=…`. Every stage above adds a few more properly shaped
+endpoints, and the old surface shrinks as screens move across.
+
+Two rules make that work rather than producing a third convention:
+
+1. **New endpoints are REST.** No exceptions, including "just this one to match
+   its neighbour".
+2. **A screen that moves to the new shape stops calling the old one**, and the
+   old endpoint is deleted in the same release. Otherwise both live for ever.
+
+What should *not* wait for any of this: **pagination**. It is independent of the
+verb, it is where the actual harm is (see A1b and A8b, both measured in hundreds
+of kilobytes per page load), and it can be added endpoint by endpoint with no
+coordination at all.
+
+### 15.5 What this is not
+
+It is not a rewrite. `EventMaster` keeps its table, its id, its columns and most
+of its behaviour throughout; what changes is what hangs off it. Nothing here
+requires the customer journey to be rebuilt, and no stage requires both
+frontends to ship on the same day.
 
 ---
 

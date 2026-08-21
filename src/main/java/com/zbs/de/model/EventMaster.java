@@ -21,6 +21,7 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "event_master")
@@ -130,6 +131,27 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "num_form_state")
 	private Integer numFormState;
+
+	/**
+	 * How many times this booking has been saved.
+	 *
+	 * <p>
+	 * Maintained by Hibernate and never set by hand. It exists so that an
+	 * administrator and a customer editing the same booking cannot silently
+	 * overwrite one another — the second save is refused rather than winning.
+	 *
+	 * <p>
+	 * Hibernate's own check only covers overlapping transactions, which is the
+	 * rarer half. The case that actually happens is two people with the same
+	 * booking open for several minutes, and that is caught by comparing this
+	 * value against the copy the client is holding — together with
+	 * {@code updatedBy}, which says whether the change was somebody else's or
+	 * the caller's own previous step. See
+	 * {@code ServiceEventMasterImpl.hasChangedElsewhere}.
+	 */
+	@Version
+	@Column(name = "num_version")
+	private Long numVersion;
 
 	@ManyToOne
 	@JoinColumn(name = "ser_cust_id")
@@ -517,6 +539,18 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setNumFormState(Integer numFormState) {
 		this.numFormState = numFormState;
+	}
+
+	public Long getNumVersion() {
+		return numVersion;
+	}
+
+	/**
+	 * Present for JPA and for tests that need to arrange a stale copy. Nothing in
+	 * the application should call it — Hibernate owns this value.
+	 */
+	public void setNumVersion(Long numVersion) {
+		this.numVersion = numVersion;
 	}
 
 	public Boolean getIsEditAllowed() {

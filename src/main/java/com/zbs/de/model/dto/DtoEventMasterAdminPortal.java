@@ -69,6 +69,13 @@ public class DtoEventMasterAdminPortal {
 
 	private Integer numFormState;
 
+	/**
+	 * Which revision of the booking this copy is. Travels with the row so that
+	 * an administrator saving from the portal cannot overwrite a change the
+	 * customer made while the form was open.
+	 */
+	private Long numVersion;
+
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
 
@@ -529,6 +536,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setNumFormState(Integer numFormState) {
 		this.numFormState = numFormState;
+	}
+
+	public Long getNumVersion() {
+		return numVersion;
+	}
+
+	public void setNumVersion(Long numVersion) {
+		this.numVersion = numVersion;
 	}
 
 	public List<DtoEventVendorMasterSelection> getVendorMasterSelections() {

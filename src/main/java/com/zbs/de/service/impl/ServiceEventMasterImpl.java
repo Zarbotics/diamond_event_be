@@ -240,6 +240,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			// Update existing
 			entity = optionalExisting.get();
 
+			// Refused rather than allowed to overwrite somebody else's changes.
+			// See hasChangedElsewhere for who counts as somebody else.
+			if (hasChangedElsewhere(entity, dtoEventMaster.getNumVersion())) {
+				dtoResult.setTxtMessage(CHANGED_ELSEWHERE);
+				dtoResult.setResult(CHANGED_ELSEWHERE_MESSAGE);
+				return dtoResult;
+			}
+
+			// Recorded for the check above, on the next save.
+			Integer savingNow = ServiceCurrentUser.getCurrentUserId();
+			if (savingNow != null) {
+				entity.setUpdatedBy(savingNow);
+			}
+
 			// ****Check if Edit Allowed or Not***
 			if (entity.getIsEditAllowed() != null && entity.getIsEditAllowed() == false) {
 				LOGGER.debug("This Event Can't be deleted as Event Is Marked For Restrict Edit.");
@@ -1343,6 +1357,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (optionalExisting != null && optionalExisting.isPresent()) {
 				// Update existing
 				entity = optionalExisting.get();
+
+				// Refused rather than allowed to overwrite somebody else's changes.
+				// See hasChangedElsewhere for who counts as somebody else.
+				if (hasChangedElsewhere(entity, dtoEventMaster.getNumVersion())) {
+					dtoResult.setTxtMessage(CHANGED_ELSEWHERE);
+					dtoResult.setResult(CHANGED_ELSEWHERE_MESSAGE);
+					return dtoResult;
+				}
+
+				// Recorded for the check above, on the next save.
+				Integer savingNow = ServiceCurrentUser.getCurrentUserId();
+				if (savingNow != null) {
+					entity.setUpdatedBy(savingNow);
+				}
 
 				// ****Check if Edit Allowed or Not***
 				if (entity.getIsEditAllowed() != null && entity.getIsEditAllowed() == false) {
@@ -2781,6 +2809,23 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	}
 
 	@Override
+	/**
+	 * One event, with everything hanging off it.
+	 *
+	 * <p>
+	 * Transactional because it walks lazy collections — the menu categories, the
+	 * decor and food selections — and without a session those throw
+	 * {@code LazyInitializationException}. It worked in a browser only because
+	 * open-in-view holds a session open for the whole request, so the fault was
+	 * invisible until something called this outside a web request.
+	 *
+	 * <p>
+	 * That was not a harmless dependency. The method catches everything and
+	 * returns {@code null}, so the failure arrives at the caller as "no such
+	 * event" — and this is the endpoint the journey now uses to open every
+	 * booking a customer chooses.
+	 */
+	@Transactional
 	public DtoEventMaster getEventById(Integer serEventId) {
 		DtoResult dtoResult = new DtoResult();
 
@@ -3103,6 +3148,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (optionalExisting != null && optionalExisting.isPresent()) {
 				// Update existing
 				entity = optionalExisting.get();
+
+				// Refused rather than allowed to overwrite somebody else's changes.
+				// See hasChangedElsewhere for who counts as somebody else.
+				if (hasChangedElsewhere(entity, dtoEventMasterAdminPortal.getNumVersion())) {
+					dtoResult.setTxtMessage(CHANGED_ELSEWHERE);
+					dtoResult.setResult(CHANGED_ELSEWHERE_MESSAGE);
+					return dtoResult;
+				}
+
+				// Recorded for the check above, on the next save.
+				Integer savingNow = ServiceCurrentUser.getCurrentUserId();
+				if (savingNow != null) {
+					entity.setUpdatedBy(savingNow);
+				}
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMasterAdminPortal.getTxtEventMasterName());
@@ -5523,6 +5582,73 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		return new DtoEventBookingValidationResult(true, "Allowed");
 	}
 
+	/**
+	 * The code the frontends switch on when a booking has moved under them.
+	 *
+	 * <p>
+	 * Same convention as {@code already_booked}: a stable code in the message
+	 * field, the words for a person in the result.
+	 */
+	private static final String CHANGED_ELSEWHERE = "changed_elsewhere";
+
+	private static final String CHANGED_ELSEWHERE_MESSAGE = "Somebody else saved changes to this booking while you "
+			+ "had it open. Refresh to see their version, then make your change again.";
+
+	/**
+	 * Whether the client is holding an out-of-date copy of this booking.
+	 *
+	 * <p>
+	 * The failure being prevented: an administrator opens a booking to change the
+	 * guest count while the customer, in the journey, is choosing their menu. Both
+	 * save. One set of changes is simply gone — nothing in either interface says
+	 * so, nothing in the log says so, and it is found weeks later when the kitchen
+	 * cooks for the wrong number of people.
+	 *
+	 * <p>
+	 * {@code @Version} on the entity catches two transactions overlapping, which
+	 * is the rarer half of this — the writes have to land within milliseconds of
+	 * one another. The case above is minutes apart, and the only thing that can
+	 * detect it is the version the client fetched.
+	 *
+	 * <p>
+	 * A missing version is allowed through deliberately. It means a caller that
+	 * predates this field, and refusing those saves would break working screens
+	 * to protect against a rarer fault than the one it caused.
+	 */
+	private boolean hasChangedElsewhere(EventMaster entity, Long heldVersion) {
+		if (heldVersion == null || entity.getNumVersion() == null) {
+			return false;
+		}
+		if (heldVersion.equals(entity.getNumVersion())) {
+			return false;
+		}
+
+		/*
+		 * The booking has moved since this copy was fetched — but by whom?
+		 *
+		 * The customer journey saves on every step, so by the third screen the
+		 * copy in the browser is several revisions behind through nothing but its
+		 * own progress. Refusing on staleness alone would stop a customer at the
+		 * second screen and tell them somebody else had edited their booking,
+		 * which would be their own previous click.
+		 *
+		 * The question worth asking is not "is this copy old" but "did somebody
+		 * else save in the meantime". updatedBy still holds the previous saver
+		 * here, because this runs before any of the caller's values are applied.
+		 */
+		Integer lastSavedBy = entity.getUpdatedBy();
+		Integer savingNow = ServiceCurrentUser.getCurrentUserId();
+
+		if (lastSavedBy == null || savingNow == null) {
+			// Nothing to compare people by. Allowed rather than refused: an
+			// unattributed save is not evidence of a second editor, and refusing
+			// here would break the paths that have no user in context at all.
+			return false;
+		}
+
+		return !lastSavedBy.equals(savingNow);
+	}
+
 	/** How many events are on this day, never counting the one being edited. */
 	private int countEventsOn(java.time.LocalDate day, Integer eventId) {
 		Date asDate = Date.from(day.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
@@ -5614,6 +5740,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			if (optionalExisting != null && optionalExisting.isPresent()) {
 				// Update existing
 				entity = optionalExisting.get();
+
+				// Refused rather than allowed to overwrite somebody else's changes.
+				// See hasChangedElsewhere for who counts as somebody else.
+				if (hasChangedElsewhere(entity, dtoEventMaster.getNumVersion())) {
+					dtoResult.setTxtMessage(CHANGED_ELSEWHERE);
+					dtoResult.setResult(CHANGED_ELSEWHERE_MESSAGE);
+					return dtoResult;
+				}
+
+				// Recorded for the check above, on the next save.
+				Integer savingNow = ServiceCurrentUser.getCurrentUserId();
+				if (savingNow != null) {
+					entity.setUpdatedBy(savingNow);
+				}
 
 				// ****Check if Edit Allowed or Not***
 				if (entity.getIsEditAllowed() != null && entity.getIsEditAllowed() == false) {

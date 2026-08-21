@@ -96,6 +96,13 @@ public class ControllerEventMaster {
 	public ResponseMessage saveOrUpdate(@RequestBody DtoEventMaster dtoEventMaster, HttpServletRequest request) {
 		LOGGER.info("Saving Event Master: {}", dtoEventMaster);
 		DtoResult result = serviceEventMaster.saveAndUpdate(dtoEventMaster);
+		// Somebody else saved this booking while the caller had it open. 409
+		// rather than the blanket 400 below, which reads as "your request was
+		// malformed" and gives no way to tell the two apart.
+		if ("changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
+			return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
+					String.valueOf(result.getResult()), result.getResult());
+		}
 		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());
 		}
@@ -131,6 +138,15 @@ public class ControllerEventMaster {
 
 		try {
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dtoEventMaster, files);
+			/*
+			 * Somebody else saved this booking while the caller had it open. 409
+			 * rather than 200: the save did not happen, and a client that reads
+			 * only the status must not conclude that it did.
+			 */
+			if (result != null && "changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
+				return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
+						String.valueOf(result.getResult()), result.getResult());
+			}
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
 						result.getResult().toString(), result.getResult());
@@ -157,6 +173,15 @@ public class ControllerEventMaster {
 				dtoEventMaster.getTxtEventMasterCode());
 		try {
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsCE(dtoEventMaster, files);
+			/*
+			 * Somebody else saved this booking while the caller had it open. 409
+			 * rather than 200: the save did not happen, and a client that reads
+			 * only the status must not conclude that it did.
+			 */
+			if (result != null && "changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
+				return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
+						String.valueOf(result.getResult()), result.getResult());
+			}
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
 						result.getResult().toString(), result.getResult());
@@ -297,6 +322,15 @@ public class ControllerEventMaster {
 			LOGGER.info("Saving event {} ({}) from the admin portal",
 					dtoEventMaster.getSerEventMasterId(), dtoEventMaster.getTxtEventMasterCode());
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dtoEventMaster, files);
+			/*
+			 * Somebody else saved this booking while the caller had it open. 409
+			 * rather than 200: the save did not happen, and a client that reads
+			 * only the status must not conclude that it did.
+			 */
+			if (result != null && "changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
+				return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
+						String.valueOf(result.getResult()), result.getResult());
+			}
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
 						result.getResult().toString(),

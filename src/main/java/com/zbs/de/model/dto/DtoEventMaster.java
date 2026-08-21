@@ -66,7 +66,17 @@ public class DtoEventMaster {
 	private Boolean blnIsCE;
 
 	private Integer numFormState;
-	
+
+	/**
+	 * Which revision of the booking the client is holding.
+	 *
+	 * <p>
+	 * Sent out with the event and expected back on save. If it no longer matches
+	 * what is stored, somebody else has saved this booking since this copy was
+	 * fetched, and the save is refused rather than quietly overwriting them.
+	 */
+	private Long numVersion;
+
 	private BigDecimal numItineraryPrice;
 	private BigDecimal numServingDishesPrice;
 
@@ -470,6 +480,14 @@ public class DtoEventMaster {
 
 	public void setNumFormState(Integer numFormState) {
 		this.numFormState = numFormState;
+	}
+
+	public Long getNumVersion() {
+		return numVersion;
+	}
+
+	public void setNumVersion(Long numVersion) {
+		this.numVersion = numVersion;
 	}
 
 	public Boolean getIsEditAllowed() {

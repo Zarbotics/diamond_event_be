@@ -49,6 +49,9 @@ public class MapperEventMaster {
 		dto.setTxtEventStatus(entity.getTxtEventStatus());
 		dto.setBlnIsCouple(entity.getBlnIsCouple());
 		dto.setNumFormState(entity.getNumFormState());
+		// Goes out with the event and is expected back on save, so a second
+		// person's changes cannot be quietly overwritten.
+		dto.setNumVersion(entity.getNumVersion());
 		dto.setNumDiscount(entity.getNumDiscount());
 
 		dto.setTxtCateringRemarks(entity.getTxtCateringRemarks());
@@ -192,6 +195,9 @@ public class MapperEventMaster {
 		dto.setNumNumberOfGuests(entity.getNumNumberOfGuests());
 		dto.setNumNumberOfTables(entity.getNumNumberOfTables());
 		dto.setNumInfoFilledStatus(entity.getNumInfoFilledStatus());
+		// Travels with the row so an administrator saving from the portal cannot
+		// overwrite a change the customer made while the form was open.
+		dto.setNumVersion(entity.getNumVersion());
 		dto.setTxtBrideName(entity.getTxtBrideName());
 		dto.setTxtBrideFirstName(entity.getTxtBrideFirstName());
 		dto.setTxtBrideLastName(entity.getTxtBrideLastName());
