@@ -576,14 +576,14 @@ Ordered by what actually costs the business the most.
 
 ### C. Features
 
-| # | Item | Status |
-|---|---|---|
-| C1 | Admin operations dashboard | ⬜ |
-| C2 | Itinerary table | ⬜ |
-| C3 | Admin portal accessibility review | ⬜ |
-| C4 | Admin portal test suite | ⬜ |
-| C5 | API documentation | ⬜ |
-| C6 | Error monitoring | ⬜ |
+| # | Item | Status | Note |
+|---|---|---|---|
+| C1 | Admin operations dashboard | 🟡 | The over-capacity panel is the first piece of this and is live above the charts. The day-to-day operations view is not built. |
+| C2 | Itinerary table | ⬜ | |
+| ~~C3~~ | ~~Admin portal accessibility review~~ | ✅ | **Audited, and the portal was in better shape than a first scan suggested.** A line-by-line grep reported seventeen images with no alt text and two hundred unlabelled inputs; a scan that understands multi-line JSX found *zero* images without alt text, and antd's `Form.Item label` covers almost every control. Two real defects: the three consultation-diary filters were placeheld rather than labelled — and a placeholder vanishes the moment a value is chosen, leaving a screen-reader user hearing "Aisha" with no idea what it filters — and the sidebar toggle's accessible name came from its icon's alt text, "menu", which says nothing about pressing it or which way it goes. Both fixed, with the diary's labels asserted by test. The mobile menu backdrop is now `aria-hidden`: it is a convenience, not the way out, and it was being announced as a control that cannot be operated. |
+| C4 | Admin portal test suite | 🟡 | 0 → 45 tests. The blocker was never the tests: Create React App excludes `node_modules` from Jest transformation wholesale, so any test that rendered a real screen died on `Cannot use import statement outside a module` before reaching an assertion, and portal components throw from inside a stylesheet without a styled-components provider. Both fixed once, in `customize-cra-config.js` and `utility/testRender.js`, which is what makes any of the rest possible. Covered so far: the consultation API client, the event progress rule, the Events grid, the over-capacity panel, the consultation diary, and error reporting. Not covered: the event form, which is 2,500 lines and needs breaking up before it can be tested. |
+| C5 | API documentation | ⬜ | |
+| ~~C6~~ | ~~Error monitoring~~ | ✅ | **Both halves, with no new dependency.** Server-side: every unhandled exception now logs with an eight-character reference and returns it to the caller, so "something went wrong" becomes a single grep instead of a guess at a timestamp. Client-side: a failure in a browser used to leave a line in a console on somebody's phone and then vanish — the only evidence reaching the business was a customer saying the site did not work, weeks later, on a device nobody can reproduce. Both frontends now report what they catch, including the errors an ErrorBoundary never sees (a rejected save, a failed fetch in an event handler — most of what actually goes wrong). The admin portal had no ErrorBoundary at all, so one thrown error left a blank white page. The endpoint is public, because the failures most worth hearing about are the ones that stop somebody signing in; that is bounded by truncation, control-character stripping so a report cannot forge log lines around itself, and a ceiling per minute. No customer name, email or event detail is sent, and never the query string — that is where the single-use tokens in our own emails live. |
 
 ### E. Consultations — replacing Calendly
 

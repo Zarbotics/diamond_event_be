@@ -1,5 +1,6 @@
 package com.zbs.de.util.exception;
 
+import java.security.SecureRandom;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -110,10 +111,40 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ResponseMessage> handleAllOtherExceptions(Exception ex) {
+		/*
+		 * A reference, so that "something went wrong" can be followed up.
+		 *
+		 * Without one, a customer reporting a failure gives you a screen and an
+		 * approximate time, and finding the matching stack trace in a day's log is
+		 * guesswork. With one they read out eight characters and it is a single
+		 * grep.
+		 */
+		String reference = errorReference();
+
 		// Full detail to the log, nothing internal to the caller.
-		LOGGER.error("Unhandled exception", ex);
+		LOGGER.error("Unhandled exception [ref={}]", reference, ex);
+
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body(new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
-						"Something went wrong at our end. Please try again, or contact us if it keeps happening."));
+						"Something went wrong at our end. Please try again, or contact us quoting reference "
+								+ reference + "."));
 	}
+
+	/**
+	 * Eight characters somebody can read out over the telephone.
+	 *
+	 * <p>
+	 * No vowels, so it cannot accidentally spell a word; no 0, O, 1 or I, so
+	 * nothing in it is ambiguous spoken aloud or written down in a hurry.
+	 */
+	public static String errorReference() {
+		final String alphabet = "23456789BCDFGHJKLMNPQRSTVWXYZ";
+		StringBuilder reference = new StringBuilder(8);
+		for (int i = 0; i < 8; i++) {
+			reference.append(alphabet.charAt(RANDOM.nextInt(alphabet.length())));
+		}
+		return reference.toString();
+	}
+
+	private static final SecureRandom RANDOM = new SecureRandom();
 }

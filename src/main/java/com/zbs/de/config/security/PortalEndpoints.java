@@ -42,6 +42,13 @@ public final class PortalEndpoints {
 			// request, and it is verified before anything is done — see
 			// CalendarOAuthState for what that is defending against.
 			"/calendar/oauth/callback",
+			// Where a browser reports a failure it could not recover from. Public
+			// because the failures most worth hearing about are the ones that
+			// stop somebody signing in — a report that requires a session would
+			// miss exactly those. ControllerClientError bounds what that opens
+			// up: every field truncated, control characters stripped so a report
+			// cannot forge log lines, and a ceiling on reports per minute.
+			"/clientError",
 			"/public/**",
 			"/actuator/health", "/actuator/health/**",
 	};
