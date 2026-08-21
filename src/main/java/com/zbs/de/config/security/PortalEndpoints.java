@@ -81,6 +81,7 @@ public final class PortalEndpoints {
 			"/eventMaster/saveWithDocs",
 			"/eventMaster/getEventById",
 			"/eventMaster/getByCustomerId",
+			"/eventMaster/getSummariesByCustomerId",
 			"/eventMaster/getByEventIdAndCustomerId",
 			"/eventMaster/generateEventCode",
 			"/eventMaster/getAlreadyBookedDates",

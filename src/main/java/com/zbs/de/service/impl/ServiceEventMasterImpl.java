@@ -5338,6 +5338,27 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Override
 	@Transactional
+	public DtoResult getEventSummariesByCustomerId(Integer serCustId) {
+		DtoResult dtoResult = new DtoResult();
+
+		if (serCustId == null) {
+			dtoResult.setTxtMessage("Customer ID Is Required");
+			return dtoResult;
+		}
+
+		try {
+			dtoResult.setResulList(new ArrayList<>(repositoryEventMaster.findEventSummariesByCustomerId(serCustId)));
+			dtoResult.setTxtMessage("Success");
+		} catch (Exception e) {
+			LOGGER.debug(e.getMessage(), e);
+			dtoResult.setTxtMessage("Could not load your bookings");
+		}
+
+		return dtoResult;
+	}
+
+	@Override
+	@Transactional
 	public DtoResult getCalendarEntries() {
 		DtoResult dtoResult = new DtoResult();
 

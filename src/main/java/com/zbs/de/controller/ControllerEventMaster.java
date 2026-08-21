@@ -213,6 +213,33 @@ public class ControllerEventMaster {
 
 	}
 
+	/**
+	 * One customer's events, in the narrow shape the "choose an event" step draws.
+	 *
+	 * <p>
+	 * The step used to call {@code getByCustomerId}, which answers with every one
+	 * of the customer's events in full — 1.1 MB across 278 events on a development
+	 * database, on the second screen of the journey, on a phone. This sends seven
+	 * fields each; the full event is fetched through {@code getEventById} for the
+	 * one that is actually chosen.
+	 *
+	 * <p>
+	 * A customer id supplied by the client is never trusted: for a customer it is
+	 * replaced with their own, for staff it is passed through.
+	 */
+	@PostMapping(value = "/getSummariesByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getSummariesByCustomerId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		Integer customerId = accessGuard.resolveCustomerId(dtoSearch.getId());
+		DtoResult result = serviceEventMaster.getEventSummariesByCustomerId(customerId);
+
+		if (!"Success".equalsIgnoreCase(result.getTxtMessage())) {
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					result.getTxtMessage(), null);
+		}
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+				result.getResulList());
+	}
+
 	@PostMapping(value = "/getAllData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getAllData(HttpServletRequest request) {
 		LOGGER.info("Searching Event Masters");

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.dto.DtoEventCalendarEntry;
 import com.zbs.de.model.dto.DtoEventMasterStats;
+import com.zbs.de.model.dto.DtoEventSummary;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 
 @Repository("repositoryEventMaster")
@@ -100,6 +101,27 @@ public interface RepositoryEventMaster
 			    AND (:eventId IS NULL OR e.serEventMasterId <> :eventId)
 			""")
 	int countEventsOnDate(@Param("start") Date start, @Param("end") Date end, @Param("eventId") Integer eventId);
+
+	/**
+	 * One customer's events, as seven fields rather than sixty.
+	 *
+	 * <p>
+	 * For the "choose an event" step of the journey. Same filter as
+	 * {@link #findActiveEventMasterByCustomerId} — active, not deleted — so the
+	 * two agree about which of a customer's events exist.
+	 *
+	 * <p>
+	 * Newest first, by id rather than by event date: a booking being worked on
+	 * this week may be for next summer, and ordering by date buries it behind
+	 * everything already booked.
+	 */
+	@Query("SELECT new com.zbs.de.model.dto.DtoEventSummary(e.serEventMasterId, e.txtEventMasterCode, "
+			+ "e.txtEventMasterName, e.dteEventDate, t.txtEventTypeName, e.txtNumberOfGuests, "
+			+ "e.numNumberOfGuests, e.isEditAllowed, e.numFormState) "
+			+ "FROM EventMaster e LEFT JOIN e.eventType t "
+			+ "WHERE e.customerMaster.serCustId = :custId AND e.blnIsDeleted = false AND e.blnIsActive = true "
+			+ "ORDER BY e.serEventMasterId DESC")
+	List<DtoEventSummary> findEventSummariesByCustomerId(@Param("custId") Integer custId);
 
 	/**
 	 * Every event, as five fields rather than sixty.

@@ -81,6 +81,16 @@ public interface ServiceEventMaster {
 	 */
 	DtoResult getCalendarEntries();
 
+	/**
+	 * One customer's events, in the narrow shape the "choose an event" step draws.
+	 *
+	 * <p>
+	 * The full event is fetched only for the one the customer picks. Anything
+	 * needed to decide <em>whether</em> to pick it — the date, the guest count,
+	 * whether it can still be edited — travels with the summary.
+	 */
+	DtoResult getEventSummariesByCustomerId(Integer serCustId);
+
 
 	DtoResult saveAndUpdateWithDocsCE(DtoEventMaster dtoEventMaster, List<MultipartFile> files)throws IOException;
 	
