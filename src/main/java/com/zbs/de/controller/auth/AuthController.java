@@ -24,6 +24,7 @@ import com.zbs.de.repository.RepositoryUserMaster;
 import com.zbs.de.service.ServiceEmailSender;
 import com.zbs.de.service.ServiceEmailVerification;
 import com.zbs.de.service.ServiceRefreshToken;
+import com.zbs.de.service.impl.ServiceCurrentUser;
 import com.zbs.de.config.security.SecurityRoles;
 import com.zbs.de.util.JwtTokenUtil;
 import com.zbs.de.util.ResponseMessage;
@@ -82,6 +83,44 @@ public class AuthController {
 				.orElseGet(() -> ResponseEntity.badRequest().body(Map.of(
 						"message",
 						"That sign-in link has already been used or has expired. Please sign in again.")));
+	}
+
+	/**
+	 * A one-time code for opening the customer journey as the signed-in user.
+	 *
+	 * <p>
+	 * The admin portal has an "open the client portal" button, so somebody taking
+	 * a booking over the telephone can walk the customer's own screens. It built
+	 * a link carrying {@code ?accessToken=…&refreshToken=…} — the exact thing the
+	 * SSO redirect was changed to stop doing, and worse, because these are an
+	 * administrator's credentials rather than a customer's.
+	 *
+	 * <p>
+	 * A URL is not a private place. It is written to browser history, to server
+	 * access logs, to any proxy in between, and sent onward in the
+	 * {@code Referer} header of the next request the page makes. A leaked refresh
+	 * token is a standing key to the back office.
+	 *
+	 * <p>
+	 * This mints a fresh pair for the caller and hands back the same single-use
+	 * code the SSO handoff uses, which {@code /auth/exchange} redeems exactly once
+	 * and destroys. Authentication is required — it is deliberately carved out of
+	 * the otherwise-public {@code /auth/**} — and the tokens are the caller's own,
+	 * so it grants nothing they did not already have.
+	 */
+	@PostMapping("/handoff")
+	public ResponseEntity<?> issueHandoffCode() {
+		UserMaster user = ServiceCurrentUser.getCurrentUser();
+
+		if (user == null) {
+			return ResponseEntity.status(401).body(Map.of("message", "Please sign in again."));
+		}
+
+		String accessToken = jwtTokenUtil.generateToken(user.getSerUserId().intValue(), user.getTxtEmail(),
+				user.getTxtRole());
+		RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+
+		return ResponseEntity.ok(Map.of("code", ssoHandoffService.issue(accessToken, refreshToken.getToken())));
 	}
 
 	@PostMapping("/refresh-token")

@@ -24,6 +24,20 @@ package com.zbs.de.config.security;
 public final class PortalEndpoints {
 
 	/**
+	 * Under {@code /auth} but not public.
+	 *
+	 * <p>
+	 * Matched before {@link #PUBLIC}, whose {@code /auth/**} would otherwise open
+	 * these to anybody. Spring Security takes the first matching rule, so order
+	 * here is the mechanism rather than a convention.
+	 */
+	public static final String[] AUTHENTICATED_AUTH = {
+			// Mints a one-time code for opening the customer journey as the caller.
+			// Public would mean anybody could ask for a signed-in session.
+			"/auth/handoff",
+	};
+
+	/**
 	 * Fully public — no authentication at all.
 	 */
 	public static final String[] PUBLIC = {

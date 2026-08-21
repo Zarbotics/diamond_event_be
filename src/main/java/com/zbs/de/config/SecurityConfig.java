@@ -81,6 +81,10 @@ public class SecurityConfig {
 						.accessDeniedHandler(apiAuthenticationEntryPoint))
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						// Before PUBLIC, whose /auth/** would otherwise open these.
+						// Spring Security takes the first matching rule.
+						.requestMatchers(PortalEndpoints.AUTHENTICATED_AUTH)
+						.hasAnyAuthority(SecurityRoles.USER, SecurityRoles.ADMIN)
 						.requestMatchers(PortalEndpoints.PUBLIC).permitAll()
 						.requestMatchers(PortalEndpoints.allCustomerAccessible())
 						.hasAnyAuthority(SecurityRoles.USER, SecurityRoles.ADMIN)

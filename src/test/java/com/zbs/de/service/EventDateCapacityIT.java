@@ -318,6 +318,41 @@ class EventDateCapacityIT {
 				.isLessThan(10_000);
 	}
 
+	@Test
+	@DisplayName("a date generations away is refused as a typing mistake")
+	void anAbsurdDateIsRefused() {
+		/*
+		 * The year stepper goes forward indefinitely, so 2027 becomes 2207 with
+		 * one stray keypress. Nothing catches that today: the booking is accepted,
+		 * never appears in any diary, never gets chased, and is found years later
+		 * by somebody wondering why the earliest booking is in the next century.
+		 *
+		 * This is not the business's answer to "how far ahead do we take
+		 * bookings" — that is still open, and deliberately so. Ten years only
+		 * rejects the impossible.
+		 */
+		Date farFuture = Date.from(LocalDate.now(ZoneOffset.UTC).plusYears(180)
+				.atStartOfDay(ZoneOffset.UTC).toInstant());
+
+		assertThat(mayBook(farFuture, null, null))
+				.as("a booking 180 years out was accepted")
+				.isFalse();
+	}
+
+	@Test
+	@DisplayName("a booking several years out is still fine")
+	void aDistantButPlausibleDateIsAllowed() {
+		// The bound must not become the business rule by accident. Weddings are
+		// booked years ahead here, and refusing those would be a worse fault than
+		// the one being fixed.
+		Date threeYearsOut = Date.from(LocalDate.now(ZoneOffset.UTC).plusYears(3).plusDays(11)
+				.atStartOfDay(ZoneOffset.UTC).toInstant());
+
+		assertThat(mayBook(threeYearsOut, null, null))
+				.as("a booking three years out was refused")
+				.isTrue();
+	}
+
 	// -----------------------------------------------------------------
 	// The Sunday/Monday coupling
 	// -----------------------------------------------------------------

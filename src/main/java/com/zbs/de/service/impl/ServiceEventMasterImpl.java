@@ -5522,6 +5522,29 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		}
 
 		/*
+		 * A ceiling on how far ahead a date can be.
+		 *
+		 * Not the business's answer to "how far ahead do we take bookings" — that
+		 * is a real question and still open (A5b). This is the narrower one that
+		 * needs nobody's decision: a date this far out is a typing mistake, not a
+		 * booking. The year stepper goes forward indefinitely, so 2027 becomes
+		 * 2207 with one stray keypress, and the result is a row that never
+		 * surfaces in any diary, never gets chased, and is found years later by
+		 * somebody wondering why the earliest booking is in the twenty-third
+		 * century.
+		 *
+		 * Ten years is deliberately far beyond anything plausible. It rejects
+		 * only the obviously impossible, and leaves the business free to set a
+		 * real limit — two years, three — without this having pre-empted it.
+		 */
+		java.time.LocalDate furthestSensible = java.time.LocalDate.now(java.time.ZoneId.systemDefault())
+				.plusYears(MOST_YEARS_AHEAD);
+		if (toLocalDate(newStart).isAfter(furthestSensible)) {
+			return new DtoEventBookingValidationResult(false,
+					"That date is more than " + MOST_YEARS_AHEAD + " years away — please check the year.");
+		}
+
+		/*
 		 * Nobody else may be counting this date while we are.
 		 *
 		 * How many events a day can hold is a counting rule, so the check is
@@ -5648,6 +5671,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 		return !lastSavedBy.equals(savingNow);
 	}
+
+	/**
+	 * How far ahead a booking may be dated.
+	 *
+	 * <p>
+	 * A guard against a mistyped year, not a business rule about how far ahead
+	 * bookings are taken. See A5b for that question, which is still open.
+	 */
+	private static final int MOST_YEARS_AHEAD = 10;
 
 	/** How many events are on this day, never counting the one being edited. */
 	private int countEventsOn(java.time.LocalDate day, Integer eventId) {

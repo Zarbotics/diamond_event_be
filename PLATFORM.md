@@ -374,10 +374,17 @@ and jVectorMap dropped). Otherwise largely unreviewed — see §10.
 
 | Suite | Count | Runs with |
 |---|---|---|
-| Backend unit | 133 | `mvn test` |
-| Backend integration | 90 | `mvn verify` (skips itself without a database) |
-| Journey end-to-end | 42 | `npm run test:e2e` — desktop and mobile |
-| Admin portal | 19 | `npm test` |
+| Backend unit | 136 | `mvn test` |
+| Backend integration | 135 | `mvn verify` (skips itself without a database) |
+| Journey end-to-end | 48 | `npm run test:e2e` — desktop and mobile |
+| Admin portal | 57 | `npm test` |
+
+*(Counts as of this pass. The admin portal figure was 19 and could not have
+grown: Create React App excludes `node_modules` from Jest transformation
+wholesale, so any test rendering a real screen died on `Cannot use import
+statement outside a module` before reaching an assertion, and portal components
+throw from inside a stylesheet without a styled-components provider. Both are
+fixed once, in `customize-cra-config.js` and `utility/testRender.js`.)*
 
 The end-to-end tests write real bookings and must be pointed at a development
 database. They found faults no unit test could: a Save button that saved and
@@ -556,7 +563,7 @@ Ordered by what actually costs the business the most.
 | ~~A3b~~ | ~~One save path writes the event date without ever checking capacity~~ | ✅ | **Answered by the business: the capacity is a hard limit and `canBookEvent` must run wherever an event is created.** `saveAndUpdate` now checks, before the create/update branch rather than inside it — both halves write a date, the update branch directly and the create branch through `MapperEventMaster.toEntity`, so a check in one would have left the other exactly as it was. Existing over-capacity days stay editable, which matters for the rows already in production: the count excludes the event being edited, is only incremented when the date actually changes, and the comparison is strictly greater — so saving one of those three without moving it is allowed, while moving a fourth onto that day is not. |
 | ~~A4~~ | ~~File upload validation~~ | ✅ | Done, and it was worse than the row said — see §9. |
 | ~~A5~~ | ~~Guest count bounds~~ | ✅ | My row was wrong: 0 guests **is** validated. The real gap was the upper end, and it was a dead-end screen rather than a missing bound. See §9. |
-| A5b | Upper bound on the event date | ⬜ | The year stepper goes forward indefinitely. Low priority — a booking three years out may well be legitimate, so this needs a business answer before a number. |
+| A5b | Upper bound on the event date | 🟡 | **The typo is guarded; the business question is still open.** The year stepper goes forward indefinitely, so 2027 becomes 2207 with one stray keypress — and that booking was accepted, never appeared in any diary, never got chased, and would be found years later by somebody wondering why the earliest booking is in the twenty-third century. Dates more than ten years out are now refused with a message naming the year, in `canBookEvent`, so all six save paths get it. Ten years rejects only the impossible: **how far ahead the business actually takes bookings is still a question for them**, and this deliberately has not pre-empted it. |
 | ~~A6~~ | ~~Confirm `EventVendorMasterSelection` persists~~ | ✅ | **Investigated: not a bug.** The supplier picker is commented out of the journey — see §5.6. Moved to D5. |
 | A9 | **SSE heartbeat fired every 60s, with comments either side saying 15** | ✅ | Fixed to 15s. The emitters are created with `Long.MAX_VALUE`, so nothing on this side ever closes an idle connection — the ping is the only thing stopping nginx or a load balancer doing it at their 60-second default. A heartbeat *at* the timeout is a race against it, and losing drops the notification stream silently: nothing errors, notifications just stop until the page is reloaded. Found by auditing the other `@Scheduled` work after the lapsed-hold job turned out never to have been wired. |
 | ~~A7~~ | ~~Turn off `ddl-auto=update`~~ | ✅ | Now `validate`. It compares the entities against the real schema at startup and refuses to run if they have drifted — turning a class of bug that used to surface as a runtime error on one unlucky screen into a failure to start that nobody can miss. |
@@ -571,18 +578,18 @@ Ordered by what actually costs the business the most.
 | B1 | Booking-above-Event domain model | 🟡 | **Designed — see §15.** The largest item. `EventMaster` is doing the job of both a booking and an event, so a wedding that is a mehndi, a nikkah and a walima is three rows that know nothing about each other: three budgets, no total, a deposit with no row to live on, and three separate cancellations. §15.3 stages it so that every step before the last is reversible by dropping a column, and the step the business actually wants — "add another day to this wedding" — comes fourth rather than first. Not started. |
 | B2 | REST semantics and pagination across the API | 🟡 | **Designed — see §15.4.** ~340 endpoints, all POST including reads. Rewriting them wholesale means changing every call site in two frontends at once with no way to test the halves separately, in exchange for tidiness — a bad trade. Instead the `/booking` endpoints B1 adds are REST from the first line, and the old surface shrinks as screens move across. Pagination is split out and does **not** wait for any of it: it is where the measured harm is, and it needs no coordination. |
 | ~~B3~~ | ~~Delete the five orphan entities~~ | ✅ | Gone: `EventQuote`, `EventQuoteLine`, `EventFoodSelection`, `EventServicesMaster`, `EventItineraryResult`. Tables untouched, and all five were empty in the development database and the production dump alike. `EventItineraryResult` is the one worth naming: it looks like groundwork for the itinerary table C2 will build, which is exactly why it goes — a speculative empty class a future feature *might* reuse is what makes somebody grep for how itineraries work and find two answers. If C2 needs a results table it will be written to fit C2. |
-| B4 | Retire the token-in-URL sign-in path | ⬜ | The single-use code handoff is the real route. Tests use the legacy path and would need moving first. |
+| ~~B4~~ | ~~Retire the token-in-URL sign-in path~~ | ✅ | **Done, and the last caller was not the tests.** It was the admin portal's "open the client portal" button, which built `?accessToken=…&refreshToken=…` out of a member of staff's own localStorage — the exact thing the Google redirect was changed to stop doing, and worse, because those are back-office credentials. A URL is not a private place: browser history, server access logs, every proxy in between, and the `Referer` header of the next request the page makes. `POST /auth/handoff` mints the same single-use code the SSO redirect uses, and is deliberately carved out of the otherwise-public `/auth/**` so that a public endpoint cannot mint a signed-in session on request. The journey no longer reads tokens from its address bar at all — an old bookmark carrying them simply does not sign anybody in, which is correct: they have been through a query string. The end-to-end suite moved onto the handoff too, which is what makes it the only route. Four integration tests. |
 | ~~B5~~ | ~~Two copies of the capacity rule~~ | ✅ | **Folded into `EventDayCapacity`, and the copies had already drifted.** `countEventsOnDate` excludes the event being edited; the old Sunday and Monday branches then subtracted it a second time when it was moving off the adjacent day. Moving an event from a Monday onto the Sunday before it therefore under-counted that Monday by one, the Sunday's limit went up to three, and the booking was accepted while a Monday event still stood — the one pairing the rule exists to prevent, since the team need the Monday to break down. Proved by reintroducing the subtraction and watching the new test name it. Six new integration tests; one of them records a deliberate change of behaviour — a Monday booking beside a full Sunday can now be edited in place, which the old code refused, and which is the same grandfathering already agreed for over-capacity days. |
 
 ### C. Features
 
 | # | Item | Status | Note |
 |---|---|---|---|
-| C1 | Admin operations dashboard | 🟡 | The over-capacity panel is the first piece of this and is live above the charts. The day-to-day operations view is not built. |
-| C2 | Itinerary table | ⬜ | |
+| ~~C1~~ | ~~Admin operations dashboard~~ | ✅ | **The dashboard is about events now.** Everything below the over-capacity warning came with the template — "Sales Report", "Sales Growth", "Top Selling Products". This business does not sell products, and the number that matters on a Monday morning is not revenue this month but what is booked for Saturday. Those panels are replaced by **Coming up**: the next three weeks grouped by day, with the count on each day so that a third event stands out, today marked, and a line for consultations waiting on us. Built entirely from endpoints that already existed — `calendarEntries` and `consultation/bookings/pending` — because inventing an endpoint per panel is how a dashboard becomes the most expensive screen in an application. Twelve tests, including the one that matters: an unreachable server and a genuinely empty diary render identically unless one of them says so, and only one means the team has nothing on. |
+| C2 | Itinerary table | ❓ | **Moved to a business question — see D6.** The row said only "itinerary table", and investigating it found the feature is built and unused: seven tables (`itinerary_item`, `itinerary_item_type`, `itinerary_assignment`, `itinerary_assignment_detail`, `menu_item_itinerary_map`, `event_menu_itinerary`, `event_itinerary_summary`) with **zero rows in every one of them**, three admin screens that manage them, and a Jasper kitchen itinerary report that already renders one per event. Building a table on top of that would be guessing at what is wanted and then maintaining the guess. |
 | ~~C3~~ | ~~Admin portal accessibility review~~ | ✅ | **Audited, and the portal was in better shape than a first scan suggested.** A line-by-line grep reported seventeen images with no alt text and two hundred unlabelled inputs; a scan that understands multi-line JSX found *zero* images without alt text, and antd's `Form.Item label` covers almost every control. Two real defects: the three consultation-diary filters were placeheld rather than labelled — and a placeholder vanishes the moment a value is chosen, leaving a screen-reader user hearing "Aisha" with no idea what it filters — and the sidebar toggle's accessible name came from its icon's alt text, "menu", which says nothing about pressing it or which way it goes. Both fixed, with the diary's labels asserted by test. The mobile menu backdrop is now `aria-hidden`: it is a convenience, not the way out, and it was being announced as a control that cannot be operated. |
-| C4 | Admin portal test suite | 🟡 | 0 → 45 tests. The blocker was never the tests: Create React App excludes `node_modules` from Jest transformation wholesale, so any test that rendered a real screen died on `Cannot use import statement outside a module` before reaching an assertion, and portal components throw from inside a stylesheet without a styled-components provider. Both fixed once, in `customize-cra-config.js` and `utility/testRender.js`, which is what makes any of the rest possible. Covered so far: the consultation API client, the event progress rule, the Events grid, the over-capacity panel, the consultation diary, and error reporting. Not covered: the event form, which is 2,500 lines and needs breaking up before it can be tested. |
-| C5 | API documentation | ⬜ | |
+| C4 | Admin portal test suite | 🟡 | 19 → 57 tests. The blocker was never the tests: Create React App excludes `node_modules` from Jest transformation wholesale, so any test that rendered a real screen died on `Cannot use import statement outside a module` before reaching an assertion, and portal components throw from inside a stylesheet without a styled-components provider. Both fixed once, in `customize-cra-config.js` and `utility/testRender.js`, which is what makes any of the rest possible. Covered so far: the consultation API client, the event progress rule, the Events grid, the over-capacity panel, the "Coming up" dashboard panel, the consultation diary, and error reporting. Not covered: the event form, which is 2,500 lines and needs breaking up before it can be tested. |
+| ~~C5~~ | ~~API documentation~~ | ✅ | **`API.md`, generated from the controllers and checked by the build.** 333 endpoints across 44 controllers, each with the one thing an OpenAPI document generated from the controllers alone could not tell you: who is allowed to call it. Authorisation lives in `PortalEndpoints`, not in the annotations, so the audience column is derived by matching each path against the allowlists. `ApiInventoryTest` regenerates the file with `-Dapi.docs.write=true` and fails when it drifts — documentation that is generated but never checked is documentation nobody trusts after the second month. Writing it found a real gap: a third of the controllers use the older `@RequestMapping(method = RequestMethod.POST)` form, and the first scan missed every one of them, reporting four live customer-facing endpoints as pointing at nothing. **springdoc-openapi is still the right long-term answer** and should be added when the build can resolve a new dependency again — see §16. |
 | ~~C6~~ | ~~Error monitoring~~ | ✅ | **Both halves, with no new dependency.** Server-side: every unhandled exception now logs with an eight-character reference and returns it to the caller, so "something went wrong" becomes a single grep instead of a guess at a timestamp. Client-side: a failure in a browser used to leave a line in a console on somebody's phone and then vanish — the only evidence reaching the business was a customer saying the site did not work, weeks later, on a device nobody can reproduce. Both frontends now report what they catch, including the errors an ErrorBoundary never sees (a rejected save, a failed fetch in an event handler — most of what actually goes wrong). The admin portal had no ErrorBoundary at all, so one thrown error left a blank white page. The endpoint is public, because the failures most worth hearing about are the ones that stop somebody signing in; that is bounded by truncation, control-character stripping so a report cannot forge log lines around itself, and a ceiling per minute. No customer name, email or event detail is sent, and never the query string — that is where the single-use tokens in our own emails live. |
 
 ### E. Consultations — replacing Calendly
@@ -610,6 +617,7 @@ Specified in §12. Requested 19 August 2026.
 | ~~D6~~ | ~~Who takes consultations, and when?~~ **Answered:** all of it configurable in the admin portal — hosts, hours, meeting lengths, buffers, notice. Nothing hardcoded; seed data is starting data, not defaults. |
 | ~~D7~~ | ~~Google, Microsoft, or both?~~ **Answered:** both, connected per person. Busy read from every connected calendar, consultations written to one nominated calendar. See §12.6. |
 | ~~D8~~ | ~~Automatic Meet/Teams link?~~ **Answered:** yes, and configurable — `blnCreateVideoLink` per consultation type. Created on confirmation, not on request. |
+| D6 | **Is the itinerary feature live, and what is the "itinerary table" meant to show?** Seven tables, three admin screens and a Jasper kitchen report exist; every table is empty. Either the kitchen has never used it — in which case the question is whether it is wanted at all before anything is added — or it is used somewhere the development database does not see. If a table is wanted, what does it list: prep steps per dish for one event, or totals across a day's events, and who reads it — the kitchen, or the person planning the week? |
 | D5 | **Should customers pick external suppliers?** Five are seeded and the admin manages them, but the picker is commented out and the step now shows notes and terms instead. If suppliers are not returning, the step should be renamed for what it does. |
 
 ---
@@ -841,6 +849,35 @@ It is not a rewrite. `EventMaster` keeps its table, its id, its columns and most
 of its behaviour throughout; what changes is what hangs off it. Nothing here
 requires the customer journey to be rebuilt, and no stage requires both
 frontends to ship on the same day.
+
+---
+
+## 16. What the build cannot currently do
+
+**Not a code problem, and worth writing down so the next person does not spend
+an afternoon on it.**
+
+Maven cannot resolve this project's dependency tree in a sandboxed environment
+without access to `jaspersoft.jfrog.io`. `net.sf.jasperreports:jasperreports`
+depends on `com.github.librepdf:openpdf:1.3.30.jaspersoft.3`, a fork published
+only to Jaspersoft's own repository. Maven Central answers 404 for that
+version, so with the host blocked the build fails at dependency collection —
+before compiling anything.
+
+What that costs, concretely: **no new dependency can be added or verified**.
+That is why C5 was answered with a generated inventory rather than
+springdoc-openapi, and why C6 was built from the exception handler and a
+controller rather than an error-reporting SDK. Both decisions are defensible on
+their own merits, but neither was a free choice.
+
+The work still gets compiled and tested — the classpath can be assembled from
+the previously built application jar plus the local Maven cache, and JUnit
+driven through the platform launcher directly. Compilation, test compilation
+and test execution are all real; only dependency *resolution* is bypassed.
+
+**To lift this**, either allow `jaspersoft.jfrog.io` through the egress policy,
+or mirror that one artifact into an internal repository. It is a single POM and
+JAR.
 
 ---
 
