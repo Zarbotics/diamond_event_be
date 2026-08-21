@@ -572,6 +572,7 @@ Ordered by what actually costs the business the most.
 | B2 | REST semantics and pagination across the API | ⬜ | ~340 endpoints, all POST. Breaking change across two frontends — needs to be staged. |
 | B3 | Delete the five orphan entities | ⬜ | Classes only; leave the tables. |
 | B4 | Retire the token-in-URL sign-in path | ⬜ | The single-use code handoff is the real route. Tests use the legacy path and would need moving first. |
+| ~~B5~~ | ~~Two copies of the capacity rule~~ | ✅ | **Folded into `EventDayCapacity`, and the copies had already drifted.** `countEventsOnDate` excludes the event being edited; the old Sunday and Monday branches then subtracted it a second time when it was moving off the adjacent day. Moving an event from a Monday onto the Sunday before it therefore under-counted that Monday by one, the Sunday's limit went up to three, and the booking was accepted while a Monday event still stood — the one pairing the rule exists to prevent, since the team need the Monday to break down. Proved by reintroducing the subtraction and watching the new test name it. Six new integration tests; one of them records a deliberate change of behaviour — a Monday booking beside a full Sunday can now be edited in place, which the old code refused, and which is the same grandfathering already agreed for over-capacity days. |
 
 ### C. Features
 

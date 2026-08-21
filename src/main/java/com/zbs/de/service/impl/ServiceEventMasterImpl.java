@@ -5427,22 +5427,41 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		}
 	}
 
+	/**
+	 * Whether an event may sit on this date.
+	 *
+	 * <p>
+	 * The capacity rule itself lives in {@link EventDayCapacity} and is applied
+	 * from there. This method's job is the part the rule cannot know about: what
+	 * the days involved would hold <em>after</em> this save. That means counting
+	 * the day, counting the day the rule couples it to, and accounting for the
+	 * event being edited — which may be arriving on this date, leaving another,
+	 * or staying exactly where it is.
+	 *
+	 * <p>
+	 * It used to carry its own copy of the rule, in {@code Calendar} arithmetic,
+	 * and the copy had drifted. {@code countEventsOnDate} already excludes the
+	 * event being edited, and the Sunday and Monday branches then subtracted it a
+	 * second time when it was moving off the adjacent day. The effect was real
+	 * rather than theoretical: moving an event from a Monday to the Sunday before
+	 * it under-counted that Monday by one, so the Sunday was allowed a third
+	 * event while a Monday booking still stood — the exact pairing the rule
+	 * exists to prevent, since the team need the Monday to break down.
+	 */
 	public DtoEventBookingValidationResult canBookEvent(Date newDate, Date oldDate, Integer eventId) {
 
 		if (newDate == null) {
 			return new DtoEventBookingValidationResult(false, "Invalid date");
 		}
 
-		// Normalize dates
 		Date newStart = UtilDateAndTime.getStartOfDay(newDate);
-		Date newEnd = UtilDateAndTime.getEndOfDay(newDate);
-		
-		// 🚫 RULE: No same-day booking allowed
-		Date todayStart = UtilDateAndTime.getStartOfDay(new Date());
-		if (newStart.equals(todayStart)) {
-		    return new DtoEventBookingValidationResult(false, "Same-day booking is not allowed");
+
+		// No same-day booking. Nothing can be sourced, staffed or delivered in
+		// the time left, so this is refused before capacity is even considered.
+		if (newStart.equals(UtilDateAndTime.getStartOfDay(new Date()))) {
+			return new DtoEventBookingValidationResult(false, "Same-day booking is not allowed");
 		}
-		
+
 		/*
 		 * Nobody else may be counting this date while we are.
 		 *
@@ -5461,104 +5480,77 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		 */
 		repositoryEventDateLock.lockForBooking(newStart);
 
-		// Get current count on NEW date (excluding current event if update)
-		int newDateCount = repositoryEventMaster.countEventsOnDate(newStart, newEnd, eventId);
+		java.time.LocalDate day = toLocalDate(newStart);
+		java.time.LocalDate oldDay = oldDate == null ? null : toLocalDate(UtilDateAndTime.getStartOfDay(oldDate));
 
-		// Detect if it's update + date changed
-		boolean isDateChanged = false;
+		/*
+		 * Is this event arriving on this date, or was it already here?
+		 *
+		 * Every count below excludes the event being edited, so one that is
+		 * arriving has to be added back. One that is staying put must not be —
+		 * that is what lets the team open and save a booking on a day that is
+		 * already over capacity without being refused. Those days exist, they are
+		 * commitments to real customers, and correcting one is a conversation
+		 * rather than a data fix.
+		 */
+		boolean arriving = eventId == null || oldDay == null || !oldDay.equals(day);
 
-		if (eventId != null && oldDate != null) {
-			Date oldStart = UtilDateAndTime.getStartOfDay(oldDate);
-//			Date oldEnd = UtilDateAndTime.getEndOfDay(oldDate);
+		java.util.Map<java.time.LocalDate, Integer> counts = new java.util.HashMap<>();
+		counts.put(day, countEventsOn(day, eventId) + (arriving ? 1 : 0));
 
-			isDateChanged = !(oldStart.equals(newStart));
-
-			if (isDateChanged) {
-				// Simulate adding this event to new date
-				newDateCount = newDateCount + 1;
-			}
-		} else {
-			// New event → always adding
-			newDateCount = newDateCount + 1;
+		/*
+		 * The rule couples each Sunday to the Monday after it, in both
+		 * directions, so that neighbour has to be counted too. Its count excludes
+		 * the event being edited, which is right either way: if the event is
+		 * moving off that Monday it will not be there afterwards, and if it is
+		 * not, it is on `day` and counted there instead.
+		 */
+		java.time.LocalDate neighbour = null;
+		if (day.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+			neighbour = day.plusDays(1);
+		} else if (day.getDayOfWeek() == java.time.DayOfWeek.MONDAY) {
+			neighbour = day.minusDays(1);
+		}
+		if (neighbour != null) {
+			counts.put(neighbour, countEventsOn(neighbour, eventId));
 		}
 
-		// Determine day of week for NEW date
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(newDate);
-		int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-
-		// =========================================================
-		// RULE 2: Sunday (Dynamic Capacity)
-		// =========================================================
-		if (dayOfWeek == Calendar.SUNDAY) {
-
-			// Get Monday
-			Calendar mondayCal = (Calendar) cal.clone();
-			mondayCal.add(Calendar.DAY_OF_MONTH, +1);
-
-			Date mondayStart = UtilDateAndTime.getStartOfDay(mondayCal.getTime());
-			Date mondayEnd = UtilDateAndTime.getEndOfDay(mondayCal.getTime());
-
-			int mondayCount = repositoryEventMaster.countEventsOnDate(mondayStart, mondayEnd, eventId);
-
-			// Adjust if moving FROM Monday → Sunday
-			if (eventId != null && oldDate != null) {
-				Calendar oldCal = Calendar.getInstance();
-				oldCal.setTime(oldDate);
-
-				if (oldCal.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY && isDateChanged) {
-					mondayCount = mondayCount - 1;
-				}
-			}
-
-			// 🔥 Dynamic limit
-			int maxSundayEvents = (mondayCount > 0) ? 2 : 3;
-
-			if (newDateCount > maxSundayEvents) {
-				return new DtoEventBookingValidationResult(false,
-						"Sunday is fully booked (Max " + maxSundayEvents + " events)");
-			}
-
-			return new DtoEventBookingValidationResult(true, "Allowed");
-		}
-
-		// =========================================================
-		// RULE 3: Monday restriction (depends on Sunday)
-		// =========================================================
-		if (dayOfWeek == Calendar.MONDAY) {
-
-			Calendar sundayCal = (Calendar) cal.clone();
-			sundayCal.add(Calendar.DAY_OF_MONTH, -1);
-
-			Date sundayStart = UtilDateAndTime.getStartOfDay(sundayCal.getTime());
-			Date sundayEnd = UtilDateAndTime.getEndOfDay(sundayCal.getTime());
-
-			int sundayCount = repositoryEventMaster.countEventsOnDate(sundayStart, sundayEnd, eventId);
-
-			// Adjust Sunday count if moving FROM Sunday → Monday
-			if (eventId != null && oldDate != null) {
-
-				Calendar oldCal = Calendar.getInstance();
-				oldCal.setTime(oldDate);
-
-				if (oldCal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY && isDateChanged) {
-					sundayCount = sundayCount - 1;
-				}
-			}
-
-			if (sundayCount >= 3) {
-				return new DtoEventBookingValidationResult(false, "Cannot book Monday because Sunday is fully booked");
-			}
-		}
-
-		// =========================================================
-		// RULE 1: Normal Day → Max 2
-		// =========================================================
-		if (newDateCount > 2) {
-			return new DtoEventBookingValidationResult(false, "This date is fully booked (Max 2 events)");
+		int capacity = EventDayCapacity.of(day, counts);
+		if (counts.get(day) > capacity) {
+			return new DtoEventBookingValidationResult(false, fullMessage(day, capacity));
 		}
 
 		return new DtoEventBookingValidationResult(true, "Allowed");
+	}
+
+	/** How many events are on this day, never counting the one being edited. */
+	private int countEventsOn(java.time.LocalDate day, Integer eventId) {
+		Date asDate = Date.from(day.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
+
+		return repositoryEventMaster.countEventsOnDate(
+				UtilDateAndTime.getStartOfDay(asDate), UtilDateAndTime.getEndOfDay(asDate), eventId);
+	}
+
+	/**
+	 * Why a date was refused, in the words the frontends already show.
+	 *
+	 * <p>
+	 * A Monday whose Sunday took a third is the one worth naming: its capacity is
+	 * zero, and "fully booked (max 0 events)" tells somebody nothing about why a
+	 * completely empty day cannot be used.
+	 */
+	private String fullMessage(java.time.LocalDate day, int capacity) {
+		if (capacity == 0) {
+			return "Cannot book Monday because Sunday is fully booked";
+		}
+		if (day.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+			return "Sunday is fully booked (Max " + capacity + " events)";
+		}
+		return "This date is fully booked (Max " + capacity + " events)";
+	}
+
+	private java.time.LocalDate toLocalDate(Date date) {
+		return date.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
 	}
 	
 	//saveAndUpdateWithDocs and saveAndUpdateWithDocsCE methods are same, so any new development done in saveAndUpdateWithDocs 

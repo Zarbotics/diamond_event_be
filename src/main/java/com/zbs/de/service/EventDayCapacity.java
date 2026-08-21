@@ -14,11 +14,20 @@ import java.util.Map;
  * agrees with anything enforcing it.
  *
  * <p>
- * {@code ServiceEventMasterImpl.canBookEvent} still carries its own copy, and
- * deliberately so for now: it has to reason about the event being edited — a
- * count that excludes it, an increment only when the date actually changes —
- * and folding that in would mean rewriting the check that guards the customer
- * journey in order to tidy a report. Recorded as B5.
+ * Both callers go through this: {@code getDaysOverCapacity}, which reports the
+ * days that already breach the rule, and {@code canBookEvent}, which stops new
+ * ones. They disagreed while there were two copies. The enforcing copy
+ * subtracted the event being edited from the adjacent day's count when the
+ * query had already excluded it, so moving an event from a Monday onto the
+ * Sunday before it under-counted that Monday — and the Sunday was then allowed
+ * a third event alongside a Monday booking, which is the one pairing the rule
+ * exists to prevent.
+ *
+ * <p>
+ * What this deliberately does not know about is the event being saved. Whether
+ * it is arriving on a day, leaving another, or staying exactly where it is, is a
+ * question about one save rather than about the calendar, and it belongs with
+ * the caller that has the answer.
  */
 public final class EventDayCapacity {
 

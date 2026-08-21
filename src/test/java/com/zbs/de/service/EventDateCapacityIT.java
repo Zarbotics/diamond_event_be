@@ -317,4 +317,136 @@ class EventDateCapacityIT {
 				.as("taking two different days' locks took long enough to suggest they contended")
 				.isLessThan(10_000);
 	}
+
+	// -----------------------------------------------------------------
+	// The Sunday/Monday coupling
+	// -----------------------------------------------------------------
+
+	/** A Sunday far enough out that nothing else in the suite is using it. */
+	private static final LocalDate SUNDAY = LocalDate.now(ZoneOffset.UTC).plusYears(3)
+			.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.SUNDAY));
+
+	private static final LocalDate MONDAY = SUNDAY.plusDays(1);
+
+	private static Date asDate(LocalDate day) {
+		return Date.from(day.atStartOfDay(ZoneOffset.UTC).toInstant());
+	}
+
+	/** Puts an event on a day the way an unguarded save path would. */
+	private Integer put(String name, LocalDate day) {
+		EventMaster event = new EventMaster();
+		event.setTxtEventMasterName(MARKER + " " + name);
+		event.setDteEventDate(asDate(day));
+		event.setBlnIsDeleted(false);
+		return repositoryEventMaster.saveAndFlush(event).getSerEventMasterId();
+	}
+
+	@Test
+	@DisplayName("a Sunday takes a third only when the Monday after it is clear")
+	void aSundayTakesAThirdOnlyWithAFreeMonday() {
+		put("sunday-one", SUNDAY);
+		put("sunday-two", SUNDAY);
+
+		assertThat(mayBook(asDate(SUNDAY), null, null))
+				.as("a third Sunday booking was refused with the Monday after it clear")
+				.isTrue();
+
+		put("monday-one", MONDAY);
+
+		assertThat(mayBook(asDate(SUNDAY), null, null))
+				.as("a third Sunday booking was accepted with the Monday after it in use")
+				.isFalse();
+	}
+
+	@Test
+	@DisplayName("moving an event off the Monday does not clear the rest of the Monday")
+	void movingOffTheMondayStillCountsWhatIsLeftOnIt() {
+		/*
+		 * The defect the two copies of the rule were hiding, and the reason they
+		 * were worth folding into one.
+		 *
+		 * countEventsOnDate already excludes the event being edited. The old
+		 * Sunday branch then subtracted it a second time when it was moving off
+		 * the Monday — so a Monday holding this event plus one other counted as
+		 * empty, the Sunday's limit went up to three, and the third Sunday event
+		 * was accepted while a Monday booking still stood.
+		 *
+		 * That is precisely the pairing the rule exists to prevent: the third
+		 * Sunday event runs late and the team need the Monday to break down and
+		 * reset. Nothing about the resulting state looks wrong day by day.
+		 */
+		put("sunday-one", SUNDAY);
+		put("sunday-two", SUNDAY);
+		put("monday-staying", MONDAY);
+		Integer moving = put("monday-moving", MONDAY);
+
+		assertThat(mayBook(asDate(SUNDAY), asDate(MONDAY), moving))
+				.as("an event moved from the Monday onto a full Sunday, leaving a Monday booking behind it")
+				.isFalse();
+	}
+
+	@Test
+	@DisplayName("moving off the Monday is allowed when it empties the Monday")
+	void movingOffTheMondayIsAllowedWhenNothingIsLeft() {
+		// The other side of the same sum, so the fix above is not simply
+		// refusing everything: with this event gone the Monday really is clear,
+		// and the Sunday really can take its third.
+		put("sunday-one", SUNDAY);
+		put("sunday-two", SUNDAY);
+		Integer onlyMondayBooking = put("monday-moving", MONDAY);
+
+		assertThat(mayBook(asDate(SUNDAY), asDate(MONDAY), onlyMondayBooking))
+				.as("moving the Monday's only booking onto the Sunday was refused")
+				.isTrue();
+	}
+
+	@Test
+	@DisplayName("a Monday is closed when its Sunday took a third")
+	void aMondayIsClosedAfterAFullSunday() {
+		put("sunday-one", SUNDAY);
+		put("sunday-two", SUNDAY);
+		put("sunday-three", SUNDAY);
+
+		assertThat(mayBook(asDate(MONDAY), null, null))
+				.as("a Monday booking was accepted after its Sunday took a third")
+				.isFalse();
+	}
+
+	@Test
+	@DisplayName("a Monday refusal says why, rather than reporting a limit of zero")
+	void theMondayRefusalIsReadable() {
+		// Its capacity is zero, and "fully booked (max 0 events)" tells somebody
+		// nothing at all about why a completely empty day cannot be used.
+		put("sunday-one", SUNDAY);
+		put("sunday-two", SUNDAY);
+		put("sunday-three", SUNDAY);
+
+		String message = transactionTemplate.execute(
+				status -> serviceEventMaster.canBookEvent(asDate(MONDAY), null, null).getMessage());
+
+		assertThat(message).isEqualTo("Cannot book Monday because Sunday is fully booked");
+	}
+
+	@Test
+	@DisplayName("a Monday booking beside a full Sunday can still be edited in place")
+	void aGrandfatheredMondayStaysEditable() {
+		/*
+		 * Same policy as the over-capacity day above, and it did not hold before:
+		 * the old code refused any Monday save whose Sunday held three, including
+		 * one that changed nothing about the date. A booking that already exists
+		 * is a commitment to a customer, and the team have to be able to open it.
+		 */
+		put("sunday-one", SUNDAY);
+		put("sunday-two", SUNDAY);
+		put("sunday-three", SUNDAY);
+		Integer strandedMonday = put("monday-already-there", MONDAY);
+
+		assertThat(mayBook(asDate(MONDAY), asDate(MONDAY), strandedMonday))
+				.as("the team was locked out of a Monday booking that already exists")
+				.isTrue();
+
+		assertThat(mayBook(asDate(MONDAY), null, null))
+				.as("a second Monday booking was accepted beside a full Sunday")
+				.isFalse();
+	}
 }
