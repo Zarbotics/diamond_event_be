@@ -153,6 +153,29 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "num_version")
 	private Long numVersion;
 
+	/**
+	 * The booking this event belongs to.
+	 *
+	 * <p>
+	 * Stage 1 of §15.3: readable, never written. Every event that existed when
+	 * V11 ran has one; events created since then have none, because the save
+	 * paths are not wired up until stage 2.
+	 *
+	 * <p>
+	 * {@code insertable = false, updatable = false} is the important part and not
+	 * a detail. Hibernate writes every mapped column on an update, so a mapping
+	 * that nothing populates would write NULL over the backfill on the first save
+	 * of each event — undoing the migration one booking at a time, silently,
+	 * starting with the busiest.
+	 *
+	 * <p>
+	 * It is a plain id rather than a {@code @ManyToOne} for the same reason: an
+	 * association invites somebody to set it before the code that keeps both
+	 * sides consistent exists.
+	 */
+	@Column(name = "ser_booking_id", insertable = false, updatable = false)
+	private Long serBookingId;
+
 	@ManyToOne
 	@JoinColumn(name = "ser_cust_id")
 	private CustomerMaster customerMaster;
@@ -539,6 +562,10 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setNumFormState(Integer numFormState) {
 		this.numFormState = numFormState;
+	}
+
+	public Long getSerBookingId() {
+		return serBookingId;
 	}
 
 	public Long getNumVersion() {
