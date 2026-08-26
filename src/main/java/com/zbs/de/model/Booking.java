@@ -30,21 +30,24 @@ import jakarta.persistence.Version;
  *
  * <h2>What this is not, yet</h2>
  *
- * Stage 1 of §15.3. The table exists and every event that existed when V11 ran
- * has a parent, but <strong>nothing reads it</strong>: no association is mapped
- * on {@code EventMaster}, no endpoint returns a booking, no screen shows one.
+ * Stages 1 and 2 of §15.3. Every event now has one — those that existed when
+ * V11 ran were given a parent by the backfill, and every event created since is
+ * given one by {@code ServiceEventMasterImpl.giveItABooking} — but a booking
+ * still holds nothing that an event does not. No endpoint returns one, no
+ * screen shows one, and no two events share one.
  *
  * <p>
- * That is deliberate rather than unfinished. This stage changes no behaviour
- * and is undone by dropping a column, so it can go to production on its own
- * while the stages that do change behaviour are built and reviewed separately.
+ * That is deliberate rather than unfinished, and the ordering is the point. The
+ * budget, the payments and the consultation move up in stage 3, one migration
+ * at a time and each leaving a read-through on the event so that existing
+ * screens keep working. "Add another day to this wedding" — the thing the
+ * business actually asked for, and the reason any of this is happening — is
+ * stage 4, and it is only safe once the money has somewhere to live.
  *
  * <p>
- * In particular the association is <em>not</em> mapped on {@code EventMaster}
- * on purpose. Hibernate writes every mapped column on an update, so an
- * association nothing populates would write NULL over the backfill on the first
- * save of each event — quietly undoing the migration one booking at a time.
- * Stage 2 adds the mapping together with the code that maintains it.
+ * Nothing here navigates from a booking to its events either. That query
+ * arrives with the stage that needs it, written against a requirement rather
+ * than in anticipation of one.
  */
 @Entity
 @Table(name = "booking")

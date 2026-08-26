@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -150,4 +151,31 @@ public interface RepositoryEventMaster
 			    GROUP BY e.dteEventDate
 			""")
 	List<Object[]> getEventDateCounts();
+
+	/**
+	 * Puts an event under a booking, once, and only if it has none.
+	 *
+	 * <p>
+	 * The one deliberate write to {@code ser_booking_id}. The mapping on
+	 * {@link EventMaster} is {@code updatable = false} so that an ordinary save —
+	 * and this codebase saves entities built from DTOs, which have never carried
+	 * a booking id — cannot blank the column. That protection is exactly why an
+	 * explicit statement is needed here: two of the four create paths insert the
+	 * event row before they know its customer or its reference code, so by the
+	 * time the booking exists there is no insert left to carry the id.
+	 *
+	 * <p>
+	 * The {@code IS NULL} is the whole safety of it. This can only fill an empty
+	 * column, never move an event from one booking to another — that is a real
+	 * operation, with consequences for two budgets, and it belongs to the stage
+	 * that gives it an endpoint rather than arriving as a side effect.
+	 *
+	 * <p>
+	 * Native because JPQL will not write a column whose mapping calls it
+	 * read-only, and rightly so.
+	 */
+	@Modifying
+	@Query(value = "UPDATE event_master SET ser_booking_id = :bookingId "
+			+ "WHERE ser_event_master_id = :eventId AND ser_booking_id IS NULL", nativeQuery = true)
+	int attachToBooking(@Param("eventId") Integer eventId, @Param("bookingId") Long bookingId);
 }

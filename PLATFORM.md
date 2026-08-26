@@ -576,7 +576,7 @@ Ordered by what actually costs the business the most.
 
 | # | Item | Status | Why |
 |---|---|---|---|
-| B1 | Booking-above-Event domain model | 🟡 | **Stage 1 landed (V11); four stages to go — see §15.** The largest item. `EventMaster` is doing the job of both a booking and an event, so a wedding that is a mehndi, a nikkah and a walima is three rows that know nothing about each other: three budgets, no total, a deposit with no row to live on, and three separate cancellations. §15.3 stages it so that every step before the last is reversible by dropping a column, and the step the business actually wants — "add another day to this wedding" — comes fourth rather than first. Stage 1 is done and changes no behaviour: the table exists and all 405 events in the development database have a parent, but nothing reads it. |
+| B1 | Booking-above-Event domain model | 🟡 | **Stages 1–2 landed; three to go — see §15.** The largest item. `EventMaster` is doing the job of both a booking and an event, so a wedding that is a mehndi, a nikkah and a walima is three rows that know nothing about each other: three budgets, no total, a deposit with no row to live on, and three separate cancellations. §15.3 stages it so that every step before the last is reversible by dropping a column, and the step the business actually wants — "add another day to this wedding" — comes fourth rather than first. Stage 1 built the table and backfilled a parent for all 405 events in the development database; stage 2 wired the four create paths, so the invariant stops decaying with every sale. Neither changes what any screen shows — nothing reads a booking yet, and the column can still be dropped. |
 | B2 | REST semantics and pagination across the API | 🟡 | **Designed — see §15.4.** ~340 endpoints, all POST including reads. Rewriting them wholesale means changing every call site in two frontends at once with no way to test the halves separately, in exchange for tidiness — a bad trade. Instead the `/booking` endpoints B1 adds are REST from the first line, and the old surface shrinks as screens move across. Pagination is split out and does **not** wait for any of it: it is where the measured harm is, and it needs no coordination. |
 | ~~B3~~ | ~~Delete the five orphan entities~~ | ✅ | Gone: `EventQuote`, `EventQuoteLine`, `EventFoodSelection`, `EventServicesMaster`, `EventItineraryResult`. Tables untouched, and all five were empty in the development database and the production dump alike. `EventItineraryResult` is the one worth naming: it looks like groundwork for the itinerary table C2 will build, which is exactly why it goes — a speculative empty class a future feature *might* reuse is what makes somebody grep for how itineraries work and find two answers. If C2 needs a results table it will be written to fit C2. |
 | ~~B4~~ | ~~Retire the token-in-URL sign-in path~~ | ✅ | **Done, and the last caller was not the tests.** It was the admin portal's "open the client portal" button, which built `?accessToken=…&refreshToken=…` out of a member of staff's own localStorage — the exact thing the Google redirect was changed to stop doing, and worse, because those are back-office credentials. A URL is not a private place: browser history, server access logs, every proxy in between, and the `Referer` header of the next request the page makes. `POST /auth/handoff` mints the same single-use code the SSO redirect uses, and is deliberately carved out of the otherwise-public `/auth/**` so that a public endpoint cannot mint a signed-in session on request. The journey no longer reads tokens from its address bar at all — an old bookmark carrying them simply does not sign anybody in, which is correct: they have been through a query string. The end-to-end suite moved onto the handoff too, which is what makes it the only route. Four integration tests. |
@@ -721,9 +721,9 @@ nobody can act on is a list people learn to ignore.
 
 ## 15. Booking above Event, and the road to a REST API
 
-**Status:** designed, not started. This is B1 and B2 in §10, written down before
-any code moves because both are staged changes across three repositories and a
-live database, and the staging is most of the work.
+**Status:** stages 1 and 2 done, 3–5 designed. This is B1 and B2 in §10, written
+down in full before any code moved, because both are staged changes across three
+repositories and a live database and the staging is most of the work.
 
 ### 15.1 What is actually wrong
 
@@ -796,25 +796,70 @@ an exception is what makes a later join quietly drop rows. Verified on the
 development database: 405 events, 405 bookings, none parentless, no duplicates,
 no mismatched customer or reference.
 
-Nothing reads the column. The mapping on `EventMaster` is a plain id with
-`insertable = false, updatable = false`, which is the important part rather than
-a detail: Hibernate writes every mapped column on an update, so a mapping
-nothing populates would write NULL over the backfill on the first save of each
-event — undoing the migration one booking at a time, silently, starting with the
-events people touch most. A test reproduces that through the path that actually
-does it, an entity built from a DTO, and it was checked by making the column
-writable and watching it fail. (The first version of that test reloaded the
-entity and passed either way, which proved nothing.)
+Nothing reads the column. The mapping on `EventMaster` is a plain id, and
+`updatable = false` is the important part rather than a detail: Hibernate writes
+every updatable column on every save, so a mapping nothing populates would write
+NULL over the backfill on the first save of each event — undoing the migration
+one booking at a time, silently, starting with the events people touch most. A
+test reproduces that through the path that actually does it, an entity built
+from a DTO, and it was checked by making the column writable and watching it
+fail. (The first version of that test reloaded the entity and passed either way,
+which proved nothing.)
 
-The column stays nullable, and events created from now until stage 2 will have
-no booking. That is expected rather than an oversight: NOT NULL here would
-reject every new booking the moment it deployed. This stage is still reversible
-by dropping a column.
+The column stays nullable, and events created between this stage and the next
+have no booking. That is expected rather than an oversight: NOT NULL here would
+reject every new booking the moment it deployed. This stage is reversible by
+dropping a column.
 
-**Stage 2 — the booking becomes writable.** Group endpoints under `/booking`
-that create a booking and its first event together. The existing endpoints keep
-working and quietly create a one-event booking behind each save, so both shapes
-are always consistent. Still nothing has moved.
+**Stage 2 — every new event gets one too. ✅ Done.** The four create branches in
+`ServiceEventMasterImpl` now make a booking and attach the event to it, so the
+invariant V11 established — every event has a parent — stays true instead of
+decaying with every sale. Without this, stage 3 would have had to begin by
+inventing parents for whatever accumulated in between.
+
+Four, not three. The plan for this change accounted for three; writing the
+structural test found a fourth — the admin portal's, which builds its entity
+through a different mapper and so does not match on the obvious pattern. That is
+the third time a rule has been found missing from one of these four
+near-identical methods, and `EveryNewEventGetsABookingTest` now guards this one
+the way `EventDateCapacityIsCheckedEverywhereTest` guards the capacity rule.
+
+Attaching it needs two mechanisms, because the four paths disagree about when
+the event row appears. `saveAndUpdate` builds the whole event and inserts it
+once, at the end, so its own insert carries the booking id. The other three
+insert a bare row immediately after the capacity check — associations
+deliberately nulled — and fill it in afterwards, so by the time there is a
+customer and a reference code to make a booking from, the insert that would have
+carried the id has already happened. Those get an explicit
+`attachToBooking(eventId, bookingId)`: a native statement carrying `AND
+ser_booking_id IS NULL`, so it can only fill an empty column and never move an
+event from one booking to another. The first version of this change had only the
+first mechanism and quietly did nothing at all down three of the four paths
+while passing every structural check, which is why a behavioural test now drives
+two of them for real.
+
+Still one booking per event. Several events sharing one — the mehndi, the nikkah
+and the walima of one wedding — is stage 4, and it needs the journey to ask "is
+this another day of a booking you already have?", which nothing does yet.
+Guessing at it here by matching on a customer and a nearby date would silently
+merge two unrelated bookings for the same family, and there would be no way to
+tell afterwards which money belonged to which.
+
+**Deliberate deviation from the plan below.** The original stage 2 also added
+`/booking` REST endpoints. They are not here, because nothing calls them yet.
+Adding endpoints in anticipation of a caller is the same speculative pattern
+that produced the five orphan entity classes deleted in B3, and the argument
+against it does not weaken because this time the plan was mine. They arrive in
+stage 3, with the screens that read them. §15.4's rule — new endpoints are REST
+— is unaffected.
+
+**Known cost, accepted.** These four methods wrap everything in a `try/catch`
+that logs at debug and returns `"Failure"`, and `jakarta.transaction.Transactional`
+commits on a normal return. So a save that fails after the booking is made
+leaves a booking with no events. That is a wasted row rather than wrong data —
+nothing points at it, and stage 3 moves money by event — and the real fault is
+the swallow-and-commit, which is an item of its own rather than one to take on
+inside a migration.
 
 **Stage 3 — move what is negotiated once.** Budget, payments, consultation and
 contact details move to hang off `booking`. Each is a separate migration with

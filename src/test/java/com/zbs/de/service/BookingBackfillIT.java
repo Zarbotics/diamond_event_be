@@ -45,10 +45,17 @@ import com.zbs.de.repository.RepositoryEventMaster;
  * a NULL in them.
  *
  * <p>
- * And that nothing has started depending on it. The failure this stage could
- * actually cause is the mapping being made writable by somebody who thinks it
- * looks unfinished — at which point Hibernate writes NULL over the backfill on
- * the first save of every event, silently, starting with the busiest.
+ * And that an ordinary save does not undo it. The failure this stage could
+ * actually cause is the column being made updatable by somebody who thinks
+ * write-once looks unfinished — at which point Hibernate writes NULL over the
+ * backfill on the first save of every event, silently, starting with the
+ * busiest. Stage 2 made it insertable, which is what the create paths need; it
+ * is still not updatable, and that half is what the last test here defends.
+ *
+ * <p>
+ * What stage 2 does is asserted next door, in
+ * {@code BookingCreatedWithEventIT}. This file is about the rows the migration
+ * touched.
  */
 @SpringBootTest
 @TestPropertySource(properties = {
@@ -186,8 +193,8 @@ class BookingBackfillIT {
 	@DisplayName("saving an event built from a DTO does not wipe the booking it was attached to")
 	void savingAnEventLeavesTheBackfillAlone() {
 		/*
-		 * The failure this stage could actually cause, and the reason the mapping
-		 * is insertable = false, updatable = false.
+		 * The failure this stage could actually cause, and the reason the column
+		 * is updatable = false.
 		 *
 		 * Reloading an event and saving it would not show this: the field
 		 * round-trips, so Hibernate writes back what it read. The path that bites
@@ -243,18 +250,24 @@ class BookingBackfillIT {
 	}
 
 	@Test
-	@DisplayName("nothing reads the booking yet, which is what makes this stage reversible")
-	void nothingDependsOnItYet() {
+	@DisplayName("how many events are still without a parent stays answerable")
+	void theSizeOfTheGapIsKnown() {
 		/*
-		 * Stated as a test so that it is a decision rather than an accident. This
-		 * stage's whole value is that it can be dropped again: no endpoint returns
-		 * a booking, no screen shows one, and no query joins through it. The
-		 * moment one does, dropping the column stops being free — and that should
-		 * be a deliberate step, taken with stage 2, not something that arrives
-		 * because a mapping looked unfinished.
+		 * Stage 1 expected this number to grow: the migration gave a parent to
+		 * everything that existed at the time, and nothing kept that true for
+		 * events created afterwards. Stage 2 is what stopped it growing — see
+		 * BookingCreatedWithEventIT, which asserts that an event created now gets
+		 * one.
+		 *
+		 * It still cannot assert zero. A database that accumulated parentless
+		 * events between the two stages deploying still has them, legitimately,
+		 * and a test failing on those would fail everywhere except a database
+		 * created after both. What matters is that the number remains cheap to
+		 * ask for, because it is what tells stage 3 how much it must tidy before
+		 * it can move the payments.
 		 */
 		assertThat(repositoryBooking.countEventsWithNoBooking())
-				.as("this only has to be answerable; it is expected to grow until stage 2")
+				.as("this has to remain answerable; stage 3 sizes its backfill from it")
 				.isNotNegative();
 	}
 }

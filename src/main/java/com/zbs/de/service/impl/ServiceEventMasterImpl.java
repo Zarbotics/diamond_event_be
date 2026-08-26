@@ -28,6 +28,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.zbs.de.mapper.*;
+import com.zbs.de.model.Booking;
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryPropertyValue;
@@ -74,6 +75,7 @@ import com.zbs.de.model.dto.DtoResult;
 import com.zbs.de.model.dto.DtoSearch;
 import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
 import com.zbs.de.model.dto.menu.DtoCustomerMenuSubCategory;
+import com.zbs.de.repository.RepositoryBooking;
 import com.zbs.de.repository.RepositoryEventDateLock;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
@@ -114,6 +116,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private RepositoryEventRunningOrder repositoryEventRunningOrder;
+
+	@Autowired
+	private RepositoryBooking repositoryBooking;
 
 	@Autowired
 	private ServiceCustomerMaster serviceCustomerMaster;
@@ -650,6 +655,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			// Generate event master code
 			String code = generateNextEventMasterCode();
 			entity.setTxtEventMasterCode(code);
+
+			// A booking above it, so that stage 3 has a parent to move the budget
+			// and the payments onto. See giveItABooking.
+			giveItABooking(entity);
 		}
 
 		entity.setNumInfoFilledStatus(getEventCompletionPercentage(entity));
@@ -2228,6 +2237,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				// Generate event master code
 				String code = generateNextEventMasterCode();
 				entity.setTxtEventMasterCode(code);
+
+				// A booking above it, so that stage 3 has a parent to move the budget
+				// and the payments onto. See giveItABooking.
+				giveItABooking(entity);
 
 //				// Setting up Event QuotePrice
 //				// ***************************
@@ -3968,6 +3981,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				String code = generateNextEventMasterCode();
 				entity.setTxtEventMasterCode(code);
 
+				// A booking above it, so that stage 3 has a parent to move the budget
+				// and the payments onto. See giveItABooking.
+				giveItABooking(entity);
+
 //				// Setting Event Quoted Price
 //				// **************************
 //
@@ -5606,6 +5623,87 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	}
 
 	/**
+	 * Gives a newly created event the booking it belongs to.
+	 *
+	 * <h3>What this is</h3>
+	 *
+	 * Stage 2 of §15.3. V11 gave every event that existed at the time a parent;
+	 * this keeps that true for every event created since. Without it the
+	 * proportion of events with no booking grows with each sale, and stage 3 —
+	 * which moves the budget and the payments onto the booking — would have to
+	 * begin by inventing parents for whatever accumulated in between.
+	 *
+	 * <h3>One booking per event, still</h3>
+	 *
+	 * That is not the shape this is heading for, and it is not an oversight. The
+	 * thing worth having now is the invariant: <em>every event has a parent</em>,
+	 * with no exceptions to remember. Several events sharing one booking — the
+	 * mehndi, the nikkah and the walima of one wedding — is stage 4, and it
+	 * needs the journey to ask "is this another day of a booking you already
+	 * have?", which nothing does yet. Guessing at it here, by matching on a
+	 * customer and a nearby date, would silently merge two unrelated bookings
+	 * for the same family and there would be no way to tell afterwards which
+	 * money belonged to which.
+	 *
+	 * <h3>Why the code is copied</h3>
+	 *
+	 * Same convention V11 used: the booking carries the event's reference, so a
+	 * person on the telephone quoting a code finds the booking without a join,
+	 * and a booking created here is indistinguishable from a backfilled one.
+	 *
+	 * <h3>Why there are two ways of attaching it</h3>
+	 *
+	 * Because the four create paths do not agree on when the event row appears.
+	 * {@code saveAndUpdate} builds the whole event and inserts it once, at the
+	 * end; the other three insert a bare row early — right after the capacity
+	 * check, with its associations deliberately nulled — and fill it in
+	 * afterwards. So at this point the event sometimes has an id and sometimes
+	 * does not, and only one of those two cases has an insert left to carry the
+	 * booking id.
+	 *
+	 * <p>
+	 * Both are the same one-time attachment, and neither is an ordinary save
+	 * writing the column: {@code ser_booking_id} stays {@code updatable = false},
+	 * so a DTO-shaped save can never blank it, and
+	 * {@code attachToBooking} only ever fills an empty one.
+	 */
+	private void giveItABooking(EventMaster entity) {
+		if (entity.getSerBookingId() != null) {
+			return;
+		}
+
+		Booking booking = new Booking();
+		booking.setTxtBookingCode(entity.getTxtEventMasterCode());
+		booking.setCustomerMaster(entity.getCustomerMaster());
+		booking.setCreatedBy(ServiceCurrentUser.getCurrentUserId());
+
+		/*
+		 * save, deliberately, and not saveAndFlush.
+		 *
+		 * The id is needed here and now. save is enough for it: a booking's id is
+		 * IDENTITY-generated, so Hibernate must run this one insert immediately in
+		 * order to learn it.
+		 *
+		 * saveAndFlush would also return the id, and is wrong. It flushes the
+		 * whole persistence context, which at this point holds an event that has
+		 * not been saved yet with decor selections and a running order pointing at
+		 * it. Hibernate refuses that — TransientObjectException — and these four
+		 * methods catch everything and report "Failure", so the symptom is every
+		 * new booking being rejected with the reason recorded nowhere but a debug
+		 * log.
+		 */
+		Long bookingId = repositoryBooking.save(booking).getSerBookingId();
+
+		// The event has not been inserted yet: its own insert carries the id.
+		entity.setSerBookingId(bookingId);
+
+		// It has: say so explicitly, because no insert is coming.
+		if (entity.getSerEventMasterId() != null) {
+			repositoryEventMaster.attachToBooking(entity.getSerEventMasterId(), bookingId);
+		}
+	}
+
+	/**
 	 * The code the frontends switch on when a booking has moved under them.
 	 *
 	 * <p>
@@ -6641,6 +6739,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				// Generate event master code
 				String code = generateNextEventMasterCode();
 				entity.setTxtEventMasterCode(code);
+
+				// A booking above it, so that stage 3 has a parent to move the budget
+				// and the payments onto. See giveItABooking.
+				giveItABooking(entity);
 
 //				// Setting up Event QuotePrice
 //				// ***************************

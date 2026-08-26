@@ -157,23 +157,28 @@ public class EventMaster extends BaseEntity implements Serializable {
 	 * The booking this event belongs to.
 	 *
 	 * <p>
-	 * Stage 1 of §15.3: readable, never written. Every event that existed when
-	 * V11 ran has one; events created since then have none, because the save
-	 * paths are not wired up until stage 2.
+	 * Stage 2 of §15.3: written once, when the event is created, and never
+	 * again. Every event that existed when V11 ran was given one by the
+	 * backfill; every event created since stage 2 is given one by
+	 * {@code ServiceEventMasterImpl.giveItABooking}.
 	 *
 	 * <p>
-	 * {@code insertable = false, updatable = false} is the important part and not
-	 * a detail. Hibernate writes every mapped column on an update, so a mapping
-	 * that nothing populates would write NULL over the backfill on the first save
-	 * of each event — undoing the migration one booking at a time, silently,
-	 * starting with the busiest.
+	 * {@code updatable = false} is the important part and not a detail.
+	 * Hibernate writes every updatable column on every save, and this codebase
+	 * saves detached entities built from DTOs — objects carrying the id and the
+	 * fields the caller sent, and nothing else. A DTO has never carried a
+	 * booking id and should not start: with the column updatable, the first save
+	 * of each event would write NULL over its parent, undoing the migration one
+	 * booking at a time, silently, starting with the events people touch most.
+	 * {@code BookingBackfillIT.savingAnEventLeavesTheBackfillAlone} is that
+	 * failure, written down.
 	 *
 	 * <p>
-	 * It is a plain id rather than a {@code @ManyToOne} for the same reason: an
-	 * association invites somebody to set it before the code that keeps both
-	 * sides consistent exists.
+	 * It is a plain id rather than a {@code @ManyToOne} because nothing needs to
+	 * navigate from an event to its booking yet. The association arrives in
+	 * stage 3, with the budget and the payments that make it worth loading.
 	 */
-	@Column(name = "ser_booking_id", insertable = false, updatable = false)
+	@Column(name = "ser_booking_id", updatable = false)
 	private Long serBookingId;
 
 	@ManyToOne
@@ -566,6 +571,21 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public Long getSerBookingId() {
 		return serBookingId;
+	}
+
+	/**
+	 * Attaches this event to a booking, once, before it is first saved.
+	 *
+	 * <p>
+	 * Calling this on an event that already exists does nothing to the database:
+	 * the column is {@code updatable = false}. That is deliberate — moving an
+	 * event from one booking to another is a real operation, but it is a
+	 * deliberate one with consequences for two budgets, and it belongs in stage
+	 * 3 with an endpoint of its own rather than arriving as a side effect of an
+	 * ordinary save.
+	 */
+	public void setSerBookingId(Long serBookingId) {
+		this.serBookingId = serBookingId;
 	}
 
 	public Long getNumVersion() {
