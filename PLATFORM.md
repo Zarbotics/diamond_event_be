@@ -1189,9 +1189,51 @@ cannot — creating items, editing composites — and removing a working screen
 before its replacement covers the ground is how a working system stops working.
 They go when it does.
 
-**Still to do:** the event form's food section, the pricing across all its
-categories, and migrating the seventeen free-text composite names into real
-sections.
+**The event form's food section and its pricing. ✅ Done.**
+
+The form had **no total anywhere**. Somebody quoting a customer on the telephone
+could tick dishes, set decor and add extras, and the only way to find out what
+any of it came to was to save the booking and look at the quote afterwards.
+
+One rule made that dangerous rather than merely awkward: a food category is
+charged **what somebody typed against it and nothing at all otherwise**, however
+many dishes were ticked. That is deliberate — food is sold per head against an
+agreed menu, not as a running total of what has been selected — but nothing said
+so, and ticking dishes shows item prices beside them, so the form looked like it
+was adding up. A full menu could be chosen and a customer quoted £0 of food.
+
+`QuoteSummary` now sits at the foot of the form: decor, VAT, services, food, the
+total, and a warning naming any category with dishes chosen and no price. It
+says what VAT is charged on, because one figure cannot tell you it is decor and
+extras only.
+
+Its numbers come from `summariseQuote`, which builds the real payload and reads
+the real quote off it. Adding them up separately in the component would give two
+implementations of "what VAT is charged on", agreeing until somebody changed
+one — and then the screen and the saved quote disagree, with the customer having
+been told the wrong one. A test asserts the two are identical.
+
+**A binding fault worth recording.** Every price input in the form is a
+`Form.Item` wrapping a `<span>` wrapping the control. antd passes `value` and
+`onChange` to a `Form.Item`'s *direct child*, so all five were binding to the
+wrapper. Four work around it with a manual `value={form.getFieldValue(...)}` and
+their own `onChange`; the category price had neither, so **a saved category price
+never appeared when a booking was reopened** — re-typing it was the only reason
+the figure survived a second save. That one is fixed. The other four are left as
+they are on purpose: rewriting five live pricing controls at once is risk with no
+gain today, and they now at least have the labels and currency prefix they
+lacked. Recorded here so the next person knows the plumbing is deliberate rather
+than overlooked.
+
+The "↑ applied" badge is a button now, reading "Use £2.50 from the last saved
+quote". It was a `<span>` with a `title`: unreachable by keyboard, invisible to a
+screen reader, and labelled with something that describes neither what it is nor
+what pressing it would do. Categories 5 and 6 say on screen that they are quoted
+with the set menu above — that was a code comment and nothing else.
+
+**Still to do:** migrating the seventeen free-text composite names into real
+sections, and retiring the three old menu screens once the new one covers
+creating items and editing composites.
 
 **M5 — versioned prices.** `price_version` and `price_entry` become real, so a
 booking remembers what a dish cost when it was quoted, and `menu_item.num_price`
