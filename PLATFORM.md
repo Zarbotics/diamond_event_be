@@ -1106,11 +1106,50 @@ test a change to it. Flyway validates checksums at startup, so the application
 refuses to start rather than the assertion failing — which is correct, and means
 "break it and watch the test fail" has to be done to the data, not the SQL.
 
-**M3 — the reads move across.** One query over offerings replaces the four
-hand-written three-level walks in `ServiceMenuSelectionImpl` (352 lines, N+1 on
-every level). The price rule becomes explicit here. The four soups move to a
-real subcategory, and the fourteen wrong `txt_path` values are repaired or the
-column is dropped — it earns its keep or it goes.
+**M3 — the reads move across.** Three parts, two of them done.
+
+**The tree agrees with itself again. ✅ Done, V13.** Fourteen rows had a
+`txt_path` that contradicted `parent_menu_item_id`. Repaired by recomputing the
+path from the parent, top down, since the parent pointer is what the application
+has always walked and therefore what the live menu actually is. Rehearsed
+against a restored copy of production: 14 → 0, no nulls, all 436 paths still
+distinct.
+
+The column was kept rather than dropped, because an ltree does earn its keep —
+"every dish anywhere under Desserts" is one operator against an index instead of
+a recursive query — and `MenuPathMatchesParentIT` now fails the build if the two
+ever disagree again. Checked by pointing a seeded leaf at the wrong parent and
+watching it name the row.
+
+The repair also corrected the record: five of the nine items I first reported as
+sitting at depth four were a path artefact and were always at depth three. Only
+the **four soups** are genuinely too deep, and they remain the only anomaly.
+
+**The price rule is named and counted, not yet compulsory. 🟡 Part done.**
+`calculateItemPrice` read `type = PER_GUEST; // safe default`. It is not a safe
+default: it multiplies by the guest count for items whose pricing nobody has
+stated. Twenty priced offerings in production are in that position, twelve of
+them carrying money — a Grazing Bar at £2.50 and a Decorative Fruit Display at
+£3.00 become £750 and £900 at three hundred guests.
+
+On the evidence those twelve *are* per-head items and the figures are right,
+which is exactly the point: right by luck rather than by decision, and the first
+genuinely flat item somebody prices — a fountain hired at £250 — becomes £75,000
+the same silent way.
+
+The fallback is still there, because removing it today changes what twenty live
+items cost and that is the business's decision rather than a side effect of a
+refactor. What has changed is that it is no longer invisible: it is a named
+constant, it logs the item and the price that needed it, and
+`countPricedOfferingsWithNoRule` counts the population. M4 makes the rule a
+required field and shows the outstanding twenty; when the count reaches zero the
+branch goes and an unstated rule becomes a refusal.
+
+**Still to do:** one query over offerings replacing the four hand-written
+three-level walks in `ServiceMenuSelectionImpl` (352 lines, N+1 on every level).
+The four soups are **not** moved: they sit under *Gajar Ka Halwa* and there is no
+"Soups" subcategory to move them to, so choosing one would be inventing a menu
+decision. They are reported for the business to place.
 
 **M4 — the screens.** The reason any of this happened. The menu editor is
 rebuilt around offerings: a dish edited in one place, sections as first-class

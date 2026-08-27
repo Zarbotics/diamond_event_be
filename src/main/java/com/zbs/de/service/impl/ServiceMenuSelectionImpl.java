@@ -17,10 +17,15 @@ import com.zbs.de.model.dto.menu.DtoCustomerMenuSubCategory;
 import com.zbs.de.repository.RepositoryMenuItem;
 import com.zbs.de.service.ServiceMenuComponent;
 import com.zbs.de.service.ServiceMenuSelection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.zbs.de.util.enums.EnmPriceMultiplierType;
 
 @Service("serviceMenuSelectionImpl")
 public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceMenuSelectionImpl.class);
 
     private final AuthController authController;
 
@@ -321,17 +326,61 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 		return result;
 	}
 
+	/**
+	 * What a priced item comes to for this booking.
+	 *
+	 * <h3>The rule that was being assumed</h3>
+	 *
+	 * This read {@code type = PER_GUEST; // safe default}, and it is not a safe
+	 * default — it is a multiplication by the guest count applied to items whose
+	 * pricing nobody has ever stated. Twenty priced offerings in the live
+	 * catalogue are in exactly that position, twelve of them carrying real money:
+	 * a Grazing Bar at £2.50 and a Decorative Fruit Display at £3.00 become £750
+	 * and £900 at a three hundred guest wedding, with nothing on any screen
+	 * saying which rule was applied.
+	 *
+	 * <p>
+	 * On the evidence those twelve <em>are</em> per-head items and the figures
+	 * are right. That is the point: they are right by luck rather than by
+	 * decision, and the first genuinely flat item somebody prices — a fountain
+	 * hired for £250 — becomes £75,000 the same silent way.
+	 *
+	 * <h3>Why the fallback is still here</h3>
+	 *
+	 * Because removing it today would change what twenty live items cost, which
+	 * is a decision for the business and not a side effect of a refactor. So it
+	 * stays, but it stops being invisible: it is named, it is logged with the
+	 * item that needed it, and
+	 * {@code RepositoryMenuOffering.countPricedOfferingsWithNoRule} counts the
+	 * population. M4 makes the rule a required field on the menu screen and shows
+	 * the outstanding twenty; when that count reaches zero this whole branch
+	 * goes, and {@code UNSTATED} becomes a refusal instead.
+	 */
+	/**
+	 * What an item that has not stated its pricing rule is charged as.
+	 *
+	 * <p>
+	 * Named rather than inlined so that it is a decision somebody can find and
+	 * count, rather than a comment saying "safe default" beside a
+	 * multiplication. Its population is finite and shrinking; see
+	 * {@code calculateItemPrice}.
+	 */
+	private static final EnmPriceMultiplierType UNSTATED_RULE_MEANS = EnmPriceMultiplierType.PER_GUEST;
+
 	private BigDecimal calculateItemPrice(MenuItem item, DtoMenuPriceCalulationFields ctx) {
 
 		if (item.getNumPrice() == null) {
 			return BigDecimal.ZERO;
 		}
 
-		EnmPriceMultiplierType type = item.getEnmPriceMultiplierType();
 		BigDecimal base = item.getNumPrice();
+		EnmPriceMultiplierType type = item.getEnmPriceMultiplierType();
 
 		if (type == null) {
-			type = EnmPriceMultiplierType.PER_GUEST; // safe default
+			type = UNSTATED_RULE_MEANS;
+			LOGGER.warn("Menu item {} (#{}) is priced at {} but does not say whether that is per guest; "
+					+ "charging {} — see PLATFORM.md §17 M3",
+					item.getTxtName(), item.getSerMenuItemId(), base, UNSTATED_RULE_MEANS);
 		}
 
 		return switch (type) {
@@ -340,11 +389,6 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			int guests = ctx.getNumGuests() != null ? ctx.getNumGuests() : 0;
 			yield base.multiply(BigDecimal.valueOf(guests));
 		}
-
-//		case PER_ITEM -> {
-//			int tables = ctx.getNumTables() != null ? ctx.getNumTables() : 1;
-//			yield base.multiply(BigDecimal.valueOf(tables));
-//		}
 
 		case FLAT -> base;
 		};
