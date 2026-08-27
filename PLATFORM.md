@@ -1072,11 +1072,39 @@ tables they are wired into the itinerary feature — `ControllerItinerary` and
 open business question (D6), not a menu one. Deleting them would answer D6 by
 the back door. They go with whatever D6 decides.
 
-**M2 — the offering, alongside.** A `menu_offering` table: which dish, in which
-section, at what price, under which rule, in what position, with what limits.
-Backfilled by merging duplicate rows on name — the 130 copies collapse into
-offerings of the 238 originals. Nothing reads it yet. Reversible by dropping a
-table.
+**M2 — the offering, alongside. ✅ Done, V12.** A `menu_offering` table: which
+dish, in which section, at what price, under which rule, in what position.
+Nothing reads it. Reversible by dropping a table.
+
+**The backfill deliberately does not merge anything.** The plan said it would
+collapse the 130 copies onto the 238 originals by matching names. That was
+wrong, and writing it changed my mind: deciding by name that two rows are the
+same dish is a judgement, not a fact — one "Kheer" may be plated and another
+part of a set menu, priced differently on purpose — and a wrong guess silently
+changes what a customer is charged, with no way to tell afterwards. So the
+migration is an identity mapping: every selectable dish gets one offering of
+itself, under its current parent, with its own price and rule. Merging is
+offered to a person in M4, one dish at a time, and the repository reports the
+candidates rather than acting on them.
+
+Price and rule sit on the *offering* rather than the dish, which is the whole
+point: a brownie can legitimately cost £3.50 per head plated and £4.00 flat on a
+stand, and today that requires two brownies.
+
+**The tests had to be rewritten before they meant anything.** The first version
+asserted against whatever the database held, and the test database holds no menu
+at all — zero selectable items, so every count was zero and every assertion
+passed. Deleting an offering by hand did not make it fail. They now seed a small
+menu carrying the two shapes that matter (one dish in two sections at two
+prices, one priced dish that has never said whether the price is per guest) and
+run **the migration's own backfill statement, read out of the migration file** so
+that the test cannot drift from the thing it tests. Checked by deleting a seeded
+offering and watching two of them fail.
+
+Worth recording for the next person: an applied migration cannot be edited to
+test a change to it. Flyway validates checksums at startup, so the application
+refuses to start rather than the assertion failing — which is correct, and means
+"break it and watch the test fail" has to be done to the data, not the SQL.
 
 **M3 — the reads move across.** One query over offerings replaces the four
 hand-written three-level walks in `ServiceMenuSelectionImpl` (352 lines, N+1 on
