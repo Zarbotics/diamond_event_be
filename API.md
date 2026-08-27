@@ -10,9 +10,9 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 333 |
-| Controllers | 44 |
-| Named like a read (`get…`, `search…`, `is…`) | 157 |
+| Endpoints | 325 |
+| Controllers | 42 |
+| Named like a read (`get…`, `search…`, `is…`) | 155 |
 
 Almost every endpoint is `POST`, including the reads. Nothing is cacheable,
 no intermediary can safely retry a read, and which of these change data is
@@ -312,16 +312,6 @@ most of this inventory carries no audience marker.
 |---|---|---|
 | `POST` | `/dashboardStats/getCustomerAndEventYearReport` |  |
 
-### ControllerIngredient
-
-| Verb | Path | Who |
-|---|---|---|
-| `POST` | `/menu/ingredient/create` |  |
-| `POST` | `/menu/ingredient/delete` |  |
-| `POST` | `/menu/ingredient/getAll` |  |
-| `POST` | `/menu/ingredient/getById` |  |
-| `POST` | `/menu/ingredient/update` |  |
-
 ### ControllerItinerary
 
 | Verb | Path | Who |
@@ -440,14 +430,6 @@ most of this inventory carries no audience marker.
 | `POST` | `/menu/item/searchMenuItems` |  |
 | `POST` | `/menu/item/tree` |  |
 | `POST` | `/menu/item/update` |  |
-
-### ControllerMenuItemIngredient
-
-| Verb | Path | Who |
-|---|---|---|
-| `GET` | `/menu/item/{menuItemId}/ingredient` |  |
-| `POST` | `/menu/item/{menuItemId}/ingredient` |  |
-| `DELETE` | `/menu/item/{menuItemId}/ingredient/{ingredientId}` |  |
 
 ### ControllerMenuItemPrice
 

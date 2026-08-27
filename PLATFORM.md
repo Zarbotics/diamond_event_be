@@ -580,6 +580,7 @@ Ordered by what actually costs the business the most.
 | B2 | REST semantics and pagination across the API | 🟡 | **Designed — see §15.4.** ~340 endpoints, all POST including reads. Rewriting them wholesale means changing every call site in two frontends at once with no way to test the halves separately, in exchange for tidiness — a bad trade. Instead the `/booking` endpoints B1 adds are REST from the first line, and the old surface shrinks as screens move across. Pagination is split out and does **not** wait for any of it: it is where the measured harm is, and it needs no coordination. |
 | ~~B3~~ | ~~Delete the five orphan entities~~ | ✅ | Gone: `EventQuote`, `EventQuoteLine`, `EventFoodSelection`, `EventServicesMaster`, `EventItineraryResult`. Tables untouched, and all five were empty in the development database and the production dump alike. `EventItineraryResult` is the one worth naming: it looks like groundwork for the itinerary table C2 will build, which is exactly why it goes — a speculative empty class a future feature *might* reuse is what makes somebody grep for how itineraries work and find two answers. If C2 needs a results table it will be written to fit C2. |
 | ~~B4~~ | ~~Retire the token-in-URL sign-in path~~ | ✅ | **Done, and the last caller was not the tests.** It was the admin portal's "open the client portal" button, which built `?accessToken=…&refreshToken=…` out of a member of staff's own localStorage — the exact thing the Google redirect was changed to stop doing, and worse, because those are back-office credentials. A URL is not a private place: browser history, server access logs, every proxy in between, and the `Referer` header of the next request the page makes. `POST /auth/handoff` mints the same single-use code the SSO redirect uses, and is deliberately carved out of the otherwise-public `/auth/**` so that a public endpoint cannot mint a signed-in session on request. The journey no longer reads tokens from its address bar at all — an old bookmark carrying them simply does not sign anybody in, which is correct: they have been through a query string. The end-to-end suite moved onto the handoff too, which is what makes it the only route. Four integration tests. |
+| B6 | The food menu: one dish is five rows | 🟡 | **Designed from the production data — see §17. Approved 27 August 2026.** 368 selectable rows hold 238 distinct dishes; twenty-one desserts exist five times each, once per serving style, because the model gives an item exactly one parent. Renaming a dish is five edits and the copies have already drifted. Two of nineteen composites have any sections, and the other seventeen have their contents typed into the item's *name* — the model was fine, the screen was not. Four dishes are parented to a dessert and have never been orderable. `enm_price_multiplier_type` defaults to PER_GUEST in silence, on 238 items that never said. `price_version`, `price_entry` and `menu_item_price` are empty, and 94% of the catalogue has no price. §17.3 stages it M1–M5, additive first. |
 | ~~B5~~ | ~~Two copies of the capacity rule~~ | ✅ | **Folded into `EventDayCapacity`, and the copies had already drifted.** `countEventsOnDate` excludes the event being edited; the old Sunday and Monday branches then subtracted it a second time when it was moving off the adjacent day. Moving an event from a Monday onto the Sunday before it therefore under-counted that Monday by one, the Sunday's limit went up to three, and the booking was accepted while a Monday event still stood — the one pairing the rule exists to prevent, since the team need the Monday to break down. Proved by reintroducing the subtraction and watching the new test name it. Six new integration tests; one of them records a deliberate change of behaviour — a Monday booking beside a full Sunday can now be edited in place, which the old code refused, and which is the same grandfathering already agreed for over-capacity days. |
 
 ### C. Features
@@ -942,6 +943,164 @@ and test execution are all real; only dependency *resolution* is bypassed.
 **To lift this**, either allow `jaspersoft.jfrog.io` through the egress policy,
 or mirror that one artifact into an internal repository. It is a single POM and
 JAR.
+
+---
+
+## 17. The food menu, and why one dish is five rows
+
+**Status:** designed from the production data, staged below. Approved 27 August
+2026 after the analysis in §17.1.
+
+Everything in this section is measured against a restored copy of the live
+database — 436 menu items, 893 chosen dishes across 109 events — rather than
+inferred from the code. Where a number appears it came from a query.
+
+### 17.1 What is actually wrong
+
+The catalogue is a tree: `menu_item`, with `parent_menu_item_id`, a rigid three
+level ladder of roles (CATEGORY → SUBCATEGORY → ITEM), and prices on the leaves.
+That shape is not the problem. Five other things are.
+
+**One dish is five rows.** 368 selectable rows hold only **238 distinct
+dishes**; 48 names exist more than once and 130 rows are copies. Desserts is the
+clearest case: twenty-one dishes — Chocolate Brownie, Cheesecake, Churros,
+Tiramisu, Eton Mess, Cake Pops — exist **five times each**, once under Served To
+The Table, Trio Dessert, Classic Desserts, Dessert Buffet and Dessert Stand.
+
+That is not carelessness. The model gives an item exactly one parent, so
+offering a brownie four ways requires four brownies. The structure left nobody
+any alternative.
+
+What it costs: renaming or repricing a dish is five edits, and the copies have
+already drifted — `Trifle` is `PER_GUEST` in three places and unset in a fourth,
+`Flavoured Mousse` and `Peach Cobbler` likewise. No report can answer "how many
+brownies for Saturday", because five ids are five different dishes.
+
+**A composite editor nobody could use.** Sections *are* modelled, and modelled
+well: `menu_component` links a composite to its children, with a component role
+naming the section and a sequence order. `Reception Displays` uses it exactly as
+intended — ten items under "Selections Include", four under "Dips &
+Accompaniments". `Waffle Station` has six under "Include".
+
+But **only 2 of the 19 items flagged composite have any components at all**. The
+other seventeen are marked composite and empty, and their names say why:
+
+- "Irn-bru, Cola, Water & Diet on request"
+- "Strawberry Daquiri, Virgin Mojito, Mixed Fruit Juice"
+- "Samosa Chaat, Mini Burgers, Firecracker Chicken Shots"
+
+The section contents were typed into the item's **name**. When a screen is hard
+enough to use, people find a free-text field and use that instead. The data
+model is not what failed here.
+
+**Three representations of one tree, and they disagree.** `parent_menu_item_id`
+is what the code walks. `txt_path` is an `ltree` that nothing maintains and
+**14 rows have wrong** — eight raitas and chutneys claim `MI_1007.SUB_023.*`
+while their parent says `MI_1006`. `menu_component` is a third edge, and
+"Artisan Cheeses" is both a tree child and a component. The `ltree` is
+`NOT NULL`, decorative, and misleading.
+
+**Four dishes nobody can order.** Sweet & Sour Soup, Chicken Noodle Soup,
+Chicken & Corn Soup and Vegetable Soup are parented to *Gajar Ka Halwa*, a
+dessert. The reader stops at the third level, so children of an item are never
+fetched. Chosen zero times in 109 events.
+
+**A silent pricing default.** `getMenuWithPrices` multiplies by guest count, and
+when `enm_price_multiplier_type` is null it defaults to `PER_GUEST` — 238 of the
+selectable items are null, 130 say `PER_GUEST` explicitly. A £2.00 item becomes
+£600 at a three hundred guest wedding, and nothing on any screen says which rule
+was applied.
+
+**A price list built and never adopted.** `price_version`, `price_entry` and
+`menu_item_price` are **completely empty** in production — roughly 1,100 lines
+of service code that has never run — while only 21 of 368 items carry a
+catalogue price. Staff type prices into the admin form per booking instead.
+
+**Dead weight.** `metadata` is `{}` on all 341 rows that have it.
+`num_default_servings_per_guest` is null on all 436. `bln_is_catering_item` is
+true on 416 of 436, so it separates almost nothing. `ingredient`,
+`menu_item_ingredient`, `menu_item_itinerary_map` and `event_menu_itinerary` are
+empty.
+
+### 17.2 The target
+
+Three ideas, and the first is most of the value.
+
+**A dish exists once. It is *offered* in as many places as you like.** The
+offering carries the price, the per-guest rule, the position and the selection
+limits; the dish carries the name, the description and what it is. 368 rows
+become 238 dishes and a list of offerings. Rename once, reprice once, and the
+kitchen can count brownies.
+
+This is deliberately *not* arbitrary depth. Category → subcategory → item is how
+the business sells and how a customer chooses, and it makes a better screen than
+a tree of unknown shape. What changes is that a dish is no longer imprisoned in
+one branch of it.
+
+**Composites keep the model they already have, and gain a screen.** Sections
+come from component roles with a sequence order and their own minimum and
+maximum. The seventeen free-text names migrate into real sections.
+
+**The price rule is stated, never assumed.** Every priced offering declares
+`PER_GUEST` or `FLAT`. There is no default, and an offering that has not said is
+an error the menu screen shows rather than a multiplication nobody sees.
+
+Selection limits gain a **minimum**. `menu_item` has only a maximum — used on
+four subcategories: Served To The Table 2, Trio Dessert 3, Dessert Buffet 8,
+Dessert Stand 5 — while `menu_component` already carries both and uses neither.
+"Choose between three and five" is a thing the business says out loud, so it
+should be a thing the model can hold.
+
+### 17.3 How to get there
+
+Same discipline as §15.3: additive first, nothing deleted until nothing reads
+it, and every stage before the last is undone by dropping a table.
+
+**M1 — delete what is provably dead. ✅ Done.** `ingredient` and
+`menu_item_ingredient` are gone: two entities, two DTOs, two repositories, two
+service interfaces, two implementations, two mappers and two controllers,
+fourteen files and eighteen endpoints. Tables left in place. Zero rows in
+production, no caller in either frontend — the admin form's "Ingredient" field
+is a plain text box bound to `txt_description` and has nothing to do with the
+entity. Same reasoning as B3, and the same reason it goes first: it shrinks the
+surface everything after has to be read against.
+
+`menu_item_itinerary_map` and `event_menu_itinerary` were on this list and are
+**deliberately still here**. They are empty too, but unlike the ingredient
+tables they are wired into the itinerary feature — `ControllerItinerary` and
+`ServiceEventItinerarySummaryImpl` both depend on them — and that feature is an
+open business question (D6), not a menu one. Deleting them would answer D6 by
+the back door. They go with whatever D6 decides.
+
+**M2 — the offering, alongside.** A `menu_offering` table: which dish, in which
+section, at what price, under which rule, in what position, with what limits.
+Backfilled by merging duplicate rows on name — the 130 copies collapse into
+offerings of the 238 originals. Nothing reads it yet. Reversible by dropping a
+table.
+
+**M3 — the reads move across.** One query over offerings replaces the four
+hand-written three-level walks in `ServiceMenuSelectionImpl` (352 lines, N+1 on
+every level). The price rule becomes explicit here. The four soups move to a
+real subcategory, and the fourteen wrong `txt_path` values are repaired or the
+column is dropped — it earns its keep or it goes.
+
+**M4 — the screens.** The reason any of this happened. The menu editor is
+rebuilt around offerings: a dish edited in one place, sections as first-class
+things rather than a naming convention, limits and the price rule visible where
+the price is typed. The seventeen free-text composite names migrate into real
+sections as part of it.
+
+**M5 — versioned prices.** `price_version` and `price_entry` become real, so a
+booking remembers what a dish cost when it was quoted, and `menu_item.num_price`
+goes. Last, because it depends on offerings existing and because the honest
+first step is that 94% of the catalogue has no price at all.
+
+### 17.4 What this is not
+
+It is not a rewrite. `menu_item` keeps its table, its ids and its meaning
+throughout; what changes is that where a dish appears stops being a property of
+the dish. Nothing here requires the customer journey to be rebuilt, and no stage
+requires both frontends to ship on the same day.
 
 ---
 
