@@ -10,8 +10,8 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 325 |
-| Controllers | 42 |
+| Endpoints | 328 |
+| Controllers | 43 |
 | Named like a read (`get…`, `search…`, `is…`) | 155 |
 
 Almost every endpoint is `POST`, including the reads. Nothing is cacheable,
@@ -466,6 +466,14 @@ most of this inventory carries no audience marker.
 | `POST` | `/menuItemRole/getAllRolesByParentId` |  |
 | `POST` | `/menuItemRole/getById` |  |
 | `POST` | `/menuItemRole/saveOrUpdate` |  |
+
+### ControllerMenuOffering
+
+| Verb | Path | Who |
+|---|---|---|
+| `GET` | `/menu/offerings/dish/{dishId}` |  |
+| `GET` | `/menu/offerings/duplicates` |  |
+| `GET` | `/menu/offerings/unstated-price-rule` |  |
 
 ### ControllerNotificationMaster
 

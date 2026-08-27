@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.zbs.de.model.MenuOffering;
+import com.zbs.de.model.dto.menu.DtoMenuOffering;
 
 /**
  * Where dishes are offered.
@@ -20,6 +22,71 @@ import com.zbs.de.model.MenuOffering;
  */
 @Repository("repositoryMenuOffering")
 public interface RepositoryMenuOffering extends JpaRepository<MenuOffering, Long> {
+
+	/**
+	 * Everywhere one dish is offered, ready to show.
+	 *
+	 * <p>
+	 * Eight fields built in the query rather than the whole item graph twice
+	 * over — once for the dish and once for the section. The section's path
+	 * travels with it because what a person needs to see is
+	 * "Desserts › Dessert Buffet" rather than an id.
+	 */
+	@Query("""
+			SELECT new com.zbs.de.model.dto.menu.DtoMenuOffering(
+			    o.serOfferingId, d.serMenuItemId, d.txtName,
+			    s.serMenuItemId, s.txtName, s.txtPath,
+			    o.numPrice, o.txtPriceRule, o.numPosition)
+			FROM MenuOffering o
+			JOIN o.menuItem d
+			JOIN o.section s
+			WHERE d.serMenuItemId = :dishId
+			ORDER BY s.txtPath ASC
+			""")
+	List<DtoMenuOffering> findOfferingsOfDish(@Param("dishId") Long dishId);
+
+	/**
+	 * Every offering of every dish carrying one of these names.
+	 *
+	 * <p>
+	 * How the duplicate report is filled in: the names come from
+	 * {@link #findDuplicateDishNames()}, and this fetches all of their placements
+	 * and prices in one statement so that a person can see what they would be
+	 * merging before they merge it.
+	 */
+	@Query("""
+			SELECT new com.zbs.de.model.dto.menu.DtoMenuOffering(
+			    o.serOfferingId, d.serMenuItemId, d.txtName,
+			    s.serMenuItemId, s.txtName, s.txtPath,
+			    o.numPrice, o.txtPriceRule, o.numPosition)
+			FROM MenuOffering o
+			JOIN o.menuItem d
+			JOIN o.section s
+			WHERE d.txtName IN :names
+			ORDER BY d.txtName ASC, s.txtPath ASC
+			""")
+	List<DtoMenuOffering> findOfferingsOfDishesNamed(@Param("names") List<String> names);
+
+	/**
+	 * Every priced offering that has not said whether the price is per guest.
+	 *
+	 * <p>
+	 * The list behind {@link #countPricedOfferingsWithNoRule()}. Shown on the
+	 * menu screen so the outstanding twenty are a job somebody can finish rather
+	 * than a number in a log nobody reads.
+	 */
+	@Query("""
+			SELECT new com.zbs.de.model.dto.menu.DtoMenuOffering(
+			    o.serOfferingId, d.serMenuItemId, d.txtName,
+			    s.serMenuItemId, s.txtName, s.txtPath,
+			    o.numPrice, o.txtPriceRule, o.numPosition)
+			FROM MenuOffering o
+			JOIN o.menuItem d
+			JOIN o.section s
+			WHERE o.numPrice IS NOT NULL AND o.txtPriceRule IS NULL
+			ORDER BY o.numPrice DESC, d.txtName ASC
+			""")
+	List<DtoMenuOffering> findPricedOfferingsWithNoRule();
 
 	/** What is offered in one section, in the order it should be shown. */
 	List<MenuOffering> findBySection_SerMenuItemIdOrderByNumPositionAsc(Long sectionId);
