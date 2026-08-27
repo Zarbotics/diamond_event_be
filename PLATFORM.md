@@ -1151,11 +1151,47 @@ The four soups are **not** moved: they sit under *Gajar Ka Halwa* and there is n
 "Soups" subcategory to move them to, so choosing one would be inventing a menu
 decision. They are reported for the business to place.
 
-**M4 — the screens.** The reason any of this happened. The menu editor is
-rebuilt around offerings: a dish edited in one place, sections as first-class
-things rather than a naming convention, limits and the price rule visible where
-the price is typed. The seventeen free-text composite names migrate into real
-sections as part of it.
+**M4 — the screens. 🟡 The menu editor is done; the event form's food section
+is next.**
+
+The reason any of this happened. Three screens between them made a simple job
+impossible: `menu-management` listed all 436 items in a flat table, so looking
+for "Chocolate Brownie" returned five identical rows with **no column saying
+which section each was in** — the only fact that told them apart.
+`menu-category` managed the *role* lookup table under a name that says category.
+`menu-composition` kept composite contents somewhere else again.
+
+The consequence is in the data: seventeen of the nineteen composite items have
+no sections, and their contents were typed into the item's *name* instead.
+"Irn-bru, Cola, Water & Diet on request" is one menu item. Nobody was being
+careless; the screen made the right thing harder than the wrong one.
+
+**What replaced them: one screen, at `/admin/menu`.** The menu as a tree,
+searchable — and a search keeps the branch that leads to a match, so "brownie"
+shows *Desserts › Dessert Buffet › Chocolate Brownie* rather than five bare
+rows. Choosing a dish shows where else it is offered and what it costs there,
+which was unaskable before. Two banners carry the decisions the catalogue is
+owed: how many priced dishes have not said whether the price is per head — with
+the consequence spelled out, because "1 dish needs attention" tells nobody that
+it is being charged per guest meanwhile — and which names are used by more than
+one dish, phrased as a question rather than an error.
+
+The header says **"368 rows · 238 dishes"**. One number would have hidden the
+thing this whole section is about.
+
+Three `GET` endpoints under `/menu/offerings` feed it, REST-shaped because
+§15.4's rule has no exceptions. The tree logic is a separate module with
+eighteen tests of its own, for the reason the event form taught: arithmetic and
+filtering buried in a component is arithmetic nobody checks.
+
+The old three screens are **kept for now**. They can still do things this one
+cannot — creating items, editing composites — and removing a working screen
+before its replacement covers the ground is how a working system stops working.
+They go when it does.
+
+**Still to do:** the event form's food section, the pricing across all its
+categories, and migrating the seventeen free-text composite names into real
+sections.
 
 **M5 — versioned prices.** `price_version` and `price_entry` become real, so a
 booking remembers what a dish cost when it was quoted, and `menu_item.num_price`
