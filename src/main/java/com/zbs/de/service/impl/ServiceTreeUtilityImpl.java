@@ -93,20 +93,74 @@ public class ServiceTreeUtilityImpl implements ServiceTreeUtility {
 		em.flush();
 	}
 
+	/**
+	 * The menu as a tree: roots, each carrying what is under it.
+	 *
+	 * <h3>What was wrong</h3>
+	 *
+	 * This built {@code childrenMap} correctly and then returned the roots
+	 * <em>without it</em>, so {@code /menu/item/tree} answered twelve categories
+	 * with nothing under any of them — on every call since it was written.
+	 * {@code DtoMenuItem} had no {@code children} field to attach them to, which
+	 * is why nothing complained.
+	 *
+	 * <p>
+	 * The screen built on the endpoint therefore showed twelve rows, and the flat
+	 * 436-row list stayed the only way to see the menu at all. That is most of
+	 * why the menu screens still felt unchanged after the work that was supposed
+	 * to replace them.
+	 *
+	 * <h3>Deleted items are left out</h3>
+	 *
+	 * {@code findAll} returns them, and hanging a live dish under a deleted
+	 * section would put it on a screen under a heading nobody can see. A dish
+	 * whose section is gone is a real fault worth surfacing, but the place to
+	 * surface it is a report, not silently in the middle of the catalogue.
+	 *
+	 * <h3>Order</h3>
+	 *
+	 * By display order, then by name, at every level. Without it the order is the
+	 * map's, which is to say the ids' — so a category renamed to sort first would
+	 * still appear wherever it was created.
+	 */
 	@Override
 	public List<DtoMenuItem> buildTreeDto(List<MenuItem> flat) {
-		Map<Long, DtoMenuItem> dtoById = flat.stream().map(MapperMenuItem::toDto)
-				.collect(Collectors.toMap(d -> d.getSerMenuItemId(), d -> d));
-		// Build children lists in DTO level
-		Map<Long, List<DtoMenuItem>> childrenMap = new HashMap<>();
-		for (DtoMenuItem dto : dtoById.values())
-			childrenMap.put(dto.getSerMenuItemId(), new ArrayList<>());
-		for (MenuItem m : flat) {
+
+		List<MenuItem> live = flat.stream()
+				.filter(m -> !Boolean.TRUE.equals(m.getBlnIsDeleted()))
+				.collect(Collectors.toList());
+
+		Map<Long, DtoMenuItem> dtoById = live.stream().map(MapperMenuItem::toDto)
+				.collect(Collectors.toMap(DtoMenuItem::getSerMenuItemId, d -> d));
+
+		for (MenuItem m : live) {
 			Long parentId = m.getParent() == null ? null : m.getParent().getSerMenuItemId();
-			if (parentId != null && dtoById.containsKey(parentId)) {
-				childrenMap.get(parentId).add(dtoById.get(m.getSerMenuItemId()));
+			DtoMenuItem parent = parentId == null ? null : dtoById.get(parentId);
+
+			if (parent != null) {
+				parent.getChildren().add(dtoById.get(m.getSerMenuItemId()));
 			}
 		}
-		return dtoById.values().stream().filter(d -> d.getParentId() == null).collect(Collectors.toList());
+
+		dtoById.values().forEach(dto -> dto.getChildren().sort(BY_POSITION_THEN_NAME));
+
+		/*
+		 * A root is one whose parent is not in this set — not merely one with no
+		 * parent id. An item parented to a deleted section would otherwise vanish
+		 * from the tree entirely rather than appear at the top where somebody can
+		 * see it and put it right.
+		 */
+		List<DtoMenuItem> roots = live.stream()
+				.filter(m -> m.getParent() == null || !dtoById.containsKey(m.getParent().getSerMenuItemId()))
+				.map(m -> dtoById.get(m.getSerMenuItemId()))
+				.collect(Collectors.toList());
+
+		roots.sort(BY_POSITION_THEN_NAME);
+		return roots;
 	}
+
+	/** Display order first, then name, with nulls last rather than first. */
+	private static final Comparator<DtoMenuItem> BY_POSITION_THEN_NAME = Comparator
+			.comparing(DtoMenuItem::getNumDisplayOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+			.thenComparing(DtoMenuItem::getTxtName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
 }

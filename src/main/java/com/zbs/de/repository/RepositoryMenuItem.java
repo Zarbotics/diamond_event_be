@@ -50,6 +50,36 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 			""")
 	String findMaxCodeByPrefix(@Param("prefix") String prefix);
 
+	/**
+	 * The highest number already used under a code prefix.
+	 *
+	 * <h4>Why this replaces a string sort</h4>
+	 *
+	 * {@code findMaxCodeByPrefix} above orders codes as text and hands the winner
+	 * to a parser that gives up on anything after the last dash. That works only
+	 * while every code with a given prefix is that prefix, a dash and digits —
+	 * true of production today by luck, and false the moment somebody types a
+	 * code by hand, which the old menu screen let them do.
+	 *
+	 * <p>
+	 * When it is false the parser fails, the generator restarts at 1, and the
+	 * next item created gets a code that already exists. The insert then fails
+	 * with a 500 and no explanation. It is exactly what happened as soon as a
+	 * database held {@code MI-SET-STARTERS} alongside {@code MI-1417}: every call
+	 * answered {@code MI-0001}, so the first new dish saved and the second did
+	 * not.
+	 *
+	 * <p>
+	 * Codes that are not the prefix plus digits are ignored rather than parsed —
+	 * they carry no sequence number to continue from.
+	 */
+	@Query(value = """
+			SELECT COALESCE(MAX(CAST(SUBSTRING(txt_code FROM '^' || :prefix || '-([0-9]+)$') AS INTEGER)), 0)
+			FROM menu_item
+			WHERE txt_code ~ ('^' || :prefix || '-[0-9]+$')
+			""", nativeQuery = true)
+	int findHighestNumberForPrefix(@Param("prefix") String prefix);
+
 	List<MenuItem> findByTxtRoleAndBlnIsDeletedFalse(String txtRole);
 
 	@Query("SELECT e FROM MenuItem e WHERE  e.menuItemRole.serMenuItemRoleId = :id AND e.blnIsDeleted = false")

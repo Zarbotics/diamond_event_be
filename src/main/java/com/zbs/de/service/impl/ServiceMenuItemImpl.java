@@ -592,40 +592,34 @@ public class ServiceMenuItemImpl implements ServiceMenuItem {
 			prefix = "sta";
 		}
 		prefix = prefix.toUpperCase().trim();
-		String lastCode = repo.findMaxCodeByPrefix(prefix);
 
-		// CASE 1: No code found → start at 001
-		if (lastCode == null || lastCode.isBlank()) {
-			if (prefix.equalsIgnoreCase("MI")) {
-				return prefix + "-1001";
-			} else {
-				return prefix + "-001";
-			}
+		/*
+		 * The highest number in use, read numerically.
+		 *
+		 * This used to take the highest code by *text* order and parse whatever
+		 * followed its last dash. That is correct only while every code with the
+		 * prefix is the prefix, a dash and digits — true of production by luck,
+		 * and false the moment a code is typed by hand, which the old menu screen
+		 * allowed.
+		 *
+		 * When it was false the parse failed, the counter restarted at 1, and
+		 * every call returned the same code: the first new dish saved and the
+		 * second came back as a 500 with no explanation. A database holding
+		 * MI-SET-STARTERS next to MI-1417 was enough to do it.
+		 */
+		int highest = repo.findHighestNumberForPrefix(prefix);
 
+		// Menu items start at 1001 rather than 1, which is where the live
+		// catalogue's numbering begins. Everything else starts at 1.
+		if (highest == 0) {
+			return prefix.equalsIgnoreCase("MI") ? prefix + "-1001" : prefix + "-001";
 		}
 
-		// Extract number part safely
-		String numericPart = extractNumericPart(lastCode);
+		int nextNumber = highest + 1;
 
-		int nextNumber = 1;
-
-		// CASE 2: numeric part exists and is a valid integer
-		if (numericPart != null) {
-			try {
-				nextNumber = Integer.parseInt(numericPart) + 1;
-			} catch (NumberFormatException e) {
-				// CASE 3: if malformed, restart from 1
-				nextNumber = 1;
-			}
-		}
-
-		// Format with leading zeros (3 digits)
-		if (prefix.equalsIgnoreCase("MI")) {
-			return prefix + "-" + String.format("%04d", nextNumber);
-		} else {
-			return prefix + "-" + String.format("%03d", nextNumber);
-		}
-
+		return prefix.equalsIgnoreCase("MI")
+				? prefix + "-" + String.format("%04d", nextNumber)
+				: prefix + "-" + String.format("%03d", nextNumber);
 	}
 
 	/**

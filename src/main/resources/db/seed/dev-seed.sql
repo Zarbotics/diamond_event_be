@@ -352,7 +352,11 @@ WHERE NOT EXISTS (SELECT 1 FROM event_master WHERE txt_event_master_code = 'DEV-
 -- seed that said 'Enquiry' was correct exactly once: the test found it under
 -- the default tab, saved it, and every run after that looked for it where it no
 -- longer was. Seeding the state the save produces makes the test repeatable.
-INSERT INTO event_budget (ser_event_master_id, txt_status, num_quoted_price, num_final_amount,
+--
+-- num_qouted_price, spelled the way the column is. The typo is in the schema,
+-- and correcting it there is not a seed's decision: 108 live rows and four save
+-- paths read that name.
+INSERT INTO event_budget (ser_event_master_id, txt_status, num_qouted_price, num_final_amount,
                           num_total_budget, num_paid_amount,
                           created_date, bln_is_deleted, bln_is_active)
 SELECT e.ser_event_master_id, 'Quoted', 0, 0, 0, 0, now(), false, true
@@ -395,14 +399,30 @@ BEGIN;
 -- which row gets which identity value — Postgres assigned them in a different
 -- order on the first run here, role 1 came out as "Dish", and every dish was
 -- then returned as a top-level menu with no courses under it.
+-- The codes and the hierarchy are production's, not invented ones.
+--
+-- They were MENU / COURSE / DISH with no parent_menu_role_id at all, and that
+-- made a development database unable to accept a single new menu item:
+-- validateParentRole treats a role with no parent role as a root, so "DISH
+-- cannot have a parent" came back for every dish, every section and every
+-- category alike. The menu screen could be looked at and not used.
+--
+-- parent_menu_role_id is what says a Subcategory goes under a Category and an
+-- Item under a Subcategory. Production has it; this did not.
 INSERT INTO menu_item_role (ser_menu_item_role_id, txt_code, txt_name, bln_is_component_role, bln_is_active, bln_is_deleted, created_date)
 SELECT v.id, v.code, v.name, v.component, true, false, now()
 FROM (VALUES
-    (1, 'MENU',   'Menu',   false),
-    (2, 'COURSE', 'Course', false),
-    (3, 'DISH',   'Dish',   false)
+    (1, 'CATEGORY',    'Category',    false),
+    (2, 'SUBCATEGORY', 'Subcategory', false),
+    (3, 'ITEM',        'Item',        false),
+    -- The component kinds, which are the headings on a stand. Production has
+    -- three; one is enough to show what they are for.
+    (22, 'SELECTION',  'Selection Items', true)
 ) AS v(id, code, name, component)
 WHERE NOT EXISTS (SELECT 1 FROM menu_item_role WHERE txt_code = v.code);
+
+UPDATE menu_item_role SET parent_menu_role_id = 1 WHERE txt_code = 'SUBCATEGORY' AND parent_menu_role_id IS NULL;
+UPDATE menu_item_role SET parent_menu_role_id = 2 WHERE txt_code = 'ITEM' AND parent_menu_role_id IS NULL;
 
 -- Identity columns do not advance when a value is supplied, so the sequence
 -- has to be moved past the rows just inserted or the next generated id
@@ -417,7 +437,7 @@ INSERT INTO menu_item (txt_code, txt_name, txt_description, txt_path, num_displa
                        bln_is_selectable, bln_is_composite, bln_has_selection_limit,
                        ser_menu_item_role_id, bln_is_active, bln_is_deleted, created_date)
 SELECT v.code, v.name, v.descr, text2ltree(v.path), v.ord, false, false, false,
-       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'MENU'),
+       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'CATEGORY'),
        true, false, now()
 FROM (VALUES
     ('MI-SET',  'Set Menu',      'Our classic three-course service.',                  'set',  1),
@@ -431,7 +451,7 @@ INSERT INTO menu_item (txt_code, txt_name, txt_description, txt_path, num_displa
                        parent_menu_item_id, ser_menu_item_role_id, bln_is_active, bln_is_deleted, created_date)
 SELECT v.code, v.name, v.descr, text2ltree(v.path), v.ord, false, false, true, v.limit_n,
        (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = v.parent),
-       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'COURSE'),
+       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'SUBCATEGORY'),
        true, false, now()
 FROM (VALUES
     ('MI-SET-STARTERS', 'Starters',   'Choose up to three, served to share on arrival.', 'set.starters',  1, 3, 'MI-SET'),
@@ -451,7 +471,7 @@ INSERT INTO menu_item (txt_code, txt_name, txt_description, txt_path, num_displa
                        parent_menu_item_id, ser_menu_item_role_id, bln_is_active, bln_is_deleted, created_date)
 SELECT v.code, v.name, v.descr, text2ltree(v.path), v.ord, v.price, 'PER_GUEST', true, false,
        (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = v.parent),
-       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'DISH'),
+       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'ITEM'),
        true, false, now()
 FROM (VALUES
     ('MI-D-CT',  'Chicken Tikka',        'Marinated overnight, cooked in the tandoor.',        'set.starters.ct',  1, 4.50,  'MI-SET-STARTERS'),
@@ -481,6 +501,32 @@ FROM (VALUES
     ('MI-D-CB',  'Chana Bhatura',        'Chickpea curry with fried bread.',                   'feast.curry.cb',   3, 7.25,  'MI-FEAST-CURRY'),
     ('MI-D-JL',  'Jalebi',               'Served warm.',                                       'feast.sweet.jl',   1, 3.00,  'MI-FEAST-SWEET'),
     ('MI-D-BF',  'Barfi Selection',      'Pistachio, coconut and almond.',                     'feast.sweet.bf',   2, 3.75,  'MI-FEAST-SWEET')
+) AS v(code, name, descr, path, ord, price, parent)
+WHERE NOT EXISTS (SELECT 1 FROM menu_item WHERE txt_code = v.code);
+
+-- Two stands, in the two states the live catalogue is actually in.
+--
+-- A stand is one line on the menu and several things on the table. The model
+-- has always been able to say that, and in production two items do — but
+-- seventeen do not, and three of those have the contents typed into the item's
+-- *name*: "Irn-bru, Cola, Water & Diet on request" is one row.
+--
+-- Both are seeded because they are the two halves of the menu screen worth
+-- exercising: one that needs its name lifted apart, and one that is simply
+-- flagged as a stand with nothing on it, which nine live rows are and which is
+-- usually a flag somebody should clear.
+INSERT INTO menu_item (txt_code, txt_name, txt_description, txt_path, num_display_order, num_price,
+                       enm_price_multiplier_type, bln_is_selectable, bln_is_composite,
+                       parent_menu_item_id, ser_menu_item_role_id, bln_is_active, bln_is_deleted, created_date)
+SELECT v.code, v.name, v.descr, text2ltree(v.path), v.ord, v.price, 'PER_GUEST', true, true,
+       (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = v.parent),
+       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'ITEM'),
+       true, false, now()
+FROM (VALUES
+    ('MI-D-SOFT', 'Irn-bru, Cola, Water & Diet on request', 'Self-serve through the evening.',
+     'set.drinks.soft', 4, 2.25, 'MI-SET-DRINKS'),
+    ('MI-D-SWEET', 'Sweet Cart', 'Help yourself.',
+     'feast.sweet.cart', 3, 2.50, 'MI-FEAST-SWEET')
 ) AS v(code, name, descr, path, ord, price, parent)
 WHERE NOT EXISTS (SELECT 1 FROM menu_item WHERE txt_code = v.code);
 
