@@ -1235,10 +1235,60 @@ with the set menu above — that was a code comment and nothing else.
 sections, and retiring the three old menu screens once the new one covers
 creating items and editing composites.
 
-**M5 — versioned prices.** `price_version` and `price_entry` become real, so a
-booking remembers what a dish cost when it was quoted, and `menu_item.num_price`
-goes. Last, because it depends on offerings existing and because the honest
-first step is that 94% of the catalogue has no price at all.
+**M5 — versioned prices. 🟡 The table and the choosing are done, V14. The reads
+have not moved yet.**
+
+What it makes answerable: *"what did this dish cost when the Khans booked in
+March?"* and *"put next year's prices in now, to take effect on the first of
+April."* Neither was possible — an offering carried one price, so changing it
+overwrote what the old one was, and a price rise had to be typed in on the
+morning it started.
+
+`price_version` is **reused rather than replaced**: a named, dated, prioritised
+list with DRAFT / PUBLISHED / RETIRED is exactly the right shape, and it being
+empty was never a fault of its design. `price_entry` beside it is **not** used,
+and would not be even if a price list were wanted there: it prices a target id
+under ITEM, ROLE, BUNDLE, COMBINATION, STATION or TYPE by DIRECT, MIN_OF,
+MAX_OF, SUM or FORMULA — a general pricing engine, never populated, for a
+business that prices dishes — and it prices an *item*, which would collapse the
+distinction M2 exists for: a brownie is £3.50 plated and £4.00 on a stand.
+
+So `menu_offering_price` is (offering × version), and the price rule travels
+with the price, because a price change can change how it is charged: the same
+sweet cart may be £2.00 a head this year and a £600 flat hire next.
+
+Unpriced offerings are recorded as unpriced rather than left out. 334 of the
+live catalogue's are, and omitting them would make "this dish had no price in
+March" indistinguishable from "this dish did not exist in March".
+
+**Choosing the list for a day** is where a booking gets quoted the wrong figure,
+so that is where the tests are: published only, effective on the day, highest
+priority first where two overlap — which is what lets a short Christmas list sit
+on top of the standing one without either being edited. A **draft is never
+quoted from**; it is next year's prices half-entered, and charging a customer
+from one charges them a figure nobody has agreed. A day no list covers returns
+**nothing rather than the nearest guess**. Both of those were checked by removing
+the status filter and watching them fail.
+
+The date used is the *event's*, not today's: a booking taken in March for a
+September wedding is quoted at September's prices if a September list exists,
+which is the entire point of preparing one in advance.
+
+**A latent fault this turned up.** The migration first marked the new version
+`bln_is_default`, and an existing test failed with *"Query did not return a
+unique result: 2 results were returned"*. `ServicePriceVersionImpl` calls
+`findByBlnIsDefaultTrue…` in five places and it returns a single `Optional` — so
+the application assumes **at most one default price version and nothing in the
+schema enforces it**. Two defaults, and every one of those five call sites
+throws. The migration no longer claims the flag (it does not need to: the
+version is published, open-ended and the only one, so it is selected on every
+date anyway), and the missing partial unique index is recorded here rather than
+added, because deciding what happens to a database that already has two defaults
+is a data decision and not a migration's to take.
+
+**Still to do (M5b):** move the reads onto versions, so the price charged is
+looked up for the event's date rather than read off the offering, and then
+retire `menu_item.num_price`, `price_entry` and `menu_item_price`.
 
 ### 17.4 What this is not
 
