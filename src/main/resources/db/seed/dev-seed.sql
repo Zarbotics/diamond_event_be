@@ -313,6 +313,10 @@ WHERE NOT EXISTS (SELECT 1 FROM booking WHERE txt_booking_code = 'DEV-BOOK-001')
 INSERT INTO event_master (txt_event_master_code, txt_event_master_name,
                           ser_cust_id, ser_event_type_id, ser_booking_id,
                           dte_event_date, num_number_of_guests, num_number_of_tables,
+                          txt_contact_person_first_name, txt_contact_person_last_name,
+                          txt_contact_person_phone_no,
+                          txt_bride_first_name, txt_bride_last_name,
+                          txt_groom_first_name, txt_groom_last_name,
                           txt_event_status, is_edit_allowed,
                           created_date, bln_is_deleted, bln_is_active)
 SELECT 'DEV-EV-001', 'Dev Wedding',
@@ -324,6 +328,13 @@ SELECT 'DEV-EV-001', 'Dev Wedding',
        -- booking shares the day, which is what keeps the capacity rule quiet.
        (date_trunc('year', now()) + interval '5 years' + interval '190 days')::timestamp,
        120, 12,
+       -- The form marks the contact person and, for a wedding, both families'
+       -- names required. Left out, the seeded booking opens but cannot be
+       -- submitted, which puts the end-to-end test back to filling in a form
+       -- rather than proving one saves.
+       'Dev', 'Contact', '+44 7700 900456',
+       'Ayesha', 'Khan',
+       'Bilal', 'Ahmed',
        'Enquiry', true,
        now(), false, true
 WHERE NOT EXISTS (SELECT 1 FROM event_master WHERE txt_event_master_code = 'DEV-EV-001');
@@ -331,14 +342,20 @@ WHERE NOT EXISTS (SELECT 1 FROM event_master WHERE txt_event_master_code = 'DEV-
 -- And its budget row, without which the booking is invisible.
 --
 -- The portal's Events list is not a list of events: it is a list of budgets,
--- filtered by the status tab across the top, which defaults to Enquiry. An
--- event with no event_budget row does not appear under any tab — the search
--- above finds it through the API and the screen shows nothing. That cost an
--- afternoon to work out, which is why it is written down here rather than
--- silently fixed.
-INSERT INTO event_budget (ser_event_master_id, txt_status, num_total_budget, num_paid_amount,
+-- filtered by the status tab across the top. An event with no event_budget row
+-- appears under no tab at all — the search finds it through the API and the
+-- screen shows nothing. That cost an afternoon to work out, which is why it is
+-- written down here rather than quietly fixed.
+--
+-- Quoted, not Enquiry, and that matters for the end-to-end test. The moment a
+-- booking has a quoted price the save path sets its status to 'Quoted', so a
+-- seed that said 'Enquiry' was correct exactly once: the test found it under
+-- the default tab, saved it, and every run after that looked for it where it no
+-- longer was. Seeding the state the save produces makes the test repeatable.
+INSERT INTO event_budget (ser_event_master_id, txt_status, num_quoted_price, num_final_amount,
+                          num_total_budget, num_paid_amount,
                           created_date, bln_is_deleted, bln_is_active)
-SELECT e.ser_event_master_id, 'Enquiry', 0, 0, now(), false, true
+SELECT e.ser_event_master_id, 'Quoted', 0, 0, 0, 0, now(), false, true
 FROM event_master e
 WHERE e.txt_event_master_code = 'DEV-EV-001'
   AND NOT EXISTS (SELECT 1 FROM event_budget b WHERE b.ser_event_master_id = e.ser_event_master_id);

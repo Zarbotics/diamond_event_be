@@ -2,7 +2,10 @@ package com.zbs.de.service.impl;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,9 +17,13 @@ import com.zbs.de.model.dto.DtoMenuComponentRequest;
 import com.zbs.de.model.dto.DtoMenuPriceCalulationFields;
 import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
 import com.zbs.de.model.dto.menu.DtoCustomerMenuSubCategory;
+import com.zbs.de.model.dto.menu.DtoPricedOffering;
+import com.zbs.de.model.PriceVersion;
 import com.zbs.de.repository.RepositoryMenuItem;
+import com.zbs.de.repository.RepositoryMenuOfferingPrice;
 import com.zbs.de.service.ServiceMenuComponent;
 import com.zbs.de.service.ServiceMenuSelection;
+import com.zbs.de.util.UtilDateAndTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +41,9 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 
 	@Autowired
 	ServiceMenuComponent serviceMenuComponent;
+
+	@Autowired
+	RepositoryMenuOfferingPrice repositoryMenuOfferingPrice;
 
     ServiceMenuSelectionImpl(AuthController authController) {
         this.authController = authController;
@@ -110,6 +120,11 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				? repositoryMenuItem.getAllActiveCateringItemsByRoleId(1)
 				: repositoryMenuItem.getAllActiveItemsByRoleId(1);
 
+		// One statement, once, before the walk begins. See pricesInForceFor.
+		Map<String, DtoPricedOffering> priceList = pricingCtx == null
+				? Map.of()
+				: pricesInForceFor(pricingCtx);
+
 		List<DtoCustomerMenuCategory> result = new ArrayList<>();
 
 		for (MenuItem category : categories) {
@@ -158,7 +173,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 					var dto = MapperMenuItem.toDto(item);
 
 					if (pricingCtx != null) {
-						BigDecimal calculatedPrice = calculateItemPrice(item, pricingCtx);
+						BigDecimal calculatedPrice = calculateItemPrice(item, sub, priceList, pricingCtx);
 						dto.setNumCalculatedPrice(calculatedPrice);
 						dto.setNumFinalPrice(calculatedPrice); // editable later
 					}
@@ -179,7 +194,7 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 
 					if (comp != null) {
 						if (pricingCtx != null) {
-							BigDecimal compositePrice = calculateItemPrice(composite, pricingCtx);
+							BigDecimal compositePrice = calculateItemPrice(composite, sub, priceList, pricingCtx);
 							comp.setNumCalculatedPrice(compositePrice);
 							comp.setNumFinalPrice(compositePrice);
 						}
@@ -240,14 +255,117 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 	 */
 	private static final EnmPriceMultiplierType UNSTATED_RULE_MEANS = EnmPriceMultiplierType.PER_GUEST;
 
-	private BigDecimal calculateItemPrice(MenuItem item, DtoMenuPriceCalulationFields ctx) {
+	/**
+	 * The prices in force for this booking, keyed by dish and section.
+	 *
+	 * <h3>Stage M5b: where a price comes from</h3>
+	 *
+	 * Until now the figure charged was {@code menu_item.num_price} — the dish's
+	 * own price, wherever it was offered and whenever the event was. Two things
+	 * that could not be said as a result: "a brownie is £3.50 plated and £4.00 on
+	 * a stand", which M2's offerings made expressible, and "these are next year's
+	 * prices, from the first of April", which M5's dated lists made storable.
+	 * This is where both start being read.
+	 *
+	 * <h3>Why the whole list at once</h3>
+	 *
+	 * One statement before the walk starts, rather than a lookup per dish. The
+	 * live catalogue has four hundred and thirty-six offerings and the walk
+	 * already makes a query per subcategory; four hundred more to price one
+	 * screen would be the same fault this class was consolidated to remove.
+	 *
+	 * <h3>Empty is not an error</h3>
+	 *
+	 * If no published list covers the event's date, this is empty and every price
+	 * falls back to the dish's own — with a warning naming the date. Refusing to
+	 * price at all would be the more principled answer and the wrong one: it
+	 * would show a customer a menu of zeroes because somebody forgot to publish
+	 * next year's list.
+	 */
+	private Map<String, DtoPricedOffering> pricesInForceFor(DtoMenuPriceCalulationFields ctx) {
 
-		if (item.getNumPrice() == null) {
-			return BigDecimal.ZERO;
+		Date on = UtilDateAndTime.parseDateFromClient(ctx.getDteEventDate());
+		if (on == null) {
+			// No date, or one that is not a date. Today's prices are the honest
+			// answer for a menu being priced before a day has been chosen.
+			on = new Date();
 		}
 
-		BigDecimal base = item.getNumPrice();
-		EnmPriceMultiplierType type = item.getEnmPriceMultiplierType();
+		List<PriceVersion> effective = repositoryMenuOfferingPrice.findVersionsEffectiveOn(on);
+		if (effective.isEmpty()) {
+			LOGGER.warn("No published price list covers {}; pricing from the catalogue's own figures "
+					+ "— see PLATFORM.md §17 M5b", on);
+			return Map.of();
+		}
+
+		// Highest priority first, which is what lets a short seasonal list sit on
+		// top of the standing one. See findVersionsEffectiveOn.
+		PriceVersion winner = effective.get(0);
+
+		Map<String, DtoPricedOffering> byDishAndSection = new HashMap<>();
+		for (DtoPricedOffering priced : repositoryMenuOfferingPrice
+				.findPricesOnVersion(winner.getSerPriceVersionId())) {
+			byDishAndSection.put(keyOf(priced.getSerMenuItemId(), priced.getSerSectionId()), priced);
+		}
+
+		LOGGER.debug("Pricing the menu for {} from '{}' ({} offerings)",
+				on, winner.getTxtVersionCode(), byDishAndSection.size());
+
+		return byDishAndSection;
+	}
+
+	private static String keyOf(Long dishId, Long sectionId) {
+		return dishId + ":" + sectionId;
+	}
+
+	/**
+	 * What one item comes to for this booking.
+	 *
+	 * @param item      the dish being priced
+	 * @param section   where it is being offered — the same dish can cost
+	 *                  different amounts in different places, which is the whole
+	 *                  reason offerings exist
+	 * @param priceList the prices in force, from {@link #pricesInForceFor}
+	 */
+	private BigDecimal calculateItemPrice(MenuItem item, MenuItem section,
+			Map<String, DtoPricedOffering> priceList, DtoMenuPriceCalulationFields ctx) {
+
+		DtoPricedOffering onTheList = priceList.get(keyOf(item.getSerMenuItemId(), section.getSerMenuItemId()));
+
+		/*
+		 * The list first, the dish's own price second.
+		 *
+		 * The fallback is not defensive padding: it is what makes this stage
+		 * additive. Every offering that existed when M5 ran is on PV-CURRENT at
+		 * exactly the figure it already carried, so today this branch is not
+		 * taken and no quote changes. A dish added since, or one on a draft list
+		 * that has not been published, falls through to its own price rather than
+		 * to nothing — and says so, once, per dish, in the log.
+		 *
+		 * It goes when countOfferingsOnNoPriceList has been zero for long enough
+		 * to trust, which is M5c along with menu_item.num_price itself.
+		 */
+		BigDecimal base;
+		EnmPriceMultiplierType type;
+
+		if (onTheList != null) {
+			base = onTheList.getNumPrice();
+			type = EnmPriceMultiplierType.of(onTheList.getTxtPriceRule());
+		} else {
+			base = item.getNumPrice();
+			type = item.getEnmPriceMultiplierType();
+
+			if (base != null) {
+				LOGGER.warn("{} (#{}) in {} (#{}) is on no published price list; charging its own {} "
+						+ "— see PLATFORM.md §17 M5b",
+						item.getTxtName(), item.getSerMenuItemId(),
+						section.getTxtName(), section.getSerMenuItemId(), base);
+			}
+		}
+
+		if (base == null) {
+			return BigDecimal.ZERO;
+		}
 
 		if (type == null) {
 			type = UNSTATED_RULE_MEANS;

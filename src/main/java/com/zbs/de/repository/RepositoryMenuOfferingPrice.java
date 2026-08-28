@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import com.zbs.de.model.MenuOfferingPrice;
 import com.zbs.de.model.PriceVersion;
+import com.zbs.de.model.dto.menu.DtoPricedOffering;
 
 /**
  * Prices, by list.
@@ -73,6 +74,31 @@ public interface RepositoryMenuOfferingPrice extends JpaRepository<MenuOfferingP
 			""")
 	Optional<MenuOfferingPrice> findPriceOn(@Param("offeringId") Long offeringId,
 			@Param("versionId") Long versionId);
+
+	/**
+	 * Every price on one list, keyed by the dish and the section it is offered in.
+	 *
+	 * <h4>Why the whole list at once</h4>
+	 *
+	 * Stage M5b. Pricing a menu means answering "what does this cost" four
+	 * hundred times, and the menu walk holds a dish and a section rather than an
+	 * offering id — so a per-item lookup would be four hundred statements to
+	 * build one screen, on top of the queries the walk already makes.
+	 *
+	 * <p>
+	 * Deleted rows are left out. A price withdrawn from a list is not a price of
+	 * zero; the caller needs to know it is absent so it can say so.
+	 */
+	@Query("""
+			SELECT new com.zbs.de.model.dto.menu.DtoPricedOffering(
+			    o.menuItem.serMenuItemId, o.section.serMenuItemId, p.numPrice, p.txtPriceRule)
+			FROM MenuOfferingPrice p
+			JOIN p.offering o
+			WHERE p.priceVersion.serPriceVersionId = :versionId
+			  AND (p.blnIsDeleted IS NULL OR p.blnIsDeleted = false)
+			  AND (o.blnIsDeleted IS NULL OR o.blnIsDeleted = false)
+			""")
+	List<DtoPricedOffering> findPricesOnVersion(@Param("versionId") Long versionId);
 
 	/**
 	 * Offerings that no list prices at all.
