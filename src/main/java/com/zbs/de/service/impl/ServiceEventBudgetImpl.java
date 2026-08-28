@@ -66,7 +66,7 @@ public class ServiceEventBudgetImpl implements ServiceEventBudget {
 			eventBudget.setTxtPaymentStatus(dtoEventBudget.getTxtPaymentStatus());
 			eventBudget.setUpdatedBy(ServiceCurrentUser.getCurrentUserId());
 			if (UtilRandomKey.isNotNull(dtoEventBudget.getDteDealDate())) {
-				eventBudget.setDteDealDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoEventBudget.getDteDealDate()));
+				eventBudget.setDteDealDate(UtilDateAndTime.parseDateFromClient(dtoEventBudget.getDteDealDate()));
 			}
 			eventBudget.setTxtDealClosedBy(dtoEventBudget.getTxtDealClosedBy());
 			eventBudget.setTxtRemarks(dtoEventBudget.getTxtRemarks());

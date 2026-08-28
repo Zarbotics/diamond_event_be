@@ -84,7 +84,7 @@ public class ServiceCateringPaymentImpl implements ServiceCateringPayment {
 		payment.setNumAmount(dtoPayment.getNumAmount());
 		payment.setTxtPaymentMode(dtoPayment.getTxtPaymentMode());
 		payment.setTxtTransactionRef(dtoPayment.getTxtTransactionRef());
-		payment.setDtePaymentDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoPayment.getDtePaymentDate()));
+		payment.setDtePaymentDate(UtilDateAndTime.parseDateFromClient(dtoPayment.getDtePaymentDate()));
 		payment.setTxtPaymentStatus(dtoPayment.getTxtPaymentStatus());
 		payment.setTxtRemarks(dtoPayment.getTxtRemarks());
 
