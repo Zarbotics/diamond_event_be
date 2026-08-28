@@ -42,73 +42,73 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 	@Override
 	@Transactional(readOnly = true)
 	public List<DtoCustomerMenuCategory> getCustomerMenu() {
-
-		// 1️⃣ Fetch all active categories
-		List<MenuItem> categories = repositoryMenuItem.getAllActiveItemsByRoleId(1);
-
-		List<DtoCustomerMenuCategory> result = new ArrayList<>();
-
-		for (MenuItem category : categories) {
-
-			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
-			catDto.setCategoryId(category.getSerMenuItemId());
-			catDto.setCategoryName(category.getTxtName());
-			catDto.setNumPrice(category.getNumPrice());
-			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
-			// 2️⃣ Fetch subcategories
-//			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
-			List<MenuItem> subCategories = repositoryMenuItem.findByParentIdByDisplayOrder(category.getSerMenuItemId());
-
-			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
-
-			for (MenuItem sub : subCategories) {
-
-				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
-				subDto.setSubCategoryId(sub.getSerMenuItemId());
-				subDto.setSubCategoryName(sub.getTxtName());
-				subDto.setNumPrice(sub.getNumPrice());
-                subDto.setTxtDescription(sub.getTxtDescription());
-                subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
-				subDto.setBlnHasSelectionLimit(sub.getBlnHasSelectionLimit());
-				subDto.setNumSelectionLimit(sub.getNumSelectionLimit());
-
-				// 3️⃣ Normal (non-composite) items
-				List<MenuItem> items = repositoryMenuItem.findByParentId(sub.getSerMenuItemId()).stream()
-						.filter(i -> Boolean.TRUE.equals(i.getBlnIsSelectable()))
-						.filter(i -> !Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
-
-				subDto.setItems(items.stream().map(MapperMenuItem::toDto).toList());
-
-				// 4️⃣ Composite items
-				List<MenuItem> composites = repositoryMenuItem.findByParentId(sub.getSerMenuItemId()).stream()
-						.filter(i -> Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
-
-				List<DtoMenuComponentRequest> compositeDtos = new ArrayList<>();
-				for (MenuItem composite : composites) {
-					DtoMenuComponentRequest comp = serviceMenuComponent
-							.getCompositeWithComponents(composite.getSerMenuItemId());
-					if (comp != null) {
-						compositeDtos.add(comp);
-					}
-				}
-
-				subDto.setCompositeItems(compositeDtos);
-				subDtos.add(subDto);
-			}
-
-			catDto.setSubCategories(subDtos);
-			result.add(catDto);
-		}
-
-		return result;
+		return walk(false, null);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<DtoCustomerMenuCategory> getCustomerCateringMenu() {
+		return walk(true, null);
+	}
 
-		// 1️⃣ Fetch all active categories
-		List<MenuItem> categories = repositoryMenuItem.getAllActiveCateringItemsByRoleId(1);
+	@Override
+	@Transactional(readOnly = true)
+	public List<DtoCustomerMenuCategory> getCustomerMenuWithPricing(DtoMenuPriceCalulationFields pricingCtx) {
+		return walk(false, pricingCtx);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<DtoCustomerMenuCategory> getCustomerCateringMenuWithPricing(DtoMenuPriceCalulationFields pricingCtx) {
+		return walk(true, pricingCtx);
+	}
+
+	/**
+	 * The menu, category by subcategory by dish.
+	 *
+	 * <h3>Why there is one of these instead of four</h3>
+	 *
+	 * There were four: menu, catering menu, and each of those again with prices.
+	 * Three hundred and fifty lines, near-identical, differing on exactly two
+	 * axes — which repository finders to use, and whether to price what they
+	 * return.
+	 *
+	 * <p>
+	 * They had already drifted, in ways nobody would notice by reading any one of
+	 * them:
+	 *
+	 * <ul>
+	 * <li>the catering menus never sent a subcategory's <em>description</em>, so
+	 * a note explaining what a station includes reached the ordinary menu and not
+	 * the catering one;</li>
+	 * <li>the priced menus never sent a category or subcategory's own
+	 * {@code numPrice}, and the unpriced ones never sent the <em>selection
+	 * limits</em> — so "choose 3 of these" existed on one response and not the
+	 * other, for the same subcategory.</li>
+	 * </ul>
+	 *
+	 * <p>
+	 * Consolidating gives every caller the union, which is additive: the customer
+	 * journey computes its own category and subcategory totals by summing items
+	 * and ignores what the server sends for them, so the fields that appear are
+	 * fields nobody was reading and somebody may now want.
+	 *
+	 * <h3>What has not changed</h3>
+	 *
+	 * The shape and the arithmetic. This is the fourth time in this codebase that
+	 * near-identical copies of one routine turned out to disagree — the capacity
+	 * rule, the concurrency guard, the booking creation, and now this — so the
+	 * consolidation is the point rather than the line count.
+	 *
+	 * @param catering   whether to read the catering side of the menu
+	 * @param pricingCtx the guest and table counts to price against, or
+	 *                   {@code null} for the catalogue without prices
+	 */
+	private List<DtoCustomerMenuCategory> walk(boolean catering, DtoMenuPriceCalulationFields pricingCtx) {
+
+		List<MenuItem> categories = catering
+				? repositoryMenuItem.getAllActiveCateringItemsByRoleId(1)
+				: repositoryMenuItem.getAllActiveItemsByRoleId(1);
 
 		List<DtoCustomerMenuCategory> result = new ArrayList<>();
 
@@ -119,10 +119,12 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			catDto.setCategoryName(category.getTxtName());
 			catDto.setNumPrice(category.getNumPrice());
 			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
-			
-			// 2️⃣ Fetch subcategories
-//			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
-			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentIdByDisplayOrder(category.getSerMenuItemId());
+			catDto.setBlnHasSelectionLimit(category.getBlnHasSelectionLimit());
+			catDto.setNumSelectionLimit(category.getNumSelectionLimit());
+
+			List<MenuItem> subCategories = catering
+					? repositoryMenuItem.findCateringItemsByParentIdByDisplayOrder(category.getSerMenuItemId())
+					: repositoryMenuItem.findByParentIdByDisplayOrder(category.getSerMenuItemId());
 
 			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
 
@@ -131,171 +133,42 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
 				subDto.setSubCategoryId(sub.getSerMenuItemId());
 				subDto.setSubCategoryName(sub.getTxtName());
+				subDto.setTxtDescription(sub.getTxtDescription());
 				subDto.setNumPrice(sub.getNumPrice());
-                subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
+				subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
 				subDto.setBlnHasSelectionLimit(sub.getBlnHasSelectionLimit());
 				subDto.setNumSelectionLimit(sub.getNumSelectionLimit());
-				
-				// 3️⃣ Normal (non-composite) items
-				List<MenuItem> items = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId()).stream()
+
+				/*
+				 * One fetch of the children, filtered twice. It used to be two
+				 * identical queries per subcategory — one for the plain dishes and
+				 * one for the composites — which on the live catalogue is
+				 * thirty-two extra round trips to build one menu.
+				 */
+				List<MenuItem> children = catering
+						? repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId())
+						: repositoryMenuItem.findByParentId(sub.getSerMenuItemId());
+
+				List<MenuItem> items = children.stream()
 						.filter(i -> Boolean.TRUE.equals(i.getBlnIsSelectable()))
-						.filter(i -> !Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
-
-				subDto.setItems(items.stream().map(MapperMenuItem::toDto).toList());
-
-				// 4️⃣ Composite items
-				List<MenuItem> composites = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId())
-						.stream().filter(i -> Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
-
-				List<DtoMenuComponentRequest> compositeDtos = new ArrayList<>();
-				for (MenuItem composite : composites) {
-					DtoMenuComponentRequest comp = serviceMenuComponent
-							.getCompositeWithComponents(composite.getSerMenuItemId());
-					if (comp != null) {
-						compositeDtos.add(comp);
-					}
-				}
-
-				subDto.setCompositeItems(compositeDtos);
-				subDtos.add(subDto);
-			}
-
-			catDto.setSubCategories(subDtos);
-			result.add(catDto);
-		}
-
-		return result;
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public List<DtoCustomerMenuCategory> getCustomerMenuWithPricing(DtoMenuPriceCalulationFields pricingCtx) {
-
-		List<MenuItem> categories = repositoryMenuItem.getAllActiveItemsByRoleId(1);
-		List<DtoCustomerMenuCategory> result = new ArrayList<>();
-
-		for (MenuItem category : categories) {
-
-			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
-			catDto.setCategoryId(category.getSerMenuItemId());
-			catDto.setCategoryName(category.getTxtName());
-			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
-			catDto.setBlnHasSelectionLimit(category.getBlnHasSelectionLimit());
-			catDto.setNumSelectionLimit(category.getNumSelectionLimit());
-
-//			List<MenuItem> subCategories = repositoryMenuItem.findByParentId(category.getSerMenuItemId());
-			List<MenuItem> subCategories = repositoryMenuItem.findByParentIdByDisplayOrder(category.getSerMenuItemId());
-
-			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
-
-			for (MenuItem sub : subCategories) {
-
-				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
-				subDto.setSubCategoryId(sub.getSerMenuItemId());
-				subDto.setSubCategoryName(sub.getTxtName());
-                subDto.setTxtDescription(sub.getTxtDescription());
-                subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
-				subDto.setBlnHasSelectionLimit(sub.getBlnHasSelectionLimit());
-				subDto.setNumSelectionLimit(sub.getNumSelectionLimit());
-                
-				// -------- Normal Items --------
-				List<MenuItem> items = repositoryMenuItem.findByParentId(sub.getSerMenuItemId()).stream()
-						.filter(i -> Boolean.TRUE.equals(i.getBlnIsSelectable()))
-						.filter(i -> !Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
+						.filter(i -> !Boolean.TRUE.equals(i.getBlnIsComposite()))
+						.toList();
 
 				subDto.setItems(items.stream().map(item -> {
 					var dto = MapperMenuItem.toDto(item);
 
-					BigDecimal calculatedPrice = calculateItemPrice(item, pricingCtx);
-
-					dto.setNumCalculatedPrice(calculatedPrice);
-					dto.setNumFinalPrice(calculatedPrice); // editable later
-
-					return dto;
-				}).toList());
-
-				// -------- Composite Items --------
-				List<MenuItem> composites = repositoryMenuItem.findByParentId(sub.getSerMenuItemId()).stream()
-						.filter(i -> Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
-
-				List<DtoMenuComponentRequest> compositeDtos = new ArrayList<>();
-
-				for (MenuItem composite : composites) {
-
-					DtoMenuComponentRequest comp = serviceMenuComponent
-							.getCompositeWithComponents(composite.getSerMenuItemId());
-
-					if (comp != null) {
-						BigDecimal compositePrice = calculateItemPrice(composite, pricingCtx);
-
-						comp.setNumCalculatedPrice(compositePrice);
-						comp.setNumFinalPrice(compositePrice);
-
-						compositeDtos.add(comp);
+					if (pricingCtx != null) {
+						BigDecimal calculatedPrice = calculateItemPrice(item, pricingCtx);
+						dto.setNumCalculatedPrice(calculatedPrice);
+						dto.setNumFinalPrice(calculatedPrice); // editable later
 					}
-				}
-
-				subDto.setCompositeItems(compositeDtos);
-				subDtos.add(subDto);
-			}
-
-			catDto.setSubCategories(subDtos);
-			result.add(catDto);
-		}
-
-		return result;
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public List<DtoCustomerMenuCategory> getCustomerCateringMenuWithPricing(DtoMenuPriceCalulationFields pricingCtx) {
-
-		List<MenuItem> categories = repositoryMenuItem.getAllActiveCateringItemsByRoleId(1);
-
-		List<DtoCustomerMenuCategory> result = new ArrayList<>();
-
-		for (MenuItem category : categories) {
-
-			DtoCustomerMenuCategory catDto = new DtoCustomerMenuCategory();
-			catDto.setCategoryId(category.getSerMenuItemId());
-			catDto.setCategoryName(category.getTxtName());
-			catDto.setBlnIsSelectable(category.getBlnIsSelectable());
-			catDto.setBlnHasSelectionLimit(category.getBlnHasSelectionLimit());
-			catDto.setNumSelectionLimit(category.getNumSelectionLimit());
-
-//			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentId(category.getSerMenuItemId());
-			List<MenuItem> subCategories = repositoryMenuItem.findCateringItemsByParentIdByDisplayOrder(category.getSerMenuItemId());
-
-			List<DtoCustomerMenuSubCategory> subDtos = new ArrayList<>();
-
-			for (MenuItem sub : subCategories) {
-
-				DtoCustomerMenuSubCategory subDto = new DtoCustomerMenuSubCategory();
-				subDto.setSubCategoryId(sub.getSerMenuItemId());
-				subDto.setSubCategoryName(sub.getTxtName());
-                subDto.setBlnIsSelectable(sub.getBlnIsSelectable());
-				subDto.setBlnHasSelectionLimit(sub.getBlnHasSelectionLimit());
-				subDto.setNumSelectionLimit(sub.getNumSelectionLimit());
-                
-				// -------- Normal Catering Items --------
-				List<MenuItem> items = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId()).stream()
-						.filter(i -> Boolean.TRUE.equals(i.getBlnIsSelectable()))
-						.filter(i -> !Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
-
-				subDto.setItems(items.stream().map(item -> {
-					var dto = MapperMenuItem.toDto(item);
-
-					BigDecimal calculatedPrice = calculateItemPrice(item, pricingCtx);
-
-					dto.setNumCalculatedPrice(calculatedPrice);
-					dto.setNumFinalPrice(calculatedPrice);
 
 					return dto;
 				}).toList());
 
-				// -------- Composite Catering Items --------
-				List<MenuItem> composites = repositoryMenuItem.findCateringItemsByParentId(sub.getSerMenuItemId())
-						.stream().filter(i -> Boolean.TRUE.equals(i.getBlnIsComposite())).toList();
+				List<MenuItem> composites = children.stream()
+						.filter(i -> Boolean.TRUE.equals(i.getBlnIsComposite()))
+						.toList();
 
 				List<DtoMenuComponentRequest> compositeDtos = new ArrayList<>();
 
@@ -305,11 +178,11 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 							.getCompositeWithComponents(composite.getSerMenuItemId());
 
 					if (comp != null) {
-
-						BigDecimal compositePrice = calculateItemPrice(composite, pricingCtx);
-
-						comp.setNumCalculatedPrice(compositePrice);
-						comp.setNumFinalPrice(compositePrice);
+						if (pricingCtx != null) {
+							BigDecimal compositePrice = calculateItemPrice(composite, pricingCtx);
+							comp.setNumCalculatedPrice(compositePrice);
+							comp.setNumFinalPrice(compositePrice);
+						}
 
 						compositeDtos.add(comp);
 					}

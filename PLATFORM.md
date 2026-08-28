@@ -1145,11 +1145,38 @@ constant, it logs the item and the price that needed it, and
 required field and shows the outstanding twenty; when the count reaches zero the
 branch goes and an unstated rule becomes a refusal.
 
-**Still to do:** one query over offerings replacing the four hand-written
-three-level walks in `ServiceMenuSelectionImpl` (352 lines, N+1 on every level).
-The four soups are **not** moved: they sit under *Gajar Ka Halwa* and there is no
-"Soups" subcategory to move them to, so choosing one would be inventing a menu
-decision. They are reported for the business to place.
+**One walk instead of four. ✅ Done.** `ServiceMenuSelectionImpl` had four
+near-identical readers — menu, catering menu, and each again with prices — in
+352 lines differing on exactly two axes: which finders to use, and whether to
+price what they return. It is 269 lines with one `walk(catering, pricingCtx)`,
+and the four public methods are one line each.
+
+They had already drifted, in ways nobody would see by reading any one of them:
+
+- the **catering menus never sent a subcategory's description**, so a note
+  explaining what a station includes reached the ordinary menu and not the
+  catering one;
+- the **priced menus never sent a category or subcategory's own `numPrice`**, and
+  the **unpriced ones never sent the selection limits** — so "choose 3 of these"
+  existed on one response and not the other, for the same subcategory.
+
+Consolidating gives every caller the union, which is additive and was checked
+before doing it: the customer journey computes its own category and subcategory
+totals by summing items and ignores what the server sends for them.
+
+It also halves the queries per subcategory. Each one used to fetch its children
+twice — once filtered to plain dishes and once to composites — which on the live
+catalogue is thirty-two redundant round trips to build one menu.
+
+That is the **fourth** time in this codebase that near-identical copies of one
+routine turned out to disagree: the capacity rule, the concurrency guard, the
+booking creation, and now this. The consolidation is the point rather than the
+line count.
+
+**Still to do:** the four soups are **not** moved. They sit under *Gajar Ka
+Halwa* and there is no "Soups" subcategory to move them to, so choosing one
+would be inventing a menu decision. They are reported for the business to
+place.
 
 **M4 — the screens. 🟡 The menu editor is done; the event form's food section
 is next.**
