@@ -1405,6 +1405,18 @@ work outstanding is three splits and about ten flags to clear, not seventeen
 unknowns. The screen shows the flag as "this is a stand with several things on
 it" so it can be cleared without knowing what "composite" means.
 
+**And a fourth fault, found by the new screen being able to delete.** Removing
+one stand emptied the customer's entire food menu. `delete` is a soft delete —
+it sets `bln_is_deleted` and leaves `bln_is_active` alone — and
+`findByParentId`, the query the menu walk uses for a section's children,
+filtered on active and not on deleted. So the removed row still came back, the
+walk asked `getCompositeWithComponents` for it, that lookup *does* exclude
+deleted rows, it threw, and the controller answered the whole menu as an error.
+Every customer saw no food at all, and the row responsible was invisible by
+definition. Two of the four near-identical parent queries already had the
+clause; two did not. The walk now also skips a stand it cannot read rather than
+failing the request, because no single row is worth the whole menu.
+
 `menuManagement.js`, `MenuFoodItem.js`, `menuComposition.js` and
 `menuCategory.js` are gone — 2,575 lines — and their three routes redirect to
 the one screen, because somebody has them bookmarked.

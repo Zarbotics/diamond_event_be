@@ -189,8 +189,30 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 
 				for (MenuItem composite : composites) {
 
-					DtoMenuComponentRequest comp = serviceMenuComponent
-							.getCompositeWithComponents(composite.getSerMenuItemId());
+					/*
+					 * One stand that cannot be read must not take the menu with
+					 * it.
+					 *
+					 * getCompositeWithComponents throws when it cannot find the
+					 * item, and this loop is inside the request that builds the
+					 * customer's entire food menu — so a single unreadable row
+					 * answered the whole menu as an error and every customer saw
+					 * no food at all. It happened for real: findByParentId did
+					 * not exclude soft-deleted rows, so removing one stand did
+					 * exactly that.
+					 *
+					 * That query is fixed, which is the actual repair. This is
+					 * here because the blast radius was the whole menu for the
+					 * sake of one row, and no single row is worth that.
+					 */
+					DtoMenuComponentRequest comp;
+					try {
+						comp = serviceMenuComponent.getCompositeWithComponents(composite.getSerMenuItemId());
+					} catch (RuntimeException e) {
+						LOGGER.warn("Leaving {} (#{}) off the menu: what is on it could not be read — {}",
+								composite.getTxtName(), composite.getSerMenuItemId(), e.getMessage());
+						continue;
+					}
 
 					if (comp != null) {
 						if (pricingCtx != null) {

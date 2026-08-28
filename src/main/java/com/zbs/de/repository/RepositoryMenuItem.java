@@ -27,7 +27,27 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	@Query(value = "select * from menu_item where txt_path <@ ?1", nativeQuery = true)
 	List<MenuItem> findDescendantsByTxtPath(String ltreePath);
 
-	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId and bln_is_active= true ORDER BY LOWER(txt_name) asc", nativeQuery = true)
+	/**
+	 * The children of one section.
+	 *
+	 * <h4>Why bln_is_deleted is in here</h4>
+	 *
+	 * It was not, and deleting a stand emptied the customer's entire food menu.
+	 * {@code ServiceMenuItemImpl.delete} is a soft delete — it sets
+	 * {@code bln_is_deleted} and leaves {@code bln_is_active} alone — so a
+	 * deleted item still came back as a child here. The menu walk then asked
+	 * {@code getCompositeWithComponents} for it, that lookup <em>does</em> filter
+	 * deleted rows, it threw "Menu item not found", and the controller answered
+	 * the whole menu as an error. One removed stand, and every customer saw no
+	 * food at all.
+	 *
+	 * <p>
+	 * Its three siblings below are the same query with different orderings and
+	 * filters, and two of them already had the clause. That is the shape of
+	 * fault a set of near-identical queries produces: the rule is applied
+	 * wherever somebody remembered it.
+	 */
+	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId and bln_is_deleted = false and bln_is_active = true ORDER BY LOWER(txt_name) asc", nativeQuery = true)
 	List<MenuItem> findByParentId(@Param("parentId")Long parentId);
 	
 	@Query(value = "select * from menu_item where bln_is_deleted = false and bln_is_active = true and  parent_menu_item_id =:parentId ORDER BY num_display_order asc", nativeQuery = true)
@@ -36,7 +56,8 @@ public interface RepositoryMenuItem extends JpaRepository<MenuItem, Long> {
 	@Query(value = "select * from menu_item where  bln_is_deleted = false and bln_is_active = true and parent_menu_item_id =:parentId and bln_is_catering_item = true ORDER BY LOWER(txt_name) asc", nativeQuery = true)
 	List<MenuItem> findCateringItemsByParentId(@Param("parentId")Long parentId);
 	
-	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId and bln_is_catering_item = true ORDER BY num_display_order asc", nativeQuery = true)
+	/** Deleted and inactive rows excluded here too — see findByParentId. */
+	@Query(value = "select * from menu_item where parent_menu_item_id =:parentId and bln_is_deleted = false and bln_is_active = true and bln_is_catering_item = true ORDER BY num_display_order asc", nativeQuery = true)
 	List<MenuItem> findCateringItemsByParentIdByDisplayOrder(@Param("parentId")Long parentId);
 
 	MenuItem findByTxtCode(String txtCode);
