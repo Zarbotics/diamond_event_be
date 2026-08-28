@@ -78,6 +78,7 @@ import com.zbs.de.model.dto.menu.DtoCustomerMenuSubCategory;
 import com.zbs.de.repository.RepositoryBooking;
 import com.zbs.de.repository.RepositoryEventDateLock;
 import com.zbs.de.repository.RepositoryEventMaster;
+import com.zbs.de.repository.RepositoryEventPaymentMaster;
 import com.zbs.de.repository.RepositoryEventRunningOrder;
 import com.zbs.de.service.ServiceCustomerMaster;
 import com.zbs.de.service.ServiceDecorCategoryPropertyMaster;
@@ -168,10 +169,67 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	@Autowired
 	private ServiceMenuItem serviceMenuItem;
 	
-	@Autowired	
+	@Autowired
 	private ServiceEventVendorMasterSelection serviceEventVendorMasterSelection;
 
+	@Autowired
+	private RepositoryEventPaymentMaster repositoryEventPaymentMaster;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
+
+	/**
+	 * Records what has been paid, without letting a stale form overwrite it.
+	 *
+	 * <h3>What was happening</h3>
+	 *
+	 * Two things owned {@code num_paid_amount} and the wrong one won.
+	 * {@code ServiceEventBudgetImpl.recalculateBudget} sums the payments actually
+	 * recorded against the budget, which is right. These four save methods set it
+	 * to whatever the event form sent — and the form sends the figure it loaded,
+	 * which was read before the payment was taken.
+	 *
+	 * <p>
+	 * So: take a £500 payment, then save the booking from a form that was already
+	 * open, and the £500 disappears from every figure that matters. It is in
+	 * production. Budget 146 shows {@code num_paid_amount = 0.00} against a £500
+	 * payment, and its {@code updated_date} is four seconds after the payment's —
+	 * the save that followed, carrying the zero it had loaded.
+	 *
+	 * <p>
+	 * Nothing announces it. The payment row is still there, the receipt was still
+	 * sent, and the booking simply reads as unpaid.
+	 *
+	 * <h3>The rule</h3>
+	 *
+	 * Where payments exist, they are the authority and the form cannot write over
+	 * them. Where none do, the figure the form sends is used unchanged — which is
+	 * how the catering form works, and it has a Paid Amount box that is the only
+	 * record of money taken for a delivery. Both production payments belong to
+	 * events, not deliveries, so this narrows nothing that is in use.
+	 *
+	 * @param budget    the budget being saved
+	 * @param requested what the form says has been paid
+	 */
+	private void setPaidAmount(EventBudget budget, BigDecimal requested) {
+
+		BigDecimal fromPayments = budget.getSerEventBudgetId() == null
+				? null
+				: repositoryEventPaymentMaster.sumPaidByBudgetId(budget.getSerEventBudgetId());
+
+		if (fromPayments != null && fromPayments.compareTo(BigDecimal.ZERO) > 0) {
+
+			if (requested == null || requested.compareTo(fromPayments) != 0) {
+				LOGGER.warn("Budget {} was sent a paid amount of {} but {} has been recorded in payments; "
+						+ "keeping the payments — see PLATFORM.md §15.3 stage 3",
+						budget.getSerEventBudgetId(), requested, fromPayments);
+			}
+
+			budget.setNumPaidAmount(fromPayments);
+			return;
+		}
+
+		budget.setNumPaidAmount(requested == null ? BigDecimal.ZERO : requested);
+	}
 
 	/*
 	 * Writes the event, its running order, its guest counts and its budget
@@ -1927,9 +1985,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 
 				if (hasIncomingPaidAmount) {
-					eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+					setPaidAmount(eventBudget, quoteAndStatus.getNumPaidAmount());
 				} else {
-					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+					setPaidAmount(eventBudget, BigDecimal.ZERO);
 				}
 
 				if (hasQuotedPrice) {
@@ -2343,9 +2401,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 
 				if (hasIncomingPaidAmount) {
-					eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+					setPaidAmount(eventBudget, quoteAndStatus.getNumPaidAmount());
 				} else {
-					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+					setPaidAmount(eventBudget, BigDecimal.ZERO);
 				}
 
 				if (hasQuotedPrice) {
@@ -3714,9 +3772,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				
 
 			    if (hasIncomingPaidAmount) {
-			        eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+			        setPaidAmount(eventBudget, quoteAndStatus.getNumPaidAmount());
 			    }else {
-			    	eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+			    	setPaidAmount(eventBudget, BigDecimal.ZERO);
 			    }
 			   
 			    if (hasQuotedPrice) {
@@ -4118,9 +4176,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 
 				if (hasIncomingPaidAmount) {
-					eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+					setPaidAmount(eventBudget, quoteAndStatus.getNumPaidAmount());
 				} else {
-					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+					setPaidAmount(eventBudget, BigDecimal.ZERO);
 				}
 
 				if (hasQuotedPrice) {
@@ -6485,9 +6543,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 
 				if (hasIncomingPaidAmount) {
-					eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+					setPaidAmount(eventBudget, quoteAndStatus.getNumPaidAmount());
 				} else {
-					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+					setPaidAmount(eventBudget, BigDecimal.ZERO);
 				}
 
 				if (hasQuotedPrice) {
@@ -6904,9 +6962,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 
 				if (hasIncomingPaidAmount) {
-					eventBudget.setNumPaidAmount(quoteAndStatus.getNumPaidAmount());
+					setPaidAmount(eventBudget, quoteAndStatus.getNumPaidAmount());
 				} else {
-					eventBudget.setNumPaidAmount(BigDecimal.ZERO);
+					setPaidAmount(eventBudget, BigDecimal.ZERO);
 				}
 
 				if (hasQuotedPrice) {

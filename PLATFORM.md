@@ -576,7 +576,7 @@ Ordered by what actually costs the business the most.
 
 | # | Item | Status | Why |
 |---|---|---|---|
-| B1 | Booking-above-Event domain model | 🟡 | **Stages 1–2 landed; three to go — see §15.** The largest item. `EventMaster` is doing the job of both a booking and an event, so a wedding that is a mehndi, a nikkah and a walima is three rows that know nothing about each other: three budgets, no total, a deposit with no row to live on, and three separate cancellations. §15.3 stages it so that every step before the last is reversible by dropping a column, and the step the business actually wants — "add another day to this wedding" — comes fourth rather than first. Stage 1 built the table and backfilled a parent for all 405 events in the development database; stage 2 wired the four create paths, so the invariant stops decaying with every sale. Neither changes what any screen shows — nothing reads a booking yet, and the column can still be dropped. |
+| B1 | Booking-above-Event domain model | 🟡 | **Stages 1–2 landed, and stage 3 has started with the money — see §15.** Stage 3's first piece is done before any schema move: a booking's paid amount was being overwritten by whatever the event form was holding, which had already cost one production booking its record of a £500 payment. It is now derived from the payments wherever any exist, repaired by V15, and guarded structurally and behaviourally. The largest item. `EventMaster` is doing the job of both a booking and an event, so a wedding that is a mehndi, a nikkah and a walima is three rows that know nothing about each other: three budgets, no total, a deposit with no row to live on, and three separate cancellations. §15.3 stages it so that every step before the last is reversible by dropping a column, and the step the business actually wants — "add another day to this wedding" — comes fourth rather than first. Stage 1 built the table and backfilled a parent for all 405 events in the development database; stage 2 wired the four create paths, so the invariant stops decaying with every sale. Neither changes what any screen shows — nothing reads a booking yet, and the column can still be dropped. |
 | B2 | REST semantics and pagination across the API | 🟡 | **Designed — see §15.4.** ~340 endpoints, all POST including reads. Rewriting them wholesale means changing every call site in two frontends at once with no way to test the halves separately, in exchange for tidiness — a bad trade. Instead the `/booking` endpoints B1 adds are REST from the first line, and the old surface shrinks as screens move across. Pagination is split out and does **not** wait for any of it: it is where the measured harm is, and it needs no coordination. |
 | ~~B3~~ | ~~Delete the five orphan entities~~ | ✅ | Gone: `EventQuote`, `EventQuoteLine`, `EventFoodSelection`, `EventServicesMaster`, `EventItineraryResult`. Tables untouched, and all five were empty in the development database and the production dump alike. `EventItineraryResult` is the one worth naming: it looks like groundwork for the itinerary table C2 will build, which is exactly why it goes — a speculative empty class a future feature *might* reuse is what makes somebody grep for how itineraries work and find two answers. If C2 needs a results table it will be written to fit C2. |
 | ~~B4~~ | ~~Retire the token-in-URL sign-in path~~ | ✅ | **Done, and the last caller was not the tests.** It was the admin portal's "open the client portal" button, which built `?accessToken=…&refreshToken=…` out of a member of staff's own localStorage — the exact thing the Google redirect was changed to stop doing, and worse, because those are back-office credentials. A URL is not a private place: browser history, server access logs, every proxy in between, and the `Referer` header of the next request the page makes. `POST /auth/handoff` mints the same single-use code the SSO redirect uses, and is deliberately carved out of the otherwise-public `/auth/**` so that a public endpoint cannot mint a signed-in session on request. The journey no longer reads tokens from its address bar at all — an old bookmark carrying them simply does not sign anybody in, which is correct: they have been through a query string. The end-to-end suite moved onto the handoff too, which is what makes it the only route. Four integration tests. |
@@ -869,6 +869,41 @@ contact details move to hang off `booking`. Each is a separate migration with
 its own backfill, and each keeps a read-through on the event so existing screens
 keep working. Do these one at a time, in production, a week apart. Payments
 first — that is where the wrong figures are today.
+
+**Payments, part one: the money stops being overwritten. ✅ Done, V15.** Before
+moving anything, the figure itself had to stop being wrong. Two things owned
+`event_budget.num_paid_amount`: `recalculateBudget` sums the payments recorded
+against the budget, and the four event-save methods set it to whatever the form
+sent. The form sends the figure it loaded, read before the payment was taken,
+and the save runs last.
+
+Production carries one instance. **Budget 146 reads `num_paid_amount = 0.00`
+against a recorded payment of £500**, updated four seconds after the payment —
+the save that followed, carrying the zero it had loaded. Nothing announced it:
+the payment row is still there and the booking simply reads as unpaid, on the
+screen, on the report, and in every total the office works from.
+
+All twelve write sites now go through `setPaidAmount`, which keeps the payments
+where any exist and uses the figure sent where none do. That second half is not
+politeness — the catering form has a Paid Amount box that is the only record of
+money taken for a delivery, and both production payments belong to events rather
+than deliveries, so "payments always win" would have quietly stopped that box
+working. V15 repairs the one budget the old behaviour already spoiled, touching
+only budgets that have payments; rehearsed against a copy of production, where
+it changes exactly that row and nothing else.
+
+Guarded twice, because this is the sixth time copies of one routine in this file
+have turned out to disagree: `PaidAmountSurvivesASaveIT` drives the production
+sequence — take a payment, then save the booking from a form that does not know
+about it — and `PaidAmountIsNotDictatedByTheFormTest` fails the build if a
+thirteenth site appears or one of the twelve goes back to writing the field
+directly.
+
+**Still to do:** the schema move itself — `ser_booking_id` on `event_payment`,
+backfilled through the budget and the event, with the existing parent kept as a
+read-through. It is deliberately not in this change: moving a column is worth
+nothing while the number in it is wrong, and one booking per event means the
+move changes nothing observable until stage 4.
 
 **Stage 4 — the journey learns about multiple events.** "Add another day to
 this wedding" appears in the customer journey. This is the stage the business
