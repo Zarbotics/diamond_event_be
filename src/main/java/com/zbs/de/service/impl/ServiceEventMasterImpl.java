@@ -223,7 +223,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		 * without moving it counts two against a limit of two and is allowed.
 		 * Moving another event onto that day is not.
 		 */
-		Date requestedDate = UtilDateAndTime.ddmmyyyyStringToDate(dtoEventMaster.getDteEventDate());
+		DtoResult unreadableDate = refuseUnreadableDate(dtoEventMaster.getDteEventDate());
+		if (unreadableDate != null) {
+			return unreadableDate;
+		}
+
+		Date requestedDate = UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate());
 		if (requestedDate != null) {
 			DtoEventBookingValidationResult bookingValidation = this.canBookEvent(
 					requestedDate,
@@ -269,7 +274,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			// Manually update values (keep ID)
 			entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
-			entity.setDteEventDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoEventMaster.getDteEventDate()));
+			entity.setDteEventDate(UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate()));
 			entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 			entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
 			entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
@@ -1320,6 +1325,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				return dtoResult;
 			}
 
+			DtoResult unreadableDate = refuseUnreadableDate(dtoEventMaster.getDteEventDate());
+			if (unreadableDate != null) {
+				return unreadableDate;
+			}
+
 			Boolean blnIsNewEvent = false;
 			// Fetch existing if exists
 			Optional<EventMaster> optionalExisting = null;
@@ -1391,7 +1401,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
-				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
+				Date newDate= UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate());
 
 				if(newDate != null && entity.getDteEventDate() != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
 //					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
@@ -1406,7 +1416,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						return dtoResult;
 					}
 				}
-				entity.setDteEventDate(UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate()));
+				entity.setDteEventDate(UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate()));
 				entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
 				entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
@@ -1973,7 +1983,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				blnIsNewEvent = true;
 				entity = MapperEventMaster.toEntity(dtoEventMaster);
 				if(dtoEventMaster.getDteEventDate() != null) {
-					Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
+					Date newDate = UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate());
 
 //					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
 //					if (newDate != null && isalreadyBooked) {
@@ -3115,6 +3125,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				return dtoResult;
 			}
 
+			DtoResult unreadableDate = refuseUnreadableDate(dtoEventMasterAdminPortal.getDteEventDate());
+			if (unreadableDate != null) {
+				return unreadableDate;
+			}
+
 			Boolean blnIsNewEvent = false;
 			// Fetch existing if exists
 			Optional<EventMaster> optionalExisting = null;
@@ -3178,7 +3193,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMasterAdminPortal.getTxtEventMasterName());
-				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
+				Date newDate= UtilDateAndTime.parseDateFromClient(dtoEventMasterAdminPortal.getDteEventDate());
 
 				if(newDate != null && entity.getDteEventDate() != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
 //					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
@@ -3757,7 +3772,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				if (dtoEventMasterAdminPortal.getDteEventDate() != null) {
 					Date newDate = UtilDateAndTime
-							.ddMMyyyyDashedStringToDate(dtoEventMasterAdminPortal.getDteEventDate());
+							.parseDateFromClient(dtoEventMasterAdminPortal.getDteEventDate());
 
 //					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
 //					if (newDate != null && isalreadyBooked) {
@@ -5715,6 +5730,55 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private static final String CHANGED_ELSEWHERE_MESSAGE = "Somebody else saved changes to this booking while you "
 			+ "had it open. Refresh to see their version, then make your change again.";
 
+	/** Same convention again: a code for the frontends, words for a person. */
+	private static final String BAD_EVENT_DATE = "bad_event_date";
+
+	private static final String BAD_EVENT_DATE_MESSAGE = "The event date could not be read. Send it as dd-MM-yyyy — "
+			+ "for example 14-06-2026.";
+
+	/**
+	 * Refuses the save outright when the request carries a date that is not a
+	 * date.
+	 *
+	 * <h4>Why this is a refusal and not a shrug</h4>
+	 *
+	 * The parser returns nothing for a string it cannot read, and every save path
+	 * used to pass that nothing straight to {@code setDteEventDate}. So a request
+	 * carrying a malformed date saved the event <em>with no date at all</em>, and
+	 * answered 200.
+	 *
+	 * <p>
+	 * That is worse than it sounds, because of what a dateless event is allowed to
+	 * do next. The capacity check on an edit reads
+	 * {@code newDate != null && entity.getDteEventDate() != null} — an event whose
+	 * stored date is null skips the check entirely, so the following save can put
+	 * it on a day that is already full, and the day after that the kitchen is
+	 * cooking for two weddings it agreed to cater for one.
+	 *
+	 * <p>
+	 * An absent date is still allowed through: the journey creates the event
+	 * before the customer has chosen a day, and that is a real state. What is
+	 * refused is a date that was <em>offered</em> and is not one.
+	 *
+	 * @param given the date string exactly as the request sent it
+	 * @return the result to hand back to the caller, or {@code null} to carry on
+	 */
+	private DtoResult refuseUnreadableDate(String given) {
+		if (given == null || given.trim().isEmpty()) {
+			return null;
+		}
+		if (UtilDateAndTime.parseDateFromClient(given) != null) {
+			return null;
+		}
+
+		LOGGER.warn("Refusing to save an event: the date '{}' is not readable in any accepted format", given);
+
+		DtoResult refusal = new DtoResult();
+		refusal.setTxtMessage(BAD_EVENT_DATE);
+		refusal.setResult(BAD_EVENT_DATE_MESSAGE);
+		return refusal;
+	}
+
 	/**
 	 * Whether the client is holding an out-of-date copy of this booking.
 	 *
@@ -5824,6 +5888,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				return dtoResult;
 			}
 
+			DtoResult unreadableDate = refuseUnreadableDate(dtoEventMaster.getDteEventDate());
+			if (unreadableDate != null) {
+				return unreadableDate;
+			}
+
 			Boolean blnIsNewEvent = false;
 			// Fetch existing if exists
 			Optional<EventMaster> optionalExisting = null;
@@ -5895,7 +5964,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Manually update values (keep ID)
 				entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
-				Date newDate= UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
+				Date newDate= UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate());
 
 				if(newDate != null && entity.getDteEventDate() != null && newDate.compareTo(entity.getDteEventDate()) != 0) {
 //					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
@@ -5910,7 +5979,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						return dtoResult;
 					}
 				}
-				entity.setDteEventDate(UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate()));
+				entity.setDteEventDate(UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate()));
 				entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
 				entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
@@ -6472,7 +6541,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				blnIsNewEvent = true;
 				entity = MapperEventMaster.toEntity(dtoEventMaster);
 				if(dtoEventMaster.getDteEventDate() != null) {
-					Date newDate = UtilDateAndTime.ddMMyyyyDashedStringToDate(dtoEventMaster.getDteEventDate());
+					Date newDate = UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate());
 
 //					Boolean isalreadyBooked = repositoryEventMaster.existsByDteEventDateAndBlnIsDeletedFalse(newDate);
 //					if (newDate != null && isalreadyBooked) {

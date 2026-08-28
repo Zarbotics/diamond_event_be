@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Time;
 import java.text.DateFormat;
+import java.text.ParsePosition;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
@@ -39,6 +40,99 @@ import com.zbs.de.model.dto.DtoDatePeriod;
 public class UtilDateAndTime {
 
 	private static SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
+
+	/**
+	 * The ways a request is allowed to write a date.
+	 *
+	 * <p>
+	 * Both frontends send {@code dd-MM-yyyy}. The other two are here because
+	 * {@code /eventMaster/saveOrUpdate} has always accepted them, and an endpoint
+	 * that has been public for years is not narrowed on a hunch about who is
+	 * calling it. Order matters only in that no two of these can read the same
+	 * string as different days — a four-digit year cannot be a day of the month,
+	 * so {@code yyyy-MM-dd} is never mistaken for {@code dd-MM-yyyy}.
+	 */
+	private static final List<String> CLIENT_DATE_PATTERNS = List.of("dd-MM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd");
+
+	/**
+	 * Parses to exactly the pattern given, or not at all.
+	 *
+	 * <h4>Why this exists</h4>
+	 *
+	 * {@link SimpleDateFormat} is lenient unless told otherwise, and lenient means
+	 * it will make a date out of very nearly anything with numbers in roughly the
+	 * right places. Asked for {@code dd-MM-yyyy}, it reads {@code "2033-08-01"} as
+	 * day 2033 of month 8 of year 1, and hands back <em>Wednesday 23 February in
+	 * the year 7</em>. Asked for the 31st of February it returns the 3rd of March.
+	 *
+	 * <p>
+	 * Neither is a date anybody typed, and neither announces itself: a
+	 * {@code Date} nearly two thousand years in the past is still a {@code Date},
+	 * and every check downstream — the capacity rule, the price list effective on
+	 * the day, the report a customer is sent — treats it as the day they chose.
+	 *
+	 * <p>
+	 * Trailing rubbish is refused too, because {@code parse} otherwise stops the
+	 * moment the pattern is satisfied and would read {@code "01-08-2033 or so"} as
+	 * the first of August.
+	 *
+	 * <p>
+	 * Nothing is thrown and nothing is printed. A string that is not a date in
+	 * this format is an answer rather than a failure, and what to do about it
+	 * belongs to the caller: a search box may ignore it, and an event's date must
+	 * not — see {@code ServiceEventMasterImpl.refuseUnreadableDate}.
+	 *
+	 * @param value   the string to read, already trimmed and known non-empty
+	 * @param pattern the one format it is allowed to be in
+	 * @return the date, or {@code null} if the string is not exactly that
+	 */
+	private static Date parseStrictly(String value, String pattern) {
+		SimpleDateFormat strict = new SimpleDateFormat(pattern, Locale.ENGLISH);
+		strict.setLenient(false);
+
+		ParsePosition position = new ParsePosition(0);
+		Date parsed = strict.parse(value, position);
+
+		if (parsed == null || position.getIndex() != value.length()) {
+			return null;
+		}
+		return parsed;
+	}
+
+	/**
+	 * A date as a client writes it.
+	 *
+	 * <h4>Why the save paths share this</h4>
+	 *
+	 * There are four ways to save an event and they did not agree on what a date
+	 * looks like: {@code saveOrUpdate} read {@code dd/MM/yyyy} falling back to
+	 * {@code yyyy-MM-dd}, while the three the frontends actually use read
+	 * {@code dd-MM-yyyy}. Both frontends send dashes, so the same payload sent to
+	 * the first of those parsed — leniently — into the seventh century, and to the
+	 * others into the day the customer chose.
+	 *
+	 * <p>
+	 * That is the fifth time in this codebase that near-identical copies of one
+	 * routine turned out to disagree, so the shared parser is the point rather
+	 * than the strictness.
+	 *
+	 * @return the date, or {@code null} if none was given or what was given is not
+	 *         a date in any accepted format
+	 */
+	public static Date parseDateFromClient(String given) {
+		if (given == null || given.trim().isEmpty()) {
+			return null;
+		}
+
+		String trimmed = given.trim();
+		for (String pattern : CLIENT_DATE_PATTERNS) {
+			Date parsed = parseStrictly(trimmed, pattern);
+			if (parsed != null) {
+				return parsed;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Method will return date in UTC format
@@ -92,13 +186,8 @@ public class UtilDateAndTime {
 	 * @return
 	 */
 	public static Date yyyymmddStringToDate(String date) {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-		try {
-			if (UtilRandomKey.isNotBlank(date)) {
-				return formatter.parse(date);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (UtilRandomKey.isNotBlank(date)) {
+			return parseStrictly(date.trim(), "yyyy-MM-dd");
 		}
 		return null;
 	}
@@ -154,13 +243,8 @@ public class UtilDateAndTime {
 	 */
 	public static Date ddmmyyyyStringToDate(String date) {
 		if (UtilRandomKey.isNotBlank(date)) {
-			SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
-			try {
-				return formatter.parse(date);
-			} catch (Exception e) {
-				// e.printStackTrace();
-				return yyyymmddStringToDate(date);
-			}
+			Date slashed = parseStrictly(date.trim(), "dd/MM/yyyy");
+			return slashed != null ? slashed : yyyymmddStringToDate(date);
 		}
 		return null;
 	}
@@ -2034,20 +2118,25 @@ public class UtilDateAndTime {
 		return null;
 	}
 	
+	/**
+	 * A date written {@code dd-MM-yyyy}, or nothing.
+	 *
+	 * <p>
+	 * Used for the dates a request carries that are not an event's own: a
+	 * delivery date, a price list's effective range, an itinerary's validity. It
+	 * is also handed the search box's keyword, which is usually a name and
+	 * legitimately not a date at all — which is why not being a date is quiet
+	 * here rather than logged.
+	 *
+	 * @return the date, or {@code null} if the string is absent or is not exactly
+	 *         a {@code dd-MM-yyyy} date — see {@link #parseStrictly} for what
+	 *         "exactly" is protecting against
+	 */
 	public static Date ddMMyyyyDashedStringToDate(String dateStr) {
 		if (dateStr == null || dateStr.trim().isEmpty()) {
-			return null; // safeguard against null or empty input
+			return null;
 		}
-
-		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
-		try {
-			return formatter.parse(dateStr);
-		} catch (ParseException e) {
-			e.printStackTrace(); // log the error
-		} catch (Exception e) {
-			e.printStackTrace(); // catch-all for unexpected errors
-		}
-		return null; // return null if parsing fails
+		return parseStrictly(dateStr.trim(), "dd-MM-yyyy");
 	}
 	
 	

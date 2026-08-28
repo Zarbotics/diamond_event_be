@@ -48,6 +48,29 @@ public class ControllerEventMaster {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventMaster.class);
 
+	/** Matches {@code ServiceEventMasterImpl.BAD_EVENT_DATE}. */
+	private static final String BAD_EVENT_DATE = "bad_event_date";
+
+	/**
+	 * The request gave a date that is not a date, so nothing was saved.
+	 *
+	 * <h4>Why every save endpoint has to say so explicitly</h4>
+	 *
+	 * Three of the four end with {@code else if (!"Failure".equals(message))} →
+	 * <strong>200 OK</strong>. Any refusal the service invents that is not spelled
+	 * out above that line is therefore reported to the client as a successful
+	 * save, with an empty body: the screen closes, the booking is not stored, and
+	 * nobody finds out until somebody looks for it.
+	 *
+	 * <p>
+	 * 400 rather than 422 — the request is malformed, the caller can fix it, and
+	 * 400 is what the frontends already treat as "show me what is wrong".
+	 */
+	private ResponseMessage badEventDate(DtoResult result) {
+		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+				String.valueOf(result.getResult()), result.getResult());
+	}
+
 	/**
 	 * Upcoming days holding more events than the capacity rule allows.
 	 *
@@ -103,6 +126,9 @@ public class ControllerEventMaster {
 			return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
 					String.valueOf(result.getResult()), result.getResult());
 		}
+		if (BAD_EVENT_DATE.equalsIgnoreCase(result.getTxtMessage())) {
+			return badEventDate(result);
+		}
 		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());
 		}
@@ -147,6 +173,9 @@ public class ControllerEventMaster {
 				return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
 						String.valueOf(result.getResult()), result.getResult());
 			}
+			if (result != null && BAD_EVENT_DATE.equalsIgnoreCase(result.getTxtMessage())) {
+				return badEventDate(result);
+			}
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
 						result.getResult().toString(), result.getResult());
@@ -181,6 +210,9 @@ public class ControllerEventMaster {
 			if (result != null && "changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
 						String.valueOf(result.getResult()), result.getResult());
+			}
+			if (result != null && BAD_EVENT_DATE.equalsIgnoreCase(result.getTxtMessage())) {
+				return badEventDate(result);
 			}
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
@@ -330,6 +362,9 @@ public class ControllerEventMaster {
 			if (result != null && "changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
 						String.valueOf(result.getResult()), result.getResult());
+			}
+			if (result != null && BAD_EVENT_DATE.equalsIgnoreCase(result.getTxtMessage())) {
+				return badEventDate(result);
 			}
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,

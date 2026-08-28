@@ -287,6 +287,62 @@ SELECT 'dev.admin@example.com',
        true, true, false, true, now()
 WHERE NOT EXISTS (SELECT 1 FROM user_master WHERE txt_email = 'dev.admin@example.com');
 
+-- ── A booking to open ─────────────────────────────────────────────────
+--
+-- Why the seed carries one. The admin portal's Events list was empty on a
+-- fresh database, so the portal end-to-end test could only run after the
+-- customer-journey test had been run first and had left an event behind. A
+-- suite that passes or fails depending on what ran before it is not a suite,
+-- and the ordering was invisible — the portal test simply reported "no events
+-- to open" and nobody could tell whether the list was broken or bare.
+--
+-- Filled in, not bare. The form marks the date, the guest count and the table
+-- count required, so an event missing them cannot be submitted at all: the
+-- test that was meant to prove the save path could never reach it. Decor is
+-- left for the test to choose, because a coherent decor selection spans four
+-- tables and none of it is what that test is about.
+--
+-- Dated well ahead on purpose, so the capacity rule has nothing to say about
+-- it and a test that saves this booking is testing the save and not the rule.
+INSERT INTO booking (txt_booking_code, ser_cust_id, created_date, bln_is_deleted, bln_is_active)
+SELECT 'DEV-BOOK-001',
+       (SELECT ser_cust_id FROM customer_master WHERE txt_email = 'dev.customer@example.com'),
+       now(), false, true
+WHERE NOT EXISTS (SELECT 1 FROM booking WHERE txt_booking_code = 'DEV-BOOK-001');
+
+INSERT INTO event_master (txt_event_master_code, txt_event_master_name,
+                          ser_cust_id, ser_event_type_id, ser_booking_id,
+                          dte_event_date, num_number_of_guests, num_number_of_tables,
+                          txt_event_status, is_edit_allowed,
+                          created_date, bln_is_deleted, bln_is_active)
+SELECT 'DEV-EV-001', 'Dev Wedding',
+       (SELECT ser_cust_id FROM customer_master WHERE txt_email = 'dev.customer@example.com'),
+       (SELECT ser_event_type_id FROM event_type WHERE bln_is_deleted = false
+         ORDER BY ser_event_type_id LIMIT 1),
+       (SELECT ser_booking_id FROM booking WHERE txt_booking_code = 'DEV-BOOK-001'),
+       -- Five years out. Far enough that no other seeded or test-created
+       -- booking shares the day, which is what keeps the capacity rule quiet.
+       (date_trunc('year', now()) + interval '5 years' + interval '190 days')::timestamp,
+       120, 12,
+       'Enquiry', true,
+       now(), false, true
+WHERE NOT EXISTS (SELECT 1 FROM event_master WHERE txt_event_master_code = 'DEV-EV-001');
+
+-- And its budget row, without which the booking is invisible.
+--
+-- The portal's Events list is not a list of events: it is a list of budgets,
+-- filtered by the status tab across the top, which defaults to Enquiry. An
+-- event with no event_budget row does not appear under any tab — the search
+-- above finds it through the API and the screen shows nothing. That cost an
+-- afternoon to work out, which is why it is written down here rather than
+-- silently fixed.
+INSERT INTO event_budget (ser_event_master_id, txt_status, num_total_budget, num_paid_amount,
+                          created_date, bln_is_deleted, bln_is_active)
+SELECT e.ser_event_master_id, 'Enquiry', 0, 0, now(), false, true
+FROM event_master e
+WHERE e.txt_event_master_code = 'DEV-EV-001'
+  AND NOT EXISTS (SELECT 1 FROM event_budget b WHERE b.ser_event_master_id = e.ser_event_master_id);
+
 COMMIT;
 
 -- What landed.
