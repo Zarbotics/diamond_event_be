@@ -899,11 +899,36 @@ about it — and `PaidAmountIsNotDictatedByTheFormTest` fails the build if a
 thirteenth site appears or one of the twelve goes back to writing the field
 directly.
 
-**Still to do:** the schema move itself — `ser_booking_id` on `event_payment`,
-backfilled through the budget and the event, with the existing parent kept as a
-read-through. It is deliberately not in this change: moving a column is worth
-nothing while the number in it is wrong, and one booking per event means the
-move changes nothing observable until stage 4.
+**Stage 3 is done, 17 September 2026.** `ser_booking_id` is on `event_payment`,
+backfilled through budget → event → booking by V16, and filled on write by
+`EventPayment.attachTo`. `ser_event_budget_id` stays, stays NOT NULL, and stays
+the column every read path uses — nothing is moved off the budget, a second
+parent is added beside it, and stage 5 is still the only stage that deletes
+anything.
+
+Nothing observable changes, which is the point: one booking has one event, so
+the column is filled while it cannot matter, and stage 4 becomes a change to
+behaviour rather than a change to behaviour plus a migration of live payment
+records.
+
+Three decisions worth keeping:
+
+  - **`updatable = false`,** the same as `EventMaster.serBookingId` and for the
+    same reason: every save here writes a detached entity assembled from a DTO,
+    no DTO carries a booking id, and an updatable column would have Hibernate
+    write NULL over the parent on the first save of each payment — undoing the
+    backfill one row at a time, starting with the bookings the office edits
+    most. `PaymentBelongsToBookingIT.resavingAPaymentKeepsItsBooking` is that
+    failure; verified by making the column updatable and watching it fail.
+  - **`attachTo(budget)` rather than `setEventBudget` plus a second line at each
+    call site.** Both payment services and `EventBudget.addPayment` go through
+    it. This file has a history of one routine living in several near-identical
+    copies that drift — the paid-amount field had twelve — and "set the parent,
+    then work out the other parent" is exactly that shape.
+  - **A catering delivery keeps a null booking.** Its budget hangs off
+    `catering_delivery_booking`, a different thing with a confusingly similar
+    name, and it has no event and no wedding. Null there is correct rather than
+    missing.
 
 **Stage 4 — the journey learns about multiple events.** "Add another day to
 this wedding" appears in the customer journey. This is the stage the business
@@ -1455,6 +1480,29 @@ a dish is priced. Nothing had ever called it; M5b is the first caller.
 `price_entry` and `menu_item_price`. Not yet, and not on a schedule:
 `countOfferingsOnNoPriceList` has to be zero and stay zero first, and the
 fallback is what makes M5b safe to ship on its own.
+
+**How to tell when it is time.** The gate was written down without a way to
+read it, which is how a condition like this becomes indefinite. Against
+production:
+
+```sql
+-- Dishes offered somewhere that no published price list covers.
+-- M5c waits for this to be 0, and to stay 0 across a price-list publish.
+SELECT COUNT(*) FROM menu_offering o
+WHERE NOT EXISTS (SELECT 1 FROM menu_offering_price p WHERE p.ser_offering_id = o.ser_offering_id);
+```
+
+Two other things must be true before the retirement, and neither is about
+that number:
+
+  - `price_entry` still has a controller, a service and an admin screen. It
+    holds no rows on the development database, which proves nothing — check
+    production before deleting a feature somebody may be using.
+  - The fallback logs a warning naming the dish and the section every time it
+    fires. Those warnings going quiet is the same signal as the count reaching
+    zero, and is visible without a database.
+
+Reviewed 17 September 2026: still blocked, and deliberately so.
 
 ### 17.4 What this is not
 

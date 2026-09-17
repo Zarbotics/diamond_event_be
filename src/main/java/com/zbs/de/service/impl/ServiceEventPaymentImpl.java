@@ -84,7 +84,8 @@ public class ServiceEventPaymentImpl implements ServiceEventPayment {
 		 * =============================== MAP PAYMENT FIELDS
 		 * ===============================
 		 */
-		payment.setEventBudget(budget);
+		// Budget and booking together — see EventPayment.attachTo.
+		payment.attachTo(budget);
 		payment.setSerEventMasterId(dtoPayment.getSerEventMasterId() != null ? dtoPayment.getSerEventMasterId()
 				: budget.getEventMaster().getSerEventMasterId());
 

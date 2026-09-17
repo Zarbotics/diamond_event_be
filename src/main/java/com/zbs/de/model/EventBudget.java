@@ -201,7 +201,9 @@ public class EventBudget extends BaseEntity implements Serializable {
 
 	public void addPayment(EventPayment p) {
 		this.payments.add(p);
-		p.setEventBudget(this);
+		// attachTo, not setEventBudget: a payment added through the budget must
+		// end up under the same booking as one added through the service.
+		p.attachTo(this);
 	}
 
 	public void removePayment(EventPayment p) {

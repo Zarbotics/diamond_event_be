@@ -77,7 +77,8 @@ public class ServiceCateringPaymentImpl implements ServiceCateringPayment {
 		 * =============================== MAP PAYMENT FIELDS
 		 * ===============================
 		 */
-		payment.setEventBudget(budget);
+		// Budget and booking together. A delivery has no booking; see attachTo.
+		payment.attachTo(budget);
 		payment.setSerDeliveryBookingId(
 				dtoPayment.getSerDeliveryBookingId() != null ? dtoPayment.getSerDeliveryBookingId()
 						: budget.getCateringDeliveryBooking().getSerDeliveryBookingId());
