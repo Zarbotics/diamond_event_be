@@ -55,12 +55,22 @@ class EventDateCapacityIsCheckedEverywhereTest {
 	 * Ways an event ends up with a date.
 	 *
 	 * <p>
-	 * Both matter. The update branches set it directly; the create branches go
+	 * All three matter. The update branches went through the setter directly
+	 * until C4c routed them through {@code setEventDate}; the create branches go
 	 * through the mapper, which is why a search for the setter alone found four
 	 * of the six places and missed every creation.
+	 *
+	 * <p>
+	 * {@code setEventDate} is listed because without it this test quietly stopped
+	 * covering the thing it was written for. C4c replaced
+	 * {@code entity.setDteEventDate(...)} in all four save paths with a call to
+	 * the helper, so none of them matched this pattern any more — and a save path
+	 * that later lost its {@code canBookEvent} call would have passed. The test
+	 * failed on the helper itself, which is how that was noticed; the fix is to
+	 * follow the indirection rather than to exempt it.
 	 */
 	private static final Pattern WRITES_A_DATE = Pattern.compile(
-			"entity\\.setDteEventDate\\(|MapperEventMaster\\.toEntity\\(");
+			"entity\\.setDteEventDate\\(|setEventDate\\(entity|MapperEventMaster\\.toEntity\\(");
 
 	private static final Pattern ASKS_FIRST = Pattern.compile("canBookEvent\\(");
 
@@ -79,8 +89,15 @@ class EventDateCapacityIsCheckedEverywhereTest {
 
 		Set<String> unchecked = new LinkedHashSet<>();
 		for (Method method : methods) {
-			// canBookEvent is the check itself; it has no date to write.
-			if (method.name().equals("canBookEvent")) {
+			/*
+			  canBookEvent is the check itself; it has no date to write.
+
+			  setEventDate is the write, not a path to it: one line that puts a
+			  parsed date on an entity somebody else already decided to save. The
+			  callers are what must ask about capacity, and they are still counted
+			  by the pattern above.
+			*/
+			if (method.name().equals("canBookEvent") || method.name().equals("setEventDate")) {
 				continue;
 			}
 			if (WRITES_A_DATE.matcher(method.body()).find()

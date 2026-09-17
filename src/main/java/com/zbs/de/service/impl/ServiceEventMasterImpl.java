@@ -332,7 +332,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 			// Manually update values (keep ID)
 			entity.setTxtEventMasterName(dtoEventMaster.getTxtEventMasterName());
-			entity.setDteEventDate(UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate()));
+			setEventDate(entity, dtoEventMaster.getDteEventDate());
 			entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 			entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
 			entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
@@ -1474,7 +1474,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						return dtoResult;
 					}
 				}
-				entity.setDteEventDate(UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate()));
+				setEventDate(entity, dtoEventMaster.getDteEventDate());
 				entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
 				entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
@@ -3267,7 +3267,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						return dtoResult;
 					}
 				}
-				entity.setDteEventDate(newDate);
+				setEventDate(entity, dtoEventMasterAdminPortal.getDteEventDate());
 				entity.setNumNumberOfGuests(dtoEventMasterAdminPortal.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMasterAdminPortal.getNumNumberOfTables());
 				entity.setTxtBrideName(dtoEventMasterAdminPortal.getTxtBrideName());
@@ -5838,6 +5838,63 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	}
 
 	/**
+	 * Writes the event date, and keeps the stored one when the request did not
+	 * carry a date at all.
+	 *
+	 * <h4>What this fixes</h4>
+	 *
+	 * Every save path wrote {@code parseDateFromClient(dto.getDteEventDate())}
+	 * straight onto the entity. The parser answers null for an absent date as well
+	 * as for an unreadable one, so a request that simply left the field out
+	 * cleared the date of a booking that had one — and answered 200. Sending
+	 * {@code {serEventMasterId, serCustId, serEventTypeId}} and nothing else was
+	 * enough to wipe a wedding's date.
+	 *
+	 * <p>
+	 * The consequence is the one {@link #refuseUnreadableDate} exists for: an
+	 * event whose stored date is null skips the capacity check on its next save —
+	 * that check reads {@code newDate != null && entity.getDteEventDate() != null}
+	 * — so the booking can then be put on a day that is already full.
+	 *
+	 * <h4>Why this is silence and not a refusal</h4>
+	 *
+	 * Its sibling above refuses, and the symmetrical thing would be to refuse
+	 * here too. That was considered and rejected: the admin portal builds its
+	 * payload from the form's values, so a date that is absent because its field
+	 * was never mounted looks exactly like a date that is absent because nobody
+	 * meant to send one. Refusing would block a legitimate save in a case that
+	 * cannot be seen from here, and blocking a real save is worse than ignoring
+	 * an instruction nobody gives.
+	 *
+	 * <p>
+	 * What is given up is the ability to clear a date by omitting it. Neither
+	 * frontend does that — the journey cannot reach the state, and the admin form
+	 * is initialised from the booking it is editing — and an explicit way to clear
+	 * a date can be added the day somebody needs one. A malformed date is still a
+	 * refusal, because that is the case where the caller did mean something.
+	 *
+	 * <p>
+	 * Only the date is protected this way. A guest count or a name that arrives
+	 * empty is still allowed to overwrite what is stored, because emptying one of
+	 * those in a form is something a person does on purpose, and quietly keeping
+	 * the old value would be its own silent failure.
+	 *
+	 * @param entity the booking being written, already loaded
+	 * @param given  the date string exactly as the request sent it
+	 */
+	private void setEventDate(EventMaster entity, String given) {
+		Date parsed = UtilDateAndTime.parseDateFromClient(given);
+
+		if (parsed == null && entity.getDteEventDate() != null) {
+			LOGGER.debug("Event {} was saved without a date; keeping the one it has ({})",
+					entity.getSerEventMasterId(), entity.getDteEventDate());
+			return;
+		}
+
+		entity.setDteEventDate(parsed);
+	}
+
+	/**
 	 * Whether the client is holding an out-of-date copy of this booking.
 	 *
 	 * <p>
@@ -6037,7 +6094,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						return dtoResult;
 					}
 				}
-				entity.setDteEventDate(UtilDateAndTime.parseDateFromClient(dtoEventMaster.getDteEventDate()));
+				setEventDate(entity, dtoEventMaster.getDteEventDate());
 				entity.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
 				entity.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
 				entity.setTxtBrideName(dtoEventMaster.getTxtBrideName());
