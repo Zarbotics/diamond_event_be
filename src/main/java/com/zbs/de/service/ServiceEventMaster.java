@@ -53,7 +53,17 @@ public interface ServiceEventMaster {
 	
 	DtoResult validateEventDateAvailability(Date eventDate);
 	
-	DtoResult getAlreadyBookedDates();
+	/**
+	 * The dates a customer cannot choose, for the calendar to grey out.
+	 *
+	 * @param excludeEventId the event being edited. Its own date must not be
+	 *                       counted against it: it already holds that slot, and
+	 *                       {@code canBookEvent} — which is what actually decides
+	 *                       whether a save is allowed — excludes it too. Null
+	 *                       when the date is being chosen for a booking that does
+	 *                       not exist yet.
+	 */
+	DtoResult getAlreadyBookedDates(Integer excludeEventId);
 
 	/**
 	 * Upcoming days holding more events than the capacity rule allows.

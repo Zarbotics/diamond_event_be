@@ -5,22 +5,55 @@
   <title th:text="'Your event — ' + ${doc.reference}">Your event</title>
   <style>
     /* =================================================================
-       Diamond Events — customer event document
+       Diamond Events — the customer's event document
 
-       The brand is the customer journey's: Butler-style display serif,
-       Montserrat body, deep navy and champagne.
+       WHY THERE ARE NO CSS VARIABLES HERE
 
-       The GROUND is deliberately not the journey's dark navy. This document
-       is printed — by the customer at home, and by staff for the file. A
-       dark ground costs a great deal of ink over eight pages, renders
-       muddily on most home printers, and champagne on white measures about
-       1.5:1, which is illegible.
+       There were. Every colour in this file was a `var(--navy)` or a
+       `var(--bronze)`, declared on `:root`, exactly as the journey's own
+       stylesheet does it. openhtmltopdf — which turns this page into the PDF
+       the customer downloads — does not implement custom properties, and it
+       does not complain: an unresolvable `var()` is simply an invalid
+       declaration, so it is dropped.
 
-       So: the cover keeps the dark navy and champagne, because a cover is a
-       single deliberate statement and reads as premium. Everything after it
-       is navy ink on ivory, with champagne reserved for rules and small
-       accents, darkened to bronze wherever it carries text on a light
-       ground (5.1:1 rather than 1.5:1).
+       The result was a PDF with correct text at correct sizes and *no colour
+       and no backgrounds at all* — black Helvetica on white, no cover, no
+       rules, no panels. It had been that way since the template was written,
+       because the HTML view renders in a browser, where the variables work
+       perfectly, and only the PDF goes through the other renderer. Decompress
+       one and there is not a single fill operation in it.
+
+       So: literal colours, in one block at the top, with the name they carry
+       in the journey's tokens.css beside them. If a colour changes there it
+       has to be changed here too — which is a real cost, and smaller than a
+       document that silently prints in black and white.
+
+       ONE TYPEFACE
+
+       Inter, registered with the renderer in EventDocumentService. The journey
+       sets display headings in Fraunces, but Fraunces ships as a variable
+       font and PDFBox cannot embed one, so a second face would mean vendoring
+       a static cut of it. Inter at 600 carries the headings perfectly well,
+       and one embedded family keeps the file small.
+
+       PAPER, NOT INK
+
+       The cover was a full-bleed dark slab. This document is printed — by the
+       customer at home and by staff for the file — and a dark A4 cover is
+       several millilitres of ink, prints muddily on a home printer, and is the
+       page most likely to be run off on its own. It is paper now, with the
+       accent carrying the weight instead.
+
+         --de-ground     #FAF7F5   panels
+         --de-surface    #FFFFFF   the page
+         --de-text       #1B1425   ink
+         --de-text-muted #574C66   secondary
+         --de-text-subtle#736A80   uppercase labels
+         --de-border     #E8E1DC   hairlines
+         --de-accent     #6D28D9   section rules
+         --de-accent-str #5B21B6   accent text on white
+         --de-accent-soft#F4EEFF   the closing panel
+         --de-accent-line#C9B3F0   panel edges
        ================================================================= */
 
     @page {
@@ -36,32 +69,21 @@
       margin: 0;
     }
 
-    :root {
-      --navy: #0e1331;
-      --navy-soft: #2b3560;
-      --ivory: #fbf9f4;
-      --paper: #ffffff;
-      --champagne: #e5cfa0;
-      --bronze: #8a6a2f;    /* champagne, darkened for text on light */
-      --ink: #17203f;
-      --ink-muted: #55608a;
-      --rule: #ded6c6;
-    }
-
     * { box-sizing: border-box; }
 
     body {
-      font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
       font-size: 10.5pt;
       line-height: 1.55;
-      color: var(--ink);
-      background: var(--paper);
+      color: #1B1425;
+      background: #FFFFFF;
       margin: 0;
     }
 
     h1, h2, h3 {
-      font-family: 'Butler', Georgia, 'Times New Roman', serif;
-      font-weight: normal;
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.01em;
       margin: 0;
     }
 
@@ -71,18 +93,19 @@
     .cover {
       page: cover;
       page-break-after: always;
-      background: var(--navy);
-      color: var(--champagne);
+      background: #FFFFFF;
+      color: #1B1425;
       height: 297mm;
       padding: 45mm 22mm 22mm 22mm;
       position: relative;
+      border-top: 6mm solid #6D28D9;
     }
 
     .cover__mark {
       font-size: 8pt;
       letter-spacing: 0.32em;
       text-transform: uppercase;
-      color: var(--champagne);
+      color: #736A80;
       margin-bottom: 30mm;
     }
 
@@ -90,40 +113,42 @@
       font-size: 9pt;
       letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: #b9a67f;
+      color: #5B21B6;
       margin-bottom: 6mm;
     }
 
     .cover__title {
       font-size: 34pt;
       line-height: 1.1;
-      color: var(--champagne);
+      color: #1B1425;
       margin-bottom: 8mm;
     }
 
     .cover__date {
       font-size: 15pt;
-      color: #ffffff;
-      letter-spacing: 0.04em;
+      color: #574C66;
+      letter-spacing: 0.01em;
     }
 
     .cover__rule {
       width: 40mm;
-      height: 1px;
-      background: var(--champagne);
+      height: 2pt;
+      background: #6D28D9;
       margin: 12mm 0;
     }
 
     .cover__meta {
       font-size: 10pt;
-      color: #cfd4e6;
+      color: #574C66;
       line-height: 1.9;
     }
 
     .cover__meta strong {
-      color: var(--champagne);
-      font-weight: normal;
+      color: #736A80;
+      font-weight: 600;
       letter-spacing: 0.06em;
+      font-size: 8.5pt;
+      text-transform: uppercase;
     }
 
     .cover__foot {
@@ -132,8 +157,8 @@
       left: 22mm;
       right: 22mm;
       font-size: 8.5pt;
-      color: #8e97b8;
-      border-top: 1px solid #2b3560;
+      color: #736A80;
+      border-top: 0.5pt solid #E8E1DC;
       padding-top: 4mm;
     }
 
@@ -143,9 +168,9 @@
     #pageFooter {
       position: running(pageFooter);
       font-size: 8pt;
-      color: var(--ink-muted);
+      color: #736A80;
       letter-spacing: 0.06em;
-      border-top: 0.5pt solid var(--rule);
+      border-top: 0.5pt solid #E8E1DC;
       padding-top: 2mm;
       width: 100%;
     }
@@ -163,7 +188,7 @@
     .section--long { page-break-inside: auto; }
 
     .section__head {
-      border-bottom: 1.5pt solid var(--bronze);
+      border-bottom: 1.5pt solid #6D28D9;
       padding-bottom: 2mm;
       margin-bottom: 4mm;
       page-break-after: avoid;
@@ -171,15 +196,14 @@
 
     .section__title {
       font-size: 15pt;
-      color: var(--navy);
-      letter-spacing: 0.01em;
+      color: #1B1425;
     }
 
     .section__note {
       font-size: 8.5pt;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--bronze);
+      color: #736A80;
       margin-bottom: 1mm;
     }
 
@@ -194,12 +218,12 @@
     table.kv td {
       padding: 1.6mm 0;
       vertical-align: top;
-      border-bottom: 0.5pt solid var(--rule);
+      border-bottom: 0.5pt solid #E8E1DC;
     }
 
     table.kv td.k {
       width: 42mm;
-      color: var(--ink-muted);
+      color: #574C66;
       font-size: 9.5pt;
     }
 
@@ -215,15 +239,14 @@
 
     table.timeline td {
       padding: 2mm 0;
-      border-bottom: 0.5pt solid var(--rule);
+      border-bottom: 0.5pt solid #E8E1DC;
       vertical-align: top;
     }
 
     table.timeline td.time {
       width: 24mm;
       font-weight: 600;
-      color: var(--navy);
-      font-variant-numeric: tabular-nums;
+      color: #5B21B6;
     }
 
     table.timeline tr:last-child td { border-bottom: none; }
@@ -237,35 +260,41 @@
       font-size: 8.5pt;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--bronze);
+      color: #5B21B6;
       margin-bottom: 1.5mm;
-      border-bottom: 0.5pt solid var(--rule);
+      border-bottom: 0.5pt solid #E8E1DC;
       padding-bottom: 1mm;
     }
 
+    /*
+      One column, not two.
+
+      This was `column-count: 2`, which openhtmltopdf does not implement — and
+      here it did not fail silently and harmlessly: dish descriptions came out
+      of the renderer truncated mid-sentence ("…tandoor." with the rest of the
+      line gone). A dish and the sentence describing it belong on one line
+      anyway, which is what the menu step shows the customer on screen.
+    */
     .course__items {
       margin: 0;
       padding: 0;
       list-style: none;
-      /* Two columns keeps a long menu from running to several pages. */
-      column-count: 2;
-      column-gap: 8mm;
     }
 
     .course__items li {
       padding: 0.9mm 0;
-      break-inside: avoid;
+      page-break-inside: avoid;
       font-size: 10pt;
     }
 
     .course__items li:before {
       content: "·";
-      color: var(--bronze);
+      color: #C9B3F0;
       margin-right: 2.5mm;
     }
 
     .item__note {
-      color: var(--ink-muted);
+      color: #574C66;
       font-size: 8.5pt;
     }
 
@@ -273,12 +302,12 @@
        Notes from the customer
        --------------------------------------------------------------- */
     .note {
-      background: var(--ivory);
-      border-left: 2pt solid var(--champagne);
+      background: #FAF7F5;
+      border-left: 2pt solid #C9B3F0;
       padding: 3mm 4mm;
       margin-top: 3mm;
       font-size: 9.5pt;
-      color: var(--ink);
+      color: #1B1425;
       page-break-inside: avoid;
     }
 
@@ -286,13 +315,13 @@
       font-size: 8pt;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--bronze);
+      color: #736A80;
       display: block;
       margin-bottom: 1mm;
     }
 
     .empty {
-      color: var(--ink-muted);
+      color: #736A80;
       font-size: 9.5pt;
       font-style: italic;
     }
@@ -303,13 +332,14 @@
     .closing {
       margin-top: 10mm;
       padding: 5mm 6mm;
-      background: var(--navy);
-      color: #e8eaf3;
+      background: #F4EEFF;
+      border-top: 2pt solid #6D28D9;
+      color: #1B1425;
       page-break-inside: avoid;
     }
 
     .closing h3 {
-      color: var(--champagne);
+      color: #1B1425;
       font-size: 13pt;
       margin-bottom: 3mm;
     }
@@ -321,24 +351,24 @@
       line-height: 1.8;
     }
 
-    .closing a { color: var(--champagne); text-decoration: none; }
+    .closing a { color: #5B21B6; text-decoration: none; }
 
     .closing__contact {
-      border-top: 1px solid #2b3560;
+      border-top: 0.5pt solid #C9B3F0;
       padding-top: 3mm;
       font-size: 9pt;
-      color: #b7bed6;
+      color: #574C66;
     }
 
     /* On screen the document sits on a neutral ground rather than filling the
        viewport edge to edge, so it reads as a document. */
     @media screen {
-      body { background: #e9e6df; padding: 24px 0; }
+      body { background: #EDE8E4; padding: 24px 0; }
       .page-wrap {
         max-width: 210mm;
         margin: 0 auto;
-        background: var(--paper);
-        box-shadow: 0 2px 24px rgba(0,0,0,.16);
+        background: #FFFFFF;
+        box-shadow: 0 2px 24px rgba(27, 20, 37, 0.14);
       }
       .content { padding: 18mm 16mm; }
       .cover { height: auto; min-height: 240mm; }

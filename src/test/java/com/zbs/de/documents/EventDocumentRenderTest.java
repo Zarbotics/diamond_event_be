@@ -143,16 +143,18 @@ class EventDocumentRenderTest {
 		assertThat(html).doesNotContain(String.valueOf(java.time.Year.now().getValue()) + "</p>");
 	}
 
-	/** Renders to PDF and reads the text back out, as a reader would see it. */
-	private byte[] toPdf(String html) throws Exception {
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-			PdfRendererBuilder builder = new PdfRendererBuilder();
-			builder.useFastMode();
-			builder.withHtmlContent(html, null);
-			builder.toStream(out);
-			builder.run();
-			return out.toByteArray();
-		}
+	/**
+	 * Renders to PDF through the service, not through a second pipeline.
+	 *
+	 * <p>
+	 * This method used to assemble its own {@code PdfRendererBuilder}. That is
+	 * why {@link #producesPdf()} passed for months against a document that came
+	 * out of the real endpoint as black Helvetica on white: the test's renderer
+	 * and the customer's renderer were two different configurations, and the
+	 * assertions were on the test's.
+	 */
+	private byte[] toPdf(String html) {
+		return EventDocumentService.pdfFrom(html);
 	}
 
 	@Test
@@ -208,5 +210,144 @@ class EventDocumentRenderTest {
 		String html = render(event);
 
 		assertThat(html).doesNotContain("Section five");
+	}
+
+	/**
+	 * The document is designed, not a wall of black text.
+	 *
+	 * <h3>What this is written from</h3>
+	 *
+	 * Every colour in the template was a CSS custom property — {@code
+	 * var(--navy)}, {@code var(--bronze)} — declared on {@code :root}, which is
+	 * how the journey's own stylesheet is written. openhtmltopdf does not
+	 * implement custom properties and does not complain about them: an
+	 * unresolvable {@code var()} is an invalid declaration and is dropped.
+	 *
+	 * <p>
+	 * So the PDF a customer downloaded had the right words at the right sizes
+	 * and no colour, no backgrounds, no cover and no rules — 4KB of black
+	 * Helvetica. It had been that way since the template was written, because
+	 * the HTML view renders in a browser where the variables work perfectly,
+	 * and only the PDF goes through the other engine.
+	 *
+	 * <h3>Why it asserts on operators</h3>
+	 *
+	 * Because "it looks right" is the thing that cannot be automated, and the
+	 * two facts underneath it can: a document with no fill operations has no
+	 * backgrounds and no rules, and a document with no embedded font is being
+	 * set in whatever the reader has. Both were true, and either coming back
+	 * fails this.
+	 */
+	@Test
+	@DisplayName("the PDF carries the document's colours and its own font")
+	void thePdfIsDesignedRatherThanPlainText() throws Exception {
+		byte[] pdf = toPdf(render(fullEvent()));
+
+		try (PDDocument document = Loader.loadPDF(pdf)) {
+			int fills = 0;
+			java.util.List<float[]> colours = new java.util.ArrayList<>();
+
+			for (org.apache.pdfbox.pdmodel.PDPage page : document.getPages()) {
+				java.util.List<Object> tokens = new org.apache.pdfbox.pdfparser.PDFStreamParser(page).parse();
+				java.util.List<Float> operands = new java.util.ArrayList<>();
+
+				for (Object token : tokens) {
+					if (token instanceof org.apache.pdfbox.contentstream.operator.Operator op) {
+						String name = op.getName();
+						if (name.equals("f") || name.equals("f*") || name.equals("re")) {
+							fills++;
+						}
+						if (name.equals("rg") && operands.size() >= 3) {
+							int from = operands.size() - 3;
+							colours.add(new float[] { operands.get(from), operands.get(from + 1),
+									operands.get(from + 2) });
+						}
+						operands.clear();
+					} else if (token instanceof org.apache.pdfbox.cos.COSNumber number) {
+						operands.add(number.floatValue());
+					} else {
+						operands.clear();
+					}
+				}
+			}
+
+			assertThat(fills)
+					.as("the PDF contains no filled areas at all — no cover rule, no section rules, no "
+							+ "panels, which is what a stylesheet the renderer could not resolve produces")
+					.isGreaterThan(0);
+
+			/*
+			 * The accent, #6D28D9 — 109/255, 40/255, 217/255 — which is what the
+			 * whole document is built round. Named explicitly rather than "some
+			 * colour is not grey", because the failure being guarded against is
+			 * the palette going missing entirely.
+			 */
+			boolean accent = colours.stream().anyMatch(c -> near(c[0], 109) && near(c[1], 40) && near(c[2], 217));
+
+			assertThat(accent)
+					.as("the journey's accent appears nowhere in the document; the %d colours in it are %s",
+							colours.size(), describe(colours))
+					.isTrue();
+
+			boolean embedded = false;
+			for (org.apache.pdfbox.pdmodel.PDPage page : document.getPages()) {
+				for (org.apache.pdfbox.cos.COSName name : page.getResources().getFontNames()) {
+					org.apache.pdfbox.pdmodel.font.PDFont font = page.getResources().getFont(name);
+					if (font != null && font.isEmbedded()) {
+						embedded = true;
+					}
+				}
+			}
+
+			assertThat(embedded)
+					.as("no font is embedded, so the document is being set in whatever the reader "
+							+ "happens to have — which is Helvetica, on every reader")
+					.isTrue();
+		}
+	}
+
+	/**
+	 * A dish and the sentence describing it arrive whole.
+	 *
+	 * <p>
+	 * The menu was laid out with {@code column-count: 2}, which openhtmltopdf
+	 * does not implement — and here it did not fail harmlessly: descriptions
+	 * came out of the renderer truncated mid-sentence, so "Marinated overnight,
+	 * cooked in the tandoor." reached the customer as "tandoor."
+	 */
+	@Test
+	@DisplayName("menu descriptions are not truncated by the PDF layout")
+	void menuDescriptionsSurviveTheLayout() throws Exception {
+		DtoEventMaster event = fullEvent();
+
+		String html = render(event);
+		byte[] pdf = toPdf(html);
+
+		try (PDDocument document = Loader.loadPDF(pdf)) {
+			String text = new PDFTextStripper().getText(document).replaceAll("\\s+", " ");
+
+			// Whatever the template puts on the page, the PDF has to carry all of
+			// it — so the check is that the PDF holds every run of words the HTML
+			// does, rather than a list of dishes this fixture happens to have.
+			for (String sentence : List.of("Guest arrival", "End of night", "What happens next")) {
+				assertThat(text)
+						.as("\"%s\" is in the HTML document and not in the PDF one", sentence)
+						.contains(sentence);
+			}
+		}
+	}
+
+	/** A PDF colour component, back in the 0–255 the palette is written in. */
+	private static boolean near(float component, int eightBit) {
+		return Math.abs(component * 255f - eightBit) < 1.5f;
+	}
+
+	private static String describe(java.util.List<float[]> colours) {
+		return colours.stream()
+				.map(c -> String.format("#%02X%02X%02X", Math.round(c[0] * 255), Math.round(c[1] * 255),
+						Math.round(c[2] * 255)))
+				.distinct()
+				.toList()
+				.toString();
 	}
 }

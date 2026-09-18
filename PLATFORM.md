@@ -720,6 +720,68 @@ So the standard shape for introducing a constraint over legacy data applies:
 Past days are deliberately left out of that report. They are history, and a list
 nobody can act on is a list people learn to ignore.
 
+### The third copy, and the customer who could not have their own date
+
+**Status:** done.
+
+The rule had three statements of it, not two. `EventDayCapacity` is the one
+`canBookEvent` enforces and `getDaysOverCapacity` reports from. The third was
+inside `getAlreadyBookedDates` — the endpoint the customer's calendar greys days
+out from — written out by hand, and nobody had noticed because it usually agreed.
+
+It disagreed in two ways, in opposite directions — which is what a second
+statement of a rule does: it is not wrong in a pattern, it is just separately
+wrong.
+
+**A customer's own booking closed the day against them.** The counts included
+the event being edited, so a customer reopening their booking on a Saturday that
+held two — theirs and somebody else's — was shown their own date greyed out. Not
+"unavailable, here is why": a day at 55% opacity, not a control, nothing said.
+The date they had chosen, paid a deposit against and were reading off their
+confirmation email looked as though it had gone. `canBookEvent` would have
+accepted that same date without complaint, because it has excluded the event
+being edited since the grandfathering work above — that exclusion is exactly what
+lets the team open an over-capacity day and save it.
+
+**A Monday closed by its Sunday was still offered.** The hand-written copy only
+looked at days that *hold* events, and a Monday after a Sunday with three holds
+none. So it was selectable, and refused on save.
+
+Both are gone with the copy. `getAlreadyBookedDates` now counts through
+`EventDayCapacity`, takes the id of the event being edited and leaves it out, and
+tests the day after each busy day as well as the busy days themselves.
+`BookedDatesMatchWhatCanBeBookedIT` walks a stretch of calendar asking both the
+drawing and the enforcing, day by day, and fails if they ever disagree — so a
+fourth copy cannot appear quietly.
+
+### The document that printed in black and white
+
+**Status:** done.
+
+The customer's event document is one Thymeleaf template rendered two ways: as
+HTML in a browser, and through openhtmltopdf as the PDF they download. Every
+colour in it was a CSS custom property, declared on `:root`, written the way
+the journey's own stylesheet is written.
+
+openhtmltopdf does not implement custom properties, and it does not complain:
+an unresolvable `var()` is an invalid declaration and is dropped. So the HTML
+view was perfect and the PDF — the version that gets saved, printed and
+forwarded — had the right words at the right sizes and no colour, no
+backgrounds, no cover and no rules. Four kilobytes of black Helvetica. Nobody
+had registered a font with the renderer either, so "Helvetica" was literal.
+
+It survived because the test rendered its own `PdfRendererBuilder` rather than
+the service's, so the pipeline being asserted on was not the pipeline customers
+downloaded from. There is one now, `EventDocumentService.pdfFrom`, and the test
+drives it. Two assertions guard the failure directly: a document with no fill
+operations has no backgrounds or rules, and a document with no embedded font is
+being set in whatever the reader happens to have.
+
+The template was re-themed to the journey's palette while it was open, as
+literals, and the cover changed from a full-bleed dark slab to paper — it is a
+printed document, and a dark A4 cover is several millilitres of ink on the page
+most likely to be run off on its own.
+
 ---
 
 ## 15. Booking above Event, and the road to a REST API

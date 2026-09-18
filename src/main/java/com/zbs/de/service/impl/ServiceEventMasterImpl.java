@@ -5393,86 +5393,84 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //	}
 	
 	
+	/**
+	 * The dates the calendar greys out.
+	 *
+	 * <h3>Why this is not its own copy of the rule any more</h3>
+	 *
+	 * It was. This method held a third hand-written statement of "two on an
+	 * ordinary day, three on a quiet Sunday, none on the Monday after a full
+	 * one" — beside {@link EventDayCapacity}, which {@code canBookEvent} uses to
+	 * decide whether a save is allowed, and beside {@code getDaysOverCapacity},
+	 * which reports the days that breach it. This file has a history of one
+	 * routine existing in several near-identical copies that drift apart, and
+	 * the interesting thing about this copy is which way it drifted: it greyed
+	 * out days that {@code canBookEvent} would have accepted. The calendar and
+	 * the thing enforcing the calendar disagreed.
+	 *
+	 * <h3>The event being edited does not block itself</h3>
+	 *
+	 * A customer reopening their booking was shown their own date as taken,
+	 * because their event counted towards the capacity that closed the day. On a
+	 * Saturday already holding two — theirs and somebody else's — the day they
+	 * had booked, paid a deposit against and were looking at on the confirmation
+	 * email came back greyed out, reading as "no longer available". Pressing it
+	 * did nothing, because an unavailable day is not a control.
+	 *
+	 * <p>
+	 * {@code canBookEvent} has always excluded the event being saved — that is
+	 * what lets the office open a day that is over capacity and save it without
+	 * being refused. The calendar now excludes it too, so what is greyed out is
+	 * exactly what a save would refuse.
+	 */
 	@Override
-	public DtoResult getAlreadyBookedDates() {
+	public DtoResult getAlreadyBookedDates(Integer excludeEventId) {
 
 		DtoResult dtoResult = new DtoResult();
 
 		try {
+			/*
+			 * One query for every day that holds events, then the rule applied in
+			 * memory — the same shape getDaysOverCapacity uses, and for the same
+			 * reason: the rule needs the day either side of a Sunday or a Monday,
+			 * so answering it per-day in SQL would be three round trips per date.
+			 */
+			Map<java.time.LocalDate, Integer> counts = new HashMap<>();
+			for (Object[] row : repositoryEventMaster.getEventDateCounts(excludeEventId)) {
+				Date date = (Date) row[0];
+				if (date == null) {
+					continue;
+				}
+				counts.merge(toLocalDate(UtilDateAndTime.getStartOfDay(date)), ((Long) row[1]).intValue(),
+						Integer::sum);
+			}
 
-			List<Object[]> results = repositoryEventMaster.getEventDateCounts();
 			List<String> blockedDates = new ArrayList<>();
 
-			Map<Date, Integer> dateCountMap = new HashMap<>();
-			Date today = UtilDateAndTime.getStartOfDay(new Date());
-
-			// Prepare map
-			for (Object[] obj : results) {
-				Date date = (Date) obj[0];
-				Integer count = ((Long) obj[1]).intValue();
-				dateCountMap.put(UtilDateAndTime.getStartOfDay(date), count);
+			/*
+			 * A Monday can be closed by its Sunday while holding nothing itself,
+			 * so the days to test are the ones with events *and* the day after
+			 * each of them. Testing only the keys of the map would leave an empty
+			 * Monday selectable that canBookEvent then refuses.
+			 */
+			java.util.Set<java.time.LocalDate> daysToTest = new java.util.HashSet<>(counts.keySet());
+			for (java.time.LocalDate day : counts.keySet()) {
+				daysToTest.add(day.plusDays(1));
 			}
 
-			for (Map.Entry<Date, Integer> entry : dateCountMap.entrySet()) {
-
-				Date date = entry.getKey();
-				int count = entry.getValue();
-
-				Calendar cal = Calendar.getInstance();
-				cal.setTime(date);
-				int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-
-				boolean isBlocked = false;
-
-				// =====================================================
-				// SUNDAY
-				// =====================================================
-				if (dayOfWeek == Calendar.SUNDAY) {
-
-					Calendar mondayCal = (Calendar) cal.clone();
-					mondayCal.add(Calendar.DAY_OF_MONTH, +1);
-
-					Date monday = UtilDateAndTime.getStartOfDay(mondayCal.getTime());
-					int mondayCount = dateCountMap.getOrDefault(monday, 0);
-
-					int maxSunday = (mondayCount > 0) ? 2 : 3;
-
-					if (count >= maxSunday) {
-						isBlocked = true;
-					}
-				}
-
-				// =====================================================
-				// MONDAY
-				// =====================================================
-				else if (dayOfWeek == Calendar.MONDAY) {
-
-					Calendar sundayCal = (Calendar) cal.clone();
-					sundayCal.add(Calendar.DAY_OF_MONTH, -1);
-
-					Date sunday = UtilDateAndTime.getStartOfDay(sundayCal.getTime());
-					int sundayCount = dateCountMap.getOrDefault(sunday, 0);
-
-					if (sundayCount >= 3) {
-						isBlocked = true;
-					}
-				}
-
-				// =====================================================
-				// NORMAL DAYS
-				// =====================================================
-				else {
-					if (count >= 2) {
-						isBlocked = true;
-					}
-				}
-
-				if (isBlocked) {
-					blockedDates.add(UtilDateAndTime.mmddyyyyDateToString(date));
+			for (java.time.LocalDate day : daysToTest) {
+				if (counts.getOrDefault(day, 0) >= EventDayCapacity.of(day, counts)) {
+					blockedDates.add(UtilDateAndTime.mmddyyyyDateToString(
+							Date.from(day.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant())));
 				}
 			}
-			
-			blockedDates.add(UtilDateAndTime.mmddyyyyDateToString(today));
+
+			/*
+			 * Today, always. Nothing can be sourced, staffed or delivered in the
+			 * hours left, and canBookEvent refuses it outright before capacity is
+			 * considered — so the calendar must not offer it.
+			 */
+			blockedDates.add(UtilDateAndTime.mmddyyyyDateToString(UtilDateAndTime.getStartOfDay(new Date())));
 
 			dtoResult.setTxtMessage("Success");
 			dtoResult.setResult(blockedDates);

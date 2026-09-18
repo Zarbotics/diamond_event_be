@@ -153,6 +153,29 @@ public interface RepositoryEventMaster
 	List<Object[]> getEventDateCounts();
 
 	/**
+	 * The same counts, with one event left out of them.
+	 *
+	 * <p>
+	 * For the customer's calendar while they are editing a booking. Their own
+	 * event already holds its slot, so counting it would have the day it is on
+	 * close against them — and {@code canBookEvent}, which decides whether the
+	 * save is actually allowed, has always excluded it. The same exclusion here
+	 * is what keeps the two answering the same question.
+	 *
+	 * @param excludeEventId null to count everything, which is the case when the
+	 *                       booking does not exist yet.
+	 */
+	@Query("""
+			    SELECT e.dteEventDate, COUNT(e)
+			    FROM EventMaster e
+			    WHERE e.blnIsDeleted = false
+			    AND e.dteEventDate IS NOT NULL
+			    AND (:excludeEventId IS NULL OR e.serEventMasterId <> :excludeEventId)
+			    GROUP BY e.dteEventDate
+			""")
+	List<Object[]> getEventDateCounts(@Param("excludeEventId") Integer excludeEventId);
+
+	/**
 	 * Puts an event under a booking, once, and only if it has none.
 	 *
 	 * <p>

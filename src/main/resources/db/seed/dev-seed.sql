@@ -530,6 +530,111 @@ FROM (VALUES
 ) AS v(code, name, descr, path, ord, price, parent)
 WHERE NOT EXISTS (SELECT 1 FROM menu_item WHERE txt_code = v.code);
 
+-- ───────────────────────────────────────────────────────────────────────
+-- A stand that actually has something on it.
+--
+-- The two stands above are both empty: `bln_is_composite` is true and there
+-- is not one `menu_component` row between them, which is the state nine rows
+-- in the live catalogue are in. That made the menu screen's handling of a
+-- stand's contents impossible to see, and it stayed unhandled — the journey
+-- drew a grazing bar as a name, a sentence and a price, and said nothing at
+-- all about what was on it.
+--
+-- This is the other half: one stand, two component groups, one of them a
+-- choice. It is what the customer is actually buying, and it is the fixture
+-- the menu screen and its tests need.
+-- ───────────────────────────────────────────────────────────────────────
+
+INSERT INTO menu_item (txt_code, txt_name, txt_description, txt_path, num_display_order,
+                       bln_is_selectable, bln_is_composite, bln_has_selection_limit, num_selection_limit,
+                       parent_menu_item_id, ser_menu_item_role_id, bln_is_active, bln_is_deleted, created_date)
+SELECT 'MI-FEAST-GRAZE', 'Grazing bar', 'Laid out for arrival and left through the drinks reception.',
+       text2ltree('feast.graze'), 4, false, false, true, 1,
+       (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = 'MI-FEAST'),
+       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'SUBCATEGORY'),
+       true, false, now()
+WHERE NOT EXISTS (SELECT 1 FROM menu_item WHERE txt_code = 'MI-FEAST-GRAZE');
+
+INSERT INTO menu_item (txt_code, txt_name, txt_description, txt_path, num_display_order, num_price,
+                       enm_price_multiplier_type, bln_is_selectable, bln_is_composite,
+                       parent_menu_item_id, ser_menu_item_role_id, bln_is_active, bln_is_deleted, created_date)
+SELECT 'MI-D-GRAZE', 'Grazing Bar', 'A long table of cheese, charcuterie, breads and preserves.',
+       text2ltree('feast.graze.bar'), 1, 8.50, 'PER_GUEST', true, true,
+       (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = 'MI-FEAST-GRAZE'),
+       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'ITEM'),
+       true, false, now()
+WHERE NOT EXISTS (SELECT 1 FROM menu_item WHERE txt_code = 'MI-D-GRAZE');
+
+-- What is on it. Not selectable in their own right: these are contents, not
+-- dishes a customer picks off the menu, and a stand's children appearing as
+-- cards beside it is exactly the confusion the grouping exists to avoid.
+INSERT INTO menu_item (txt_code, txt_name, txt_description, txt_path, num_display_order,
+                       bln_is_selectable, bln_is_composite,
+                       parent_menu_item_id, ser_menu_item_role_id, bln_is_active, bln_is_deleted, created_date)
+SELECT v.code, v.name, v.descr, text2ltree(v.path), v.ord, false, false,
+       (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = 'MI-D-GRAZE'),
+       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'ITEM'),
+       true, false, now()
+FROM (VALUES
+    ('MI-GZ-BRIE', 'Brie de Meaux',        'Soft, ripened.',                  'feast.graze.bar.brie', 1),
+    ('MI-GZ-MANC', 'Manchego',             'Twelve months.',                  'feast.graze.bar.manc', 2),
+    ('MI-GZ-CHED', 'Aged Cheddar',         'Somerset, eighteen months.',      'feast.graze.bar.ched', 3),
+    ('MI-GZ-STIL', 'Stilton',              'Blue, with honey.',               'feast.graze.bar.stil', 4),
+    ('MI-GZ-BRED', 'Breads & crackers',    'Baked the same morning.',         'feast.graze.bar.bred', 5),
+    ('MI-GZ-PRES', 'Chutneys & preserves', 'Fig, quince and red onion.',      'feast.graze.bar.pres', 6),
+    ('MI-GZ-FRUT', 'Fresh & dried fruit',  'Grapes, figs, apricots.',         'feast.graze.bar.frut', 7)
+) AS v(code, name, descr, path, ord)
+WHERE NOT EXISTS (SELECT 1 FROM menu_item WHERE txt_code = v.code);
+
+-- Two groups. "Cheeses" is a choice — three of the four — and everything else
+-- comes as standard. Both shapes exist in the live catalogue and the menu
+-- screen has to tell them apart, because "choose 3" and "included" are
+-- different promises.
+INSERT INTO menu_component (parent_menu_item_id, child_menu_item_id, ser_menu_item_role_id,
+                            txt_display_name, num_selection_min, num_selection_max, num_sequence_order,
+                            bln_is_active, bln_is_approved, bln_is_deleted, created_date, created_by)
+SELECT (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = 'MI-D-GRAZE'),
+       (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = v.child),
+       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'SELECTION'),
+       v.group_name, v.min_n, v.max_n, v.ord, true, true, false, now(), 0
+FROM (VALUES
+    ('MI-GZ-BRIE', 'Cheeses', 3, 3, 1),
+    ('MI-GZ-MANC', 'Cheeses', 3, 3, 1),
+    ('MI-GZ-CHED', 'Cheeses', 3, 3, 1),
+    ('MI-GZ-STIL', 'Cheeses', 3, 3, 1)
+) AS v(child, group_name, min_n, max_n, ord)
+WHERE NOT EXISTS (
+    SELECT 1 FROM menu_component c
+    JOIN menu_item p ON p.ser_menu_item_id = c.parent_menu_item_id
+    JOIN menu_item ch ON ch.ser_menu_item_id = c.child_menu_item_id
+    WHERE p.txt_code = 'MI-D-GRAZE' AND ch.txt_code = v.child
+);
+
+-- A second component role, so a stand can say both "choose three of these"
+-- and "and these come as standard". Grouping is by role, so one role means
+-- one group, and one group cannot express both promises.
+INSERT INTO menu_item_role (txt_code, txt_name, bln_is_component_role, bln_is_active, bln_is_deleted, created_date)
+SELECT 'INCLUDED', 'Included Items', true, true, false, now()
+WHERE NOT EXISTS (SELECT 1 FROM menu_item_role WHERE txt_code = 'INCLUDED');
+
+SELECT setval(pg_get_serial_sequence('menu_item_role', 'ser_menu_item_role_id'),
+              (SELECT max(ser_menu_item_role_id) FROM menu_item_role));
+
+INSERT INTO menu_component (parent_menu_item_id, child_menu_item_id, ser_menu_item_role_id,
+                            txt_display_name, num_sequence_order,
+                            bln_is_active, bln_is_approved, bln_is_deleted, created_date, created_by)
+SELECT (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = 'MI-D-GRAZE'),
+       (SELECT ser_menu_item_id FROM menu_item WHERE txt_code = v.child),
+       (SELECT ser_menu_item_role_id FROM menu_item_role WHERE txt_code = 'INCLUDED'),
+       'Also on the table', 2, true, true, false, now(), 0
+FROM (VALUES ('MI-GZ-BRED'), ('MI-GZ-PRES'), ('MI-GZ-FRUT')) AS v(child)
+WHERE NOT EXISTS (
+    SELECT 1 FROM menu_component c
+    JOIN menu_item p ON p.ser_menu_item_id = c.parent_menu_item_id
+    JOIN menu_item ch ON ch.ser_menu_item_id = c.child_menu_item_id
+    WHERE p.txt_code = 'MI-D-GRAZE' AND ch.txt_code = v.child
+);
+
 COMMIT;
 
 SELECT r.txt_name AS level, count(mi.*) AS items

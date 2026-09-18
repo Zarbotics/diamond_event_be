@@ -492,10 +492,21 @@ public class ControllerEventMaster {
 	}
 	
 	@PostMapping(value = "/getAlreadyBookedDates", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAlreadyBookedDates(HttpServletRequest request) {
+	public ResponseMessage getAlreadyBookedDates(@RequestBody(required = false) DtoSearch dtoSearch,
+			HttpServletRequest request) {
 		try {
 			LOGGER.info("getAlreadyBookedDates");
-			DtoResult result = serviceEventMaster.getAlreadyBookedDates();
+			/*
+			 * `id` is the event the customer is editing, if they are editing one.
+			 * It is left out of the counts so that their own booking does not
+			 * close the day it is on against them — see the service method.
+			 *
+			 * Optional, and optional in both directions: the journey sends no id
+			 * while the booking does not exist yet, and an older build of the
+			 * frontend sends an empty body.
+			 */
+			DtoResult result = serviceEventMaster
+					.getAlreadyBookedDates(dtoSearch == null ? null : dtoSearch.getId());
 			if (result != null && result.getResult() != null) {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
 						result.getResult());
