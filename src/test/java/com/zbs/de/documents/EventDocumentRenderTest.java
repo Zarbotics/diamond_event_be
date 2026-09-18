@@ -117,6 +117,34 @@ class EventDocumentRenderTest {
 		assertThat(html.indexOf("Speeches")).isLessThan(html.indexOf("End of night"));
 	}
 
+	/**
+	 * The clock decides the order, not the usual shape of a wedding.
+	 *
+	 * <p>
+	 * The entries were emitted in the order of the assembler's label map — the
+	 * sequence a wedding normally runs in — and printed in that order whatever
+	 * times the customer had actually given. A couple cutting the cake at 21:30
+	 * and speaking at 21:00 got a page headed "Running order" listing 21:30
+	 * above 21:00. Staff work from this on the day.
+	 */
+	@Test
+	@DisplayName("the running order follows the clock, even when the day does not run to form")
+	void runningOrderFollowsTheClockNotTheUsualShape() {
+		DtoEventMaster event = fullEvent();
+		DtoEventRunningOrder ro = event.getDtoEventRunningOrder();
+		// The map has cake cutting before speeches. This couple does not.
+		ro.setTxtCakeCutting("21:30");
+		ro.setTxtSpeeches("21:00");
+
+		String html = render(event);
+
+		assertThat(html.indexOf("21:00")).isLessThan(html.indexOf("21:30"));
+		assertThat(html.indexOf("Speeches")).isLessThan(html.indexOf("Cake cutting"));
+
+		// And the small hours are the end of the night, not the start of it.
+		assertThat(html.indexOf("End of night")).isGreaterThan(html.indexOf("Cake cutting"));
+	}
+
 	@Test
 	@DisplayName("an empty enquiry still produces a complete, non-broken document")
 	void emptyEventStillRenders() {
@@ -210,6 +238,74 @@ class EventDocumentRenderTest {
 		String html = render(event);
 
 		assertThat(html).doesNotContain("Section five");
+	}
+
+	/**
+	 * The suppliers the customer declared are on the document, by name.
+	 *
+	 * <p>
+	 * Before the suppliers step existed this section rendered one free-text
+	 * paragraph, so a customer bringing three people got one block of prose and
+	 * the office got nobody to ring. The terms make that expensive: they let the
+	 * venue cancel the booking over a third party it was not told about, which
+	 * is a clause you cannot fairly enforce from a document that never listed
+	 * the ones you were told about.
+	 */
+	@Test
+	@DisplayName("declared suppliers appear with their trade and a contact")
+	void listsTheSuppliersTheCustomerDeclared() {
+		DtoEventMaster event = fullEvent();
+		event.setExternalSuppliers(List.of(supplier("Photographer", "Noor Photography", "Noor Ahmed",
+				"07700 900123", null, "Arriving at 2pm, needs a parking space."),
+				supplier("Mehndi artist", "Henna by Sana", null, null, "sana@example.com", null)));
+
+		String html = render(event);
+
+		assertThat(html).contains("Suppliers you are bringing");
+		assertThat(html).contains("Noor Photography").contains("Photographer");
+		assertThat(html).contains("Noor Ahmed").contains("07700 900123");
+		assertThat(html).contains("Arriving at 2pm");
+		assertThat(html).contains("Henna by Sana").contains("sana@example.com");
+
+		// The clause the section exists for.
+		assertThat(html).contains("Anyone not listed here needs to be agreed with us");
+	}
+
+	@Test
+	@DisplayName("a supplier row the customer never filled in is not printed")
+	void dropsBlankSupplierRows() {
+		DtoEventMaster event = fullEvent();
+		// The journey's form opens with one empty row; leaving it untouched is
+		// the ordinary case, and it must not reach the page as a blank entry.
+		event.setExternalSuppliers(List.of(supplier(null, null, null, null, null, null)));
+
+		String html = render(event);
+
+		assertThat(html).doesNotContain("Section six");
+	}
+
+	@Test
+	@DisplayName("the document records that the terms were accepted")
+	void recordsTheAcceptedTerms() {
+		DtoEventMaster event = fullEvent();
+		assertThat(render(event))
+				.as("an enquiry with no acceptance claims one")
+				.doesNotContain("You have accepted our terms");
+
+		event.setBlnTermsAccepted(true);
+		assertThat(render(event)).contains("You have accepted our terms and payment policy.");
+	}
+
+	private static com.zbs.de.model.dto.DtoEventExternalSupplier supplier(String type, String name,
+			String contactName, String phone, String email, String notes) {
+		com.zbs.de.model.dto.DtoEventExternalSupplier supplier = new com.zbs.de.model.dto.DtoEventExternalSupplier();
+		supplier.setTxtSupplierType(type);
+		supplier.setTxtSupplierName(name);
+		supplier.setTxtContactName(contactName);
+		supplier.setTxtContactPhone(phone);
+		supplier.setTxtContactEmail(email);
+		supplier.setTxtNotes(notes);
+		return supplier;
 	}
 
 	/**

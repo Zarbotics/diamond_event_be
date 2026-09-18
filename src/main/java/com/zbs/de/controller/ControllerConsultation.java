@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zbs.de.config.security.AccessGuard;
 import com.zbs.de.model.ConsultationBooking;
 import com.zbs.de.model.ConsultationType;
 import com.zbs.de.repository.RepositoryConsultationType;
@@ -43,6 +44,9 @@ public class ControllerConsultation {
 
 	@Autowired
 	private RepositoryConsultationType repositoryConsultationType;
+
+	@Autowired
+	private AccessGuard accessGuard;
 
 	/** What kinds of consultation are on offer, and how long they take. */
 	@PostMapping(value = "/types", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -148,19 +152,39 @@ public class ControllerConsultation {
 		}
 
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
-				outcome.message(), describe(outcome.booking()));
+				outcome.message(), describe(outcome.booking(), true));
 	}
 
-	/** The customer's live consultation for an event, if they have one. */
+	/**
+	 * The customer's live consultation for an event, if they have one.
+	 *
+	 * <h3>Two things this had to be given</h3>
+	 *
+	 * An ownership check, and a narrower answer. It took an event id from the
+	 * request body, looked the booking up with it, and returned the booking's
+	 * single-use management token — the credential the cancel link in the
+	 * confirmation email is built from. Any signed-in customer could therefore
+	 * count upwards through event ids and collect the tokens to cancel other
+	 * people's consultations.
+	 *
+	 * <p>
+	 * {@link AccessGuard#assertCanAccessEvent} is the same check the event
+	 * document and the reports already make, so the rule about whose booking
+	 * this is stays in one place. The token is then withheld regardless:
+	 * nothing needs it here, and it is issued once, to the customer who made
+	 * the booking, by email.
+	 */
 	@PostMapping(value = "/forEvent", consumes = MediaType.APPLICATION_JSON_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage forEvent(@RequestBody Map<String, Object> request) {
-		ConsultationBooking booking = serviceConsultation
-				.liveBookingForEvent(asInteger(request.get("serEventMasterId")));
+		Integer eventId = asInteger(request.get("serEventMasterId"));
+		accessGuard.assertCanAccessEvent(eventId);
+
+		ConsultationBooking booking = serviceConsultation.liveBookingForEvent(eventId);
 
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
 				booking == null ? "No consultation booked" : "Consultation found",
-				booking == null ? null : describe(booking));
+				booking == null ? null : describe(booking, false));
 	}
 
 	/** Cancels using the single-use link from the confirmation email. */
@@ -177,18 +201,23 @@ public class ControllerConsultation {
 				outcome.accepted() ? HttpStatus.OK.value() : HttpStatus.NOT_FOUND.value(),
 				outcome.accepted() ? HttpStatus.OK : HttpStatus.NOT_FOUND,
 				outcome.message(),
-				outcome.booking() == null ? null : describe(outcome.booking()));
+				outcome.booking() == null ? null : describe(outcome.booking(), true));
 	}
 
 	/**
 	 * What the customer is told about their own booking.
 	 *
 	 * <p>
-	 * Deliberately not the entity. That carries the host's id, the sync state
-	 * and the management token, none of which belong in a response the customer
-	 * can read.
+	 * Deliberately not the entity. That carries the host's id and the sync
+	 * state, neither of which belongs in a response the customer can read.
+	 *
+	 * @param withToken whether to include the single-use management token. Only
+	 *                  true for the two calls that have just earned it — making
+	 *                  a booking, and cancelling one with the token already in
+	 *                  hand. A lookup must never hand it out: it is a
+	 *                  credential, and one that cancels a meeting.
 	 */
-	private Map<String, Object> describe(ConsultationBooking booking) {
+	private Map<String, Object> describe(ConsultationBooking booking, boolean withToken) {
 		java.util.Map<String, Object> described = new java.util.LinkedHashMap<>();
 		described.put("serConsultationBookingId", booking.getSerConsultationBookingId());
 		described.put("txtStatus", booking.getTxtStatus());
@@ -196,9 +225,9 @@ public class ControllerConsultation {
 		described.put("dteEndsAt", booking.getDteEndsAt().toString());
 		described.put("txtCustomerTimeZone", booking.getTxtCustomerTimeZone());
 		described.put("txtVideoJoinUrl", booking.getTxtVideoJoinUrl());
-		// The token goes to the customer once, so their confirmation can carry a
-		// cancel link. It is not readable back from any listing.
-		described.put("txtManagementToken", booking.getTxtManagementToken());
+		if (withToken) {
+			described.put("txtManagementToken", booking.getTxtManagementToken());
+		}
 		return described;
 	}
 

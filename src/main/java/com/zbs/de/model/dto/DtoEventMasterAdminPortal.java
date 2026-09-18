@@ -11,6 +11,16 @@ public class DtoEventMasterAdminPortal {
 	private String txtEventMasterCode;
 	private String txtEventMasterName;
 	private String dteEventDate;
+
+	/**
+	 * When the customer accepted the terms and payment policy, or null.
+	 *
+	 * <p>
+	 * The date rather than a flag, because the office's question is not "did
+	 * they agree" — the enquiry could not have been sent otherwise — it is
+	 * "when", which is what matters if a clause is ever disputed.
+	 */
+	private String dteTermsAcceptedOn;
 	private Integer numNumberOfGuests;
 	private String txtNumberOfGuests;
 	private Integer numNumberOfTables;
@@ -120,6 +130,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setTxtEventMasterName(String txtEventMasterName) {
 		this.txtEventMasterName = txtEventMasterName;
+	}
+
+	public String getDteTermsAcceptedOn() {
+		return dteTermsAcceptedOn;
+	}
+
+	public void setDteTermsAcceptedOn(String dteTermsAcceptedOn) {
+		this.dteTermsAcceptedOn = dteTermsAcceptedOn;
 	}
 
 	public String getDteEventDate() {

@@ -47,6 +47,27 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "dte_event_date")
 	private Date dteEventDate;
 
+	/**
+	 * When the customer accepted the terms and payment policy.
+	 *
+	 * <p>
+	 * Null means they have not. A timestamp rather than a flag because the
+	 * question asked in a dispute is never "did they agree" on its own; it is
+	 * "when" — and null carries exactly as much information as {@code false}
+	 * would, so the more useful column costs nothing.
+	 *
+	 * <p>
+	 * {@code updatable = false}, for the reason {@code serBookingId} spells
+	 * out: this codebase saves detached entities assembled from DTOs, and a
+	 * writable column would have Hibernate include it in every UPDATE as null,
+	 * erasing the record of agreement on the first re-save of each booking.
+	 * {@link #acceptTerms()} is the only way it is ever set, and it only ever
+	 * sets it — agreement is a thing that happened and cannot be un-happened by
+	 * a later save.
+	 */
+	@Column(name = "dte_terms_accepted_on", updatable = false)
+	private Date dteTermsAcceptedOn;
+
 	@Column(name = "num_number_of_guests")
 	private Integer numNumberOfGuests;
 
@@ -275,6 +296,28 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public Date getDteEventDate() {
 		return dteEventDate;
+	}
+
+	public Date getDteTermsAcceptedOn() {
+		return dteTermsAcceptedOn;
+	}
+
+	public void setDteTermsAcceptedOn(Date dteTermsAcceptedOn) {
+		this.dteTermsAcceptedOn = dteTermsAcceptedOn;
+	}
+
+	/**
+	 * Records that the customer has agreed, the first time they do.
+	 *
+	 * <p>
+	 * Idempotent on purpose. A customer who returns to the last step and saves
+	 * it again has not agreed a second time, and moving the timestamp forward
+	 * would quietly destroy the only evidence of when they actually did.
+	 */
+	public void acceptTerms() {
+		if (this.dteTermsAcceptedOn == null) {
+			this.dteTermsAcceptedOn = new Date();
+		}
 	}
 
 	public void setDteEventDate(Date dteEventDate) {

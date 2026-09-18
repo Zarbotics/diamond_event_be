@@ -17,6 +17,7 @@ import com.zbs.de.documents.EventDocumentView.TimelineEntry;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
 import com.zbs.de.model.dto.DtoEventDecorExtrasSelection;
 import com.zbs.de.model.dto.DtoEventDecorPropertySelection;
+import com.zbs.de.model.dto.DtoEventExternalSupplier;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventRunningOrder;
 import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
@@ -104,6 +105,8 @@ public class EventDocumentAssembler {
 		doc.setDecorGroups(decorGroups(event.getDtoEventDecorSelections()));
 		doc.setServices(extrasItems(event.getServicesSelections()));
 		doc.setExtras(extrasItems(event.getExtrasSelections()));
+		doc.setSuppliers(suppliers(event.getExternalSuppliers()));
+		doc.setTermsAccepted(Boolean.TRUE.equals(event.getBlnTermsAccepted()));
 
 		return doc;
 	}
@@ -123,7 +126,41 @@ public class EventDocumentAssembler {
 				entries.add(new TimelineEntry(time, label));
 			}
 		});
+
+		/*
+		  Sorted by the clock, not by the order of the map above.
+
+		  The map is the usual sequence of a wedding, and it was being printed
+		  as though it were the sequence of this one. It is not: a customer who
+		  puts the cake at 21:30 and the speeches at 21:00 got them printed in
+		  that order, so the document said 21:30 then 21:00. On a page headed
+		  "Running order", read on the day by people working to it.
+
+		  A stable sort, so the map still decides between two things at the same
+		  minute — which is what it is actually good for.
+		 */
+		entries.sort(java.util.Comparator.comparingInt(entry -> dayMinute(entry.time())));
 		return entries;
+	}
+
+	/**
+	 * Where a time falls in the day, counting from the afternoon.
+	 *
+	 * <p>
+	 * An event ending at 00:30 ends after one that ends at 23:00, and a naive
+	 * sort puts it first. Anything before 06:00 is therefore the small hours of
+	 * the following morning — nobody's guest arrival is at four in the morning,
+	 * and every venue in the country turns out well before then.
+	 */
+	private static int dayMinute(String time) {
+		try {
+			int hour = Integer.parseInt(time.substring(0, 2));
+			int minute = Integer.parseInt(time.substring(3, 5));
+			return (hour < 6 ? hour + 24 : hour) * 60 + minute;
+		} catch (RuntimeException e) {
+			// Unparseable: leave it where the map put it rather than guess.
+			return Integer.MAX_VALUE;
+		}
 	}
 
 	/**
@@ -226,6 +263,49 @@ public class EventDocumentAssembler {
 			}
 		}
 		return items;
+	}
+
+	/**
+	 * The suppliers the customer declared, ready to be read off the page.
+	 *
+	 * <p>
+	 * A row with nothing but an id on it is dropped: the journey's form opens
+	 * with one blank supplier and the customer may never touch it, and an empty
+	 * bullet on a document tells the reader only that something went wrong.
+	 *
+	 * <p>
+	 * The three contact fields are joined here rather than in the template
+	 * because two of them are usually blank, and a bullet reading
+	 * "Noor Ahmed · · " is worse than no contact line at all.
+	 */
+	private List<EventDocumentView.Supplier> suppliers(List<DtoEventExternalSupplier> selections) {
+		List<EventDocumentView.Supplier> suppliers = new ArrayList<>();
+		if (selections == null) {
+			return suppliers;
+		}
+
+		for (DtoEventExternalSupplier supplier : selections) {
+			String type = trimToNull(supplier.getTxtSupplierType());
+			String name = trimToNull(supplier.getTxtSupplierName());
+			String contact = joinNonBlank(" · ", supplier.getTxtContactName(), supplier.getTxtContactPhone(),
+					supplier.getTxtContactEmail());
+			String note = trimToNull(supplier.getTxtNotes());
+
+			if (type == null && name == null && contact == null && note == null) {
+				continue;
+			}
+			/*
+			  Never a nameless entry. The business is what identifies a supplier,
+			  but a customer who only wrote "photographer" has still declared one,
+			  and a heading of whatever they did give beats a blank line above a
+			  phone number. Where the heading has fallen back to the trade, the
+			  trade is not then repeated as a label beside it.
+			 */
+			String heading = firstNonBlank(name, type, contact);
+			String label = heading.equals(type) ? null : type;
+			suppliers.add(new EventDocumentView.Supplier(label, heading, contact, note));
+		}
+		return suppliers;
 	}
 
 	// --- formatting ------------------------------------------------------
@@ -339,6 +419,22 @@ public class EventDocumentAssembler {
 			}
 		}
 		return null;
+	}
+
+	/** The values that are actually there, joined — or null when none are. */
+	private String joinNonBlank(String separator, String... values) {
+		StringBuilder joined = new StringBuilder();
+		for (String value : values) {
+			String trimmed = trimToNull(value);
+			if (trimmed == null) {
+				continue;
+			}
+			if (joined.length() > 0) {
+				joined.append(separator);
+			}
+			joined.append(trimmed);
+		}
+		return joined.length() == 0 ? null : joined.toString();
 	}
 
 	private String trimToNull(String value) {

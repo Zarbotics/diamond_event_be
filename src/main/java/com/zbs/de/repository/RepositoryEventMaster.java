@@ -176,6 +176,31 @@ public interface RepositoryEventMaster
 	List<Object[]> getEventDateCounts(@Param("excludeEventId") Integer excludeEventId);
 
 	/**
+	 * Records that the customer accepted the terms, the first time they do.
+	 *
+	 * <p>
+	 * A statement of its own rather than a field written through the entity,
+	 * because {@code dteTermsAcceptedOn} is {@code updatable = false} — it has
+	 * to be, or every detached save built from a DTO would blank it — and that
+	 * closes the ordinary route for setting it on a booking that already
+	 * exists. This is the deliberate exception, and being deliberate is the
+	 * point: exactly one statement in the codebase can write this column.
+	 *
+	 * <p>
+	 * The {@code IS NULL} makes it idempotent. A customer who returns to the
+	 * last step and saves it again has not agreed a second time, and moving the
+	 * timestamp forward would destroy the only record of when they actually
+	 * did.
+	 *
+	 * @return 1 when this call recorded it, 0 when it was already recorded —
+	 *         the normal case on every save after the first.
+	 */
+	@Modifying
+	@Query("UPDATE EventMaster e SET e.dteTermsAcceptedOn = :acceptedOn "
+			+ "WHERE e.serEventMasterId = :eventId AND e.dteTermsAcceptedOn IS NULL")
+	int recordTermsAccepted(@Param("eventId") Integer eventId, @Param("acceptedOn") Date acceptedOn);
+
+	/**
 	 * Puts an event under a booking, once, and only if it has none.
 	 *
 	 * <p>

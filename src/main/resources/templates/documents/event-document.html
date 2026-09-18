@@ -64,11 +64,6 @@
       }
     }
 
-    /* The cover bleeds to the page edge. */
-    @page cover {
-      margin: 0;
-    }
-
     * { box-sizing: border-box; }
 
     body {
@@ -90,23 +85,62 @@
     /* ---------------------------------------------------------------
        Cover
        --------------------------------------------------------------- */
+    /*
+      The cover sits inside the ordinary page margins.
+
+      It used to claim a page of its own — `page: cover` with `@page cover {
+      margin: 0 }` — so that a purple band could bleed to the paper edge. It
+      did not work: openhtmltopdf laid the cover out at the *default* page's
+      content width and then placed it against the left edge, so the band
+      stopped about seven-eighths of the way across and the whole cover sat
+      off-centre with a 32mm gutter down the right-hand side. On the first page
+      of the document a customer downloads.
+
+      Full-bleed is not worth a second page context to get. A rule the width of
+      the text does the same work — it is the same gesture the section heads
+      make, which is the point — and the cover now shares its measure with
+      every page after it.
+
+      The height is the printable area: A4 less the 18mm and 20mm the page
+      margins already take. That is what lets the footnote sit on the bottom
+      margin rather than four-fifths of the way down.
+    */
     .cover {
-      page: cover;
       page-break-after: always;
       background: #FFFFFF;
       color: #1B1425;
-      height: 297mm;
-      padding: 45mm 22mm 22mm 22mm;
-      position: relative;
-      border-top: 6mm solid #6D28D9;
+      border-top: 3mm solid #6D28D9;
+      padding-top: 10mm;
     }
+
+    .cover__frame {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    /*
+      The height goes on the first cell, not on the table.
+
+      openhtmltopdf treats a table's height as a minimum for its *first* row
+      and then adds the rest on top, so a 246mm table with a 14mm footer came
+      to 260mm and pushed the footer onto a second page — a cover page
+      followed by a page holding one sentence. Fixing the body cell instead
+      makes the arithmetic the obvious one: body plus footer, inside the
+      printable area.
+
+      228mm is A4 (297) less the page margins (18 + 20), less this section's
+      rule and the space under it (13), less the room the footer needs.
+    */
+    .cover__body { vertical-align: top; padding: 0; height: 228mm; }
+
+    .cover__footcell { vertical-align: bottom; padding: 0; }
 
     .cover__mark {
       font-size: 8pt;
       letter-spacing: 0.32em;
       text-transform: uppercase;
       color: #736A80;
-      margin-bottom: 30mm;
+      margin-bottom: 42mm;
     }
 
     .cover__eyebrow {
@@ -152,10 +186,6 @@
     }
 
     .cover__foot {
-      position: absolute;
-      bottom: 22mm;
-      left: 22mm;
-      right: 22mm;
       font-size: 8.5pt;
       color: #736A80;
       border-top: 0.5pt solid #E8E1DC;
@@ -327,6 +357,65 @@
     }
 
     /* ---------------------------------------------------------------
+       Suppliers the customer is bringing
+
+       A table rather than a bulleted list, because this is the one section
+       somebody reads across rather than down: on the morning of the event
+       the office wants a trade, a business and a telephone number side by
+       side, and a list makes them hunt for the number in a sentence.
+       --------------------------------------------------------------- */
+    table.suppliers {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.suppliers td {
+      padding: 2.4mm 0;
+      border-bottom: 0.5pt solid #E8E1DC;
+      vertical-align: top;
+      font-size: 9.5pt;
+    }
+
+    table.suppliers td.who { width: 62mm; padding-right: 5mm; }
+
+    table.suppliers tr:last-child td { border-bottom: none; }
+
+    .supplier__name { font-weight: 600; color: #1B1425; }
+
+    .supplier__type {
+      display: block;
+      font-size: 8pt;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #5B21B6;
+      margin-bottom: 0.8mm;
+    }
+
+    .supplier__contact { color: #1B1425; }
+
+    .supplier__note {
+      display: block;
+      color: #574C66;
+      font-size: 8.5pt;
+      margin-top: 1mm;
+    }
+
+    /* ---------------------------------------------------------------
+       The record of agreement
+       --------------------------------------------------------------- */
+    .agreed {
+      margin-top: 4mm;
+      padding: 3mm 4mm;
+      border: 0.5pt solid #C9B3F0;
+      background: #FAF7F5;
+      font-size: 9pt;
+      color: #574C66;
+      page-break-inside: avoid;
+    }
+
+    .agreed strong { color: #1B1425; }
+
+    /* ---------------------------------------------------------------
        Closing
        --------------------------------------------------------------- */
     .closing {
@@ -371,7 +460,14 @@
         box-shadow: 0 2px 24px rgba(27, 20, 37, 0.14);
       }
       .content { padding: 18mm 16mm; }
-      .cover { height: auto; min-height: 240mm; }
+      /*
+        In print the cover's measure comes from the page margins. A browser has
+        no page margins, so it gets the same inset here — without it the cover
+        alone runs to the edge of the sheet while every section after it is
+        indented, which is the one place the two views may not disagree.
+      */
+      .cover { padding: 10mm 16mm 18mm 16mm; }
+      .cover__body { height: 215mm; }
       #pageFooter { display: none; }
     }
   </style>
@@ -383,33 +479,56 @@
        Cover
        ============================================================= -->
   <section class="cover">
-    <div class="cover__mark">Diamond Events</div>
+    <!--
+      A table, to put the note on the bottom of the page.
 
-    <p class="cover__eyebrow" th:text="${doc.eventTypeName} ?: 'Your event'">Wedding</p>
-    <h1 class="cover__title" th:text="${doc.headline}">Aisha &amp; Bilal</h1>
-    <p class="cover__date" th:if="${doc.eventDate}" th:text="${doc.eventDate}">Saturday 15 August 2026</p>
+      It was `position: absolute; bottom: 0` on the note inside a cover of
+      fixed height, which is what a browser would need. openhtmltopdf places
+      such a box at the *top* of its container's bottom edge rather than
+      against it, so the note started where the cover ended and its second and
+      third lines were cut off by the page break — on the first page of the
+      document, mid-sentence.
 
-    <div class="cover__rule"></div>
+      A two-row table of fixed height does it without positioning: the first
+      cell absorbs the slack, the second sits on the bottom. The old technique,
+      and the one this renderer is reliable about.
+    -->
+    <table class="cover__frame">
+      <tr>
+        <td class="cover__body">
+          <div class="cover__mark">Diamond Events</div>
 
-    <div class="cover__meta">
-      <div th:if="${doc.reference}">
-        <strong>Reference</strong>&#160;&#160;<span th:text="${doc.reference}">EVT-001</span>
-      </div>
-      <div th:if="${doc.venueName}">
-        <strong>Venue</strong>&#160;&#160;<span th:text="${doc.venueLine}">Diamond Suite</span>
-      </div>
-      <div th:if="${doc.guestCount}">
-        <strong>Guests</strong>&#160;&#160;<span th:text="${doc.guestCount}">250</span>
-      </div>
-    </div>
+          <p class="cover__eyebrow" th:text="${doc.eventTypeName} ?: 'Your event'">Wedding</p>
+          <h1 class="cover__title" th:text="${doc.headline}">Aisha &amp; Bilal</h1>
+          <p class="cover__date" th:if="${doc.eventDate}" th:text="${doc.eventDate}">Saturday 15 August 2026</p>
 
-    <div class="cover__foot">
-      This document sets out everything you have chosen so far. It is not a
-      quote and nothing here is confirmed until you accept one in writing.
-      <span th:if="${doc.generatedOn}">
-        Prepared <span th:text="${doc.generatedOn}">13 August 2026</span>.
-      </span>
-    </div>
+          <div class="cover__rule"></div>
+
+          <div class="cover__meta">
+            <div th:if="${doc.reference}">
+              <strong>Reference</strong>&#160;&#160;<span th:text="${doc.reference}">EVT-001</span>
+            </div>
+            <div th:if="${doc.venueName}">
+              <strong>Venue</strong>&#160;&#160;<span th:text="${doc.venueLine}">Diamond Suite</span>
+            </div>
+            <div th:if="${doc.guestCount}">
+              <strong>Guests</strong>&#160;&#160;<span th:text="${doc.guestCount}">250</span>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="cover__footcell">
+          <div class="cover__foot">
+            This document sets out everything you have chosen so far. It is not a
+            quote and nothing here is confirmed until you accept one in writing.
+            <span th:if="${doc.generatedOn}">
+              Prepared <span th:text="${doc.generatedOn}">13 August 2026</span>.
+            </span>
+          </div>
+        </td>
+      </tr>
+    </table>
   </section>
 
   <div id="pageFooter">
@@ -596,14 +715,41 @@
     <!-- =============================================================
          Suppliers
          ============================================================= -->
-    <section class="section" th:if="${doc.supplierNotes}">
+    <section class="section" th:if="${!doc.suppliers.isEmpty() or doc.supplierNotes != null}">
       <div class="section__head">
         <p class="section__note">Section six</p>
         <h2 class="section__title">Suppliers you are bringing</h2>
       </div>
-      <div class="note">
+
+      <table class="suppliers" th:if="${!doc.suppliers.isEmpty()}">
+        <tr th:each="supplier : ${doc.suppliers}">
+          <td class="who">
+            <span class="supplier__type" th:if="${supplier.type}"
+                  th:text="${supplier.type}">Photographer</span>
+            <span class="supplier__name" th:text="${supplier.name}">Noor Photography</span>
+          </td>
+          <td>
+            <span class="supplier__contact" th:if="${supplier.contact}"
+                  th:text="${supplier.contact}">Noor Ahmed · 07700 900123</span>
+            <span class="supplier__note" th:if="${supplier.note}"
+                  th:text="${supplier.note}">Arriving at 2pm, needs a parking space.</span>
+          </td>
+        </tr>
+      </table>
+
+      <div class="note" th:if="${doc.supplierNotes}">
+        <span class="note__label">Your notes on suppliers</span>
         <span th:text="${doc.supplierNotes}"></span>
       </div>
+
+      <!--
+        The reason this section exists. The terms say the venue may cancel the
+        booking over a third party it was never told about, so the document
+        that lists them has to say what happens to the ones it does not list.
+      -->
+      <p class="empty" style="margin-top: 3mm;">
+        Anyone not listed here needs to be agreed with us before the day.
+      </p>
     </section>
 
     <!-- =============================================================
@@ -624,6 +770,20 @@
         quoting <span th:text="${doc.reference}">EVT-001</span>.
       </div>
     </section>
+
+    <!--
+      What the customer agreed to, on the customer's own copy.
+
+      Whether, not when: the timestamp is the business's record and appears on
+      the office's view of the booking. This says the thing the customer needs
+      to be able to check — that they have read the terms, and that the deposit
+      clause they read applies to what is set out above.
+    -->
+    <div class="agreed" th:if="${doc.termsAccepted}">
+      <strong>You have accepted our terms and payment policy.</strong>
+      They cover the deposit, when the balance falls due, and what happens if
+      plans change. Ask us for another copy at any time.
+    </div>
 
   </div>
 </div>

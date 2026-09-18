@@ -25,6 +25,9 @@ public class MapperEventMaster {
 		if(entity.getDteEventDate() != null) {
 			dto.setDteEventDate(UtilDateAndTime.mmddyyyyDateToString(entity.getDteEventDate()));
 		}
+		// Whether, not when: the timestamp is the business's record, not the
+		// customer's, and the journey only needs to know to keep the box ticked.
+		dto.setBlnTermsAccepted(entity.getDteTermsAcceptedOn() != null);
 		if(entity.getCreatedDate() != null) {
 			dto.setDteCreatedDate(UtilDateAndTime.mmddyyyyDateToString(entity.getCreatedDate()));
 		}
@@ -186,6 +189,11 @@ public class MapperEventMaster {
 		if (entity.getDteEventDate() != null) {
 			dto.setDteEventDate(UtilDateAndTime.mmddyyyyDateToString(entity.getDteEventDate()));
 		}
+		// Whether, not when: the timestamp is the business's record, not the
+		// customer's, and the journey only needs to know to keep the box ticked.
+		// The office wants the date, not the fact: "did they agree" is answered by
+		// the enquiry existing at all. "When" is what a dispute turns on.
+		dto.setDteTermsAcceptedOn(UtilDateAndTime.mmddyyyyDateToString(entity.getDteTermsAcceptedOn()));
 		if (entity.getCreatedDate() != null) {
 			dto.setDteCreatedDate(UtilDateAndTime.mmddyyyyDateToString(entity.getCreatedDate()));
 		}

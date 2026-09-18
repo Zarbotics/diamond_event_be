@@ -46,6 +46,7 @@ import com.zbs.de.model.EventMenuFoodSelection;
 import com.zbs.de.model.EventMenuSubCategorySelection;
 import com.zbs.de.model.EventRunningOrder;
 import com.zbs.de.model.EventType;
+import com.zbs.de.model.EventExternalSupplier;
 import com.zbs.de.model.EventVendorMasterSelection;
 import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.MenuItem;
@@ -65,6 +66,7 @@ import com.zbs.de.model.dto.DtoEventMasterSearch;
 import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 import com.zbs.de.model.dto.DtoEventQuoteAndStatus;
+import com.zbs.de.model.dto.DtoEventExternalSupplier;
 import com.zbs.de.model.dto.DtoEventVendorMasterSelection;
 import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuComponentRequest;
@@ -171,6 +173,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	
 	@Autowired
 	private ServiceEventVendorMasterSelection serviceEventVendorMasterSelection;
+
+	@Autowired
+	private com.zbs.de.repository.RepositoryEventExternalSupplier repositoryEventExternalSupplier;
 
 	@Autowired
 	private RepositoryEventPaymentMaster repositoryEventPaymentMaster;
@@ -2816,6 +2821,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				serviceEventBudget.save(eventBudget);
 			}
 			
+			recordTermsAcceptance(dtoEventMaster, entity.getSerEventMasterId());
+			replaceExternalSuppliers(dtoEventMaster, entity);
+
 			DtoEventMaster dtoEvent = this.getEventById(entity.getSerEventMasterId());
 			dtoResult.setResult(dtoEvent);
 			return dtoResult;
@@ -2949,6 +2957,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				List<DtoEventDecorCategorySelection> eventDecorCategorySelections = serviceEventDecorCategorySelection
 						.getSelectionsWithChosenValues(dto.getSerEventMasterId());
 				dto.setDtoEventDecorSelections(eventDecorCategorySelections);
+
+				dto.setExternalSuppliers(readExternalSuppliers(dto.getSerEventMasterId()));
 
 				
 				
@@ -5957,6 +5967,135 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private static final int MOST_YEARS_AHEAD = 10;
 
 	/** How many events are on this day, never counting the one being edited. */
+
+	/**
+	 * Writes down that the customer agreed to the terms.
+	 *
+	 * <h3>Why this is not just a field on the entity</h3>
+	 *
+	 * Because {@code dteTermsAcceptedOn} is {@code updatable = false}, and it
+	 * has to be: every save in this codebase writes a detached entity built
+	 * from a DTO, so a writable column would be included in each UPDATE as null
+	 * and the record of agreement would be erased on the next save of the same
+	 * booking — silently, starting with the bookings the office edits most.
+	 * That closes the ordinary route, so this takes the deliberate one.
+	 *
+	 * <h3>Why it matters that it is recorded at all</h3>
+	 *
+	 * The tick lived in a React {@code useState} and nowhere else. It was gone
+	 * when the component unmounted, so a customer coming back to the step was
+	 * asked to agree again — and the business had no record that anybody had
+	 * agreed to anything. The policy it gates says the deposit is
+	 * non-refundable, that the balance falls due four weeks out, and that the
+	 * venue may cancel and keep the deposit over a third-party decorator. Every
+	 * one of those is a clause somebody may dispute, and "the box was ticked"
+	 * is not evidence unless it was written down.
+	 *
+	 * <p>
+	 * Only ever true sets it, and only the first one: see the repository
+	 * statement, which will not move a timestamp that is already there.
+	 */
+	private void recordTermsAcceptance(DtoEventMaster dtoEventMaster, Integer eventId) {
+		if (eventId == null || !Boolean.TRUE.equals(dtoEventMaster.getBlnTermsAccepted())) {
+			return;
+		}
+
+		if (repositoryEventMaster.recordTermsAccepted(eventId, new Date()) > 0) {
+			LOGGER.info("Event {} — customer accepted the terms and payment policy", eventId);
+		}
+	}
+
+
+	/**
+	 * Replaces the customer's own supplier list, when the save mentions it.
+	 *
+	 * <h3>The rule this follows</h3>
+	 *
+	 * "A save that does not mention something must not remove it" — the same
+	 * rule as C4c, and for the same reason. Every step of the journey posts the
+	 * whole event back, and a step that has never heard of external suppliers
+	 * sends no {@code externalSuppliers} field at all. Treating that as "the
+	 * customer has none" would have the venue step quietly delete the
+	 * photographer the customer declared two screens earlier.
+	 *
+	 * <p>
+	 * A null list means the save is silent on the subject and is left alone. An
+	 * empty list is a statement — "I have removed them all" — and is honoured.
+	 *
+	 * <h3>Replace rather than merge</h3>
+	 *
+	 * Because the journey sends the list as the customer has it on screen:
+	 * rows added, rows edited, rows deleted, in order. Merging by id would need
+	 * the client to track deletions separately, which is the shape that leaves
+	 * a removed supplier alive in the database and on the run sheet.
+	 *
+	 * <p>
+	 * Rows with nothing in them are dropped rather than stored. The journey
+	 * shows an empty row to type into, and a customer who opens the step and
+	 * leaves without typing has not declared a blank supplier.
+	 */
+	private void replaceExternalSuppliers(DtoEventMaster dtoEventMaster, EventMaster entity) {
+		List<DtoEventExternalSupplier> given = dtoEventMaster.getExternalSuppliers();
+		if (given == null || entity == null || entity.getSerEventMasterId() == null) {
+			return;
+		}
+
+		repositoryEventExternalSupplier
+				.deleteAll(repositoryEventExternalSupplier.findByEventMaster_SerEventMasterId(
+						entity.getSerEventMasterId()));
+
+		int order = 0;
+		for (DtoEventExternalSupplier dto : given) {
+			EventExternalSupplier supplier = new EventExternalSupplier();
+			supplier.setEventMaster(entity);
+			supplier.setTxtSupplierType(trimToNull(dto.getTxtSupplierType()));
+			supplier.setTxtSupplierName(trimToNull(dto.getTxtSupplierName()));
+			supplier.setTxtContactName(trimToNull(dto.getTxtContactName()));
+			supplier.setTxtContactPhone(trimToNull(dto.getTxtContactPhone()));
+			supplier.setTxtContactEmail(trimToNull(dto.getTxtContactEmail()));
+			supplier.setTxtNotes(trimToNull(dto.getTxtNotes()));
+
+			if (supplier.isEmpty()) {
+				continue;
+			}
+
+			supplier.setNumDisplayOrder(order++);
+			supplier.setBlnIsActive(true);
+			supplier.setBlnIsDeleted(false);
+			repositoryEventExternalSupplier.save(supplier);
+		}
+	}
+
+	private static String trimToNull(String value) {
+		if (value == null) {
+			return null;
+		}
+		String trimmed = value.trim();
+		return trimmed.isEmpty() ? null : trimmed;
+	}
+
+	/** The customer's own suppliers, for the event document and the portals. */
+	private List<DtoEventExternalSupplier> readExternalSuppliers(Integer eventId) {
+		List<DtoEventExternalSupplier> dtos = new ArrayList<>();
+
+		for (EventExternalSupplier supplier : repositoryEventExternalSupplier
+				.findByEventMaster_SerEventMasterIdAndBlnIsDeletedFalseOrderByNumDisplayOrderAscSerEventExternalSupplierIdAsc(
+						eventId)) {
+			DtoEventExternalSupplier dto = new DtoEventExternalSupplier();
+			dto.setSerEventExternalSupplierId(supplier.getSerEventExternalSupplierId());
+			dto.setTxtSupplierType(supplier.getTxtSupplierType());
+			dto.setTxtSupplierName(supplier.getTxtSupplierName());
+			dto.setTxtContactName(supplier.getTxtContactName());
+			dto.setTxtContactPhone(supplier.getTxtContactPhone());
+			dto.setTxtContactEmail(supplier.getTxtContactEmail());
+			dto.setTxtNotes(supplier.getTxtNotes());
+			dto.setNumDisplayOrder(supplier.getNumDisplayOrder());
+			dtos.add(dto);
+		}
+
+		return dtos;
+	}
+
 	private int countEventsOn(java.time.LocalDate day, Integer eventId) {
 		Date asDate = Date.from(day.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
 
@@ -7409,6 +7548,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				serviceEventBudget.save(eventBudget);
 			}
 			
+			recordTermsAcceptance(dtoEventMaster, entity.getSerEventMasterId());
+			replaceExternalSuppliers(dtoEventMaster, entity);
+
 			DtoEventMaster dtoEvent = this.getEventById(entity.getSerEventMasterId());
 			dtoResult.setResult(dtoEvent);
 			return dtoResult;

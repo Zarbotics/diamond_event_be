@@ -37,11 +37,23 @@ public class EventDocumentView {
 	private String extrasNotes;
 	private String supplierNotes;
 
+	/**
+	 * Whether the customer has accepted the terms and payment policy.
+	 *
+	 * <p>
+	 * Whether rather than when. The timestamp is the business's record and lives
+	 * on the admin portal's view of the booking; the customer's copy needs only
+	 * to state the fact, and {@code DtoEventMaster} deliberately does not carry
+	 * the date so that no client can nominate its own date of agreement.
+	 */
+	private boolean termsAccepted;
+
 	private List<TimelineEntry> runningOrder = new ArrayList<>();
 	private List<Group> menuCourses = new ArrayList<>();
 	private List<Group> decorGroups = new ArrayList<>();
 	private List<Item> services = new ArrayList<>();
 	private List<Item> extras = new ArrayList<>();
+	private List<Supplier> suppliers = new ArrayList<>();
 
 	/** One line of the running order. */
 	public record TimelineEntry(String time, String label) {
@@ -58,6 +70,33 @@ public class EventDocumentView {
 	public record Item(String name, String note) {
 		public String getName() {
 			return name;
+		}
+
+		public String getNote() {
+			return note;
+		}
+	}
+
+	/**
+	 * One supplier the customer is bringing themselves.
+	 *
+	 * <p>
+	 * {@code contact} is the three contact fields already joined — name, phone,
+	 * email — because a document cannot usefully lay out three columns two of
+	 * which are usually empty, and deciding that is formatting, which belongs in
+	 * the assembler rather than in the template.
+	 */
+	public record Supplier(String type, String name, String contact, String note) {
+		public String getType() {
+			return type;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public String getContact() {
+			return contact;
 		}
 
 		public String getNote() {
@@ -149,4 +188,10 @@ public class EventDocumentView {
 
 	public List<Item> getExtras() { return extras; }
 	public void setExtras(List<Item> extras) { this.extras = extras; }
+
+	public List<Supplier> getSuppliers() { return suppliers; }
+	public void setSuppliers(List<Supplier> suppliers) { this.suppliers = suppliers; }
+
+	public boolean isTermsAccepted() { return termsAccepted; }
+	public void setTermsAccepted(boolean termsAccepted) { this.termsAccepted = termsAccepted; }
 }
