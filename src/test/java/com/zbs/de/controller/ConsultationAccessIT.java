@@ -263,4 +263,63 @@ class ConsultationAccessIT {
 				.as("a made-up token was accepted")
 				.contains("404");
 	}
+
+	@Test
+	@DisplayName("the rest of the email link's page needs no sign-in either, and refuses a made-up token")
+	void theWholeManageePageIsReachableByTokenAlone() throws Exception {
+		/*
+		 * The page that link opens does three things now — say what the meeting
+		 * is, offer other times, and move it — and every one of them has to work
+		 * for somebody with no session. Cancelling was public and the other
+		 * three were not, so "move it to another time" could offer no times:
+		 * the slot list answered 401 and the panel sat there empty.
+		 *
+		 * Each must also refuse a token somebody made up, which is the other
+		 * half of being public.
+		 */
+		for (String path : new String[] {
+				"/consultation/byToken",
+				"/consultation/slotsByToken",
+				"/consultation/reschedule",
+		}) {
+			MvcResult result = mockMvc.perform(post(path)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("{\"txtManagementToken\":\"not-a-real-token\"}"))
+					.andReturn();
+
+			assertThat(result.getResponse().getStatus())
+					.as("%s is not reachable without signing in", path)
+					.isEqualTo(200);
+			assertThat(result.getResponse().getContentAsString())
+					.as("%s accepted a made-up token", path)
+					.doesNotContain("\"code\":200");
+		}
+	}
+
+	@Test
+	@DisplayName("a customer cannot read another customer's consultation")
+	void forEventRefusesSomebodyElsesBooking() throws Exception {
+		/*
+		 * It took an event id from the body, looked the booking up with it, and
+		 * returned the booking's single-use management token — the credential
+		 * the cancel link is built from. So any signed-in customer could count
+		 * upwards through event ids and collect the tokens to cancel other
+		 * people's meetings.
+		 *
+		 * The seeded customer here owns no events at all, so every id is
+		 * somebody else's.
+		 */
+		MvcResult result = mockMvc.perform(post("/consultation/forEvent")
+				.header("Authorization", "Bearer " + tokenFor(SecurityRoles.USER))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"serEventMasterId\":1}"))
+				.andReturn();
+
+		assertThat(result.getResponse().getStatus())
+				.as("a customer read an event that is not theirs")
+				.isEqualTo(403);
+		assertThat(result.getResponse().getContentAsString())
+				.as("a management token was handed out")
+				.doesNotContain("txtManagementToken");
+	}
 }

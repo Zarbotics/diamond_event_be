@@ -104,6 +104,46 @@ public class ControllerConsultation {
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Available slots", slots);
 	}
 
+	/**
+	 * The same slots, for somebody holding a management link.
+	 *
+	 * <h3>Why this is not just {@code /slots}</h3>
+	 *
+	 * Because the page that needs them is deliberately not behind sign-in. The
+	 * customer may have no account, and if they have one they will not remember
+	 * it six weeks after booking — so the manage page is authorised by the
+	 * token in the link, and calling {@code /slots} from it gets a 401. Without
+	 * this, "move it to another time" could offer no times.
+	 *
+	 * <p>
+	 * The alternative was making {@code /slots} public, and that is a wider
+	 * change than it looks: it turns the team's availability into something
+	 * anybody can enumerate, for any kind of consultation, at any range of
+	 * dates. Here the token decides both that the caller may ask and which
+	 * kind of consultation they may ask about — they get the slots for the
+	 * booking they already hold, and nothing else.
+	 */
+	@PostMapping(value = "/slotsByToken", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage slotsByToken(@RequestBody Map<String, Object> request) {
+		ConsultationBooking booking = serviceConsultation
+				.findByToken(asString(request.get("txtManagementToken")));
+
+		if (booking == null) {
+			return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
+					"That link is not valid. It may already have been used.", null);
+		}
+
+		List<Map<String, Object>> slots = serviceConsultation
+				.availableSlots(booking.getSerConsultationTypeId(), null,
+						asDate(request.get("dteFrom")), asDate(request.get("dteTo")))
+				.stream()
+				.map(this::describe)
+				.toList();
+
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Available slots", slots);
+	}
+
 	private Map<String, Object> describe(OfferedSlot offered) {
 		java.util.Map<String, Object> described = new java.util.LinkedHashMap<>();
 		described.put("serHostId", offered.serHostId());

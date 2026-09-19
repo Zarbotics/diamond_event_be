@@ -54,6 +54,7 @@ public final class PortalEndpoints {
 			// they do. Reading what the link is about, and moving the booking to
 			// another time, are the other two things that page does.
 			"/consultation/byToken",
+			"/consultation/slotsByToken",
 			"/consultation/reschedule",
 			// Where Google and Microsoft redirect the administrator's browser
 			// after they grant access to a calendar. Public of necessity: it is
