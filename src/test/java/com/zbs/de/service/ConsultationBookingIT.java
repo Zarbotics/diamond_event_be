@@ -414,4 +414,92 @@ class ConsultationBookingIT {
 				.extracting(ConsultationBooking::getDteStartsAt)
 				.contains(slotAt(9), slotAt(10));
 	}
+
+	// -----------------------------------------------------------------
+	// Moving a booking
+	//
+	// The customer could only ever cancel. Somebody whose Tuesday stopped
+	// working had to call the meeting off and hope the time they wanted was
+	// still free by the time they came back for it — or telephone during
+	// office hours. Moving is the commonest thing anybody does to an
+	// appointment, and it was the one thing this calendar could not do.
+	// -----------------------------------------------------------------
+
+	@Test
+	@DisplayName("a booking can be moved to another free time, keeping its identity")
+	void movingKeepsTheSameBooking() {
+		BookingOutcome booked = book(slotAt(10), "first");
+		assertThat(booked.accepted()).isTrue();
+		Integer id = booked.booking().getSerConsultationBookingId();
+		String firstToken = booked.booking().getTxtManagementToken();
+
+		BookingOutcome moved = serviceConsultation
+				.rescheduleByToken(firstToken, slotAt(11), hostId);
+
+		assertThat(moved.accepted()).isTrue();
+		// The same row, not a cancellation and a new booking: the office's
+		// diary must show one meeting that moved, not two events.
+		assertThat(moved.booking().getSerConsultationBookingId()).isEqualTo(id);
+		assertThat(moved.booking().getDteStartsAt()).isEqualTo(slotAt(11));
+		assertThat(moved.booking().isLive()).isTrue();
+
+		// The hour it left is back on sale; the hour it went to is not.
+		assertThat(serviceConsultation.availableSlots(typeId, hostId, bookingDay, bookingDay.plusDays(1)))
+				.extracting(s -> s.slot().startsAt())
+				.contains(slotAt(10))
+				.doesNotContain(slotAt(11));
+	}
+
+	@Test
+	@DisplayName("the link that moved a booking cannot be used again")
+	void movingSpendsTheToken() {
+		/*
+		 * The token has travelled through an email, a mail client and whatever
+		 * scanned the link on the way. Whoever holds the old one must not keep
+		 * power over an arrangement the customer has since changed.
+		 */
+		BookingOutcome booked = book(slotAt(10), "first");
+		String firstToken = booked.booking().getTxtManagementToken();
+
+		BookingOutcome moved = serviceConsultation.rescheduleByToken(firstToken, slotAt(11), hostId);
+		assertThat(moved.accepted()).isTrue();
+		assertThat(moved.booking().getTxtManagementToken()).isNotEqualTo(firstToken);
+
+		BookingOutcome replayed = serviceConsultation.rescheduleByToken(firstToken, slotAt(9), hostId);
+		assertThat(replayed.accepted()).isFalse();
+		assertThat(replayed.message()).contains("not valid");
+
+		// And the booking did not move a second time.
+		assertThat(repositoryBooking.findById(moved.booking().getSerConsultationBookingId())
+				.orElseThrow().getDteStartsAt()).isEqualTo(slotAt(11));
+	}
+
+	@Test
+	@DisplayName("a booking cannot be moved onto a time somebody else has")
+	void movingOntoATakenSlotIsRefused() {
+		BookingOutcome mine = book(slotAt(10), "first");
+		BookingOutcome theirs = book(slotAt(11), "second");
+		assertThat(theirs.accepted()).isTrue();
+
+		BookingOutcome refused = serviceConsultation
+				.rescheduleByToken(mine.booking().getTxtManagementToken(), slotAt(11), hostId);
+
+		assertThat(refused.accepted()).isFalse();
+		assertThat(refused.message()).contains("just been taken");
+		// Refused, not lost: the customer still has the time they started with.
+		assertThat(repositoryBooking.findById(mine.booking().getSerConsultationBookingId())
+				.orElseThrow().getDteStartsAt()).isEqualTo(slotAt(10));
+	}
+
+	@Test
+	@DisplayName("a cancelled booking cannot be moved")
+	void movingACancelledBookingIsRefused() {
+		BookingOutcome booked = book(slotAt(10), "first");
+		String token = booked.booking().getTxtManagementToken();
+		serviceConsultation.cancelByToken(token, "Changed plans");
+
+		BookingOutcome refused = serviceConsultation.rescheduleByToken(token, slotAt(11), hostId);
+
+		assertThat(refused.accepted()).isFalse();
+	}
 }

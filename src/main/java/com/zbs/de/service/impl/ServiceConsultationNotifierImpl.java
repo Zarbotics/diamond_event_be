@@ -114,7 +114,7 @@ public class ServiceConsultationNotifierImpl implements ServiceConsultationNotif
 						+ "    " + when + "\n\n"
 						+ joiningDetails(booking)
 						+ "If you need to change or cancel it, use this link:\n"
-						+ "    " + cancelLink(booking) + "\n\n"
+						+ "    " + manageLink(booking) + "\n\n"
 						+ "Or ring us on " + contactPhone + ".\n\n"
 						+ signOff());
 
@@ -144,7 +144,7 @@ public class ServiceConsultationNotifierImpl implements ServiceConsultationNotif
 						+ "and if we cannot make it we will offer you another time.\n\n"
 						+ holdNotice(booking)
 						+ "If you have changed your mind in the meantime:\n"
-						+ "    " + cancelLink(booking) + "\n\n"
+						+ "    " + manageLink(booking) + "\n\n"
 						+ signOff());
 
 		notifyHost(booking, "A consultation request is waiting for you",
@@ -166,7 +166,7 @@ public class ServiceConsultationNotifierImpl implements ServiceConsultationNotif
 						+ "    " + when + "\n\n"
 						+ joiningDetails(booking)
 						+ "If you need to change or cancel it:\n"
-						+ "    " + cancelLink(booking) + "\n\n"
+						+ "    " + manageLink(booking) + "\n\n"
 						+ "Or ring us on " + contactPhone + ".\n\n"
 						+ signOff());
 	}
@@ -226,6 +226,36 @@ public class ServiceConsultationNotifierImpl implements ServiceConsultationNotif
 						+ "    " + frontendBaseUrl + "\n\n"
 						+ "Or ring us on " + contactPhone + " and we will sort it out with you.\n\n"
 						+ signOff());
+	}
+
+	@Override
+	public void bookingMoved(ConsultationBooking booking, Instant previousStartsAt) {
+		String was = inZone(previousStartsAt, customerZone(booking));
+		String now = forCustomer(booking);
+
+		/*
+		 * Both times, in both emails. The customer needs to see that the thing
+		 * that moved is the one they meant, and the host has this meeting in
+		 * their diary at the old time — an email naming only the new one leaves
+		 * them to work out which of their appointments changed.
+		 */
+		send(booking.getTxtCustomerEmail(),
+				"Your consultation has moved — " + now,
+				greeting(booking)
+						+ "Your " + typeName(booking) + " with " + hostName(booking)
+						+ " has been moved.\n\n"
+						+ "    Was:  " + was + "\n"
+						+ "    Now:  " + now + "\n\n"
+						+ joiningDetails(booking)
+						+ "If you need to change or cancel it, use this link:\n"
+						+ "    " + manageLink(booking) + "\n\n"
+						+ "Or ring us on " + contactPhone + ".\n\n"
+						+ signOff());
+
+		notifyHost(booking, "A consultation has been moved",
+				booking.getTxtCustomerName() + " has moved their " + typeName(booking)
+						+ " from " + inZone(previousStartsAt, hostZone(booking)) + ".\n\n"
+						+ bookingSummaryForHost(booking));
 	}
 
 	// -----------------------------------------------------------------
@@ -288,7 +318,16 @@ public class ServiceConsultationNotifierImpl implements ServiceConsultationNotif
 		return summary.toString();
 	}
 
-	private String cancelLink(ConsultationBooking booking) {
+	/**
+	 * The link in every consultation email.
+	 *
+	 * <p>
+	 * It was called {@code cancelLink}, and the page it opens now moves a
+	 * booking as well as calling it off — which is the thing most customers
+	 * actually want and the thing the emails used to send them to the
+	 * telephone for.
+	 */
+	private String manageLink(ConsultationBooking booking) {
 		return frontendBaseUrl + "/consultation/manage?token=" + booking.getTxtManagementToken();
 	}
 

@@ -10,7 +10,7 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 328 |
+| Endpoints | 330 |
 | Controllers | 43 |
 | Named like a read (`get…`, `search…`, `is…`) | 155 |
 
@@ -99,8 +99,10 @@ most of this inventory carries no audience marker.
 | Verb | Path | Who |
 |---|---|---|
 | `POST` | `/consultation/book` | 👤 |
+| `POST` | `/consultation/byToken` | 🌍 |
 | `POST` | `/consultation/cancel` | 🌍 |
 | `POST` | `/consultation/forEvent` | 👤 |
+| `POST` | `/consultation/reschedule` | 🌍 |
 | `POST` | `/consultation/slots` | 👤 |
 | `POST` | `/consultation/types` | 👤 |
 

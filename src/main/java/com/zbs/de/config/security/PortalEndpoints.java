@@ -49,6 +49,12 @@ public final class PortalEndpoints {
 			// not be signed in — they may not have an account at all — so the
 			// unguessable single-use token is what authorises it.
 			"/consultation/cancel",
+			// The same single-use token, and the same reasoning: a customer who
+			// booked six weeks ago may have no account and will not remember if
+			// they do. Reading what the link is about, and moving the booking to
+			// another time, are the other two things that page does.
+			"/consultation/byToken",
+			"/consultation/reschedule",
 			// Where Google and Microsoft redirect the administrator's browser
 			// after they grant access to a calendar. Public of necessity: it is
 			// a redirect, so it carries no bearer token and there is no way to

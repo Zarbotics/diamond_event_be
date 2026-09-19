@@ -1,5 +1,7 @@
 package com.zbs.de.service;
 
+import java.time.Instant;
+
 import com.zbs.de.model.ConsultationBooking;
 
 /**
@@ -41,4 +43,16 @@ public interface ServiceConsultationNotifier {
 
 	/** Called off, by either side. */
 	void bookingCancelled(ConsultationBooking booking, String reason, boolean byCustomer);
+
+	/**
+	 * Moved to another time by the customer.
+	 *
+	 * <p>
+	 * The old time is passed because both emails need it. The host has this
+	 * meeting in their diary at the time it is leaving, and an email saying
+	 * only where it has gone leaves them to work out which one moved.
+	 *
+	 * @param previousStartsAt where the booking was before it moved.
+	 */
+	void bookingMoved(ConsultationBooking booking, Instant previousStartsAt);
 }

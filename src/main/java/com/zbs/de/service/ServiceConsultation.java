@@ -82,6 +82,40 @@ public interface ServiceConsultation {
 	/** Cancels using the single-use link from a confirmation email. */
 	BookingOutcome cancelByToken(String managementToken, String reason);
 
+	/**
+	 * The booking a management link refers to, or null.
+	 *
+	 * <p>
+	 * So the page that link opens can say which meeting it is about before
+	 * asking the customer to do anything to it. Without it the page can only
+	 * offer to cancel a consultation it cannot name, which is a poor thing to
+	 * ask somebody to press.
+	 */
+	ConsultationBooking findByToken(String managementToken);
+
+	/**
+	 * Moves a booking to another time, using the link from its email.
+	 *
+	 * <h3>Why this is not cancel-then-book</h3>
+	 *
+	 * Because that leaves a gap. Between the two calls the customer has no
+	 * consultation, and if the second half fails — the slot went while they
+	 * were choosing, the connection dropped — they are left with nothing,
+	 * having asked only to move it. The office's diary would also show a
+	 * cancellation and a separate new booking where one meeting moved, which is
+	 * a worse record of what happened.
+	 *
+	 * <p>
+	 * So the row moves. Same booking, same event, same history; a new time, and
+	 * a new management token, because the old one has travelled through an
+	 * email and whoever holds it should not keep power over the new
+	 * arrangement.
+	 *
+	 * @param serHostId optional — the host whose slot was offered, or null to
+	 *                  let the same rules that pick one for a new booking pick.
+	 */
+	BookingOutcome rescheduleByToken(String managementToken, Instant newStartsAt, Integer serHostId);
+
 	/** The live consultation for an event, if there is one. */
 	ConsultationBooking liveBookingForEvent(Integer serEventMasterId);
 }

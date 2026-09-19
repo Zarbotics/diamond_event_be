@@ -205,6 +205,84 @@ public class ControllerConsultation {
 	}
 
 	/**
+	 * What a management link is about, so the page can say so.
+	 *
+	 * <p>
+	 * The page that link opens could previously only offer "cancel the
+	 * consultation you presumably have" — it had a token and nothing else, so
+	 * it could not name the meeting, say when it was, or offer to move it. This
+	 * is the read the token authorises.
+	 *
+	 * <p>
+	 * Carries the type and duration as well as the time, because moving a
+	 * booking means asking for the slots of that kind of consultation. The
+	 * token is not echoed: whoever is asking already has it.
+	 */
+	@PostMapping(value = "/byToken", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage byToken(@RequestBody Map<String, Object> request) {
+		ConsultationBooking booking = serviceConsultation
+				.findByToken(asString(request.get("txtManagementToken")));
+
+		if (booking == null) {
+			return new ResponseMessage(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND,
+					"That link is not valid. It may already have been used.", null);
+		}
+
+		Map<String, Object> described = describe(booking, false);
+		described.put("serConsultationTypeId", booking.getSerConsultationTypeId());
+		described.put("serHostId", booking.getSerHostId());
+		repositoryConsultationType
+				.findBySerConsultationTypeIdAndBlnIsDeletedFalse(booking.getSerConsultationTypeId())
+				.ifPresent(type -> {
+					described.put("txtName", type.getTxtName());
+					described.put("numDurationMinutes", type.getNumDurationMinutes());
+				});
+
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Consultation found",
+				described);
+	}
+
+	/**
+	 * Moves a booking, using the link from its email.
+	 *
+	 * <p>
+	 * The customer's half of what the office could already do. Until now the
+	 * only self-service change was cancelling — so somebody whose Tuesday no
+	 * longer worked had to call off the meeting and hope the new time they
+	 * wanted was still there, or telephone during office hours. Moving is the
+	 * commonest thing anybody wants to do to an appointment.
+	 *
+	 * <p>
+	 * A refusal comes back as CONFLICT rather than BAD_REQUEST for the reason
+	 * booking does: the request was well formed and the slot was on offer when
+	 * it was shown. Somebody else simply got there first.
+	 */
+	@PostMapping(value = "/reschedule", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage reschedule(@RequestBody Map<String, Object> request) {
+		BookingOutcome outcome = serviceConsultation.rescheduleByToken(
+				asString(request.get("txtManagementToken")),
+				asInstant(request.get("dteStartsAt")),
+				asInteger(request.get("serHostId")));
+
+		LOGGER.info("Consultation move by link: {}", outcome.accepted());
+
+		if (!outcome.accepted()) {
+			return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
+					outcome.message(), null);
+		}
+
+		/*
+		 * With the new token. The move issued one, the old one is dead, and the
+		 * page the customer is standing on has to be able to move or cancel the
+		 * booking again without waiting for the email to arrive.
+		 */
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, outcome.message(),
+				describe(outcome.booking(), true));
+	}
+
+	/**
 	 * What the customer is told about their own booking.
 	 *
 	 * <p>

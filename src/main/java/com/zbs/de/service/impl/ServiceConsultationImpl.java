@@ -535,6 +535,120 @@ public class ServiceConsultationImpl implements ServiceConsultation {
 
 	@Override
 	@Transactional(readOnly = true)
+	public ConsultationBooking findByToken(String managementToken) {
+		if (managementToken == null || managementToken.isBlank()) {
+			return null;
+		}
+		return repositoryBooking.findByTxtManagementToken(managementToken).orElse(null);
+	}
+
+	/**
+	 * Moves a booking to another time.
+	 *
+	 * <h3>Why the row moves rather than being replaced</h3>
+	 *
+	 * Cancel-then-book leaves a gap in which the customer has no consultation
+	 * at all, and if the second half fails — the slot went while they were
+	 * choosing — they are left with nothing, having asked only to move it. The
+	 * office's diary would also show a cancellation and a separate new booking
+	 * where one meeting moved.
+	 *
+	 * <h3>What makes it safe</h3>
+	 *
+	 * The row is freed of its old time and given the new one in a single save,
+	 * so the exclusion constraint in V6 sees exactly one booking throughout. If
+	 * somebody takes the new slot in the same moment the constraint refuses one
+	 * of the two writes, and the loser is told the time has gone rather than
+	 * quietly ending up double booked. Same mechanism as {@code book}.
+	 *
+	 * <p>
+	 * A booking still awaiting confirmation may be moved too. It is a time the
+	 * customer has asked for, and the answer to "may I come at four instead"
+	 * should not depend on whether anybody has got round to agreeing the first
+	 * request yet.
+	 */
+	@Override
+	@Transactional
+	public BookingOutcome rescheduleByToken(String managementToken, Instant newStartsAt,
+			Integer serHostId) {
+		if (newStartsAt == null) {
+			return BookingOutcome.refused("A new time is needed.");
+		}
+
+		ConsultationBooking booking = findByToken(managementToken);
+		if (booking == null) {
+			return BookingOutcome.refused("That link is not valid.");
+		}
+		if (!booking.isLive()) {
+			return BookingOutcome.refused(
+					"That consultation has already been cancelled, so there is nothing to move.");
+		}
+		if (newStartsAt.equals(booking.getDteStartsAt())) {
+			// Not a failure: somebody pressed the time they already have.
+			return new BookingOutcome(true, "That is already when your consultation is.", booking);
+		}
+
+		ConsultationType type = repositoryType
+				.findBySerConsultationTypeIdAndBlnIsDeletedFalse(booking.getSerConsultationTypeId())
+				.orElse(null);
+		if (type == null || !Boolean.TRUE.equals(type.getBlnIsActive())) {
+			return BookingOutcome.refused("That kind of consultation is no longer available.");
+		}
+
+		Integer hostId = serHostId != null ? serHostId : chooseHost(type, newStartsAt);
+		if (hostId == null) {
+			return BookingOutcome.taken();
+		}
+
+		ConsultationHost host = repositoryHost.findBySerHostIdAndBlnIsDeletedFalse(hostId).orElse(null);
+		if (host == null || !Boolean.TRUE.equals(host.getBlnIsActive())) {
+			return BookingOutcome.refused("That person is not taking consultations.");
+		}
+
+		// Re-checked rather than trusted from the listing, for the reason book()
+		// re-checks it: the list is a suggestion, this is the decision.
+		if (!isStillOffered(type, host, newStartsAt)) {
+			return BookingOutcome.taken();
+		}
+
+		Instant previousStartsAt = booking.getDteStartsAt();
+
+		booking.setSerHostId(hostId);
+		booking.setDteStartsAt(newStartsAt);
+		booking.setDteEndsAt(newStartsAt.plus(Duration.ofMinutes(type.getNumDurationMinutes())));
+		booking.setUpdatedDate(Instant.now());
+		/*
+		 * A fresh token. The old one has been through an email, a mail client
+		 * and whatever scanned the link on the way, and it should not keep
+		 * power over an arrangement the customer has since changed.
+		 */
+		booking.setTxtManagementToken(newManagementToken());
+		booking.setTxtExternalSyncStatus(ConsultationBooking.SYNC_PENDING);
+
+		try {
+			repositoryBooking.saveAndFlush(booking);
+		} catch (DataIntegrityViolationException e) {
+			LOGGER.info("Slot at {} for host {} was taken while a booking was being moved",
+					newStartsAt, hostId);
+			return BookingOutcome.taken();
+		}
+
+		LOGGER.info("Consultation {} moved from {} to {}",
+				booking.getSerConsultationBookingId(), previousStartsAt, newStartsAt);
+
+		UtilTransaction.afterCommit(() -> {
+			// Withdraw then publish rather than an update: the host may have
+			// changed too, and the providers are told the same way either way.
+			serviceCalendarSync.withdraw(booking);
+			serviceCalendarSync.publish(booking);
+			notifier.bookingMoved(booking, previousStartsAt);
+		});
+
+		return new BookingOutcome(true, "Your consultation has been moved.", booking);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public ConsultationBooking liveBookingForEvent(Integer serEventMasterId) {
 		if (serEventMasterId == null) {
 			return null;
