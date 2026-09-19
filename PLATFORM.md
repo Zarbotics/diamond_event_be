@@ -239,12 +239,22 @@ different device, a cleared browser, or picking a booking from the list.
 | 9 | `services` | Optional | ✅ |
 | 10 | `decor` | Optional, with image upload | ✅ |
 | 11 | `extras` | Optional | ✅ |
-| 12 | `externalSuuppliers` | Outside suppliers + terms | ✅ |
-| 13 | `review` | Check everything before submitting | ✅ |
-| 14 | `confirmed` | Reference number, consultation link | ✅ |
+| 12 | `externalSuppliers` | The suppliers the customer is bringing | ✅ |
+| 13 | `notes` | Table plan, room layout, terms and payment policy | ✅ |
+| 14 | `review` | Check everything before submitting | ✅ |
+| 15 | `confirmed` | Reference number, consultation booking | ✅ |
 
-*(`externalSuuppliers` is misspelled in the route. Cosmetic; renaming it breaks
-any bookmarked URL. Left alone deliberately.)*
+*(The misspelled `externalSuuppliers` still resolves, and renders the notes
+rather than the suppliers. It is the route `numFormState` on live bookings
+points at and the one the review page has always linked to, so it stays as an
+alias; the component behind it is now called `Notes`, which is what it is.)*
+
+Every step from 4 onward ends in the same action row (`StepActions`): its own
+Save, a **Back** to the step before it, and — when it was opened from Review —
+**Back to review** instead. Before that, the journey had no Back control on any
+of its ten screens: the only routes backwards were the progress rail, which was
+hidden for the first three steps and again from Review onward, and the
+browser's own button.
 
 ### 5.2 Business rules
 
@@ -300,23 +310,33 @@ It has been repaired anyway (real checkboxes, named info button) so it works if
 it comes back, and the finding is recorded at the top of the file. **Whether it
 comes back is a business decision, not a technical one.**
 
-### 5.6 External suppliers 💀 ❓
+### 5.6 External suppliers ✅
 
-Step 12 is named `externalSuuppliers` and the entity, the admin `vendors`
-screen and five seeded suppliers all exist. **The customer is never shown
-them.** `fetchVendors()` is commented out, so is the picker that would render
-them, and so is the notes box beside it.
+**Was:** step 12 was named `externalSuuppliers` and rendered two static blocks
+— "Table plan" and "Room layout" — the terms checkbox and Submit. It was a
+notes-and-terms step wearing a supplier step's name. The supplier question
+itself was one free-text box, into which a customer might write "none", or
+three paragraphs containing two names and a phone number.
 
-What the step actually renders now is two static informational blocks — "Table
-plan" and "Room layout", both *"to be sent no later than 4 weeks before
-event"* — plus the terms checkbox and Submit. It is a notes-and-terms step
-wearing a supplier step's name.
+**Now:** the suppliers have a step of their own (12) and a table of their own
+(`event_external_supplier`, V18): trade, business, contact name, phone, email,
+notes, display order. The customer adds as many as they have; the office sees
+and edits the same list on the event form; the enquiry document lists them with
+a contact each.
 
-The payload still carries `vendorMasterSelections` and
-`txtExternalSupplierRemarks` on every submission; both are always empty. That
-is why `event_vendor_master_selection` has no rows: nothing is broken, there is
-simply nothing to choose. Recorded here because "the table is empty" reads like
-data loss until you find out why, and I spent time on exactly that.
+It matters more than a convenience, because clause 5 of the terms the customer
+accepts on the next step says the venue may cancel the booking and keep the
+deposit if a third-party decorator or caterer is brought in. That clause cannot
+be run fairly from a box a customer may reasonably leave blank.
+
+A save that does not mention suppliers leaves them alone; an empty list is a
+statement and is honoured. Same rule as C4c, and for the same reason — every
+step posts the whole event back, and a step that has never heard of suppliers
+must not delete the photographer declared two screens earlier.
+
+The `vendor_master` catalogue and its seeded suppliers are a different thing:
+those are the venue's own approved suppliers, and nothing in the journey offers
+them. `event_vendor_master_selection` is still empty, and still not broken.
 
 ### 5.5 Marketing site 💀 ❓
 
@@ -428,6 +448,32 @@ test that passes with and without the fix proves nothing.
   inside one transaction describes something the database will never produce.
   Both now fail the batch and say so.
 
+### The enquiry document
+- ✅ **It would not download.** The browser was sent to a blob URL through a
+  freshly opened tab, which Chrome blocks as a cross-document navigation — so
+  the customer's only way to get a copy was to open the print dialogue and
+  "save as PDF". The uploaded example confirms it: its Producer is *Microsoft:
+  Print To PDF*. An anchor with a `download` attribute does what was intended.
+- ✅ **The cover did not fit the page.** It claimed a page of its own with zero
+  margins so a purple band could bleed to the paper edge; openhtmltopdf laid it
+  out at the *default* page's content width and then placed it against the left
+  edge, so the band stopped seven-eighths of the way across and the whole cover
+  sat off-centre with a 32mm gutter down the right. On the first page a
+  customer downloads.
+- ✅ **The note at the foot of the cover was cut off mid-sentence.** It was
+  positioned absolutely; this renderer places such a box at the top of its
+  container's bottom edge rather than against it, so the page break took the
+  rest. A two-row table does it without positioning.
+- ✅ **The running order was not in time order.** Entries came out in the order
+  of the assembler's label map — the sequence a wedding usually runs in — so a
+  couple cutting the cake at 21:30 and speaking at 21:00 got a page headed
+  "Running order" listing 21:30 above 21:00. Staff work from this on the day.
+  Sorted by the clock, with times in the small hours counted as the end of the
+  night rather than the start of it.
+- ✅ **Section six lists the declared suppliers**, with a contact each, and
+  says plainly that anyone not listed needs agreeing beforehand. It rendered
+  one paragraph of free text.
+
 ### Customer journey
 - ✅ **The journey could not be completed.** `onClick={handleSubmit}` on seven
   steps hands React's click event to `isSilent` — an object, therefore truthy —
@@ -478,6 +524,30 @@ test that passes with and without the fix proves nothing.
   and the refresh clears the error as it starts: the message appeared and
   vanished in the same tick, so pressing a slot somebody had just taken looked
   exactly like pressing a slot and nothing happening.
+
+- ✅ **A customer can move a consultation, not only cancel it.** The page
+  reached from the link in every confirmation email said, in as many words,
+  *"If you only want to move it, ring us."* Moving an appointment is the
+  commonest thing anybody does to one. The row now moves rather than being
+  cancelled and rebooked — same booking, same event, same history — so there is
+  no window in which the customer has none, and a simultaneous move and booking
+  is settled by the same exclusion constraint that makes double booking
+  impossible.
+- ✅ **`/consultation/forEvent` was handing out management tokens.** It took an
+  event id, looked the booking up with it, and returned the single-use token
+  the cancel link is built from — so any signed-in customer could count upwards
+  through event ids and collect the tokens to cancel other people's meetings.
+  It now asserts access to the event through `AccessGuard` and withholds the
+  token regardless.
+- ✅ **The journey never asked whether a consultation already existed.** The
+  endpoint had been there since the calendar was written and nothing called it,
+  so a customer who booked on Tuesday and came back on Thursday saw "Book your
+  consultation" with no sign that one existed. The honest thing for them to do
+  was book a second.
+- ✅ **The office can see it from the event.** The event form said nothing
+  about the meeting where the booking gets agreed, and the diary has no way to
+  ask "for this event" — so "has anybody sat down with them yet?" meant opening
+  a second screen and reading down a list.
 
 ### Venue step
 - ✅ **A room too small looked identical to one that fits**, and refused on
