@@ -459,8 +459,31 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			// *************************
 			if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
 
-				// Deleting Existing Selections
-				serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
+				/*
+				  Cleared and refilled, not replaced.
+
+				  `decorSelections` is mapped cascade = ALL with orphanRemoval,
+				  and handing a managed entity a brand new List instance under
+				  those settings makes Hibernate throw "A collection with orphan
+				  deletion was no longer referenced by the owning entity
+				  instance" — which is what `entity.setDecorSelections(...)` did
+				  here, on every save that carried any décor at all.
+
+				  `saveAndUpdateWithDocs` already does it this way; the line that
+				  used to do it the other way is still commented out beside it,
+				  so somebody met this before and fixed the one method they were
+				  standing in. This is the same fix, applied to the copy that
+				  never got it.
+
+				  The explicit delete goes with it: clearing an orphan-removing
+				  collection is what deletes the old rows, and deleting them
+				  underneath Hibernate as well left the persistence context
+				  holding entities that were no longer there.
+				*/
+				if (entity.getDecorSelections() == null) {
+					entity.setDecorSelections(new ArrayList<>());
+				}
+				entity.getDecorSelections().clear();
 
 				List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
 
@@ -485,7 +508,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					decorSelections.add(decorSelection);
 				}
 
-				entity.setDecorSelections(decorSelections);
+				entity.getDecorSelections().addAll(decorSelections);
 				// entity.setNumInfoFilledStatus(70);
 			}
 
