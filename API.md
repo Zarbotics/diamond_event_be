@@ -10,8 +10,8 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 332 |
-| Controllers | 44 |
+| Endpoints | 340 |
+| Controllers | 45 |
 | Named like a read (`get…`, `search…`, `is…`) | 154 |
 
 Almost every endpoint is `POST`, including the reads. Nothing is cacheable,
@@ -237,6 +237,19 @@ most of this inventory carries no audience marker.
 |---|---|---|
 | `POST` | `/extrasOption/getAllData` |  |
 | `POST` | `/extrasOption/saveWithDocs` |  |
+
+### ControllerEquipment
+
+| Verb | Path | Who |
+|---|---|---|
+| `POST` | `/equipment/categories` |  |
+| `POST` | `/equipment/deleteItem` |  |
+| `POST` | `/equipment/deleteRule` |  |
+| `POST` | `/equipment/forEvent` |  |
+| `POST` | `/equipment/items` |  |
+| `POST` | `/equipment/rules` |  |
+| `POST` | `/equipment/saveItem` |  |
+| `POST` | `/equipment/saveRule` |  |
 
 ### ControllerEventBudget
 
