@@ -285,7 +285,7 @@ public class EventDocumentAssembler {
 		}
 
 		for (DtoEventExternalSupplier supplier : selections) {
-			String type = trimToNull(supplier.getTxtSupplierType());
+			String type = trimToNull(supplier.getTxtSupplierCategoryName());
 			String name = trimToNull(supplier.getTxtSupplierName());
 			String contact = joinNonBlank(" · ", supplier.getTxtContactName(), supplier.getTxtContactPhone(),
 					supplier.getTxtContactEmail());

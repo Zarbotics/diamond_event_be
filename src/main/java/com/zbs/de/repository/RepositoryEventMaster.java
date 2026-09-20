@@ -74,7 +74,7 @@ public interface RepositoryEventMaster
 
 	// override findAll so Spring Data will apply entity-graph when using paging
 	@Override
-	@EntityGraph(attributePaths = { "customerMaster", "eventType", "venueMaster", "vendorMaster", "eventBudget" })
+	@EntityGraph(attributePaths = { "customerMaster", "eventType", "venueMaster", "eventBudget" })
 	Page<EventMaster> findAll(Specification<EventMaster> spec, Pageable pageable);
 
 	@Query("SELECT MAX(e.txtEventMasterCode) FROM EventMaster e WHERE e.txtEventMasterCode LIKE CONCAT('DE-', :year, '-%')")

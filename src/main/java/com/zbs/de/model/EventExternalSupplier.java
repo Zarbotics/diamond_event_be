@@ -43,15 +43,24 @@ public class EventExternalSupplier extends BaseEntity implements Serializable {
 	private EventMaster eventMaster;
 
 	/**
-	 * What they do — "Photographer", "Mehndi artist", "Cake".
+	 * What they do, from the list the office keeps.
 	 *
 	 * <p>
-	 * Free text rather than a lookup on purpose. The whole point of this record
-	 * is the supplier the venue has not thought of, and a dropdown of known
-	 * kinds sends exactly those back into the notes box this exists to empty.
+	 * This was free text, on the reasoning that the supplier worth hearing
+	 * about is the one the venue has not thought of. The reasoning was about
+	 * coverage, and a list the office can add to answers it better: free text
+	 * gave "DJ", "dj", "Disc Jockey" and "Music" as four different things, so
+	 * the one thing the office wants to do with a category — find every
+	 * photographer arriving on Saturday — could not be done at all.
+	 *
+	 * <p>
+	 * Nullable, because a category can be retired and because the migration in
+	 * V19 could only match what was there. A supplier with no category is still
+	 * a supplier the venue must let in.
 	 */
-	@Column(name = "txt_supplier_type")
-	private String txtSupplierType;
+	@ManyToOne
+	@JoinColumn(name = "ser_supplier_category_id")
+	private ExternalSupplierCategory supplierCategory;
 
 	@Column(name = "txt_supplier_name")
 	private String txtSupplierName;
@@ -72,6 +81,14 @@ public class EventExternalSupplier extends BaseEntity implements Serializable {
 	@Column(name = "num_display_order")
 	private Integer numDisplayOrder;
 
+	public ExternalSupplierCategory getSupplierCategory() {
+		return supplierCategory;
+	}
+
+	public void setSupplierCategory(ExternalSupplierCategory supplierCategory) {
+		this.supplierCategory = supplierCategory;
+	}
+
 	public Long getSerEventExternalSupplierId() {
 		return serEventExternalSupplierId;
 	}
@@ -86,14 +103,6 @@ public class EventExternalSupplier extends BaseEntity implements Serializable {
 
 	public void setEventMaster(EventMaster eventMaster) {
 		this.eventMaster = eventMaster;
-	}
-
-	public String getTxtSupplierType() {
-		return txtSupplierType;
-	}
-
-	public void setTxtSupplierType(String txtSupplierType) {
-		this.txtSupplierType = txtSupplierType;
 	}
 
 	public String getTxtSupplierName() {
@@ -144,9 +153,17 @@ public class EventExternalSupplier extends BaseEntity implements Serializable {
 		this.numDisplayOrder = numDisplayOrder;
 	}
 
-	/** Whether this row says anything at all. */
+	/**
+	 * Whether this row says anything at all.
+	 *
+	 * <p>
+	 * A category on its own counts. The journey's form offers a blank row to
+	 * type into, and somebody who picked "DJ" and then went to find the phone
+	 * number has told us something worth keeping — where somebody who opened
+	 * the step and left has not.
+	 */
 	public boolean isEmpty() {
-		return isBlank(txtSupplierType) && isBlank(txtSupplierName) && isBlank(txtContactName)
+		return supplierCategory == null && isBlank(txtSupplierName) && isBlank(txtContactName)
 				&& isBlank(txtContactPhone) && isBlank(txtContactEmail) && isBlank(txtNotes);
 	}
 

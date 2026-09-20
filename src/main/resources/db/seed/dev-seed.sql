@@ -239,17 +239,17 @@ FROM (VALUES
 ) AS v(code, name, descr, extra)
 WHERE NOT EXISTS (SELECT 1 FROM decor_extras_option WHERE txt_option_code = v.code);
 
--- ── Suppliers the customer may already have booked themselves ─────────
-INSERT INTO vendor_master (txt_vendor_code, txt_vendor_name, enm_vendor_type, txt_address, txt_phone_number, bln_is_active, bln_is_deleted, created_date)
-SELECT v.code, v.name, v.type, v.address, v.phone, true, false, now()
-FROM (VALUES
-    ('VN-001', 'Aperture Studios',      'PHOTOGRAPHY', '3 Camden High Street, London NW1 7JE', '020 7000 0201'),
-    ('VN-002', 'Northlight Films',      'VIDEOGRAPHY', '22 Quay Street, Manchester M3 4AE',    '0161 000 0202'),
-    ('VN-003', 'Sound & Motion',        'DJ',          '9 Bridge Road, Birmingham B1 2JR',     '0121 000 0203'),
-    ('VN-004', 'Petal & Stem',          'FLORIST',     '77 Kings Road, London SW3 4NX',        '020 7000 0204'),
-    ('VN-005', 'The Sweet Table Co.',   'CAKE',        '14 Mill Lane, St Albans AL1 3TE',      '01727 000205')
-) AS v(code, name, type, address, phone)
-WHERE NOT EXISTS (SELECT 1 FROM vendor_master WHERE txt_vendor_code = v.code);
+-- ── Supplier categories ───────────────────────────────────────────────
+--
+-- Nothing is inserted here. V19 seeds the twelve trades itself, because they
+-- are not development scaffolding: the journey's suppliers step is unusable
+-- without them, so they belong to the schema rather than to a seed script a
+-- production database never runs.
+--
+-- What used to be here was vendor_master — a list of firms the *venue*
+-- engaged, with five invented photographers and florists in it. It answered a
+-- question nobody had. What the venue needs to know is who the *customer* is
+-- bringing, which is declared against a category and stored on the event.
 
 -- ── A signed-in customer to walk the journey as ───────────────────────
 -- Password: DevPassword123!   (bcrypt, cost 10)
@@ -375,7 +375,7 @@ UNION ALL SELECT 'decor categories',    count(*) FROM decor_category_master
 UNION ALL SELECT 'decor properties',    count(*) FROM decor_category_property_master
 UNION ALL SELECT 'decor values',        count(*) FROM decor_category_property_value
 UNION ALL SELECT 'extras and services', count(*) FROM decor_extras_master
-UNION ALL SELECT 'suppliers',           count(*) FROM vendor_master
+UNION ALL SELECT 'supplier categories', count(*) FROM external_supplier_category
 UNION ALL SELECT 'users',               count(*) FROM user_master;
 
 -- ═══════════════════════════════════════════════════════════════════════

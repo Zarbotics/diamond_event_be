@@ -10,9 +10,9 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 331 |
+| Endpoints | 329 |
 | Controllers | 43 |
-| Named like a read (`get…`, `search…`, `is…`) | 155 |
+| Named like a read (`get…`, `search…`, `is…`) | 153 |
 
 Almost every endpoint is `POST`, including the reads. Nothing is cacheable,
 no intermediary can safely retry a read, and which of these change data is
@@ -303,6 +303,15 @@ most of this inventory carries no audience marker.
 | `POST` | `/eventType/saveEventType` |  |
 | `POST` | `/eventType/saveOrUpdate` |  |
 
+### ControllerExternalSupplierCategory
+
+| Verb | Path | Who |
+|---|---|---|
+| `POST` | `/externalSupplierCategory/all` |  |
+| `POST` | `/externalSupplierCategory/delete` |  |
+| `POST` | `/externalSupplierCategory/offered` | 👤 |
+| `POST` | `/externalSupplierCategory/save` |  |
+
 ### ControllerFileServe
 
 | Verb | Path | Who |
@@ -544,17 +553,6 @@ most of this inventory carries no audience marker.
 | Verb | Path | Who |
 |---|---|---|
 | `GET` | `/user` |  |
-
-### ControllerVendorMaster
-
-| Verb | Path | Who |
-|---|---|---|
-| `POST` | `/vendorMaster/deleteById` |  |
-| `POST` | `/vendorMaster/generateVendorCode` |  |
-| `POST` | `/vendorMaster/getAllActiveData` | 👤 |
-| `POST` | `/vendorMaster/getAllData` |  |
-| `POST` | `/vendorMaster/getById` |  |
-| `POST` | `/vendorMaster/saveOrUpdate` |  |
 
 ### ControllerVenueMaster
 

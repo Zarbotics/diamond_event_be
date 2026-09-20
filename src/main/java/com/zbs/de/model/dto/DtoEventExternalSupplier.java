@@ -7,7 +7,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class DtoEventExternalSupplier {
 
 	private Long serEventExternalSupplierId;
-	private String txtSupplierType;
+
+	/**
+	 * Which kind of supplier, from the list the office keeps.
+	 *
+	 * <p>
+	 * The name travels beside the id because every reader of this — the review
+	 * screen, the enquiry document, the office's event form — wants to print
+	 * "Photographer", and none of them should have to fetch the category list
+	 * to turn a number into a word.
+	 */
+	private Long serSupplierCategoryId;
+	private String txtSupplierCategoryName;
+
 	private String txtSupplierName;
 	private String txtContactName;
 	private String txtContactPhone;
@@ -23,12 +35,20 @@ public class DtoEventExternalSupplier {
 		this.serEventExternalSupplierId = serEventExternalSupplierId;
 	}
 
-	public String getTxtSupplierType() {
-		return txtSupplierType;
+	public Long getSerSupplierCategoryId() {
+		return serSupplierCategoryId;
 	}
 
-	public void setTxtSupplierType(String txtSupplierType) {
-		this.txtSupplierType = txtSupplierType;
+	public void setSerSupplierCategoryId(Long serSupplierCategoryId) {
+		this.serSupplierCategoryId = serSupplierCategoryId;
+	}
+
+	public String getTxtSupplierCategoryName() {
+		return txtSupplierCategoryName;
+	}
+
+	public void setTxtSupplierCategoryName(String txtSupplierCategoryName) {
+		this.txtSupplierCategoryName = txtSupplierCategoryName;
 	}
 
 	public String getTxtSupplierName() {

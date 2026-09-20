@@ -57,9 +57,6 @@ public class DtoEventMasterAdminPortal {
 	private String txtVenueCode;
 	private String txtVenueName;
 
-	private Integer serVendorId;
-	private String txtVendorCode;
-	private String txtVendorName;
 
 	private String txtEventRemarks;
 	private String txtDecoreRemarks;
@@ -106,7 +103,6 @@ public class DtoEventMasterAdminPortal {
 
 	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
 	
-	private List<DtoEventVendorMasterSelection> vendorMasterSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -356,30 +352,6 @@ public class DtoEventMasterAdminPortal {
 		this.txtVenueName = txtVenueName;
 	}
 
-	public Integer getSerVendorId() {
-		return serVendorId;
-	}
-
-	public void setSerVendorId(Integer serVendorId) {
-		this.serVendorId = serVendorId;
-	}
-
-	public String getTxtVendorCode() {
-		return txtVendorCode;
-	}
-
-	public void setTxtVendorCode(String txtVendorCode) {
-		this.txtVendorCode = txtVendorCode;
-	}
-
-	public String getTxtVendorName() {
-		return txtVendorName;
-	}
-
-	public void setTxtVendorName(String txtVendorName) {
-		this.txtVendorName = txtVendorName;
-	}
-
 	public String getTxtEventRemarks() {
 		return txtEventRemarks;
 	}
@@ -562,14 +534,6 @@ public class DtoEventMasterAdminPortal {
 
 	public void setNumVersion(Long numVersion) {
 		this.numVersion = numVersion;
-	}
-
-	public List<DtoEventVendorMasterSelection> getVendorMasterSelections() {
-		return vendorMasterSelections;
-	}
-
-	public void setVendorMasterSelections(List<DtoEventVendorMasterSelection> vendorMasterSelections) {
-		this.vendorMasterSelections = vendorMasterSelections;
 	}
 
 	public List<DtoEventDecorExtrasSelection> getServicesSelections() {

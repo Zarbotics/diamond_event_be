@@ -47,11 +47,9 @@ import com.zbs.de.model.EventMenuSubCategorySelection;
 import com.zbs.de.model.EventRunningOrder;
 import com.zbs.de.model.EventType;
 import com.zbs.de.model.EventExternalSupplier;
-import com.zbs.de.model.EventVendorMasterSelection;
 import com.zbs.de.model.MenuFoodMaster;
 import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.UserMaster;
-import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.VenueMaster;
 import com.zbs.de.model.VenueMasterDetail;
 import com.zbs.de.model.dto.DtoEventBookingValidationResult;
@@ -67,7 +65,6 @@ import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 import com.zbs.de.model.dto.DtoEventQuoteAndStatus;
 import com.zbs.de.model.dto.DtoEventExternalSupplier;
-import com.zbs.de.model.dto.DtoEventVendorMasterSelection;
 import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuComponentRequest;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
@@ -95,11 +92,9 @@ import com.zbs.de.service.EventDayCapacity;
 import com.zbs.de.service.ServiceEventMaster;
 import com.zbs.de.service.ServiceEventMenuFoodSelection;
 import com.zbs.de.service.ServiceEventType;
-import com.zbs.de.service.ServiceEventVendorMasterSelection;
 import com.zbs.de.service.ServiceMenuFoodMaster;
 import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.service.ServiceNotificationMaster;
-import com.zbs.de.service.ServiceVendorMaster;
 import com.zbs.de.service.ServiceVenueMaster;
 import com.zbs.de.spec.SepecificationsEventMaster;
 import com.zbs.de.util.UtilDateAndTime;
@@ -131,9 +126,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceVenueMaster serviceVenueMaster;
-
-	@Autowired
-	private ServiceVendorMaster serviceVendorMaster;
 
 	@Autowired
 	private ServiceEventMenuFoodSelection serviceEventMenuFoodSelection;
@@ -172,10 +164,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private ServiceMenuItem serviceMenuItem;
 	
 	@Autowired
-	private ServiceEventVendorMasterSelection serviceEventVendorMasterSelection;
+	private com.zbs.de.repository.RepositoryEventExternalSupplier repositoryEventExternalSupplier;
 
 	@Autowired
-	private com.zbs.de.repository.RepositoryEventExternalSupplier repositoryEventExternalSupplier;
+	private com.zbs.de.repository.RepositoryExternalSupplierCategory repositoryExternalSupplierCategory;
 
 	@Autowired
 	private RepositoryEventPaymentMaster repositoryEventPaymentMaster;
@@ -544,20 +536,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			//
 			// }
 
-			// Set Vendor
-			// **********
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
-				VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
-				if (UtilRandomKey.isNotNull(vendorMaster)) {
-
-					entity.setVendorMaster(vendorMaster);
-				} else {
-					dtoResult.setTxtMessage(
-							"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
-					return dtoResult;
-				}
-				// entity.setNumInfoFilledStatus(100);
-			}
 
 		} else {
 			// Create new
@@ -705,19 +683,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			//// entity.setNumInfoFilledStatus(90);
 			// }
 
-			// Set Vendor
-			// **********
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
-				VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
-				if (UtilRandomKey.isNotNull(vendorMaster)) {
-					entity.setVendorMaster(vendorMaster);
-					// entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-				} else {
-					dtoResult.setTxtMessage(
-							"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
-					return dtoResult;
-				}
-			}
 			// entity.setNumInfoFilledStatus(100);
 
 			// Generate event master code
@@ -1103,31 +1068,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					// **********************************************************************************************
 					// **********************************************************************************************
 
-					try {
-						List<EventVendorMasterSelection> eventVendorMasterSelections = serviceEventVendorMasterSelection
-								.getByEventMasterId(dto.getSerEventMasterId());
-						List<DtoEventVendorMasterSelection> dtoEventVendorMasterSelections = new ArrayList<>();
-						if (UtilRandomKey.isNotNull(eventVendorMasterSelections)) {
-							for (EventVendorMasterSelection selection : eventVendorMasterSelections) {
-								DtoEventVendorMasterSelection dtoSelection = new DtoEventVendorMasterSelection();
-								dtoSelection.setSerEventVendorMasterSelectionId(
-										selection.getSerEventVendorMasterSelectionId());
-								if (selection.getVendorMaster() != null) {
-									dtoSelection.setSerVendorId(selection.getVendorMaster().getSerVendorId());
-									dtoSelection.setTxtVendorCode(selection.getVendorMaster().getTxtVendorCode());
-									dtoSelection.setTxtVendorName(selection.getVendorMaster().getTxtVendorName());
-								}
-
-								dtoEventVendorMasterSelections.add(dtoSelection);
-							}
-						}
-						dto.setVendorMasterSelections(dtoEventVendorMasterSelections);
-
-					} catch (Exception ex) {
-						LOGGER.debug("Failed to fetch vendor selections for event {}: {}", dto.getSerEventMasterId(),
-								ex.getMessage(), ex);
-						dto.setVendorMasterSelections(new ArrayList<>());
-					}
 					
 					
 
@@ -1842,20 +1782,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				}
 
-				// Set Vendor
-				// **********
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
-					VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
-					if (UtilRandomKey.isNotNull(vendorMaster)) {
-
-						entity.setVendorMaster(vendorMaster);
-					} else {
-						dtoResult.setTxtMessage(
-								"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
-						return dtoResult;
-					}
-					// entity.setNumInfoFilledStatus(100);
-				}
 
 //				// Setting Event Quoted Price
 //				// **************************
@@ -2292,19 +2218,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //					entity.setNumInfoFilledStatus(90);
 				}
 
-				// Set Vendor
-				// **********
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
-					VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
-					if (UtilRandomKey.isNotNull(vendorMaster)) {
-						entity.setVendorMaster(vendorMaster);
-						// entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-					} else {
-						dtoResult.setTxtMessage(
-								"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
-						return dtoResult;
-					}
-				}
 				// entity.setNumInfoFilledStatus(100);
 
 				// Generate event master code
@@ -2720,33 +2633,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			//*********************************************************************************************
 			//*********************************************************************************************
 
-			// ****** Setting Event Vendor Multi Selection  ******
-
-			if (entity.getVendorMasterSelections() != null) {
-				entity.getVendorMasterSelections().clear();
-			}
-
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getVendorMasterSelections())
-					&& !dtoEventMaster.getVendorMasterSelections().isEmpty()) {
-				List<EventVendorMasterSelection> newVendorSelections = new ArrayList<>();
-				for (DtoEventVendorMasterSelection dto : dtoEventMaster.getVendorMasterSelections()) {
-					EventVendorMasterSelection vendorSelection = new EventVendorMasterSelection();
-					vendorSelection.setEventMaster(entity);
-					if (dto.getSerVendorId() != null) {
-						VendorMaster vendorMaster = serviceVendorMaster.getByPK(dto.getSerVendorId());
-						if (vendorMaster != null) {
-							vendorSelection.setVendorMaster(vendorMaster);
-							newVendorSelections.add(vendorSelection);
-						}
-					}
-				}
-				
-				if (entity.getVendorMasterSelections() == null) {
-					entity.setVendorMasterSelections(newVendorSelections);
-				} else {
-					entity.getVendorMasterSelections().addAll(newVendorSelections);
-				}
-			}
 
 			// *********************************************************************************************
 			//*********************************************************************************************
@@ -3082,31 +2968,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				// **********************************************************************************************
 				// **********************************************************************************************
 
-				try {
-					List<EventVendorMasterSelection> eventVendorMasterSelections = serviceEventVendorMasterSelection
-							.getByEventMasterId(dto.getSerEventMasterId());
-					List<DtoEventVendorMasterSelection> dtoEventVendorMasterSelections = new ArrayList<>();
-					if (UtilRandomKey.isNotNull(eventVendorMasterSelections)) {
-						for (EventVendorMasterSelection selection : eventVendorMasterSelections) {
-							DtoEventVendorMasterSelection dtoSelection = new DtoEventVendorMasterSelection();
-							dtoSelection
-									.setSerEventVendorMasterSelectionId(selection.getSerEventVendorMasterSelectionId());
-							if (selection.getVendorMaster() != null) {
-								dtoSelection.setSerVendorId(selection.getVendorMaster().getSerVendorId());
-								dtoSelection.setTxtVendorCode(selection.getVendorMaster().getTxtVendorCode());
-								dtoSelection.setTxtVendorName(selection.getVendorMaster().getTxtVendorName());
-							}
-
-							dtoEventVendorMasterSelections.add(dtoSelection);
-						}
-					}
-					dto.setVendorMasterSelections(dtoEventVendorMasterSelections);
-
-				} catch (Exception ex) {
-					LOGGER.debug("Failed to fetch vendor selections for event {}: {}", event.getSerEventMasterId(),
-							ex.getMessage(), ex);
-					dto.setVendorMasterSelections(new ArrayList<>());
-				}
 				
 				// 5) Budget / quoted price and status
 				try {
@@ -3595,20 +3456,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 
 				
-				// Set Vendor
-				// **********
-				if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getSerVendorId())) {
-					VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMasterAdminPortal.getSerVendorId());
-					if (UtilRandomKey.isNotNull(vendorMaster)) {
-
-						entity.setVendorMaster(vendorMaster);
-					} else {
-						dtoResult.setTxtMessage("External Supplier Not Found Against Id: "
-								+ dtoEventMasterAdminPortal.getSerVendorId());
-						return dtoResult;
-					}
-					// entity.setNumInfoFilledStatus(100);
-				}
 
 				// Setting Event Quoted Price
 				// **************************
@@ -4045,19 +3892,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				}
 
 
-				// Set Vendor
-				// **********
-				if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getSerVendorId())) {
-					VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMasterAdminPortal.getSerVendorId());
-					if (UtilRandomKey.isNotNull(vendorMaster)) {
-						entity.setVendorMaster(vendorMaster);
-						// entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-					} else {
-						dtoResult.setTxtMessage("External Supplier Not Found Against Id: "
-								+ dtoEventMasterAdminPortal.getSerVendorId());
-						return dtoResult;
-					}
-				}
 				// entity.setNumInfoFilledStatus(100);
 
 				// Generate event master code
@@ -4500,33 +4334,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			
 			
 			
-			// ****** Setting Event Vendor Multi Selection ******
-
-			if (entity.getVendorMasterSelections() != null) {
-				entity.getVendorMasterSelections().clear();
-			}
-
-			if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getVendorMasterSelections())
-					&& !dtoEventMasterAdminPortal.getVendorMasterSelections().isEmpty()) {
-				List<EventVendorMasterSelection> newVendorSelections = new ArrayList<>();
-				for (DtoEventVendorMasterSelection dto : dtoEventMasterAdminPortal.getVendorMasterSelections()) {
-					EventVendorMasterSelection vendorSelection = new EventVendorMasterSelection();
-					vendorSelection.setEventMaster(entity);
-					if (dto.getSerVendorId() != null) {
-						VendorMaster vendorMaster = serviceVendorMaster.getByPK(dto.getSerVendorId());
-						if (vendorMaster != null) {
-							vendorSelection.setVendorMaster(vendorMaster);
-							newVendorSelections.add(vendorSelection);
-						}
-					}
-				}
-
-				if (entity.getVendorMasterSelections() == null) {
-					entity.setVendorMasterSelections(newVendorSelections);
-				} else {
-					entity.getVendorMasterSelections().addAll(newVendorSelections);
-				}
-			}
 
 			// *********************************************************************************************
 			// *********************************************************************************************
@@ -4941,11 +4748,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				tv.setTxtVenueCode(em.getVenueMaster().getTxtVenueCode());
 				tv.setTxtVenueName(em.getVenueMaster().getTxtVenueName());
 			}
-			if (em.getVendorMaster() != null) {
-				tv.setSerVendorId(em.getVendorMaster().getSerVendorId());
-				tv.setTxtVendorCode(em.getVendorMaster().getTxtVendorCode());
-				tv.setTxtVendorName(em.getVendorMaster().getTxtVendorName());
-			}
 			return tv;
 		});
 
@@ -5254,30 +5056,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			// **********************************************************************************************
 			// **********************************************************************************************
 
-			try {
-				List<EventVendorMasterSelection> eventVendorMasterSelections = serviceEventVendorMasterSelection
-						.getByEventMasterId(dtoEvent.getSerEventMasterId());
-				List<DtoEventVendorMasterSelection> dtoEventVendorMasterSelections = new ArrayList<>();
-				if (UtilRandomKey.isNotNull(eventVendorMasterSelections)) {
-					for (EventVendorMasterSelection selection : eventVendorMasterSelections) {
-						DtoEventVendorMasterSelection dtoSelection = new DtoEventVendorMasterSelection();
-						dtoSelection.setSerEventVendorMasterSelectionId(selection.getSerEventVendorMasterSelectionId());
-						if (selection.getVendorMaster() != null) {
-							dtoSelection.setSerVendorId(selection.getVendorMaster().getSerVendorId());
-							dtoSelection.setTxtVendorCode(selection.getVendorMaster().getTxtVendorCode());
-							dtoSelection.setTxtVendorName(selection.getVendorMaster().getTxtVendorName());
-						}
-
-						dtoEventVendorMasterSelections.add(dtoSelection);
-					}
-				}
-				dtoEvent.setVendorMasterSelections(dtoEventVendorMasterSelections);
-
-			} catch (Exception ex) {
-				LOGGER.debug("Failed to fetch vendor selections for event {}: {}", event.getSerEventMasterId(),
-						ex.getMessage(), ex);
-				dtoEvent.setVendorMasterSelections(new ArrayList<>());
-			}
 
 			// 5) Budget / quoted price and status
 			try {
@@ -6048,7 +5826,15 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		for (DtoEventExternalSupplier dto : given) {
 			EventExternalSupplier supplier = new EventExternalSupplier();
 			supplier.setEventMaster(entity);
-			supplier.setTxtSupplierType(trimToNull(dto.getTxtSupplierType()));
+			/*
+			  Resolved from the id, never taken from a name the client sent. A
+			  category is a row the office owns; letting a payload create or
+			  rename one by spelling it differently is how the free text this
+			  replaced ended up holding "DJ", "dj" and "Disc Jockey".
+			 */
+			supplier.setSupplierCategory(dto.getSerSupplierCategoryId() == null ? null
+					: repositoryExternalSupplierCategory
+							.findById(dto.getSerSupplierCategoryId()).orElse(null));
 			supplier.setTxtSupplierName(trimToNull(dto.getTxtSupplierName()));
 			supplier.setTxtContactName(trimToNull(dto.getTxtContactName()));
 			supplier.setTxtContactPhone(trimToNull(dto.getTxtContactPhone()));
@@ -6083,7 +5869,13 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 						eventId)) {
 			DtoEventExternalSupplier dto = new DtoEventExternalSupplier();
 			dto.setSerEventExternalSupplierId(supplier.getSerEventExternalSupplierId());
-			dto.setTxtSupplierType(supplier.getTxtSupplierType());
+			if (supplier.getSupplierCategory() != null) {
+				dto.setSerSupplierCategoryId(supplier.getSupplierCategory().getSerSupplierCategoryId());
+				// The word as well as the number, so the review screen, the
+				// enquiry document and the office's form can all print
+				// "Photographer" without fetching the category list.
+				dto.setTxtSupplierCategoryName(supplier.getSupplierCategory().getTxtName());
+			}
 			dto.setTxtSupplierName(supplier.getTxtSupplierName());
 			dto.setTxtContactName(supplier.getTxtContactName());
 			dto.setTxtContactPhone(supplier.getTxtContactPhone());
@@ -6587,20 +6379,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				}
 
-				// Set Vendor
-				// **********
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
-					VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
-					if (UtilRandomKey.isNotNull(vendorMaster)) {
-
-						entity.setVendorMaster(vendorMaster);
-					} else {
-						dtoResult.setTxtMessage(
-								"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
-						return dtoResult;
-					}
-//					entity.setNumInfoFilledStatus(100);
-				}
 
 //				// Setting Event Quoted Price
 //				// **************************
@@ -7042,19 +6820,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //					entity.setNumInfoFilledStatus(90);
 				}
 
-				// Set Vendor
-				// **********
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getSerVendorId())) {
-					VendorMaster vendorMaster = serviceVendorMaster.getByPK(dtoEventMaster.getSerVendorId());
-					if (UtilRandomKey.isNotNull(vendorMaster)) {
-						entity.setVendorMaster(vendorMaster);
-//						entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-					} else {
-						dtoResult.setTxtMessage(
-								"External Supplier Not Found Against Id: " + dtoEventMaster.getSerVendorId());
-						return dtoResult;
-					}
-				}
 //				entity.setNumInfoFilledStatus(100);
 
 				// Generate event master code
@@ -7458,33 +7223,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			//*********************************************************************************************
 			//*********************************************************************************************
 
-			// ****** Setting Event Vendor Multi Selection  ******
-
-			if (entity.getVendorMasterSelections() != null) {
-				entity.getVendorMasterSelections().clear();
-			}
-
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getVendorMasterSelections())
-					&& !dtoEventMaster.getVendorMasterSelections().isEmpty()) {
-				List<EventVendorMasterSelection> newVendorSelections = new ArrayList<>();
-				for (DtoEventVendorMasterSelection dto : dtoEventMaster.getVendorMasterSelections()) {
-					EventVendorMasterSelection vendorSelection = new EventVendorMasterSelection();
-					vendorSelection.setEventMaster(entity);
-					if (dto.getSerVendorId() != null) {
-						VendorMaster vendorMaster = serviceVendorMaster.getByPK(dto.getSerVendorId());
-						if (vendorMaster != null) {
-							vendorSelection.setVendorMaster(vendorMaster);
-							newVendorSelections.add(vendorSelection);
-						}
-					}
-				}
-				
-				if (entity.getVendorMasterSelections() == null) {
-					entity.setVendorMasterSelections(newVendorSelections);
-				} else {
-					entity.getVendorMasterSelections().addAll(newVendorSelections);
-				}
-			}
 
 			// *********************************************************************************************
 			//*********************************************************************************************

@@ -84,7 +84,7 @@ Three applications serve that:
 | `EventDecorPropertyValueSelection` | ✅ | Cascaded. |
 | `EventDecorExtrasSelection` | ✅ | Services and extras both land here. |
 | `EventDecorReferenceDocument` | ✅ | Customer's uploaded inspiration images. |
-| `EventVendorMasterSelection` | 💀 ❓ | 0 rows, correctly: the supplier picker is commented out of the journey. See §5.6. |
+| `EventExternalSupplier` | ✅ | The suppliers the customer declared, each against a category. Replaced `EventVendorMasterSelection`, which was dropped in V20 with 0 rows. |
 | `EventFoodSelection` | 💀 | **Orphaned.** Superseded by `EventMenuFoodSelection`. |
 | `EventServicesMaster` | 💀 | **Orphaned.** Services are stored as `EventDecorExtrasSelection`. |
 
@@ -101,7 +101,7 @@ Three applications serve that:
 | `DecorCategoryMaster` → `DecorCategoryPropertyMaster` → `DecorCategoryPropertyValue` (+ documents) | ✅ | 4 / 6 / 16 |
 | `DecorExtrasMaster` / `DecorExtrasOption` (+ documents) | ✅ | 10 / 18 |
 | `EventType` (+ `EventTypeDocument`) | ✅ | 11 |
-| `VendorMaster` | ✔︎ | 5 |
+| `ExternalSupplierCategory` | ✅ | 12, seeded by V19. Replaced `VendorMaster` (5 seed rows, dropped in V20). |
 | `CountryMaster` / `StateMaster` / `CityMaster` | 🟡 | 1 / 1 / 3. `CountryMaster.isActive` was a primitive over a nullable column — a NULL took out the whole venue list with a 500. Fixed. |
 
 ### 2.4 Pricing
@@ -190,7 +190,7 @@ while implementing A1.)*
 | Venues | `/venueMaster`, `/countryMaster`, `/stateMaster`, `/cityMaster` |
 | Itinerary | `/itinerary/assignment`, `/itinerary/item-type`, `/admin/itinerary`, `/eventItinerary` |
 | Catering-only | `/cateringDelivery`, `/cateringPayment` |
-| Other | `/vendorMaster`, `/eventType`, `/notifications`, `/analytics`, `/dashboardStats`, `/deimg` |
+| Other | `/externalSupplierCategory`, `/eventType`, `/notifications`, `/analytics`, `/dashboardStats`, `/deimg` |
 
 ---
 
@@ -334,9 +334,36 @@ statement and is honoured. Same rule as C4c, and for the same reason — every
 step posts the whole event back, and a step that has never heard of suppliers
 must not delete the photographer declared two screens earlier.
 
-The `vendor_master` catalogue and its seeded suppliers are a different thing:
-those are the venue's own approved suppliers, and nothing in the journey offers
-them. `event_vendor_master_selection` is still empty, and still not broken.
+#### The trade is a category, not a word
+
+`txt_supplier_type` was free text on both screens. Free text gives you "DJ",
+"dj", "Disc Jockey", "Music" and "dj + sound" as five different things, so
+nothing can be counted, filtered or planned from the kind of supplier it is —
+which is exactly what the office wants to do with it: every photographer
+arriving on Saturday, different access instructions for the cake maker than for
+the mehndi artist. V19 introduced `external_supplier_category`, backfilled
+every existing value losslessly (creating inactive categories for anything that
+did not match a seeded trade), and dropped the column.
+
+Retiring a category never rewrites history: `/delete` sets `bln_is_deleted` and
+`bln_is_active`, the row stays, and every supplier declared under it keeps
+printing on its run sheet. The office's list shows how many suppliers use one
+before they press it.
+
+#### `vendor_master` is gone (V20)
+
+It held the venue's *own* approved suppliers — a different question from the
+one the business has, which is who the *customer* is bringing. The evidence
+that nobody was asking it: 5 seed rows, 0 rows in
+`event_vendor_master_selection`, 0 of 195 events carrying a `ser_vendor_id`,
+and the journey step that read it commented out. `EventMaster` also held two
+contradictory relationships to it. V20 drops the column, the link table and the
+table; 12 Java classes went with it.
+
+Removing it exposed a pre-existing bug that only a compile error could have
+found: `MapperEventMaster` wrote `getVenueMaster().getTxtVenueCode()` into
+`dto.setTxtVendorCode()` — the *venue's* code in a *vendor* field, in both
+mappers.
 
 ### 5.5 Marketing site 💀 ❓
 
@@ -363,7 +390,7 @@ marketing site returns or the WordPress site stays is a business decision.
 | Pricing | `price-setup`, `price-assignment`, `price-assignment/add`, `price-assignment/:id` |
 | Decor | `decor`, `decor-extras`, `decor-properties`, `decor-property-values`, `decor-services` |
 | Itinerary | `itinerary-item`, `itinerary-type`, `itinerary-assignment` |
-| Catalogue | `venues`, `vendors`, `caterings` |
+| Catalogue | `venues`, `supplier-categories`, `caterings` |
 | Other | `calender-schedule`, `campaign-analysis`, `demo-2`, `fb*` (Firebase demo leftovers) |
 
 **Status:** ✅ third-party CDN assets removed (Jost self-hosted, Font Awesome
@@ -635,7 +662,7 @@ Ordered by what actually costs the business the most.
 | ~~A4~~ | ~~File upload validation~~ | ✅ | Done, and it was worse than the row said — see §9. |
 | ~~A5~~ | ~~Guest count bounds~~ | ✅ | My row was wrong: 0 guests **is** validated. The real gap was the upper end, and it was a dead-end screen rather than a missing bound. See §9. |
 | A5b | Upper bound on the event date | 🟡 | **The typo is guarded; the business question is still open.** The year stepper goes forward indefinitely, so 2027 becomes 2207 with one stray keypress — and that booking was accepted, never appeared in any diary, never got chased, and would be found years later by somebody wondering why the earliest booking is in the twenty-third century. Dates more than ten years out are now refused with a message naming the year, in `canBookEvent`, so all six save paths get it. Ten years rejects only the impossible: **how far ahead the business actually takes bookings is still a question for them**, and this deliberately has not pre-empted it. |
-| ~~A6~~ | ~~Confirm `EventVendorMasterSelection` persists~~ | ✅ | **Investigated: not a bug.** The supplier picker is commented out of the journey — see §5.6. Moved to D5. |
+| ~~A6~~ | ~~Confirm `EventVendorMasterSelection` persists~~ | ✅ | **Resolved by removal.** Nothing ever wrote it and the journey step was commented out; V20 drops the table. Customer-declared suppliers replaced it — see §5.4. |
 | A9 | **SSE heartbeat fired every 60s, with comments either side saying 15** | ✅ | Fixed to 15s. The emitters are created with `Long.MAX_VALUE`, so nothing on this side ever closes an idle connection — the ping is the only thing stopping nginx or a load balancer doing it at their 60-second default. A heartbeat *at* the timeout is a race against it, and losing drops the notification stream silently: nothing errors, notifications just stop until the page is reloaded. Found by auditing the other `@Scheduled` work after the lapsed-hold job turned out never to have been wired. |
 | ~~A7~~ | ~~Turn off `ddl-auto=update`~~ | ✅ | Now `validate`. It compares the entities against the real schema at startup and refuses to run if they have drifted — turning a class of bug that used to surface as a runtime error on one unlucky screen into a failure to start that nobody can miss. |
 | ~~A7b~~ | ~~Capture a V1 baseline so Flyway owns the schema~~ | ✅ | **Done, from a production dump.** `V1__baseline_schema.sql` is production's schema as it actually is, so a database can now be built from nothing by the migrations alone. Verified against a restored dump in all three shapes it has to handle — see §13. |

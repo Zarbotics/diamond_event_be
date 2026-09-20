@@ -109,15 +109,16 @@ public class MapperEventMaster {
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
 
-		if (UtilRandomKey.isNotNull(entity.getVendorMaster())) {
-			dto.setSerVendorId(entity.getVendorMaster().getSerVendorId());
-			dto.setTxtVendorCode(entity.getVendorMaster().getTxtVendorCode());
-			dto.setTxtVendorName(entity.getVendorMaster().getTxtVendorName());
-		}
 
 		if (UtilRandomKey.isNotNull(entity.getVenueMaster())) {
 			dto.setSerVenueMasterId(entity.getVenueMaster().getSerVenueMasterId());
-			dto.setTxtVendorCode(entity.getVenueMaster().getTxtVenueCode());
+			/*
+			  The venue's code used to be written into `txtVendorCode` here, in
+			  both mappers — the venue put into a field named for a vendor. It
+			  went unnoticed because nothing read it. Removing the vendor
+			  concept made it a compile error, which is the only reason it was
+			  found at all.
+			 */
 			dto.setTxtVenueName(entity.getVenueMaster().getTxtVenueName());
 		}
 
@@ -277,15 +278,9 @@ public class MapperEventMaster {
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
 
-		if (UtilRandomKey.isNotNull(entity.getVendorMaster())) {
-			dto.setSerVendorId(entity.getVendorMaster().getSerVendorId());
-			dto.setTxtVendorCode(entity.getVendorMaster().getTxtVendorCode());
-			dto.setTxtVendorName(entity.getVendorMaster().getTxtVendorName());
-		}
 
 		if (UtilRandomKey.isNotNull(entity.getVenueMaster())) {
 			dto.setSerVenueMasterId(entity.getVenueMaster().getSerVenueMasterId());
-			dto.setTxtVendorCode(entity.getVenueMaster().getTxtVenueCode());
 			dto.setTxtVenueName(entity.getVenueMaster().getTxtVenueName());
 		}
 

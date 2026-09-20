@@ -243,10 +243,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@JoinColumn(name = "serVenueMasterId")
 	private VenueMaster venueMaster;
 
-	@ManyToOne
-	@JoinColumn(name = "ser_vendor_id")
-	private VendorMaster vendorMaster;
-
 	@OneToOne(mappedBy = "eventMaster", fetch = FetchType.LAZY)
 	private EventBudget eventBudget;
 
@@ -262,9 +258,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	@SQLRestriction("bln_is_services = false")
 	private List<EventDecorExtrasSelection> extrasSelections;
-	
-	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<EventVendorMasterSelection> vendorMasterSelections;
 	
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	@SQLRestriction("bln_is_services = true")
@@ -418,14 +411,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setFoodSelections(List<EventMenuFoodSelection> foodSelections) {
 		this.foodSelections = foodSelections;
-	}
-
-	public VendorMaster getVendorMaster() {
-		return vendorMaster;
-	}
-
-	public void setVendorMaster(VendorMaster vendorMaster) {
-		this.vendorMaster = vendorMaster;
 	}
 
 	public String getTxtNumberOfGuests() {
@@ -713,14 +698,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setBlnIsAllAdminEmailSend(Boolean blnIsAllAdminEmailSend) {
 		this.blnIsAllAdminEmailSend = blnIsAllAdminEmailSend;
-	}
-
-	public List<EventVendorMasterSelection> getVendorMasterSelections() {
-		return vendorMasterSelections;
-	}
-
-	public void setVendorMasterSelections(List<EventVendorMasterSelection> vendorMasterSelections) {
-		this.vendorMasterSelections = vendorMasterSelections;
 	}
 
 	public List<EventDecorExtrasSelection> getServicesSelections() {

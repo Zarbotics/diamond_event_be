@@ -42,9 +42,6 @@ public class DtoEventMaster {
 	private String txtVenueCode;
 	private String txtVenueName;
 
-	private Integer serVendorId;
-	private String txtVendorCode;
-	private String txtVendorName;
 	
 	
 	private String txtContactPersonFirstName;
@@ -107,17 +104,19 @@ public class DtoEventMaster {
 
 	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
 	
-	private List<DtoEventVendorMasterSelection> vendorMasterSelections;
 
 	/**
 	 * The suppliers the customer is bringing themselves.
 	 *
 	 * <p>
-	 * Distinct from {@code vendorMasterSelections}, which is the venue's own
-	 * approved list. These are the customer's: their photographer, their mehndi
-	 * artist, the cake maker the family has always used. The venue has to know
-	 * who they are, and until now the journey collected them as one paragraph
-	 * of free text per booking.
+	 * Their photographer, their mehndi artist, the cake maker the family has
+	 * always used. The venue has to know who they are, and the journey used to
+	 * collect them as one paragraph of free text per booking.
+	 *
+	 * <p>
+	 * There is no longer a second, parallel notion of a supplier. `vendor_master`
+	 * modelled the firms the venue itself engages, twice over and unused — see
+	 * V20 for why it went rather than being repaired.
 	 */
 	private List<DtoEventExternalSupplier> externalSuppliers;
 
@@ -312,30 +311,6 @@ public class DtoEventMaster {
 //	public void setFoodSelections(List<DtoEventMenuFoodSelection> foodSelections) {
 //		this.foodSelections = foodSelections;
 //	}
-
-	public Integer getSerVendorId() {
-		return serVendorId;
-	}
-
-	public void setSerVendorId(Integer serVendorId) {
-		this.serVendorId = serVendorId;
-	}
-
-	public String getTxtVendorCode() {
-		return txtVendorCode;
-	}
-
-	public void setTxtVendorCode(String txtVendorCode) {
-		this.txtVendorCode = txtVendorCode;
-	}
-
-	public String getTxtVendorName() {
-		return txtVendorName;
-	}
-
-	public void setTxtVendorName(String txtVendorName) {
-		this.txtVendorName = txtVendorName;
-	}
 
 	public String getTxtNumberOfGuests() {
 		return txtNumberOfGuests;
@@ -591,14 +566,6 @@ public class DtoEventMaster {
 
 	public void setNumServingDishesPrice(BigDecimal numServingDishesPrice) {
 		this.numServingDishesPrice = numServingDishesPrice;
-	}
-
-	public List<DtoEventVendorMasterSelection> getVendorMasterSelections() {
-		return vendorMasterSelections;
-	}
-
-	public void setVendorMasterSelections(List<DtoEventVendorMasterSelection> vendorMasterSelections) {
-		this.vendorMasterSelections = vendorMasterSelections;
 	}
 
 	public List<DtoEventDecorExtrasSelection> getServicesSelections() {

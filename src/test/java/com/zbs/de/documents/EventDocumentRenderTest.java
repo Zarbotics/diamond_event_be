@@ -299,7 +299,7 @@ class EventDocumentRenderTest {
 	private static com.zbs.de.model.dto.DtoEventExternalSupplier supplier(String type, String name,
 			String contactName, String phone, String email, String notes) {
 		com.zbs.de.model.dto.DtoEventExternalSupplier supplier = new com.zbs.de.model.dto.DtoEventExternalSupplier();
-		supplier.setTxtSupplierType(type);
+		supplier.setTxtSupplierCategoryName(type);
 		supplier.setTxtSupplierName(name);
 		supplier.setTxtContactName(contactName);
 		supplier.setTxtContactPhone(phone);

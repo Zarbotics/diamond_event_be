@@ -86,7 +86,6 @@ public final class PortalEndpoints {
 			"/decorCategoryMaster/getAllActiveDecorMasterData",
 			"/decorExtras/getAllActiveExtrasData",
 			"/decorExtras/getAllActiveServicesData",
-			"/vendorMaster/getAllActiveData",
 			// Menu reads live under an /admin/menu prefix for historical reasons; they are
 			// read-only catalogue queries that the customer journey depends on.
 			"/admin/menu/getMenu",
@@ -122,6 +121,11 @@ public final class PortalEndpoints {
 			// authorised by the single-use token instead.
 			"/consultation/book",
 			"/consultation/forEvent",
+			// The kinds of supplier a customer may declare. Reference data the
+			// suppliers step reads to fill its dropdown; the office's own list,
+			// which carries usage counts and retired categories, is /all and is
+			// administrator-only by falling through to the default.
+			"/externalSupplierCategory/offered",
 			// Single-segment wildcard for the {eventId} path variable. Ownership of that
 			// event is asserted in ControllerReport. The other report endpoints
 			// (/report/event/*, /report/kitchen_itinerary/*) are deliberately absent and

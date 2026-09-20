@@ -7,7 +7,6 @@ import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.EventBudget;
 import com.zbs.de.model.EventType;
 import com.zbs.de.model.VenueMaster;
-import com.zbs.de.model.VendorMaster;
 import com.zbs.de.model.dto.DtoEventMasterSearch;
 import com.zbs.de.util.UtilDateAndTime;
 
@@ -44,10 +43,6 @@ public final class SepecificationsEventMaster {
 			if (dto.getSerVenueMasterId() != null) {
 				Join<EventMaster, VenueMaster> vj = root.join("venueMaster", JoinType.LEFT);
 				predicates.add(cb.equal(vj.get("serVenueMasterId"), dto.getSerVenueMasterId()));
-			}
-			if (dto.getSerVendorId() != null) {
-				Join<EventMaster, VendorMaster> vend = root.join("vendorMaster", JoinType.LEFT);
-				predicates.add(cb.equal(vend.get("serVendorId"), dto.getSerVendorId()));
 			}
 
 			// boolean filters
@@ -108,7 +103,7 @@ public final class SepecificationsEventMaster {
 						"%" + dto.getTxtEventStatus().trim().toLowerCase() + "%"));
 			}
 
-			// joined-entity text fields (customer, eventType, venue, vendor)
+			// joined-entity text fields (customer, eventType, venue)
 			if (hasText(dto.getTxtCustName())) {
 				Join<EventMaster, CustomerMaster> cj = root.join("customerMaster", JoinType.LEFT);
 				predicates.add(cb.like(cb.lower(cj.get("txtCustName")),
@@ -123,11 +118,6 @@ public final class SepecificationsEventMaster {
 				Join<EventMaster, VenueMaster> vj = root.join("venueMaster", JoinType.LEFT);
 				predicates.add(cb.like(cb.lower(vj.get("txtVenueName")),
 						"%" + dto.getTxtVenueName().trim().toLowerCase() + "%"));
-			}
-			if (hasText(dto.getTxtVendorName())) {
-				Join<EventMaster, VendorMaster> vend = root.join("vendorMaster", JoinType.LEFT);
-				predicates.add(cb.like(cb.lower(vend.get("txtVendorName")),
-						"%" + dto.getTxtVendorName().trim().toLowerCase() + "%"));
 			}
 			if (hasText(dto.getTxtBudgetStatus())) {
 				Join<EventMaster, EventBudget> budget = root.join("eventBudget", JoinType.LEFT);
