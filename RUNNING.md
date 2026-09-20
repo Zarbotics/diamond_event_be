@@ -76,6 +76,35 @@ Both are pre-verified so `POST /auth/login` works without an SMTP server. The
 customer is deliberately `ROLE_USER`: testing the journey as an administrator
 would mean never exercising the authorisation rules a real customer hits.
 
+### Making somebody an administrator
+
+There is deliberately no way to do this from inside the application. Signing up
+always produces `ROLE_USER` — it used to read `setTxtRole("ROLE_ADMIN")`, on a
+public endpoint, so anybody who posted an email and a password became an
+administrator of the whole system. Promotion is an operation for somebody with
+the database password, performed on a named person:
+
+```bash
+psql -d diamond_ev -v email="'someone@example.com'" \
+     -f src/main/resources/db/seed/make-admin.sql
+```
+
+**The person signs up first.** There is no password to set in that script,
+because the column holds a bcrypt hash and hand-making one is how an
+installation ends up with a shared password nobody can rotate. So they register
+through the portal's own screen, or `POST /auth/signup`, or "Continue with
+Google" — any of which gives them a properly hashed credential — and the script
+promotes the account they already have. It reports which happened rather than
+printing `UPDATE 0` and leaving you to guess whether the address was wrong.
+
+It takes effect on their next request, with no new sign-in:
+`JwtAuthenticationFilter` reads the role from the database on every call rather
+than trusting the one inside the token. That is mostly so a **demotion** cannot
+be outlived by a token minted before it.
+
+To undo it, the same `UPDATE` with `'ROLE_USER'`. Nothing else records the
+role.
+
 ## Sign-in
 
 ### Configuring Google
@@ -181,6 +210,111 @@ SPRING_PROFILES_ACTIVE=prod,apple
 Without the profile no Apple client is registered at all, so no developer
 needs a copy of the signing key and Apple sign-in never appears to be
 available where it cannot work.
+
+## Connecting a calendar to the consultation diary
+
+**This is optional and off by default.** With nothing set, consultations work
+normally — the diary, the availability rules, booking, moving and cancelling
+all behave exactly as they do with it on. What you lose is the part that
+reaches outside this system: a host's own meetings do not block slots, nothing
+this system books appears in anybody's calendar, and no video link is created.
+The admin portal says so, under Consultations → Calendars, rather than
+offering a button that fails.
+
+Three things are needed, and the first is needed whichever provider you use.
+
+### 1. A key for the stored access
+
+```bash
+openssl rand -base64 32
+```
+
+```properties
+app.calendar.token-key=<the output>
+```
+
+A refresh token is a standing grant to read and write somebody's calendar
+until they revoke it, so it is never stored in the clear. With no key set,
+connecting is **refused** rather than falling back to plaintext — which is why
+this comes first, and why a correct Google registration on its own still will
+not connect.
+
+### 2. The callback URL, wherever this backend actually is
+
+```properties
+app.calendar.redirect-uri=https://api.example.com/diamond/calendar/oauth/callback
+```
+
+Locally the default is already right and you can leave it alone:
+`http://localhost:8080/diamond/calendar/oauth/callback`.
+
+It has to be the **backend**, not either frontend, and it has to be reachable
+by a browser coming back from Google or Microsoft. Whatever you put here must
+also be registered with the provider, character for character — a trailing
+slash is a different URL to them.
+
+### 3. An application registration with the provider
+
+Either or both. Google is the usual one.
+
+**Google**, at console.cloud.google.com:
+
+1. Enable the **Google Calendar API**.
+2. Create an **OAuth 2.0 Client ID**, type *Web application*.
+3. Add the callback from step 2 as an authorised redirect URI.
+4. Scopes: `calendar.freebusy` to read, `calendar.app.created` to write.
+
+```properties
+app.calendar.google.client-id=...
+app.calendar.google.client-secret=...
+```
+
+The narrow write scope is deliberate: it creates a calendar this application
+owns and can only touch what it put there. The broad `calendar` scope asks
+people for everything in their diary and now attracts a heavier verification
+review for no benefit here.
+
+This may live in the same Cloud project as "Continue with Google" sign-in, but
+it is a separate concern — sign-in identifies a customer, this reads a team
+member's availability. Different client ids, different consent.
+
+**Microsoft 365**, at entra.microsoft.com:
+
+1. Register an application; add the callback as a redirect URI.
+2. Create a client secret — its value is shown once.
+3. Add these **delegated** permissions: `Calendars.ReadBasic`,
+   `Calendars.ReadWrite`, `offline_access`.
+
+```properties
+app.calendar.microsoft.client-id=...
+app.calendar.microsoft.client-secret=...
+app.calendar.microsoft.tenant=common
+```
+
+Delegated means acting as the person who connected their own account, never as
+the organisation; application permissions would read every mailbox in the
+tenant. Without `offline_access` there is no refresh token at all, so the
+connection stops working within the hour.
+
+### Then, in the admin portal
+
+Consultations → **Calendars**, pick whose calendars, and press Connect. The
+browser goes to the provider, the person signs in as themselves and agrees,
+and comes back to a listed connection. Connect as many as you like — work and
+personal — and all of them block slots. One of them is marked *Use this one*,
+and that is the only calendar anything is ever written into.
+
+If a connection stops syncing, disconnect and reconnect it: a revoked or
+expired grant cannot be repaired from this end.
+
+### Why nothing breaks when it is not set up
+
+The adapter for a provider with no client id is **not registered at all**,
+rather than registered and failing on use. So a consultation books, the sync
+step finds no provider, records that there was nothing to write to, and the
+booking is untouched. Half-configured is the one state worth avoiding, and the
+token key is what makes it impossible: no key, no connection, no half-synced
+diary.
 
 ## Production
 
