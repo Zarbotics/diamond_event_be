@@ -126,6 +126,11 @@ public final class PortalEndpoints {
 			// which carries usage counts and retired categories, is /all and is
 			// administrator-only by falling through to the default.
 			"/externalSupplierCategory/offered",
+			// What the journey is allowed to know about how the business is
+			// configured — whether catering is on sale, how far ahead it takes
+			// bookings. Only rows explicitly marked public are returned; the
+			// office's own list is /all and falls through to administrator-only.
+			"/appSetting/forJourney",
 			// Single-segment wildcard for the {eventId} path variable. Ownership of that
 			// event is asserted in ControllerReport. The other report endpoints
 			// (/report/event/*, /report/kitchen_itinerary/*) are deliberately absent and

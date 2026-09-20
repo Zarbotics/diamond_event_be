@@ -10,9 +10,9 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 329 |
-| Controllers | 43 |
-| Named like a read (`get…`, `search…`, `is…`) | 153 |
+| Endpoints | 332 |
+| Controllers | 44 |
+| Named like a read (`get…`, `search…`, `is…`) | 154 |
 
 Almost every endpoint is `POST`, including the reads. Nothing is cacheable,
 no intermediary can safely retry a read, and which of these change data is
@@ -44,6 +44,14 @@ most of this inventory carries no audience marker.
 | `POST` | `/auth/refresh-token` | 🌍 |
 | `POST` | `/auth/signup` | 🌍 |
 | `GET` | `/auth/status` | 🌍 |
+
+### ControllerAppSetting
+
+| Verb | Path | Who |
+|---|---|---|
+| `POST` | `/appSetting/all` |  |
+| `POST` | `/appSetting/forJourney` | 👤 |
+| `POST` | `/appSetting/save` |  |
 
 ### ControllerCalendarOAuth
 

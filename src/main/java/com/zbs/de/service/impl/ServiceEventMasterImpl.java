@@ -170,6 +170,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private com.zbs.de.repository.RepositoryExternalSupplierCategory repositoryExternalSupplierCategory;
 
 	@Autowired
+	private ServiceAppSettings serviceAppSettings;
+
+	@Autowired
 	private RepositoryEventPaymentMaster repositoryEventPaymentMaster;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
@@ -5436,11 +5439,25 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		 * only the obviously impossible, and leaves the business free to set a
 		 * real limit — two years, three — without this having pre-empted it.
 		 */
+		/*
+		  The limit is a setting now, not a constant.
+		  
+		  Ten years was a stopgap chosen to reject only the obviously
+		  impossible, on the explicit basis that how far ahead the business
+		  actually takes bookings was its decision and this should not
+		  pre-empt it. `booking.horizon.months` is where that decision lives,
+		  and the office can change it without asking anybody.
+		*/
+		int horizonMonths = serviceAppSettings.getBookingHorizonMonths();
 		java.time.LocalDate furthestSensible = java.time.LocalDate.now(java.time.ZoneId.systemDefault())
-				.plusYears(MOST_YEARS_AHEAD);
+				.plusMonths(horizonMonths);
 		if (toLocalDate(newStart).isAfter(furthestSensible)) {
 			return new DtoEventBookingValidationResult(false,
-					"That date is more than " + MOST_YEARS_AHEAD + " years away — please check the year.");
+					horizonMonths % 12 == 0
+							? "That date is more than " + (horizonMonths / 12)
+									+ " years away — please check the year."
+							: "That date is more than " + horizonMonths
+									+ " months away — please check the year.");
 		}
 
 		/*
@@ -5757,15 +5774,6 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 		return !lastSavedBy.equals(savingNow);
 	}
-
-	/**
-	 * How far ahead a booking may be dated.
-	 *
-	 * <p>
-	 * A guard against a mistyped year, not a business rule about how far ahead
-	 * bookings are taken. See A5b for that question, which is still open.
-	 */
-	private static final int MOST_YEARS_AHEAD = 10;
 
 	/** How many events are on this day, never counting the one being edited. */
 
