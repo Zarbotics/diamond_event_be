@@ -365,6 +365,29 @@ found: `MapperEventMaster` wrote `getVenueMaster().getTxtVenueCode()` into
 `dto.setTxtVendorCode()` — the *venue's* code in a *vendor* field, in both
 mappers.
 
+### 5.4b Décor selections ✅
+
+Décor is one of the four things this business sells and nothing tested that
+choosing any of it was remembered. All three selection tables are empty, which
+is **not** evidence of a defect: the journey's décor step is optional and the
+end-to-end suite walks past it, so "nobody in this database has chosen any
+décor" explains it.
+
+Writing the test found a real break elsewhere. `saveAndUpdateWithDocs` — what
+the booking screens post to — clears the collection and adds to it, the pattern
+`orphanRemoval` requires. `saveAndUpdate` replaced it wholesale, which throws
+*"A collection with orphan deletion was no longer referenced by the owning
+entity instance"* on every save carrying décor. It backs
+`POST /eventMaster/saveOrUpdate`, a live administrator endpoint neither
+frontend calls. All four save methods use the safe pattern now, and six tests
+run against both paths so the copies cannot drift apart again silently.
+
+**This is the third defect found in one of four near-identical copies of the
+save logic**, each several thousand lines, with a comment in the source
+instructing the reader to repeat any change across them by hand. That is the
+root cause behind several bugs already paid for, and it is the single
+highest-value piece of remaining work — and the highest-risk. See D10.
+
 ### 5.5 Marketing site 💀 ❓
 
 `Home`, `About`, `Stages`, `Venues`, `Catering`, `Events`, `Navbar` and
@@ -391,6 +414,25 @@ marketing site returns or the WordPress site stays is a business decision.
 | Decor | `decor`, `decor-extras`, `decor-properties`, `decor-property-values`, `decor-services` |
 | Itinerary | `itinerary-item`, `itinerary-type`, `itinerary-assignment` |
 | Catalogue | `venues`, `supplier-categories`, `caterings` |
+
+**Navigation (rebuilt).** The sidebar had fourteen top-level entries, filed by
+which table each screen edits — so the day's bookings sat between the catalogue
+of event types and the diary, and décor was five screens in three places. It is
+two groups now, by how often somebody opens the thing: *Work* (Bookings,
+Calendar, Consultations, Customers, Catering deliveries) and *Catalogue* (Menu,
+Venues, Event types, Supplier categories), with Décor's five screens together
+under one heading. Nothing was removed or merged; every URL is unchanged.
+
+Fixed on the way through: the **Events entry had two destinations** — its label
+went to `/event-stats` (the bookings list) and its icon to `/events` (the
+catalogue of event *types*), under the same word. Reaching for the icon to
+check Saturday's bookings opened a screen for renaming "Walima". Every other
+live entry was checked the same way.
+
+**Food Menu screen removed.** It edited `menu_food_master`, a flat list of 20
+dishes that no booking has ever selected from; the journey reads the
+`menu_item` tree, which holds all 410 selections. Two screens for "the food"
+with one of them connected to nothing. The table stays.
 | Other | `calender-schedule`, `campaign-analysis`, `demo-2`, `fb*` (Firebase demo leftovers) |
 
 **Status:** ✅ third-party CDN assets removed (Jost self-hosted, Font Awesome
@@ -718,8 +760,12 @@ Specified in §12. Requested 19 August 2026.
 | ~~D6~~ | ~~Who takes consultations, and when?~~ **Answered:** all of it configurable in the admin portal — hosts, hours, meeting lengths, buffers, notice. Nothing hardcoded; seed data is starting data, not defaults. |
 | ~~D7~~ | ~~Google, Microsoft, or both?~~ **Answered:** both, connected per person. Busy read from every connected calendar, consultations written to one nominated calendar. See §12.6. |
 | ~~D8~~ | ~~Automatic Meet/Teams link?~~ **Answered:** yes, and configurable — `blnCreateVideoLink` per consultation type. Created on confirmation, not on request. |
-| D6 | **Is the itinerary feature live, and what is the "itinerary table" meant to show?** Seven tables, three admin screens and a Jasper kitchen report exist; every table is empty. Either the kitchen has never used it — in which case the question is whether it is wanted at all before anything is added — or it is used somewhere the development database does not see. If a table is wanted, what does it list: prep steps per dish for one event, or totals across a day's events, and who reads it — the kitchen, or the person planning the week? |
-| D5 | **Should customers pick external suppliers?** Five are seeded and the admin manages them, but the picker is commented out and the step now shows notes and terms instead. If suppliers are not returning, the step should be renamed for what it does. |
+| ~~D6~~ | ~~Is the itinerary feature live?~~ **Answered:** it was an attempt at calculating the equipment an event needs from the menu chosen for it — crockery, linen, the boards a grazing bar wants, the stands a dessert buffet wants. The owner's words: the model built for it is not good logic, and it can be replaced with whatever the right one is. So the *feature* is wanted and the *implementation* is not. Nothing has ever been stored in any of its seven tables. See D9. |
+| ~~D5~~ | ~~Should customers pick external suppliers?~~ **Answered: no, and the question was the wrong way round.** The venue does not engage outside firms — clause 5 of its own terms says third-party décor and catering are grounds for cancelling. The customer brings their own and declares them, against a category the office maintains. `vendor_master` is gone (V20); see §5.4. |
+
+| D10 | **Do the four copies of the event save get unified?** `saveAndUpdate`, `saveAndUpdateWithDocs`, `saveAndUpdateWithDocsCE` and `saveAndUpdateWithDocsAdminPortal` are near-identical, several thousand lines each, and the source tells the reader to keep them in step by hand. Three defects have now been found living in one copy and not the others. Unifying them is the highest-value change left and also the most dangerous, since every booking in the business goes through them — it wants its own plan, its own tests and its own sign-off, not to be folded into other work. |
+
+| D9 | **What must the equipment calculation produce?** Replacing the itinerary screens (D6) needs three answers before anything is built, because they lead to different systems: is the output a picking list the kitchen prints, a stock-availability check across a weekend, or an input to costing? Is the equipment owned or hired in? And are the quantities per guest, per table, or per station — a grazing bar is per station, a plated main is per cover. |
 
 ---
 
