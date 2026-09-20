@@ -388,6 +388,69 @@ instructing the reader to repeat any change across them by hand. That is the
 root cause behind several bugs already paid for, and it is the single
 highest-value piece of remaining work — and the highest-risk. See D10.
 
+### 5.6 Equipment requirements ✅
+
+What a booking needs on the day, worked out from what was sold. A wedding for
+300 with a plated main, a dessert buffet and a grazing bar needs 300 plates,
+boards and tongs for the station, linen for 30 tables and chafing dishes for
+the buffet — arithmetic on the menu, the guest count and the table count,
+which the system already holds.
+
+**One rule table, one vocabulary.** A rule is one sentence: a dish — or every
+event — needs a quantity of something, counted `PER_GUEST`, `PER_TABLE`,
+`PER_STATION` or `PER_EVENT`. A check constraint enforces exactly one source,
+so a rule that can never fire cannot be saved. Quantities are decimal, so "one
+chafing dish per 40 guests" is 0.025 rather than being forced into a station
+rule it is not.
+
+**What it deliberately does not do:** stock. It says what is needed and stops
+there, and draws no distinction between owned and hired. A half-built version
+of either would be a screen that looks like it knows the cupboard when it does
+not.
+
+**Two arithmetic decisions.** Rounding happens once, at the end — three dishes
+each wanting 0.4 spoons per table want 12 across 10 tables, not 30. Stations
+round up: 180 guests at one per 50 is four, and three leaves thirty guests
+queueing.
+
+**Computed, never stored.** Derived data that is stored goes stale silently.
+A run sheet frozen for the kitchen would be a deliberate snapshot, not a
+cache, and should be built when somebody asks for it.
+
+**Why the old shape was not reused.** The itinerary tables said the same thing
+twice: a rule could live in `itinerary_assignment_detail` with a multiplier
+from an enum of `PER_GUEST, PER_TABLE, PER_ITEM, PER_PORTION, FLAT`, or in
+`menu_item_itinerary_map` with a free-text multiplier documented as
+`PER_GUEST|PER_DISH|PER_STATION|FIXED`. Two vocabularies, neither a subset of
+the other, no rule about which wins — and `PER_STATION`, the one a grazing bar
+needs, existed only in the half that was not type-checked. The eight old
+tables are **not yet dropped**; V23 adds the replacement beside them so the
+two can be compared on a real database first.
+
+**A bug this found:** the calculation runs outside a transaction and the rules
+held their dish lazily, so every dish-attached rule would have thrown
+`LazyInitializationException` the moment it tried to name its dish. Fixed with
+fetch joins, which also removes a query per rule.
+
+### 5.7 Settings ✅
+
+Things the business configures, in a table with an admin screen. Each row
+declares its own type, bounds, heading and a sentence saying what changing it
+does — so the screen is generated from the answer rather than hard-coded
+against a list of keys, and a migration can add a setting that appears with
+the right control and the right validation.
+
+Reading never throws: every accessor takes a fallback, because failing a save
+over a mistyped setting turns a configuration mistake into an outage. Writing
+refuses early, with a sentence naming the setting. Booleans are read
+generously — not `Boolean.parseBoolean`, which answers false to everything it
+does not recognise, so "yes", "1" and the typo "treu" would each silently turn
+a feature off.
+
+`/forJourney` returns only rows marked public, by its own query rather than by
+filtering the office's list, so adding a private setting cannot start leaking
+it because somebody reused the wrong method.
+
 ### 5.5 Marketing site 💀 ❓
 
 `Home`, `About`, `Stages`, `Venues`, `Catering`, `Events`, `Navbar` and
@@ -761,11 +824,18 @@ Specified in §12. Requested 19 August 2026.
 | ~~D7~~ | ~~Google, Microsoft, or both?~~ **Answered:** both, connected per person. Busy read from every connected calendar, consultations written to one nominated calendar. See §12.6. |
 | ~~D8~~ | ~~Automatic Meet/Teams link?~~ **Answered:** yes, and configurable — `blnCreateVideoLink` per consultation type. Created on confirmation, not on request. |
 | ~~D6~~ | ~~Is the itinerary feature live?~~ **Answered:** it was an attempt at calculating the equipment an event needs from the menu chosen for it — crockery, linen, the boards a grazing bar wants, the stands a dessert buffet wants. The owner's words: the model built for it is not good logic, and it can be replaced with whatever the right one is. So the *feature* is wanted and the *implementation* is not. Nothing has ever been stored in any of its seven tables. See D9. |
+| ~~D1~~ | ~~Is food delivery coming back?~~ **Answered: yes, and switchable.** `catering.booking.enabled` closes the line of business — the journey stops offering it and the sidebar entry goes. The route stays reachable by URL on purpose: deliveries already booked are real work with real customers, and closing a line must not strand them. |
+
+| ~~D4~~ | ~~Is `menu_component` / `ingredient` a live feature?~~ **Half answered, and the half matters.** `ingredient` and `menu_item_ingredient` were empty with their Java already deleted; V22 drops them. **`menu_component` is live** — it carries the sections of a composite dish ("Cheeses, choose 3", "Also on the table"), has rows, and the pricing engine reads it. It was grouped with the recipe tables here on the basis that all three were empty, which was never true of it. |
+
+| ~~A5b~~ | ~~Upper bound on the event date~~ **Answered: configurable.** `booking.horizon.months` replaces the hardcoded ten years. See §5.7. |
+
 | ~~D5~~ | ~~Should customers pick external suppliers?~~ **Answered: no, and the question was the wrong way round.** The venue does not engage outside firms — clause 5 of its own terms says third-party décor and catering are grounds for cancelling. The customer brings their own and declares them, against a category the office maintains. `vendor_master` is gone (V20); see §5.4. |
 
 | D10 | **Do the four copies of the event save get unified?** `saveAndUpdate`, `saveAndUpdateWithDocs`, `saveAndUpdateWithDocsCE` and `saveAndUpdateWithDocsAdminPortal` are near-identical, several thousand lines each, and the source tells the reader to keep them in step by hand. Three defects have now been found living in one copy and not the others. Unifying them is the highest-value change left and also the most dangerous, since every booking in the business goes through them — it wants its own plan, its own tests and its own sign-off, not to be folded into other work. |
 
-| D9 | **What must the equipment calculation produce?** Replacing the itinerary screens (D6) needs three answers before anything is built, because they lead to different systems: is the output a picking list the kitchen prints, a stock-availability check across a weekend, or an input to costing? Is the equipment owned or hired in? And are the quantities per guest, per table, or per station — a grazing bar is per station, a plated main is per cover. |
+| ~~D9~~ | ~~What must the equipment calculation produce?~~ **Answered and built.** Calculate only — no stock check, no owned-versus-hired. Quantities are per guest, per table, per station or per event. See §5.6. |
+
 
 ---
 
