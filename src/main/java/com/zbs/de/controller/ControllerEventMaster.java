@@ -115,27 +115,6 @@ public class ControllerEventMaster {
 				result.getResulList());
 	}
 
-	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage saveOrUpdate(@RequestBody DtoEventMaster dtoEventMaster, HttpServletRequest request) {
-		LOGGER.info("Saving Event Master: {}", dtoEventMaster);
-		DtoResult result = serviceEventMaster.saveAndUpdate(dtoEventMaster);
-		// Somebody else saved this booking while the caller had it open. 409
-		// rather than the blanket 400 below, which reads as "your request was
-		// malformed" and gives no way to tell the two apart.
-		if ("changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
-			return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
-					String.valueOf(result.getResult()), result.getResult());
-		}
-		if (BAD_EVENT_DATE.equalsIgnoreCase(result.getTxtMessage())) {
-			return badEventDate(result);
-		}
-		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());
-		}
-		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
-				dtoEventMaster);
-	}
-
 	@PostMapping(value = "/saveWithDocs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithDocs(@RequestPart("eventMaster") String eventMaster,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
@@ -193,43 +172,6 @@ public class ControllerEventMaster {
 
 	}
 
-	
-	@PostMapping(value = "/saveWithDocsCE", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseMessage saveWithDocsCE(@RequestPart("eventMaster") String eventMaster,
-			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
-		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
-		LOGGER.info("Saving event {} ({})", dtoEventMaster.getSerEventMasterId(),
-				dtoEventMaster.getTxtEventMasterCode());
-		try {
-			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsCE(dtoEventMaster, files);
-			/*
-			 * Somebody else saved this booking while the caller had it open. 409
-			 * rather than 200: the save did not happen, and a client that reads
-			 * only the status must not conclude that it did.
-			 */
-			if (result != null && "changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
-				return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
-						String.valueOf(result.getResult()), result.getResult());
-			}
-			if (result != null && BAD_EVENT_DATE.equalsIgnoreCase(result.getTxtMessage())) {
-				return badEventDate(result);
-			}
-			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
-				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
-						result.getResult().toString(), result.getResult());
-			} else if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
-				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-						result.getResult());
-			} else {
-				return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
-						result.getTxtMessage(), dtoEventMaster);
-			}
-		} catch (Exception e) {
-			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
-					dtoEventMaster);
-		}
-
-	}
 	
 	@PostMapping(value = "/generateEventCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage generateEventCode(HttpServletRequest request) {

@@ -76,7 +76,8 @@ class PaidAmountIsNotDictatedByTheFormTest {
 		assertThat(live).isNotEmpty();
 		assertThat(live).anyMatch(l -> l.contains("public DtoResult saveAndUpdateWithDocs("));
 		assertThat(live).anyMatch(l -> l.contains("public DtoResult saveAndUpdateWithDocsAdminPortal("));
-		assertThat(live).anyMatch(l -> l.contains("public DtoResult saveAndUpdateWithDocsCE("));
+		// saveAndUpdateWithDocsCE was here. It is gone — an unused 96%-identical
+		// copy of saveAndUpdateWithDocs, removed rather than kept in step by hand.
 	}
 
 	@Test
@@ -103,15 +104,25 @@ class PaidAmountIsNotDictatedByTheFormTest {
 
 	@Test
 	@DisplayName("every save path goes through the helper")
-	void allFourSavePathsUseIt() throws IOException {
+	void everySavePathUsesIt() throws IOException {
 		/*
 		 * The other half. A path that stopped writing the field altogether would
 		 * pass the test above while leaving the paid amount stale on that path —
-		 * so the twelve call sites are counted, not merely permitted.
+		 * so the call sites are counted, not merely permitted.
 		 *
-		 * Twelve: four save methods, each with a create branch and an update
-		 * branch, each branch with a figure and an else that means nothing was
-		 * sent.
+		 * Eight: four per save method — a create branch and an update branch,
+		 * each with a figure and an else that means nothing was sent — across
+		 * the two that remain.
+		 *
+		 * It was twelve. saveAndUpdateWithDocsCE was removed: a 96%-identical
+		 * copy of saveAndUpdateWithDocs whose endpoint neither frontend called,
+		 * carrying a comment instructing the reader to keep the two in step by
+		 * hand. Its four call sites went with it.
+		 *
+		 * The number is deliberately exact rather than a minimum. A count that
+		 * only checks "at least" cannot tell a new save path that forgot the
+		 * helper from one that uses it, and a new save path is precisely the
+		 * thing this is watching for.
 		 */
 		long calls = liveLines().stream()
 				.filter(l -> l.contains("setPaidAmount(eventBudget,"))
@@ -120,6 +131,6 @@ class PaidAmountIsNotDictatedByTheFormTest {
 		assertThat(calls)
 				.as("a save path has stopped recording what has been paid, or a new one has appeared "
 						+ "— check it goes through setPaidAmount")
-				.isEqualTo(12);
+				.isEqualTo(8);
 	}
 }

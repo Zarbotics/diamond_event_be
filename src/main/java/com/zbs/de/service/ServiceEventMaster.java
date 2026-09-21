@@ -18,7 +18,6 @@ import com.zbs.de.model.dto.DtoSearch;
 
 public interface ServiceEventMaster {
 
-	DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster);
 
 	DtoResult getByEventTypeIdAndCustId(DtoSearch dtoSearch);
 
@@ -101,8 +100,6 @@ public interface ServiceEventMaster {
 	 */
 	DtoResult getEventSummariesByCustomerId(Integer serCustId);
 
-
-	DtoResult saveAndUpdateWithDocsCE(DtoEventMaster dtoEventMaster, List<MultipartFile> files)throws IOException;
 	
 	DtoEventMaster getEventById(Integer serEventMasterId);
 }

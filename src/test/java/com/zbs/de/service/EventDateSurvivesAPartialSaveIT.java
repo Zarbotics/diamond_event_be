@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -77,6 +78,9 @@ class EventDateSurvivesAPartialSaveIT {
 	@Autowired
 	private RepositoryEventType repositoryEventType;
 
+	@Autowired
+	private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
 	private CustomerMaster customer;
 	private EventType eventType;
 
@@ -108,21 +112,35 @@ class EventDateSurvivesAPartialSaveIT {
 	  fixed. The fix deliberately covers the date alone (see setEventDate), so
 	  the teardown has to hold a handle the save cannot erase.
 	*/
+	/*
+	  In SQL, and in dependency order.
+
+	  Through the repositories it cannot be done any more: saveAndUpdateWithDocs
+	  attaches each child collection to the entity instance it was holding, so
+	  by the time a test ends the persistence context contains rows pointing at
+	  an EventMaster it has never seen. Hibernate auto-flushes before the first
+	  query a teardown makes and throws TransientObjectException there — before
+	  the teardown has deleted anything.
+
+	  That is an artefact of clearing up after the service in the same context
+	  the service just used, not something the application does.
+	*/
 	@AfterEach
-	void removeSeed() {
-		java.util.List<Integer> mine = repositoryCustomerMaster.findAll().stream()
-				.filter(c -> c.getTxtCustCode() != null && c.getTxtCustCode().startsWith(MARKER))
-				.map(CustomerMaster::getSerCustId)
-				.toList();
+	void removeSeed() throws Exception {
+		for (String child : List.of("event_external_supplier", "event_decor_category_selection",
+				"event_decor_extras_selection", "event_menu_food_selection",
+				"event_menu_category_selection", "event_food_selection", "event_quote",
+				"event_budget", "event_payment")) {
+			String column = child.equals("event_payment") ? "ser_event_id" : "ser_event_master_id";
+			jdbcTemplate.update("DELETE FROM " + child + " WHERE " + column + " IN ("
+					+ "  SELECT e.ser_event_master_id FROM event_master e"
+					+ "  JOIN customer_master c ON c.ser_cust_id = e.ser_cust_id"
+					+ "  WHERE c.txt_cust_code LIKE ?)", MARKER + "%");
+		}
 
-		repositoryEventMaster.findAll().stream()
-				.filter(e -> e.getCustomerMaster() != null
-						&& mine.contains(e.getCustomerMaster().getSerCustId()))
-				.forEach(repositoryEventMaster::delete);
-
-		repositoryCustomerMaster.findAll().stream()
-				.filter(c -> c.getTxtCustCode() != null && c.getTxtCustCode().startsWith(MARKER))
-				.forEach(repositoryCustomerMaster::delete);
+		jdbcTemplate.update("DELETE FROM event_master WHERE ser_cust_id IN ("
+				+ "  SELECT ser_cust_id FROM customer_master WHERE txt_cust_code LIKE ?)", MARKER + "%");
+		jdbcTemplate.update("DELETE FROM customer_master WHERE txt_cust_code LIKE ?", MARKER + "%");
 	}
 
 	private EventType anEventType() {
@@ -180,12 +198,12 @@ class EventDateSurvivesAPartialSaveIT {
 
 	@Test
 	@DisplayName("a save that never mentions the date leaves it exactly as it was")
-	void anOmittedDateIsKept() {
+	void anOmittedDateIsKept() throws Exception {
 		EventMaster event = seedDatedEvent();
 		Date booked = storedDateOf(event);
 		assertThat(booked).as("the fixture did not store a date, so this test proves nothing").isNotNull();
 
-		serviceEventMaster.saveAndUpdate(barelyEnoughToSave(event));
+		serviceEventMaster.saveAndUpdateWithDocs(barelyEnoughToSave(event), null);
 
 		assertThat(storedDateOf(event))
 				.as("saving without a date cleared the date of a booked event")
@@ -194,7 +212,7 @@ class EventDateSurvivesAPartialSaveIT {
 
 	@Test
 	@DisplayName("a save that does carry a date still moves it")
-	void aSuppliedDateStillWins() {
+	void aSuppliedDateStillWins() throws Exception {
 		/*
 			The other half of the guard, and the reason it is worth writing down.
 			Keeping an absent date is only correct if a present one still lands —
@@ -208,7 +226,7 @@ class EventDateSurvivesAPartialSaveIT {
 		dto.setDteEventDate(UtilDateAndTime.mmddyyyyDateToString(
 				Date.from(moved.atStartOfDay(ZoneOffset.UTC).toInstant())));
 
-		serviceEventMaster.saveAndUpdate(dto);
+		serviceEventMaster.saveAndUpdateWithDocs(dto, null);
 
 		/*
 			`hasSameTimeAs`, not `isEqualTo`. The driver returns a
@@ -223,7 +241,7 @@ class EventDateSurvivesAPartialSaveIT {
 
 	@Test
 	@DisplayName("an event with no date yet is still allowed to have none")
-	void anEventThatNeverHadADateStaysDateless() {
+	void anEventThatNeverHadADateStaysDateless() throws Exception {
 		/*
 			The journey creates the booking on the "which occasion" step, before
 			the customer has reached the calendar, so a dateless event is a real
@@ -246,7 +264,7 @@ class EventDateSurvivesAPartialSaveIT {
 		dateless.setIsEditAllowed(true);
 		dateless = repositoryEventMaster.saveAndFlush(dateless);
 
-		DtoResult result = serviceEventMaster.saveAndUpdate(barelyEnoughToSave(dateless));
+		DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(barelyEnoughToSave(dateless), null);
 
 		assertThat(result.getTxtMessage())
 				.as("a booking without a date yet was refused")
@@ -258,7 +276,7 @@ class EventDateSurvivesAPartialSaveIT {
 
 	@Test
 	@DisplayName("a date that is not a date is still refused, not quietly kept")
-	void anUnreadableDateIsStillARefusal() {
+	void anUnreadableDateIsStillARefusal() throws Exception {
 		/*
 			Keeping an absent date must not soften the existing refusal of a
 			malformed one. "Absent" is a caller saying nothing; "32-13-2026" is a
@@ -270,7 +288,7 @@ class EventDateSurvivesAPartialSaveIT {
 		DtoEventMaster dto = barelyEnoughToSave(event);
 		dto.setDteEventDate("32-13-2026");
 
-		DtoResult result = serviceEventMaster.saveAndUpdate(dto);
+		DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dto, null);
 
 		assertThat(result.getTxtMessage())
 				.as("an unreadable date was accepted")

@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -77,6 +78,9 @@ class EventConcurrentEditIT {
 	@Autowired
 	private RepositoryEventType repositoryEventType;
 
+	@Autowired
+	private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
 	private CustomerMaster customer;
 	private EventType eventType;
 
@@ -94,15 +98,35 @@ class EventConcurrentEditIT {
 		}
 	}
 
-	@AfterEach
-	void removeSeed() {
-		repositoryEventMaster.findAll().stream()
-				.filter(e -> e.getTxtEventMasterName() != null && e.getTxtEventMasterName().startsWith(MARKER))
-				.forEach(repositoryEventMaster::delete);
+	/*
+	  In SQL, and in dependency order.
 
-		repositoryCustomerMaster.findAll().stream()
-				.filter(c -> c.getTxtCustCode() != null && c.getTxtCustCode().startsWith(MARKER))
-				.forEach(repositoryCustomerMaster::delete);
+	  Through the repositories it cannot be done any more: saveAndUpdateWithDocs
+	  attaches each child collection to the entity instance it was holding, so
+	  by the time a test ends the persistence context contains rows pointing at
+	  an EventMaster it has never seen. Hibernate auto-flushes before the first
+	  query a teardown makes and throws TransientObjectException there — before
+	  the teardown has deleted anything.
+
+	  That is an artefact of clearing up after the service in the same context
+	  the service just used, not something the application does.
+	*/
+	@AfterEach
+	void removeSeed() throws Exception {
+		for (String child : List.of("event_external_supplier", "event_decor_category_selection",
+				"event_decor_extras_selection", "event_menu_food_selection",
+				"event_menu_category_selection", "event_food_selection", "event_quote",
+				"event_budget", "event_payment")) {
+			String column = child.equals("event_payment") ? "ser_event_id" : "ser_event_master_id";
+			jdbcTemplate.update("DELETE FROM " + child + " WHERE " + column + " IN ("
+					+ "  SELECT e.ser_event_master_id FROM event_master e"
+					+ "  JOIN customer_master c ON c.ser_cust_id = e.ser_cust_id"
+					+ "  WHERE c.txt_cust_code LIKE ?)", MARKER + "%");
+		}
+
+		jdbcTemplate.update("DELETE FROM event_master WHERE ser_cust_id IN ("
+				+ "  SELECT ser_cust_id FROM customer_master WHERE txt_cust_code LIKE ?)", MARKER + "%");
+		jdbcTemplate.update("DELETE FROM customer_master WHERE txt_cust_code LIKE ?", MARKER + "%");
 	}
 
 	private EventMaster seedEvent() {
@@ -158,7 +182,7 @@ class EventConcurrentEditIT {
 	}
 
 	@org.junit.jupiter.api.AfterEach
-	void clearWhoIsSaving() {
+	void clearWhoIsSaving() throws Exception {
 		SecurityContextHolder.clearContext();
 	}
 
@@ -178,7 +202,7 @@ class EventConcurrentEditIT {
 
 	@Test
 	@DisplayName("a version is issued with the event and moves on when it is saved")
-	void theVersionIsIssuedAndAdvances() {
+	void theVersionIsIssuedAndAdvances() throws Exception {
 		EventMaster event = seedEvent();
 
 		DtoEventMaster asFetched = serviceEventMaster.getEventById(event.getSerEventMasterId());
@@ -186,7 +210,7 @@ class EventConcurrentEditIT {
 				.as("the event was handed out with no version, so no client can send one back")
 				.isNotNull();
 
-		serviceEventMaster.saveAndUpdate(asClientCopy(event, 150));
+		serviceEventMaster.saveAndUpdateWithDocs(asClientCopy(event, 150), null);
 
 		DtoEventMaster afterSave = serviceEventMaster.getEventById(event.getSerEventMasterId());
 		assertThat(afterSave.getNumVersion())
@@ -196,7 +220,7 @@ class EventConcurrentEditIT {
 
 	@Test
 	@DisplayName("the second person to save a booking is told, rather than winning")
-	void theSecondSaveIsRefused() {
+	void theSecondSaveIsRefused() throws Exception {
 		EventMaster event = seedEvent();
 
 		// Both open the same booking. Same version in both hands.
@@ -204,11 +228,11 @@ class EventConcurrentEditIT {
 		DtoEventMaster customerCopy = asClientCopy(event, 300);
 
 		savingAs(ADMINISTRATOR);
-		DtoResult first = serviceEventMaster.saveAndUpdate(administrator);
+		DtoResult first = serviceEventMaster.saveAndUpdateWithDocs(administrator, null);
 		assertThat(first.getTxtMessage()).isNotEqualTo("changed_elsewhere");
 
 		savingAs(CUSTOMER);
-		DtoResult second = serviceEventMaster.saveAndUpdate(customerCopy);
+		DtoResult second = serviceEventMaster.saveAndUpdateWithDocs(customerCopy, null);
 
 		assertThat(second.getTxtMessage())
 				.as("the second save overwrote the first without anybody being told")
@@ -226,7 +250,7 @@ class EventConcurrentEditIT {
 
 	@Test
 	@DisplayName("re-fetching after a refusal lets the change be made properly")
-	void refetchingResolvesIt() {
+	void refetchingResolvesIt() throws Exception {
 		/*
 		 * The refusal is only reasonable if the way out of it is obvious and it
 		 * works. Somebody who reloads and reapplies their change must not hit the
@@ -235,11 +259,11 @@ class EventConcurrentEditIT {
 		EventMaster event = seedEvent();
 
 		savingAs(ADMINISTRATOR);
-		serviceEventMaster.saveAndUpdate(asClientCopy(event, 250));
+		serviceEventMaster.saveAndUpdateWithDocs(asClientCopy(event, 250), null);
 
 		savingAs(CUSTOMER);
 		EventMaster refetched = repositoryEventMaster.findById(event.getSerEventMasterId()).orElseThrow();
-		DtoResult retried = serviceEventMaster.saveAndUpdate(asClientCopy(refetched, 300));
+		DtoResult retried = serviceEventMaster.saveAndUpdateWithDocs(asClientCopy(refetched, 300), null);
 
 		assertThat(retried.getTxtMessage()).isNotEqualTo("changed_elsewhere");
 		assertThat(repositoryEventMaster.findById(event.getSerEventMasterId()).orElseThrow()
@@ -248,7 +272,7 @@ class EventConcurrentEditIT {
 
 	@Test
 	@DisplayName("saving twice in a row works, the way every step of the journey does")
-	void consecutiveSavesFromOneClientAllSucceed() {
+	void consecutiveSavesFromOneClientAllSucceed() throws Exception {
 		/*
 		 * The same thing from the customer's side. One person, one booking, three
 		 * steps in a row — no second editor anywhere. If the version handed back
@@ -261,7 +285,7 @@ class EventConcurrentEditIT {
 
 		for (int step = 0; step < 3; step++) {
 			held.setNumNumberOfGuests(120 + step * 10);
-			DtoResult outcome = serviceEventMaster.saveAndUpdate(held);
+			DtoResult outcome = serviceEventMaster.saveAndUpdateWithDocs(held, null);
 
 			assertThat(outcome.getTxtMessage())
 					.as("save number %d was refused as a conflict, with nobody else editing", step + 1)
@@ -277,7 +301,7 @@ class EventConcurrentEditIT {
 
 	@Test
 	@DisplayName("a client that sends no version is still allowed to save")
-	void anOlderClientIsNotLockedOut() {
+	void anOlderClientIsNotLockedOut() throws Exception {
 		/*
 		 * Deliberate. A caller that predates this field means an older build, not
 		 * a conflict — and refusing those saves would break working screens to
@@ -289,7 +313,7 @@ class EventConcurrentEditIT {
 		DtoEventMaster noVersion = asClientCopy(event, 400);
 		noVersion.setNumVersion(null);
 
-		assertThat(serviceEventMaster.saveAndUpdate(noVersion).getTxtMessage())
+		assertThat(serviceEventMaster.saveAndUpdateWithDocs(noVersion, null).getTxtMessage())
 				.isNotEqualTo("changed_elsewhere");
 	}
 }

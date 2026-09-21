@@ -118,15 +118,30 @@ class EveryNewEventGetsABookingTest {
 				.filter(m -> CREATES_AN_EVENT.matcher(m.body()).find())
 				.count();
 
-		long calls = GIVES_IT_A_BOOKING.matcher(Files.readString(SERVICE)).results().count();
+		/*
+		 * Call sites, not occurrences: the declaration of giveItABooking itself
+		 * matches the same pattern, and counting it would let a file with the
+		 * helper and no callers pass.
+		 */
+		long calls = methods.stream()
+				.filter(m -> !m.name().equals("giveItABooking"))
+				.mapToLong(m -> GIVES_IT_A_BOOKING.matcher(m.body()).results().count())
+				.sum();
 
 		assertThat(creating).as("found no method that creates an event").isPositive();
+
+		/*
+		 * Measured against what the file actually contains rather than against
+		 * a number somebody wrote down. It used to assert four, because there
+		 * were four near-identical save methods; two of those were unused
+		 * copies and have gone, and a guard that needs recalibrating every time
+		 * the code improves is a guard people learn to edit rather than read.
+		 */
 		assertThat(calls)
 				.as("""
-						giveItABooking is called fewer times than there are create branches. \
-						There are four, in four near-identical methods, and a branch that quietly \
-						lost its call would leave every event created down it with no parent.""")
-				.isGreaterThanOrEqualTo(4);
+						giveItABooking is called fewer times than there are create branches, so \
+						at least one branch creates events with no parent above them.""")
+				.isGreaterThanOrEqualTo(creating);
 	}
 
 	// -----------------------------------------------------------------
@@ -141,7 +156,7 @@ class EveryNewEventGetsABookingTest {
 	 * absent from a method — survives the imprecision comfortably.
 	 */
 	private List<Method> methodsOf(Path file) throws IOException {
-		String source = Files.readString(file);
+		String source = liveSource(file);
 
 		Pattern signature = Pattern.compile(
 				"\\n\\t(?:public|private|protected)\\s+[\\w<>,\\[\\]\\. ]+?\\s+(\\w+)\\s*\\(");
@@ -161,5 +176,29 @@ class EveryNewEventGetsABookingTest {
 			methods.add(new Method(names.get(i), source.substring(starts.get(i), end)));
 		}
 		return methods;
+	}
+
+	/**
+	 * The file with its commented-out code removed.
+	 *
+	 * <p>
+	 * This scan reads text, and a commented-out method is text. There is a
+	 * disabled copy of {@code generateNextEventMasterCode} in this file, and
+	 * while it happened to sit inside a live method's span it was attributed to
+	 * that method and did no harm. When the method around it was deleted the
+	 * comment attached itself to {@code setPaidAmount} instead, which was
+	 * duly reported as creating events without a booking.
+	 *
+	 * <p>
+	 * A structural test that can be fooled by a comment is one that will
+	 * eventually be fooled into silence rather than into noise, so it reads
+	 * live lines only — the same thing its neighbour does.
+	 */
+	private static String liveSource(Path file) throws IOException {
+		StringBuilder live = new StringBuilder();
+		for (String line : Files.readAllLines(file)) {
+			live.append(line.trim().startsWith("//") ? "" : line).append('\n');
+		}
+		return live.toString();
 	}
 }

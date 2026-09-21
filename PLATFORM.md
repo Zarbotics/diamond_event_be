@@ -451,6 +451,66 @@ a feature off.
 filtering the office's list, so adding a private setting cannot start leaking
 it because somebody reused the wrong method.
 
+### 5.8 The event save, and how many there were ✅ 🟡
+
+The owner asked why four copies existed, believing events were saved in three
+places: the journey, the control panel, and the control panel's "open with
+client portal". The last of those turned out not to be a third place at all —
+it hands off to the journey, which posts to the same endpoint with a
+`blnIsCE` flag in the payload.
+
+**Two of the four had no caller.**
+
+- `saveAndUpdateWithDocsCE` — **96.4% identical** to `saveAndUpdateWithDocs`,
+  its endpoint called by neither frontend, and carrying a comment instructing
+  the reader to copy any change into its twin by hand. 1,418 lines, removed.
+- `saveAndUpdate` — `POST /eventMaster/saveOrUpdate`, no frontend caller,
+  though four integration suites used it as a convenient entry point. 517
+  lines, removed.
+
+**The deletion was proved, not assumed.** All 17 assertions in those four
+suites were repointed from `saveAndUpdate` to `saveAndUpdateWithDocs` first.
+Every test body passed unchanged — optimistic locking, date preservation,
+booking creation, décor persistence. The only failures were in teardown, where
+`saveAndUpdateWithDocs` leaves attached collections that a repository-based
+cleanup trips over; an artefact of clearing up after the service in its own
+context, not a difference in behaviour.
+
+`ServiceEventMasterImpl`: **7,367 → 5,528 lines.**
+
+#### The bug this found
+
+The office's External Suppliers panel could neither show nor save a supplier.
+`DtoEventMasterAdminPortal` had no `externalSuppliers` field so Jackson dropped
+the rows; the admin save never called `replaceExternalSuppliers`; the admin
+read never called `readExternalSuppliers`. Three omissions, all in the copy
+nobody had changed — the fourth documented instance of exactly this drift.
+
+The helpers took a `DtoEventMaster`, which meant only the journey could call
+them. They take the value and the list now, so both paths can. That is the
+shape of every drift bug in this file: a helper typed to one caller's DTO
+cannot be reused by the other, so the other quietly goes without.
+
+#### `blnIsCE` is inert
+
+`blnIsCE == null || (blnIsCE != null && blnIsCE)` is true when the flag is
+absent *or* true, and the journey only ever sets it to true or omits it. It
+was presumably meant to suppress the customer's confirmation email when staff
+drive the journey on their behalf. It suppresses nothing. **Left alone** — who
+receives email is a business decision.
+
+#### Three structural guards fired, and all three were right
+
+Two needed recalibrating for the smaller file. The third flagged
+`setPaidAmount` as creating events with no booking, which was a real weakness
+exposed rather than caused: the scan reads the file as text, and a
+commented-out copy of `generateNextEventMasterCode` used to fall inside the
+span of a method that did call `giveItABooking`. Delete that method and the
+comment attaches itself elsewhere. A structural test that can be fooled by a
+comment into shouting will eventually be fooled by one into silence, so it
+reads live lines only now, and counts against what the file contains rather
+than a remembered number.
+
 ### 5.5 Marketing site 💀 ❓
 
 `Home`, `About`, `Stages`, `Venues`, `Catering`, `Events`, `Navbar` and
@@ -832,7 +892,10 @@ Specified in §12. Requested 19 August 2026.
 
 | ~~D5~~ | ~~Should customers pick external suppliers?~~ **Answered: no, and the question was the wrong way round.** The venue does not engage outside firms — clause 5 of its own terms says third-party décor and catering are grounds for cancelling. The customer brings their own and declares them, against a category the office maintains. `vendor_master` is gone (V20); see §5.4. |
 
-| D10 | **Do the four copies of the event save get unified?** `saveAndUpdate`, `saveAndUpdateWithDocs`, `saveAndUpdateWithDocsCE` and `saveAndUpdateWithDocsAdminPortal` are near-identical, several thousand lines each, and the source tells the reader to keep them in step by hand. Three defects have now been found living in one copy and not the others. Unifying them is the highest-value change left and also the most dangerous, since every booking in the business goes through them — it wants its own plan, its own tests and its own sign-off, not to be folded into other work. |
+| ~~D10~~ | ~~Do the four copies of the event save get unified?~~ **Investigated and half done — see §5.8.** There were never four live paths: two had no caller at all and are gone, 1,839 lines with them. The two that remain differ for real reasons and are best served by extracting their shared body rather than merging them. |
+
+| D10b | **Should the last two save paths share an extracted body?** `saveAndUpdateWithDocs` and `saveAndUpdateWithDocsAdminPortal` are 85% identical, and the 15% is genuine: the journey refuses to edit a locked booking and the office must be able to; the office sets prices and a customer must not. Collapsing them into one method with a "who is saving this" flag trades duplication for conditional complexity in the method every booking passes through. Extracting the shared 85% into named helpers both call — as `replaceExternalSuppliers` now is — removes the drift risk without that trade. Larger and more careful than the deletions; wants its own sign-off. |
+
 
 | ~~D9~~ | ~~What must the equipment calculation produce?~~ **Answered and built.** Calculate only — no stock check, no owned-versus-hired. Quantities are per guest, per table, per station or per event. See §5.6. |
 

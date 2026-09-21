@@ -15,8 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
@@ -158,7 +157,7 @@ class DecorSelectionSurvivesASaveIT {
 	 * straight at the database.
 	 */
 	@AfterEach
-	void removeSeed() {
+	void removeSeed() throws Exception {
 		/*
 		  Everything that points at an event, then the event, then the customer.
 
@@ -205,34 +204,34 @@ class DecorSelectionSurvivesASaveIT {
 	}
 
 	/**
-	 * Both ways in.
+	 * One way in, now.
 	 *
 	 * <p>
-	 * `saveWithDocs` is what the journey and the office screens post to;
-	 * `saveOrUpdate` is the JSON endpoint beside it. They are separate copies
-	 * of the same logic, which is how one of them came to carry a fix the
-	 * other did not, so every case here runs against both.
+	 * Every case here used to run twice, against `saveWithDocs` and against
+	 * `saveOrUpdate` — separate copies of the same logic, which is how one of
+	 * them came to carry the orphan-collection fix and the other did not.
+	 *
+	 * <p>
+	 * `saveOrUpdate` has since been removed: no frontend called it, and a
+	 * second copy existing only so that tests can prove it matches the first
+	 * is a cost with no benefit. The cases stayed; there is simply one path
+	 * for them to exercise.
 	 */
-	private void save(DtoEventMaster dto, boolean throughDocs) {
-		if (throughDocs) {
-			try {
-				serviceEventMaster.saveAndUpdateWithDocs(dto, null);
-			} catch (java.io.IOException e) {
-				throw new IllegalStateException("saving through the documents path failed", e);
-			}
-		} else {
-			serviceEventMaster.saveAndUpdate(dto);
+	private void save(DtoEventMaster dto) {
+		try {
+			serviceEventMaster.saveAndUpdateWithDocs(dto, null);
+		} catch (java.io.IOException e) {
+			throw new IllegalStateException("saving the booking failed", e);
 		}
 	}
 
-	@ParameterizedTest(name = "through saveWithDocs: {0}")
-	@ValueSource(booleans = { true, false })
+	@Test
 	@DisplayName("a chosen décor category is actually stored")
-	void aDecorChoiceIsStored(boolean throughDocs) {
+	void aDecorChoiceIsStored() throws Exception {
 		EventMaster event = seedEvent();
 		DecorCategoryMaster stage = seedDecorCategory("Stage");
 
-		save(withDecor(event, stage, "Ivory and gold, please."), throughDocs);
+		save(withDecor(event, stage, "Ivory and gold, please."));
 
 		assertThat(storedDecorOf(event))
 				.as("choosing a décor category stored nothing at all")
@@ -252,17 +251,16 @@ class DecorSelectionSurvivesASaveIT {
 	 * existing rows without writing the new ones, it happens here and not on
 	 * the first save.
 	 */
-	@ParameterizedTest(name = "through saveWithDocs: {0}")
-	@ValueSource(booleans = { true, false })
+	@Test
 	@DisplayName("saving a second time replaces the décor rather than losing it")
-	void asecondSaveKeepsTheDecor(boolean throughDocs) {
+	void asecondSaveKeepsTheDecor() throws Exception {
 		EventMaster event = seedEvent();
 		DecorCategoryMaster stage = seedDecorCategory("Stage");
 
-		save(withDecor(event, stage, "Ivory and gold, please."), throughDocs);
+		save(withDecor(event, stage, "Ivory and gold, please."));
 		EventMaster afterFirst = reload(event);
 
-		save(withDecor(afterFirst, stage, "Ivory and silver instead."), throughDocs);
+		save(withDecor(afterFirst, stage, "Ivory and silver instead."));
 
 		assertThat(storedDecorOf(event))
 				.as("saving the décor step twice left the booking with the wrong number of choices")
@@ -282,19 +280,18 @@ class DecorSelectionSurvivesASaveIT {
 	 * four screens earlier. It is the same rule the date, the suppliers and the
 	 * menu selections each follow.
 	 */
-	@ParameterizedTest(name = "through saveWithDocs: {0}")
-	@ValueSource(booleans = { true, false })
+	@Test
 	@DisplayName("a save that never mentions décor leaves what was chosen alone")
-	void anOmittedDecorListIsKept(boolean throughDocs) {
+	void anOmittedDecorListIsKept() throws Exception {
 		EventMaster event = seedEvent();
 		DecorCategoryMaster stage = seedDecorCategory("Stage");
 
-		save(withDecor(event, stage, "Ivory and gold, please."), throughDocs);
+		save(withDecor(event, stage, "Ivory and gold, please."));
 		assertThat(storedDecorOf(event))
 				.as("the fixture stored no décor, so this test would prove nothing")
 				.hasSize(1);
 
-		save(barelyEnoughToSave(reload(event)), throughDocs);
+		save(barelyEnoughToSave(reload(event)));
 
 		assertThat(storedDecorOf(event))
 				.as("a save that said nothing about décor deleted the customer's choices")

@@ -282,9 +282,9 @@ class BookingCreatedWithEventIT {
 
 	@Test
 	@DisplayName("an event created today gets a booking, as one created before the migration did")
-	void aNewEventHasAParent() {
+	void aNewEventHasAParent() throws Exception {
 		EventMaster event = created(
-				serviceEventMaster.saveAndUpdate(newEventOn(FIRST_FREE_DAY, "walima")), "walima");
+				serviceEventMaster.saveAndUpdateWithDocs(newEventOn(FIRST_FREE_DAY, "walima"), null), "walima");
 
 		assertThat(event.getSerBookingId())
 				.as("""
@@ -295,9 +295,9 @@ class BookingCreatedWithEventIT {
 
 	@Test
 	@DisplayName("the booking knows who it is with and what to quote on the telephone")
-	void theBookingCarriesTheCustomerAndTheCode() {
+	void theBookingCarriesTheCustomerAndTheCode() throws Exception {
 		EventMaster event = created(
-				serviceEventMaster.saveAndUpdate(newEventOn(FIRST_FREE_DAY.plusDays(1), "nikkah")), "nikkah");
+				serviceEventMaster.saveAndUpdateWithDocs(newEventOn(FIRST_FREE_DAY.plusDays(1), "nikkah"), null), "nikkah");
 
 		Booking booking = repositoryBooking.findById(event.getSerBookingId()).orElseThrow();
 
@@ -328,7 +328,7 @@ class BookingCreatedWithEventIT {
 		 * which is why giveItABooking returns early when there already is one.
 		 */
 		EventMaster event = created(
-				serviceEventMaster.saveAndUpdate(newEventOn(FIRST_FREE_DAY.plusDays(2), "mehndi")), "mehndi");
+				serviceEventMaster.saveAndUpdateWithDocs(newEventOn(FIRST_FREE_DAY.plusDays(2), "mehndi"), null), "mehndi");
 
 		Long originalBooking = event.getSerBookingId();
 		long bookingsBefore = countWhere("SELECT COUNT(*) FROM booking");
@@ -343,7 +343,7 @@ class BookingCreatedWithEventIT {
 		edit.setIsEditAllowed(true);
 		edit.setNumVersion(event.getNumVersion());
 
-		assertThat(serviceEventMaster.saveAndUpdate(edit).getTxtMessage()).isEqualTo("Success");
+		assertThat(serviceEventMaster.saveAndUpdateWithDocs(edit, null).getTxtMessage()).isEqualTo("Success");
 
 		EventMaster afterEdit = repositoryEventMaster.findById(event.getSerEventMasterId()).orElseThrow();
 
@@ -382,12 +382,14 @@ class BookingCreatedWithEventIT {
 				.as("saveAndUpdateWithDocs creates events with no booking above them")
 				.isNotNull();
 
-		DtoResult customerEdit = serviceEventMaster.saveAndUpdateWithDocsCE(
-				newEventOn(FIRST_FREE_DAY.plusDays(6), "sangeet"), List.of());
-
-		assertThat(created(customerEdit, "sangeet").getSerBookingId())
-				.as("saveAndUpdateWithDocsCE creates events with no booking above them")
-				.isNotNull();
+		/*
+		  There used to be a third assertion here, against
+		  saveAndUpdateWithDocsCE. That method is gone: it was a 96%-identical
+		  copy of saveAndUpdateWithDocs, its endpoint was called by neither
+		  frontend, and the comment above it instructed the reader to keep the
+		  two in step by hand. Asserting that a duplicate behaves like its
+		  original is only necessary while the duplicate exists.
+		*/
 	}
 
 	@Test
@@ -400,8 +402,8 @@ class BookingCreatedWithEventIT {
 		 * customer whether two events belong together would be two families'
 		 * money on one row, with no way to tell afterwards.
 		 */
-		serviceEventMaster.saveAndUpdate(newEventOn(FIRST_FREE_DAY.plusDays(4), "first"));
-		serviceEventMaster.saveAndUpdate(newEventOn(FIRST_FREE_DAY.plusDays(5), "second"));
+		serviceEventMaster.saveAndUpdateWithDocs(newEventOn(FIRST_FREE_DAY.plusDays(4), "first"), null);
+		serviceEventMaster.saveAndUpdateWithDocs(newEventOn(FIRST_FREE_DAY.plusDays(5), "second"), null);
 
 		assertThat(countWhere("""
 				SELECT COUNT(*) FROM (
