@@ -62,6 +62,21 @@ public class DtoEventMasterAdminPortal {
 	private String txtDecoreRemarks;
 	private String txtCateringRemarks;
 	private String txtExternalSupplierRemarks;
+
+	/**
+	 * The suppliers the customer is bringing.
+	 *
+	 * <p>
+	 * Missing until now, which made the office's own suppliers panel a form
+	 * that showed nothing and saved nothing: the rows were posted, Jackson
+	 * dropped them as an unknown property, and the save path never looked for
+	 * them. Most of these arrive by telephone a fortnight before the day, so
+	 * the office is the side that most needs to record them.
+	 */
+	private List<DtoEventExternalSupplier> externalSuppliers;
+
+	/** Whether the customer accepted the terms. The office may need to check. */
+	private Boolean blnTermsAccepted;
 	private String txtEventExtrasRemarks;
 	private String txtVenueRemarks;
 	private String txtEventServicesRemarks;
@@ -569,4 +584,20 @@ public class DtoEventMasterAdminPortal {
 	}
 	
 
+
+	public List<DtoEventExternalSupplier> getExternalSuppliers() {
+		return externalSuppliers;
+	}
+
+	public void setExternalSuppliers(List<DtoEventExternalSupplier> externalSuppliers) {
+		this.externalSuppliers = externalSuppliers;
+	}
+
+	public Boolean getBlnTermsAccepted() {
+		return blnTermsAccepted;
+	}
+
+	public void setBlnTermsAccepted(Boolean blnTermsAccepted) {
+		this.blnTermsAccepted = blnTermsAccepted;
+	}
 }

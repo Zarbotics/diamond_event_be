@@ -2733,8 +2733,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				serviceEventBudget.save(eventBudget);
 			}
 			
-			recordTermsAcceptance(dtoEventMaster, entity.getSerEventMasterId());
-			replaceExternalSuppliers(dtoEventMaster, entity);
+			recordTermsAcceptance(dtoEventMaster.getBlnTermsAccepted(), entity.getSerEventMasterId());
+			replaceExternalSuppliers(dtoEventMaster.getExternalSuppliers(), entity);
 
 			DtoEventMaster dtoEvent = this.getEventById(entity.getSerEventMasterId());
 			dtoResult.setResult(dtoEvent);
@@ -4437,6 +4437,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				serviceEventBudget.save(eventBudget);
 			}
 
+			/*
+			  The same two the journey does, and for the same reasons.
+
+			  They were missing here, so the office's suppliers panel showed
+			  nothing and saved nothing: the rows were posted, Jackson dropped
+			  them as an unknown property on a DTO that lacked the field, and
+			  nothing here looked for them. Most suppliers arrive by telephone
+			  a fortnight before the day — the office is the side that most
+			  needs to record them.
+			*/
+			recordTermsAcceptance(dtoEventMasterAdminPortal.getBlnTermsAccepted(),
+					entity.getSerEventMasterId());
+			replaceExternalSuppliers(dtoEventMasterAdminPortal.getExternalSuppliers(), entity);
+
 			DtoEventMasterAdminPortal dtoEvent = this.getEventByIdAdminPortal(entity.getSerEventMasterId());
 			dtoResult.setResult(dtoEvent);
 			return dtoResult;
@@ -4579,6 +4593,22 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					dtoEventQuoteAndStatus.setNumDiscount(eventBudget.getNumDiscount());
 					dto.setDtoEventQuoteAndStatus(dtoEventQuoteAndStatus);
 				}
+
+				/*
+				  The suppliers the customer declared, and whether they agreed
+				  the terms.
+
+				  Both read by the journey's own getEventById and neither read
+				  here, so the office's suppliers panel opened empty over a
+				  booking that had three of them stored.
+				*/
+				dto.setExternalSuppliers(readExternalSuppliers(dto.getSerEventMasterId()));
+				/*
+				  Derived from the timestamp, which is the actual fact. The
+				  boolean on the DTO is an input — "the customer has just
+				  ticked the box" — and the moment they did is what is stored.
+				*/
+				dto.setBlnTermsAccepted(event.getDteTermsAcceptedOn() != null);
 
 				return dto;
 
@@ -5804,8 +5834,17 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	 * Only ever true sets it, and only the first one: see the repository
 	 * statement, which will not move a timestamp that is already there.
 	 */
-	private void recordTermsAcceptance(DtoEventMaster dtoEventMaster, Integer eventId) {
-		if (eventId == null || !Boolean.TRUE.equals(dtoEventMaster.getBlnTermsAccepted())) {
+	/*
+	  Takes the value rather than the DTO.
+
+	  It used to take DtoEventMaster, which meant only the journey's save path
+	  could call it — the office's path holds a DtoEventMasterAdminPortal, a
+	  near-identical class that happened not to carry the field. That is the
+	  shape of every drift bug in this file: a helper typed to one caller's DTO
+	  cannot be reused by the other, so the other quietly goes without.
+	*/
+	private void recordTermsAcceptance(Boolean accepted, Integer eventId) {
+		if (eventId == null || !Boolean.TRUE.equals(accepted)) {
 			return;
 		}
 
@@ -5843,8 +5882,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	 * shows an empty row to type into, and a customer who opens the step and
 	 * leaves without typing has not declared a blank supplier.
 	 */
-	private void replaceExternalSuppliers(DtoEventMaster dtoEventMaster, EventMaster entity) {
-		List<DtoEventExternalSupplier> given = dtoEventMaster.getExternalSuppliers();
+	/* Takes the list rather than the DTO, for the reason above. */
+	private void replaceExternalSuppliers(List<DtoEventExternalSupplier> given, EventMaster entity) {
 		if (given == null || entity == null || entity.getSerEventMasterId() == null) {
 			return;
 		}
@@ -7317,8 +7356,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				serviceEventBudget.save(eventBudget);
 			}
 			
-			recordTermsAcceptance(dtoEventMaster, entity.getSerEventMasterId());
-			replaceExternalSuppliers(dtoEventMaster, entity);
+			recordTermsAcceptance(dtoEventMaster.getBlnTermsAccepted(), entity.getSerEventMasterId());
+			replaceExternalSuppliers(dtoEventMaster.getExternalSuppliers(), entity);
 
 			DtoEventMaster dtoEvent = this.getEventById(entity.getSerEventMasterId());
 			dtoResult.setResult(dtoEvent);
