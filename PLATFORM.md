@@ -511,6 +511,90 @@ comment into shouting will eventually be fooled by one into silence, so it
 reads live lines only now, and counts against what the file contains rather
 than a remembered number.
 
+### 5.9 The two that were left, written once ✅ 🟡
+
+The two live save paths stayed, because they are two entry points with real
+differences. What went was the body they had in common, which was copied
+between them rather than shared — and copied again inside each, because both
+had one version for a booking that already exists and another for one being
+created. Four copies of most sections, not two.
+
+#### What was extracted, and what it cost
+
+| Section | Copies before | Copies after | Notes |
+| --- | --- | --- | --- |
+| Running order | 4 | 1 | Identical. The "new booking" pair was the `else` half of the other two |
+| Venue | 4 | 1 | Identical, down to the same commented-out counter in each |
+| Décor | 4 | 2 | Only the "existing booking" pair merged — see below |
+| Menu | 2 | 1 | Byte-for-byte identical, emoji in the comments included |
+
+`ServiceEventMasterImpl` went 5,528 → 5,207 lines, on top of the 7,367 → 5,528
+from removing the dead paths. The remaining difference between the two save
+methods is now mostly the things that are genuinely different.
+
+#### The differences that were kept
+
+They are the point. A "make both paths the same" change would have removed
+these, and each one is a business rule:
+
+- **`numFormState`** is the journey's alone. The office's save does not read
+  it, so a member of staff editing a booking cannot rewind the customer's
+  progress through the form.
+- **`numDiscount`, `numItineraryPrice`, `numServingDishesPrice`** are the
+  office's alone. A customer does not name their own discount, even though the
+  journey's DTO carries all three fields.
+- **Décor property prices** are the office's. The journey drops the price in
+  the payload — and leaves a plausible `0.00` behind rather than a null,
+  because the column defaults to zero, which is why nobody had noticed.
+- **Décor row ids** are kept by the office and cleared by the journey, so a
+  journey save always inserts fresh rows.
+
+The last two are named in a `DecorRules` record rather than passed as bare
+booleans, because `applyDecorSelections(…, false, false)` at a call site says
+nothing about what is different, and what is different is the whole reason the
+code existed twice.
+
+#### How "nothing changed" was demonstrated
+
+A characterisation suite was written **first**, against unmodified code, and
+run green before anything moved: 22 columns, the running order, the décor tree
+three levels deep, the menu three levels deep, and both halves of every
+asymmetry above. Most of that had no coverage at all — the existing suites each
+pinned one narrow thing and left the rest of the booking unobserved.
+
+For the menu, which had no coverage whatsoever, the four new tests were run
+against the original code, the extraction was then applied, and they were run
+again: same 15 tests, same results. That is what makes it a demonstration
+rather than a hope.
+
+#### The bug found on the way, and deliberately not fixed
+
+The journey's décor block **for a booking being created** matches the décor
+catalogue by `getSerEventDecorPropertyId()` — the id of the selection row,
+which is not set on a booking that does not exist yet — where the other three
+copies use `getSerPropertyId()`, the catalogue id. It would throw on a null,
+or match nothing.
+
+It has almost certainly never fired, because the journey creates the booking on
+an early step and reaches the décor step afterwards, by which point the
+"existing booking" path runs instead. That is also why it survived: the path is
+effectively unreachable for any payload that carries décor.
+
+**Not fixed here.** Correcting it changes behaviour, and this change was meant
+to alter nothing — mixing the two would make "nothing changed" unprovable. It
+is the reason the two "new booking" décor blocks were left standing while their
+"existing booking" twins were merged: folding them in would have silently
+changed four behaviours at once, that one included. Logged as D10c.
+
+#### Two totals that are written and never read
+
+`numDecorCategoryPrice`, `numDecorPropertyPrice`, `numFoodCategoryPrice` and
+`numFoodSubcategoryPrice` are accumulated throughout both saves. Every read of
+them in the file is commented out. They are still accumulated and still handed
+back from the new helpers, because removing a total is a separate decision from
+writing this code once instead of twice, and doing both at once would make the
+change impossible to verify. Logged as D10d.
+
 ### 5.5 Marketing site 💀 ❓
 
 `Home`, `About`, `Stages`, `Venues`, `Catering`, `Events`, `Navbar` and
@@ -894,7 +978,9 @@ Specified in §12. Requested 19 August 2026.
 
 | ~~D10~~ | ~~Do the four copies of the event save get unified?~~ **Investigated and half done — see §5.8.** There were never four live paths: two had no caller at all and are gone, 1,839 lines with them. The two that remain differ for real reasons and are best served by extracting their shared body rather than merging them. |
 
-| D10b | **Should the last two save paths share an extracted body?** `saveAndUpdateWithDocs` and `saveAndUpdateWithDocsAdminPortal` are 85% identical, and the 15% is genuine: the journey refuses to edit a locked booking and the office must be able to; the office sets prices and a customer must not. Collapsing them into one method with a "who is saving this" flag trades duplication for conditional complexity in the method every booking passes through. Extracting the shared 85% into named helpers both call — as `replaceExternalSuppliers` now is — removes the drift risk without that trade. Larger and more careful than the deletions; wants its own sign-off. |
+| ~~D10b~~ | **Done — see §5.9.** The shared body was extracted into named helpers both entry points call, rather than merged behind a "who is saving this" flag. Running order 4 copies → 1, venue 4 → 1, menu 2 → 1, décor 4 → 2. The differences that are business rules were kept and are now pinned by tests. Proved against a characterisation suite written first and run green on unmodified code. |
+| D10c | **The journey's new-booking décor block matches the catalogue by the wrong id.** It uses `getSerEventDecorPropertyId()` — the selection row's id, unset on a booking that does not exist yet — where the other three copies use `getSerPropertyId()`. Almost certainly never fired, because the journey creates the booking before the décor step and the "existing booking" path runs instead. Left alone during the extraction so that "nothing changed" stayed provable. Fixing it would also let the two remaining décor copies collapse into the one helper. |
+| D10d | **Four price totals are accumulated and never read.** `numDecorCategoryPrice`, `numDecorPropertyPrice`, `numFoodCategoryPrice` and `numFoodSubcategoryPrice` are summed through both saves; every read of them is commented out. Either the pricing they were meant to feed is wanted, in which case it needs building, or they should go. A business question, not a tidy-up. |
 
 
 | ~~D9~~ | ~~What must the equipment calculation produce?~~ **Answered and built.** Calculate only — no stock check, no owned-versus-hired. Quantities are per guest, per table, per station or per event. See §5.6. |

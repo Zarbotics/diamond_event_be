@@ -30,17 +30,22 @@ import com.zbs.de.model.DecorCategoryPropertyMaster;
 import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventType;
+import com.zbs.de.model.MenuItem;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
 import com.zbs.de.model.dto.DtoEventDecorPropertySelection;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
 import com.zbs.de.model.dto.DtoEventRunningOrder;
+import com.zbs.de.model.dto.DtoMenuItem;
+import com.zbs.de.model.dto.menu.DtoCustomerMenuCategory;
+import com.zbs.de.model.dto.menu.DtoCustomerMenuSubCategory;
 import com.zbs.de.repository.RepositoryCustomerMaster;
 import com.zbs.de.repository.RepositoryDecorCategoryMaster;
 import com.zbs.de.repository.RepositoryDecorCategoryPropertyMaster;
 import com.zbs.de.repository.RepositoryDecorCategoryPropertyValue;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventType;
+import com.zbs.de.repository.RepositoryMenuItem;
 
 /**
  * What each save path writes, recorded before anything is moved.
@@ -116,6 +121,9 @@ class BothSavePathsKeepTheirBehaviourIT {
 	private RepositoryDecorCategoryPropertyValue repositoryDecorCategoryPropertyValue;
 
 	@Autowired
+	private RepositoryMenuItem repositoryMenuItem;
+
+	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
 	private CustomerMaster customer;
@@ -173,6 +181,14 @@ class BothSavePathsKeepTheirBehaviourIT {
 		jdbcTemplate.update("DELETE FROM event_payment WHERE ser_event_id IN (" + minesEvents + ")",
 				MARKER + "%");
 
+		jdbcTemplate.update("DELETE FROM event_menu_food_selection WHERE ser_event_master_id IN ("
+				+ minesEvents + ")", MARKER + "%");
+		jdbcTemplate.update("DELETE FROM event_menu_subcategory_selection WHERE ser_event_menu_category_id IN ("
+				+ "  SELECT c.ser_event_menu_category_id FROM event_menu_category_selection c"
+				+ "  WHERE c.ser_event_master_id IN (" + minesEvents + "))", MARKER + "%");
+		jdbcTemplate.update("DELETE FROM event_menu_category_selection WHERE ser_event_master_id IN ("
+				+ minesEvents + ")", MARKER + "%");
+
 		for (String child : List.of("event_decor_category_selection", "event_external_supplier",
 				"event_menu_food_selection", "event_budget", "event_quote")) {
 			jdbcTemplate.update("DELETE FROM " + child + " WHERE ser_event_master_id IN ("
@@ -181,6 +197,7 @@ class BothSavePathsKeepTheirBehaviourIT {
 		jdbcTemplate.update("DELETE FROM event_master WHERE ser_cust_id IN ("
 				+ "  SELECT ser_cust_id FROM customer_master WHERE txt_cust_code LIKE ?)", MARKER + "%");
 		jdbcTemplate.update("DELETE FROM customer_master WHERE txt_cust_code LIKE ?", MARKER + "%");
+		jdbcTemplate.update("DELETE FROM menu_item WHERE txt_code LIKE ?", MARKER + "%");
 		jdbcTemplate.update("DELETE FROM decor_category_property_value WHERE txt_property_value LIKE ?", MARKER + "%");
 		jdbcTemplate.update("DELETE FROM decor_category_property_master WHERE txt_property_code LIKE ?", MARKER + "%");
 		jdbcTemplate.update("DELETE FROM decor_category_master WHERE txt_decor_category_code LIKE ?", MARKER + "%");
@@ -426,6 +443,102 @@ class BothSavePathsKeepTheirBehaviourIT {
 				.isEqualTo(6);
 	}
 
+	// ── the menu ─────────────────────────────────────────────────────────
+
+	/**
+	 * The menu is three tables deep and all three have to arrive.
+	 *
+	 * <p>
+	 * This had no coverage at all, on either path, despite being a hundred and
+	 * forty lines repeated word for word between them — including the part
+	 * that takes the old rows apart level by level so {@code orphanRemoval}
+	 * reaches the bottom.
+	 */
+	@Test
+	@DisplayName("the journey stores the food chosen, down to the dish")
+	void theJourneyStoresTheMenu() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMaster dto = richJourneySave(seeded);
+		dto.setMenuCategoriesSelection(aMenu());
+		serviceEventMaster.saveAndUpdateWithDocs(dto, null);
+
+		assertThat(menuCategoryCountOf(seeded)).as("the food category was not stored").isEqualTo(1);
+		assertThat(menuDishCountOf(seeded)).as("the two dishes were not stored").isEqualTo(2);
+	}
+
+	@Test
+	@DisplayName("the office stores the food chosen, down to the dish")
+	void theOfficeStoresTheMenu() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMasterAdminPortal dto = richOfficeSave(seeded);
+		dto.setMenuCategoriesSelection(aMenu());
+		serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dto, null);
+
+		assertThat(menuCategoryCountOf(seeded)).as("the food category was not stored").isEqualTo(1);
+		assertThat(menuDishCountOf(seeded)).as("the two dishes were not stored").isEqualTo(2);
+	}
+
+	/**
+	 * Saving the menu again replaces it rather than adding to it.
+	 *
+	 * <p>
+	 * Every screen posts the whole booking back, so a second save of the same
+	 * menu must leave the same rows behind and not twice as many. This is what
+	 * the level-by-level unlinking exists for, and it is the thing most likely
+	 * to break if that unlinking is disturbed.
+	 */
+	@Test
+	@DisplayName("saving the same menu twice does not double it")
+	void theMenuIsReplacedNotAppended() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMaster first = richJourneySave(seeded);
+		first.setMenuCategoriesSelection(aMenu());
+		serviceEventMaster.saveAndUpdateWithDocs(first, null);
+		assertThat(menuDishCountOf(seeded)).isEqualTo(2);
+
+		DtoEventMaster again = richJourneySave(reload(seeded));
+		again.setMenuCategoriesSelection(aMenu());
+		serviceEventMaster.saveAndUpdateWithDocs(again, null);
+
+		assertThat(menuDishCountOf(seeded))
+				.as("saving the menu a second time left the first copy behind")
+				.isEqualTo(2);
+		assertThat(menuCategoryCountOf(seeded))
+				.as("saving the menu a second time left the first category behind")
+				.isEqualTo(1);
+	}
+
+	/**
+	 * Taking everything back off the menu empties it.
+	 *
+	 * <p>
+	 * An empty menu on a booking that already exists means the customer
+	 * removed what they had chosen, and the rows have to go. It is not the
+	 * same as a payload that never mentions the menu, and the two are easy to
+	 * collapse into one another by accident.
+	 */
+	@Test
+	@DisplayName("an emptied menu clears what was stored")
+	void anEmptiedMenuIsCleared() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMaster withFood = richJourneySave(seeded);
+		withFood.setMenuCategoriesSelection(aMenu());
+		serviceEventMaster.saveAndUpdateWithDocs(withFood, null);
+		assertThat(menuDishCountOf(seeded)).isEqualTo(2);
+
+		DtoEventMaster emptied = richJourneySave(reload(seeded));
+		emptied.setMenuCategoriesSelection(List.of());
+		serviceEventMaster.saveAndUpdateWithDocs(emptied, null);
+
+		assertThat(menuDishCountOf(seeded))
+				.as("the customer took the food off the booking and it stayed on")
+				.isZero();
+	}
+
 	// ── what both are expected to write ──────────────────────────────────
 
 	/**
@@ -514,6 +627,18 @@ class BothSavePathsKeepTheirBehaviourIT {
 						+ "   ON s.ser_event_decor_category_selection_id = p.ser_event_decor_category_selection_id"
 						+ " WHERE s.ser_event_master_id = ?",
 				Object.class, event.getSerEventMasterId());
+	}
+
+	private Integer menuCategoryCountOf(EventMaster event) {
+		return jdbcTemplate.queryForObject(
+				"SELECT count(*) FROM event_menu_category_selection WHERE ser_event_master_id = ?",
+				Integer.class, event.getSerEventMasterId());
+	}
+
+	private Integer menuDishCountOf(EventMaster event) {
+		return jdbcTemplate.queryForObject(
+				"SELECT count(*) FROM event_menu_food_selection WHERE ser_event_master_id = ?",
+				Integer.class, event.getSerEventMasterId());
 	}
 
 	private static BigDecimal asDecimal(Object value) {
@@ -652,6 +777,58 @@ class BothSavePathsKeepTheirBehaviourIT {
 		List<DtoEventDecorCategorySelection> selections = new ArrayList<>();
 		selections.add(selection);
 		return selections;
+	}
+
+	/**
+	 * One category, one course under it, two dishes under that.
+	 *
+	 * <p>
+	 * Deep enough that all three levels are exercised. The catalogue rows are
+	 * seeded here because the test database has no menu of its own.
+	 */
+	private List<DtoCustomerMenuCategory> aMenu() {
+		MenuItem category = seedDish("Mains");
+		MenuItem course = seedDish("Curries");
+		MenuItem first = seedDish("Chicken Karahi");
+		MenuItem second = seedDish("Lamb Biryani");
+
+		List<DtoMenuItem> dishes = new ArrayList<>();
+		for (MenuItem dish : List.of(first, second)) {
+			DtoMenuItem chosen = new DtoMenuItem();
+			chosen.setSerMenuItemId(Long.valueOf(dish.getSerMenuItemId()));
+			chosen.setNumPrice(new BigDecimal("25.00"));
+			chosen.setNumFinalPrice(new BigDecimal("25.00"));
+			dishes.add(chosen);
+		}
+
+		DtoCustomerMenuSubCategory subCategory = new DtoCustomerMenuSubCategory();
+		subCategory.setSubCategoryId(Long.valueOf(course.getSerMenuItemId()));
+		subCategory.setNumPrice(new BigDecimal("50.00"));
+		subCategory.setNumFinalPrice(new BigDecimal("50.00"));
+		subCategory.setItems(dishes);
+
+		DtoCustomerMenuCategory chosenCategory = new DtoCustomerMenuCategory();
+		chosenCategory.setCategoryId(Long.valueOf(category.getSerMenuItemId()));
+		chosenCategory.setNumPrice(new BigDecimal("50.00"));
+		chosenCategory.setNumFinalPrice(new BigDecimal("50.00"));
+		chosenCategory.setSubCategories(List.of(subCategory));
+
+		return List.of(chosenCategory);
+	}
+
+	/*
+	 * The ltree path is NOT NULL and its labels take only letters, digits and
+	 * underscores, so it is built from the name with everything else stripped.
+	 */
+	private MenuItem seedDish(String name) {
+		MenuItem dish = new MenuItem();
+		dish.setTxtName(MARKER + " " + name);
+		dish.setTxtCode(MARKER + "-" + System.nanoTime());
+		dish.setTxtPath("IT_CHAR." + name.replaceAll("[^A-Za-z0-9]", "") + "_" + System.nanoTime());
+		dish.setBlnIsSelectable(true);
+		dish.setBlnIsActive(true);
+		dish.setBlnIsDeleted(false);
+		return repositoryMenuItem.saveAndFlush(dish);
 	}
 
 	// ── fixture ──────────────────────────────────────────────────────────

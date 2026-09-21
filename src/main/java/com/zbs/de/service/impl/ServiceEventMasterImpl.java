@@ -1028,181 +1028,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Set Decor Item Selections
 				// *************************
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
-
-					// Deleting Existing Selections
-					// if(entity.getDecorSelections() != null &&
-					// !entity.getDecorSelections().isEmpty()) {
-					// serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
-					// }
-					if (entity.getDecorSelections() != null) {
-						entity.getDecorSelections().clear();
-					}
-
-					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
-
-					for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
-						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
-						decorSelection.setSerEventDecorCategorySelectionId(null);
-						decorSelection.setEventMaster(entity);
-						
-						if(decorSelection.getNumPrice() != null) {
-							numDecorCategoryPrice = numDecorCategoryPrice.add(decorSelection.getNumPrice());
-						}
-
-//						decorSelection = repositoryEventDecorCategorySelection.save(decorSelection);
-
-						// Set property selections' back reference
-						// if (decorSelection.getSelectedProperties() != null) {
-						// for (EventDecorPropertySelection prop :
-						// decorSelection.getSelectedProperties()) {
-						// prop.setEventDecorCategorySelection(decorSelection);
-						//
-						// }
-						// }
-						if (dto.getSelectedProperties() != null && !dto.getSelectedProperties().isEmpty()) {
-							if (decorSelection.getSelectedProperties() != null) {
-								decorSelection.getSelectedProperties().clear();
-							}
-
-							List<EventDecorPropertySelection> newSelectedProperties = new ArrayList<>();
-							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
-								EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
-								eventDecorPropertySelection.setBlnIsActive(true);
-								eventDecorPropertySelection.setBlnIsDeleted(false);
-								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
-								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
-								if(eventDecorPropertySelection.getNumPrice() != null) {
-									numDecorPropertyPrice = numDecorPropertyPrice.add(eventDecorPropertySelection.getNumPrice());
-								}
-								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
-										.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId()
-												.intValue())
-										.findFirst().orElse(null);
-
-//								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-//										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
-//												.getSerPropertyValueId().intValue())
-//										.findFirst().orElse(null);
-
-								//**********************************************************
-								
-								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
-								
-								if (property.getSerPropertyValueIds() != null) {
-
-									for (Integer valueId : property.getSerPropertyValueIds()) {
-
-										DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-												.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId)
-												.findFirst().orElse(null);
-
-										EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
-										val.setEventDecorPropertySelection(eventDecorPropertySelection);
-										val.setPropertyValue(matchedValue);
-
-										selectedValues.add(val);
-									}
-								}
-
-								eventDecorPropertySelection.setSelectedValues(selectedValues);
-								
-								//***********************************************************
-								
-								
-								
-								eventDecorPropertySelection.setProperty(matchedMaster);
-//								eventDecorPropertySelection.setSelectedValue(matchedValue);
-								newSelectedProperties.add(eventDecorPropertySelection);
-							}
-
-							decorSelection.getSelectedProperties().addAll(newSelectedProperties);
-						}
-
-						// Set reference image back reference
-
-//						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
-//							boolean hasNewFiles = files != null
-//									&& files.stream().anyMatch(f -> f != null && !f.isEmpty());
-//							if (hasNewFiles) {
-//								decorSelection.getUserUploadedDocuments().clear();
-//								List<EventDecorReferenceDocument> documents = new ArrayList<>();
-//								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-//									MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-//									if (file != null) {
-//										String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-//										EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-//										doc.setDocumentName(file.getName());
-//										doc.setOriginalName(file.getOriginalFilename());
-//										doc.setDocumentType(file.getContentType());
-//										doc.setSize(String.valueOf(file.getSize()));
-//										doc.setFilePath(uploadPath);
-//										doc.setEventDecorCategorySelection(decorSelection);
-//										documents.add(doc);
-//									}
-//								}
-////							decorSelection.setUserUploadedDocuments(documents);
-//								decorSelection.getUserUploadedDocuments().addAll(documents);
-//							}
-//						}
-						
-						// Set reference image back reference
-						if (decorSelection.getUserUploadedDocuments() != null) {
-
-							boolean hasNewFiles = files != null
-									&& files.stream().anyMatch(f -> f != null && !f.isEmpty());
-
-							if (hasNewFiles) {
-								// New file uploaded — save new document
-								decorSelection.getUserUploadedDocuments().clear();
-								List<EventDecorReferenceDocument> documents = new ArrayList<>();
-
-								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-									MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-									if (file != null && !file.isEmpty()) {
-										String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-										EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-										doc.setDocumentName(file.getName());
-										doc.setOriginalName(file.getOriginalFilename());
-										doc.setDocumentType(file.getContentType());
-										doc.setSize(String.valueOf(file.getSize()));
-										doc.setFilePath(uploadPath);
-										doc.setEventDecorCategorySelection(decorSelection);
-										documents.add(doc);
-									}
-								}
-								decorSelection.getUserUploadedDocuments().addAll(documents);
-
-							} else if (dto.getUserUploadedDocuments() != null
-									&& !dto.getUserUploadedDocuments().isEmpty()) {
-								// No new file — re-create fresh entities from DTO (existing DB data)
-								// DO NOT reuse old entities — they are detached!
-								decorSelection.getUserUploadedDocuments().clear();
-								List<EventDecorReferenceDocument> existingDocs = new ArrayList<>();
-
-								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-									// Do NOT set the ID — let Hibernate treat it as a new entity
-									// linked to the new decorSelection
-									doc.setDocumentName(dtoImg.getDocumentName());
-									doc.setOriginalName(dtoImg.getOriginalName());
-									doc.setDocumentType(dtoImg.getDocumentType());
-									doc.setSize(dtoImg.getSize());
-									doc.setFilePath(dtoImg.getTxtDocumentUrl());
-									doc.setEventDecorCategorySelection(decorSelection);
-									existingDocs.add(doc);
-								}
-								decorSelection.getUserUploadedDocuments().addAll(existingDocs);
-							}
-							// else: no documents at all — leave empty
-						}
-						decorSelections.add(decorSelection);
-					}
-
-					// entity.setDecorSelections(decorSelections);
-					entity.getDecorSelections().addAll(decorSelections);
-					// entity.setNumInfoFilledStatus(70);
-				}
+				DecorTotals decorTotals = applyDecorSelections(dtoEventMaster.getDtoEventDecorSelections(), entity,
+						decorCategoryPropertyMasterLst, decorCategoryPropertyValueLst, files, fileMap, JOURNEY_DECOR);
+				numDecorCategoryPrice = numDecorCategoryPrice.add(decorTotals.categories());
+				numDecorPropertyPrice = numDecorPropertyPrice.add(decorTotals.properties());
 
 				// Set Food Menu Selection
 				// ***********************
@@ -1830,176 +1659,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			//*********************************************************************************************
 			//************************ Food Menu Categories and Sub Categories ****************************
 			//*********************************************************************************************
-			if (dtoEventMaster.getMenuCategoriesSelection() != null
-			    && !dtoEventMaster.getMenuCategoriesSelection().isEmpty()) {
+			MenuResult menuResult = applyMenuSelections(dtoEventMaster.getMenuCategoriesSelection(), entity, menuItems);
+			entity = menuResult.entity();
+			numFoodCategoryPrice = numFoodCategoryPrice.add(menuResult.categories());
+			numFoodSubcategoryPrice = numFoodSubcategoryPrice.add(menuResult.subCategories());
 
-			    // 🔥 FIX: PROPERLY CLEAR OLD MENU SELECTIONS WITH SESSION MANAGEMENT
-			    if (entity.getMenuCategorySelections() != null && !entity.getMenuCategorySelections().isEmpty()) {
-			        // Before clearing, we need to break the bidirectional relationships
-			        // This helps orphanRemoval work correctly
-			        List<EventMenuCategorySelection> categoriesToClear = new ArrayList<>(entity.getMenuCategorySelections());
-			        
-			        for (EventMenuCategorySelection category : categoriesToClear) {
-			            // Break relationship with EventMaster
-			            category.setEventMaster(null);
-			            
-			            if (category.getSubCategories() != null) {
-			                List<EventMenuSubCategorySelection> subCategoriesToClear = 
-			                    new ArrayList<>(category.getSubCategories());
-			                
-			                for (EventMenuSubCategorySelection subCategory : subCategoriesToClear) {
-			                    // Break relationship with parent category
-			                    subCategory.setEventCategory(null);
-			                    
-			                    if (subCategory.getItems() != null) {
-			                        List<EventMenuFoodSelection> itemsToClear = new ArrayList<>(subCategory.getItems());
-			                        
-			                        for (EventMenuFoodSelection item : itemsToClear) {
-			                            // Break relationships with EventMaster and SubCategory
-			                            item.setEventMaster(null);
-			                            item.setEventSubCategory(null);
-			                        }
-			                        
-			                        // Clear the items collection
-			                        subCategory.getItems().clear();
-			                    }
-			                }
-			                
-			                // Clear the subcategories collection
-			                category.getSubCategories().clear();
-			            }
-			        }
-			        
-			        // Now clear the main collection - orphanRemoval will delete from DB
-			        entity.getMenuCategorySelections().clear();
-			        
-			        // 🔥 CRITICAL: Save immediately to persist deletions and clear session state
-			        // This flushes the deletions to DB and clears deleted entities from session
-			        entity = repositoryEventMaster.saveAndFlush(entity);
-			        
-			    } else if (entity.getMenuCategorySelections() == null) {
-			        entity.setMenuCategorySelections(new ArrayList<>());
-			    }
-
-			    // CREATE NEW MENU SELECTIONS
-			    for (DtoCustomerMenuCategory catDto : dtoEventMaster.getMenuCategoriesSelection()) {
-
-			        MenuItem category = menuItems.stream()
-			            .filter(item -> item.getSerMenuItemId() != null
-			                && item.getSerMenuItemId().intValue() == catDto.getCategoryId().intValue())
-			            .findFirst().orElse(null);
-
-			        EventMenuCategorySelection catEntity = new EventMenuCategorySelection();
-			        catEntity.setEventMaster(entity);
-			        catEntity.setCategory(category);
-			        catEntity.setNumTotalPrice(catDto.getNumPrice());
-			        catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
-			        
-			        if(catDto.getNumFinalPrice() != null) {
-			        	numFoodCategoryPrice = numFoodCategoryPrice.add(catDto.getNumFinalPrice());
-			        }
-
-			        // Initialize collections
-			        if (catEntity.getSubCategories() == null) {
-			            catEntity.setSubCategories(new ArrayList<>());
-			        }
-
-			        for (DtoCustomerMenuSubCategory subDto : catDto.getSubCategories()) {
-
-			            MenuItem subCategory = menuItems.stream()
-			                .filter(item -> item.getSerMenuItemId() != null
-			                    && item.getSerMenuItemId().intValue() == subDto.getSubCategoryId().intValue())
-			                .findFirst().orElse(null);
-
-			            EventMenuSubCategorySelection subEntity = new EventMenuSubCategorySelection();
-			            subEntity.setEventCategory(catEntity);
-			            subEntity.setSubCategory(subCategory);
-			            subEntity.setNumTotalPrice(subDto.getNumPrice());
-			            subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
-			            if(subDto.getNumFinalPrice() != null) {
-			            	numFoodSubcategoryPrice = numFoodSubcategoryPrice.add(subDto.getNumFinalPrice());
-			            }
-
-			            // Initialize items collection
-			            if (subEntity.getItems() == null) {
-			                subEntity.setItems(new ArrayList<>());
-			            }
-
-			            // Simple Items
-			            for (DtoMenuItem itemDto : subDto.getItems()) {
-
-			                MenuItem menuItem = menuItems.stream()
-			                    .filter(item -> item.getSerMenuItemId() != null
-			                        && item.getSerMenuItemId().intValue() == itemDto.getSerMenuItemId().intValue())
-			                    .findFirst().orElse(null);
-
-			                EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
-			                itemEntity.setEventMaster(entity);
-			                itemEntity.setEventSubCategory(subEntity);
-			                itemEntity.setMenuItem(menuItem);
-			                itemEntity.setNumPrice(itemDto.getNumPrice());
-			                itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
-			                itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
-
-			                subEntity.getItems().add(itemEntity);
-			            }
-
-						// Composite Items If Exists
-						if (subDto.getCompositeItems() != null) {
-							for (DtoMenuComponentRequest itemDto : subDto.getCompositeItems()) {
-
-								MenuItem menuItem = menuItems.stream()
-										.filter(item -> item.getSerMenuItemId() != null && item.getSerMenuItemId()
-												.intValue() == itemDto.getParentMenuItemId().intValue())
-										.findFirst().orElse(null);
-
-								EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
-								itemEntity.setEventMaster(entity);
-								itemEntity.setEventSubCategory(subEntity);
-								itemEntity.setMenuItem(menuItem);
-								itemEntity.setNumPrice(itemDto.getNumPrice());
-								itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
-								itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
-
-								subEntity.getItems().add(itemEntity);
-							}
-						}
-
-			            catEntity.getSubCategories().add(subEntity);
-			        }
-
-			        entity.getMenuCategorySelections().add(catEntity);
-			    }
-
-			}
-
-			// Handle case when no menu selections in DTO but editing existing event
-			else if (entity.getSerEventMasterId() != null && entity.getMenuCategorySelections() != null 
-			         && !entity.getMenuCategorySelections().isEmpty()) {
-			    
-			    // User removed all menu selections - clear them properly
-			    List<EventMenuCategorySelection> categoriesToClear = new ArrayList<>(entity.getMenuCategorySelections());
-			    
-			    for (EventMenuCategorySelection category : categoriesToClear) {
-			        category.setEventMaster(null);
-			        if (category.getSubCategories() != null) {
-			            for (EventMenuSubCategorySelection subCategory : category.getSubCategories()) {
-			                subCategory.setEventCategory(null);
-			                if (subCategory.getItems() != null) {
-			                    for (EventMenuFoodSelection item : subCategory.getItems()) {
-			                        item.setEventMaster(null);
-			                        item.setEventSubCategory(null);
-			                    }
-			                    subCategory.getItems().clear();
-			                }
-			            }
-			            category.getSubCategories().clear();
-			        }
-			    }
-			    
-			    entity.getMenuCategorySelections().clear();
-			    entity = repositoryEventMaster.saveAndFlush(entity);
-			}
 			//*********************************************************************************************
 			//*********************************************************************************************
 			//*********************************************************************************************
@@ -2684,178 +2348,10 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				// *************************
 				
 
-				if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getDtoEventDecorSelections())) {
-
-					// Deleting Existing Selections
-					// if(entity.getDecorSelections() != null &&
-					// !entity.getDecorSelections().isEmpty()) {
-					// serviceEventDecorCategorySelection.deleteByEventMasterId(entity.getSerEventMasterId());
-					// }
-					if (entity.getDecorSelections() != null) {
-						entity.getDecorSelections().clear();
-					}
-
-					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
-
-					for (DtoEventDecorCategorySelection dto : dtoEventMasterAdminPortal.getDtoEventDecorSelections()) {
-						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
-						if(decorSelection.getNumPrice() != null) {
-							numDecorCategoryPrice = numDecorCategoryPrice.add(decorSelection.getNumPrice());
-						}
-
-						decorSelection.setEventMaster(entity);
-						// decorSelection = repositoryEventDecorCategorySelection.save(decorSelection);
-
-						// Set property selections' back reference
-						// if (decorSelection.getSelectedProperties() != null) {
-						// for (EventDecorPropertySelection prop :
-						// decorSelection.getSelectedProperties()) {
-						// prop.setEventDecorCategorySelection(decorSelection);
-						//
-						// }
-						// }
-						if (dto.getSelectedProperties() != null && !dto.getSelectedProperties().isEmpty()) {
-							if (decorSelection.getSelectedProperties() != null) {
-								decorSelection.getSelectedProperties().clear();
-							}
-
-							List<EventDecorPropertySelection> newSelectedProperties = new ArrayList<>();
-							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
-								EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
-								eventDecorPropertySelection.setBlnIsActive(true);
-								eventDecorPropertySelection.setBlnIsDeleted(false);
-								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
-								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
-								eventDecorPropertySelection.setNumPrice(property.getNumPrice());
-								if(eventDecorPropertySelection.getNumPrice() != null) {
-									numDecorPropertyPrice = numDecorPropertyPrice.add(eventDecorPropertySelection.getNumPrice());
-								}
-								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
-										.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId()
-												.intValue())
-										.findFirst().orElse(null);
-
-//								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-//										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
-//												.getSerPropertyValueId().intValue())
-//										.findFirst().orElse(null);
-
-								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
-								if(property.getSerPropertyValueIds() != null && !property.getSerPropertyValueIds().isEmpty())
-								{
-									for (Integer valueId : property.getSerPropertyValueIds()) {
-
-										DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-												.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId).findFirst()
-												.orElse(null);
-
-										EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
-										val.setEventDecorPropertySelection(eventDecorPropertySelection);
-										val.setPropertyValue(matchedValue);
-
-										selectedValues.add(val);
-									}
-								}
-
-							
-
-								eventDecorPropertySelection.setSelectedValues(selectedValues);
-
-								eventDecorPropertySelection.setProperty(matchedMaster);
-//								eventDecorPropertySelection.setSelectedValue(matchedValue);
-								newSelectedProperties.add(eventDecorPropertySelection);
-							}
-
-							decorSelection.getSelectedProperties().addAll(newSelectedProperties);
-						}
-
-						// Set reference image back reference
-
-//						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
-//							boolean hasNewFiles = files != null
-//									&& files.stream().anyMatch(f -> f != null && !f.isEmpty());
-//							if (hasNewFiles) {
-//								decorSelection.getUserUploadedDocuments().clear();
-//								List<EventDecorReferenceDocument> documents = new ArrayList<>();
-//								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-//									MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-//									if (file != null) {
-//										String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-//										EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-//										doc.setDocumentName(file.getName());
-//										doc.setOriginalName(file.getOriginalFilename());
-//										doc.setDocumentType(file.getContentType());
-//										doc.setSize(String.valueOf(file.getSize()));
-//										doc.setFilePath(uploadPath);
-//										doc.setEventDecorCategorySelection(decorSelection);
-//										documents.add(doc);
-//									}
-//								}
-////							decorSelection.setUserUploadedDocuments(documents);
-//								decorSelection.getUserUploadedDocuments().addAll(documents);
-//							}
-//
-//							decorSelections.add(decorSelection);
-//						}
-						
-						// Set reference image back reference
-						if (decorSelection.getUserUploadedDocuments() != null) {
-
-							boolean hasNewFiles = files != null
-									&& files.stream().anyMatch(f -> f != null && !f.isEmpty());
-
-							if (hasNewFiles) {
-								// New file uploaded — save new document
-								decorSelection.getUserUploadedDocuments().clear();
-								List<EventDecorReferenceDocument> documents = new ArrayList<>();
-
-								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-									MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-									if (file != null && !file.isEmpty()) {
-										String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-										EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-										doc.setDocumentName(file.getName());
-										doc.setOriginalName(file.getOriginalFilename());
-										doc.setDocumentType(file.getContentType());
-										doc.setSize(String.valueOf(file.getSize()));
-										doc.setFilePath(uploadPath);
-										doc.setEventDecorCategorySelection(decorSelection);
-										documents.add(doc);
-									}
-								}
-								decorSelection.getUserUploadedDocuments().addAll(documents);
-
-							} else if (dto.getUserUploadedDocuments() != null
-									&& !dto.getUserUploadedDocuments().isEmpty()) {
-								// No new file — re-create fresh entities from DTO (existing DB data)
-								// DO NOT reuse old entities — they are detached!
-								decorSelection.getUserUploadedDocuments().clear();
-								List<EventDecorReferenceDocument> existingDocs = new ArrayList<>();
-
-								for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-									// Do NOT set the ID — let Hibernate treat it as a new entity
-									// linked to the new decorSelection
-									doc.setDocumentName(dtoImg.getDocumentName());
-									doc.setOriginalName(dtoImg.getOriginalName());
-									doc.setDocumentType(dtoImg.getDocumentType());
-									doc.setSize(dtoImg.getSize());
-									doc.setFilePath(dtoImg.getTxtDocumentUrl());
-									doc.setEventDecorCategorySelection(decorSelection);
-									existingDocs.add(doc);
-								}
-								decorSelection.getUserUploadedDocuments().addAll(existingDocs);
-							}
-							// else: no documents at all — leave empty
-						}
-						decorSelections.add(decorSelection);
-
-					}
-
-					// entity.setDecorSelections(decorSelections);
-					entity.getDecorSelections().addAll(decorSelections);
-					// entity.setNumInfoFilledStatus(70);
-				}
+				DecorTotals decorTotals = applyDecorSelections(dtoEventMasterAdminPortal.getDtoEventDecorSelections(), entity,
+						decorCategoryPropertyMasterLst, decorCategoryPropertyValueLst, files, fileMap, OFFICE_DECOR);
+				numDecorCategoryPrice = numDecorCategoryPrice.add(decorTotals.categories());
+				numDecorPropertyPrice = numDecorPropertyPrice.add(decorTotals.properties());
 
 				
 
@@ -3455,174 +2951,11 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			//*********************************************************************************************
 			//************************ Food Menu Categories and Sub Categories ****************************
 			//*********************************************************************************************
-			if (dtoEventMasterAdminPortal.getMenuCategoriesSelection() != null
-			    && !dtoEventMasterAdminPortal.getMenuCategoriesSelection().isEmpty()) {
+			MenuResult menuResult = applyMenuSelections(dtoEventMasterAdminPortal.getMenuCategoriesSelection(), entity, menuItems);
+			entity = menuResult.entity();
+			numFoodCategoryPrice = numFoodCategoryPrice.add(menuResult.categories());
+			numFoodSubcategoryPrice = numFoodSubcategoryPrice.add(menuResult.subCategories());
 
-			    // 🔥 FIX: PROPERLY CLEAR OLD MENU SELECTIONS WITH SESSION MANAGEMENT
-			    if (entity.getMenuCategorySelections() != null && !entity.getMenuCategorySelections().isEmpty()) {
-			        // Before clearing, we need to break the bidirectional relationships
-			        // This helps orphanRemoval work correctly
-			        List<EventMenuCategorySelection> categoriesToClear = new ArrayList<>(entity.getMenuCategorySelections());
-			        
-			        for (EventMenuCategorySelection category : categoriesToClear) {
-			            // Break relationship with EventMaster
-			            category.setEventMaster(null);
-			            
-			            if (category.getSubCategories() != null) {
-			                List<EventMenuSubCategorySelection> subCategoriesToClear = 
-			                    new ArrayList<>(category.getSubCategories());
-			                
-			                for (EventMenuSubCategorySelection subCategory : subCategoriesToClear) {
-			                    // Break relationship with parent category
-			                    subCategory.setEventCategory(null);
-			                    
-			                    if (subCategory.getItems() != null) {
-			                        List<EventMenuFoodSelection> itemsToClear = new ArrayList<>(subCategory.getItems());
-			                        
-			                        for (EventMenuFoodSelection item : itemsToClear) {
-			                            // Break relationships with EventMaster and SubCategory
-			                            item.setEventMaster(null);
-			                            item.setEventSubCategory(null);
-			                        }
-			                        
-			                        // Clear the items collection
-			                        subCategory.getItems().clear();
-			                    }
-			                }
-			                
-			                // Clear the subcategories collection
-			                category.getSubCategories().clear();
-			            }
-			        }
-			        
-			        // Now clear the main collection - orphanRemoval will delete from DB
-			        entity.getMenuCategorySelections().clear();
-			        
-			        // 🔥 CRITICAL: Save immediately to persist deletions and clear session state
-			        // This flushes the deletions to DB and clears deleted entities from session
-			        entity = repositoryEventMaster.saveAndFlush(entity);
-			        
-			    } else if (entity.getMenuCategorySelections() == null) {
-			        entity.setMenuCategorySelections(new ArrayList<>());
-			    }
-
-			    // CREATE NEW MENU SELECTIONS
-			    for (DtoCustomerMenuCategory catDto : dtoEventMasterAdminPortal.getMenuCategoriesSelection()) {
-
-			        MenuItem category = menuItems.stream()
-			            .filter(item -> item.getSerMenuItemId() != null
-			                && item.getSerMenuItemId().intValue() == catDto.getCategoryId().intValue())
-			            .findFirst().orElse(null);
-
-			        EventMenuCategorySelection catEntity = new EventMenuCategorySelection();
-			        catEntity.setEventMaster(entity);
-			        catEntity.setCategory(category);
-			        catEntity.setNumTotalPrice(catDto.getNumPrice());
-			        catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
-			        if(catDto.getNumFinalPrice() != null) {
-			        	numFoodCategoryPrice = numFoodCategoryPrice.add(catDto.getNumFinalPrice());
-			        }
-
-			        // Initialize collections
-			        if (catEntity.getSubCategories() == null) {
-			            catEntity.setSubCategories(new ArrayList<>());
-			        }
-
-			        for (DtoCustomerMenuSubCategory subDto : catDto.getSubCategories()) {
-
-			            MenuItem subCategory = menuItems.stream()
-			                .filter(item -> item.getSerMenuItemId() != null
-			                    && item.getSerMenuItemId().intValue() == subDto.getSubCategoryId().intValue())
-			                .findFirst().orElse(null);
-
-			            EventMenuSubCategorySelection subEntity = new EventMenuSubCategorySelection();
-			            subEntity.setEventCategory(catEntity);
-			            subEntity.setSubCategory(subCategory);
-			            subEntity.setNumTotalPrice(subDto.getNumPrice());
-			            subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
-			            if(subDto.getNumFinalPrice() != null) {
-			            	numFoodSubcategoryPrice = numFoodSubcategoryPrice.add(subDto.getNumFinalPrice());
-			            }
-			            // Initialize items collection
-			            if (subEntity.getItems() == null) {
-			                subEntity.setItems(new ArrayList<>());
-			            }
-
-			            // Simple Items
-			            for (DtoMenuItem itemDto : subDto.getItems()) {
-
-			                MenuItem menuItem = menuItems.stream()
-			                    .filter(item -> item.getSerMenuItemId() != null
-			                        && item.getSerMenuItemId().intValue() == itemDto.getSerMenuItemId().intValue())
-			                    .findFirst().orElse(null);
-
-			                EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
-			                itemEntity.setEventMaster(entity);
-			                itemEntity.setEventSubCategory(subEntity);
-			                itemEntity.setMenuItem(menuItem);
-			                itemEntity.setNumPrice(itemDto.getNumPrice());
-			                itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
-			                itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
-
-			                subEntity.getItems().add(itemEntity);
-			            }
-
-						// Composite Items If Exists
-						if (subDto.getCompositeItems() != null) {
-							for (DtoMenuComponentRequest itemDto : subDto.getCompositeItems()) {
-
-								MenuItem menuItem = menuItems.stream()
-										.filter(item -> item.getSerMenuItemId() != null && item.getSerMenuItemId()
-												.intValue() == itemDto.getParentMenuItemId().intValue())
-										.findFirst().orElse(null);
-
-								EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
-								itemEntity.setEventMaster(entity);
-								itemEntity.setEventSubCategory(subEntity);
-								itemEntity.setMenuItem(menuItem);
-								itemEntity.setNumPrice(itemDto.getNumPrice());
-								itemEntity.setNumCalculatedPrice(itemDto.getNumCalculatedPrice());
-								itemEntity.setNumFinalPrice(itemDto.getNumFinalPrice());
-
-								subEntity.getItems().add(itemEntity);
-							}
-						}
-
-			            catEntity.getSubCategories().add(subEntity);
-			        }
-
-			        entity.getMenuCategorySelections().add(catEntity);
-			    }
-
-			}
-
-			// Handle case when no menu selections in DTO but editing existing event
-			else if (entity.getSerEventMasterId() != null && entity.getMenuCategorySelections() != null 
-			         && !entity.getMenuCategorySelections().isEmpty()) {
-			    
-			    // User removed all menu selections - clear them properly
-			    List<EventMenuCategorySelection> categoriesToClear = new ArrayList<>(entity.getMenuCategorySelections());
-			    
-			    for (EventMenuCategorySelection category : categoriesToClear) {
-			        category.setEventMaster(null);
-			        if (category.getSubCategories() != null) {
-			            for (EventMenuSubCategorySelection subCategory : category.getSubCategories()) {
-			                subCategory.setEventCategory(null);
-			                if (subCategory.getItems() != null) {
-			                    for (EventMenuFoodSelection item : subCategory.getItems()) {
-			                        item.setEventMaster(null);
-			                        item.setEventSubCategory(null);
-			                    }
-			                    subCategory.getItems().clear();
-			                }
-			            }
-			            category.getSubCategories().clear();
-			        }
-			    }
-			    
-			    entity.getMenuCategorySelections().clear();
-			    entity = repositoryEventMaster.saveAndFlush(entity);
-			}
 			//*********************************************************************************************
 			//*********************************************************************************************
 			//*********************************************************************************************
@@ -5161,6 +4494,403 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	}
 
 	/** How many events are on this day, never counting the one being edited. */
+
+	/**
+	 * The menu, and what it came to.
+	 *
+	 * <p>
+	 * It carries the event back because the save flushes mid-way and the
+	 * instance the caller holds is no longer the one being written to. Both
+	 * totals are write-only today, as the décor ones are, and are carried for
+	 * the same reason: taking them out is a separate decision from writing this
+	 * once instead of twice.
+	 */
+	private record MenuResult(EventMaster entity, BigDecimal categories, BigDecimal subCategories) {
+	}
+
+	/**
+	 * The food chosen for the booking: categories, the courses under them, and
+	 * the dishes under those.
+	 *
+	 * <h3>What this replaced</h3>
+	 *
+	 * A hundred and forty lines that were byte-for-byte identical in the
+	 * journey's save and the office's, down to the emoji in the comments. Of
+	 * everything duplicated across the two paths, this was the one pair with no
+	 * differences at all between them.
+	 *
+	 * <h3>Why the old rows are taken apart before being cleared</h3>
+	 *
+	 * The menu is three levels deep and every level points back at its parent.
+	 * Clearing the top collection alone leaves the levels below it still
+	 * holding references, so {@code orphanRemoval} does not fire for them and
+	 * the rows stay in the database attached to nothing. Breaking each link on
+	 * the way down is what makes the delete reach the bottom.
+	 *
+	 * <h3>Why it flushes in the middle</h3>
+	 *
+	 * The deletions have to reach the database before the replacements are
+	 * added, or Hibernate holds both in the same session and the insert
+	 * collides with the row it is meant to be replacing. That flush returns a
+	 * different instance, which is why the event is handed back rather than
+	 * only mutated.
+	 */
+	private MenuResult applyMenuSelections(List<DtoCustomerMenuCategory> given, EventMaster entity,
+			List<MenuItem> menuItems) {
+
+		BigDecimal categoryTotal = BigDecimal.ZERO;
+		BigDecimal subCategoryTotal = BigDecimal.ZERO;
+
+		/*
+		 * Nothing chosen is not the same as nothing said. A booking that
+		 * already exists and arrives with an empty menu is a customer who has
+		 * taken everything back off it, and the old rows have to go.
+		 */
+		if (given == null || given.isEmpty()) {
+			if (entity.getSerEventMasterId() != null && hasMenu(entity)) {
+				entity = clearMenu(entity);
+			}
+			return new MenuResult(entity, categoryTotal, subCategoryTotal);
+		}
+
+		if (hasMenu(entity)) {
+			entity = clearMenu(entity);
+		} else if (entity.getMenuCategorySelections() == null) {
+			entity.setMenuCategorySelections(new ArrayList<>());
+		}
+
+		for (DtoCustomerMenuCategory catDto : given) {
+			EventMenuCategorySelection catEntity = new EventMenuCategorySelection();
+			catEntity.setEventMaster(entity);
+			catEntity.setCategory(menuItemById(menuItems, catDto.getCategoryId()));
+			catEntity.setNumTotalPrice(catDto.getNumPrice());
+			catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
+
+			if (catDto.getNumFinalPrice() != null) {
+				categoryTotal = categoryTotal.add(catDto.getNumFinalPrice());
+			}
+
+			if (catEntity.getSubCategories() == null) {
+				catEntity.setSubCategories(new ArrayList<>());
+			}
+
+			for (DtoCustomerMenuSubCategory subDto : catDto.getSubCategories()) {
+				EventMenuSubCategorySelection subEntity = new EventMenuSubCategorySelection();
+				subEntity.setEventCategory(catEntity);
+				subEntity.setSubCategory(menuItemById(menuItems, subDto.getSubCategoryId()));
+				subEntity.setNumTotalPrice(subDto.getNumPrice());
+				subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
+
+				if (subDto.getNumFinalPrice() != null) {
+					subCategoryTotal = subCategoryTotal.add(subDto.getNumFinalPrice());
+				}
+
+				if (subEntity.getItems() == null) {
+					subEntity.setItems(new ArrayList<>());
+				}
+
+				for (DtoMenuItem itemDto : subDto.getItems()) {
+					subEntity.getItems().add(dishOn(entity, subEntity,
+							menuItemById(menuItems, itemDto.getSerMenuItemId()),
+							itemDto.getNumPrice(), itemDto.getNumCalculatedPrice(), itemDto.getNumFinalPrice()));
+				}
+
+				/*
+				 * A composite dish — a grazing bar, a dessert table — is stored
+				 * against the parent it was assembled from, not against its
+				 * parts, so it is matched by the parent's id.
+				 */
+				if (subDto.getCompositeItems() != null) {
+					for (DtoMenuComponentRequest itemDto : subDto.getCompositeItems()) {
+						subEntity.getItems().add(dishOn(entity, subEntity,
+								menuItemById(menuItems, itemDto.getParentMenuItemId()),
+								itemDto.getNumPrice(), itemDto.getNumCalculatedPrice(), itemDto.getNumFinalPrice()));
+					}
+				}
+
+				catEntity.getSubCategories().add(subEntity);
+			}
+
+			entity.getMenuCategorySelections().add(catEntity);
+		}
+
+		return new MenuResult(entity, categoryTotal, subCategoryTotal);
+	}
+
+	private static boolean hasMenu(EventMaster entity) {
+		return entity.getMenuCategorySelections() != null && !entity.getMenuCategorySelections().isEmpty();
+	}
+
+	/**
+	 * Takes the stored menu apart and deletes it.
+	 *
+	 * <p>
+	 * Every level is unlinked from its parent on the way down before anything
+	 * is cleared. Clearing the top collection alone leaves the courses and
+	 * dishes beneath it still referenced, so {@code orphanRemoval} never fires
+	 * for them and they stay in the database attached to nothing.
+	 *
+	 * <p>
+	 * The flush is what makes the deletes land before the replacements are
+	 * added, and it returns a different instance — which is why the event is
+	 * handed back rather than only mutated.
+	 */
+	private EventMaster clearMenu(EventMaster entity) {
+		for (EventMenuCategorySelection category : new ArrayList<>(entity.getMenuCategorySelections())) {
+			category.setEventMaster(null);
+
+			if (category.getSubCategories() != null) {
+				for (EventMenuSubCategorySelection subCategory : new ArrayList<>(category.getSubCategories())) {
+					subCategory.setEventCategory(null);
+
+					if (subCategory.getItems() != null) {
+						for (EventMenuFoodSelection item : new ArrayList<>(subCategory.getItems())) {
+							item.setEventMaster(null);
+							item.setEventSubCategory(null);
+						}
+						subCategory.getItems().clear();
+					}
+				}
+				category.getSubCategories().clear();
+			}
+		}
+
+		entity.getMenuCategorySelections().clear();
+		return repositoryEventMaster.saveAndFlush(entity);
+	}
+
+	/**
+	 * The catalogue entry behind a chosen id, or null when it no longer exists.
+	 *
+	 * <p>
+	 * Takes a {@link Number} because the identifier is a {@code Long} on the
+	 * menu DTOs and an {@code Integer} on the entity, and every call site
+	 * compared them by {@code intValue()} already.
+	 */
+	private static MenuItem menuItemById(List<MenuItem> menuItems, Number id) {
+		if (id == null) {
+			return null;
+		}
+		return menuItems.stream()
+				.filter(item -> item.getSerMenuItemId() != null && item.getSerMenuItemId().intValue() == id.intValue())
+				.findFirst().orElse(null);
+	}
+
+	/** One dish on the booking, under its course. */
+	private static EventMenuFoodSelection dishOn(EventMaster entity, EventMenuSubCategorySelection subEntity,
+			MenuItem menuItem, BigDecimal price, BigDecimal calculatedPrice, BigDecimal finalPrice) {
+		EventMenuFoodSelection itemEntity = new EventMenuFoodSelection();
+		itemEntity.setEventMaster(entity);
+		itemEntity.setEventSubCategory(subEntity);
+		itemEntity.setMenuItem(menuItem);
+		itemEntity.setNumPrice(price);
+		itemEntity.setNumCalculatedPrice(calculatedPrice);
+		itemEntity.setNumFinalPrice(finalPrice);
+		return itemEntity;
+	}
+
+	/**
+	 * The two ways a décor payload is treated, by who sent it.
+	 *
+	 * <p>
+	 * Named rather than passed as a pair of bare booleans, because
+	 * {@code applyDecorSelections(…, false, false)} at a call site says nothing
+	 * about what is different, and these two differences are the whole reason
+	 * the code was written out twice.
+	 *
+	 * @param keepRowIds            the office posts back the row ids it was
+	 *                              given and they are left on the entity; the
+	 *                              journey clears them so every save inserts
+	 *                              fresh rows.
+	 * @param takePricesFromPayload the office prices décor properties. A
+	 *                              customer does not, so the journey drops any
+	 *                              price in the payload and the column keeps the
+	 *                              entity's default of zero.
+	 */
+	private record DecorRules(boolean keepRowIds, boolean takePricesFromPayload) {
+	}
+
+	private static final DecorRules JOURNEY_DECOR = new DecorRules(false, false);
+	private static final DecorRules OFFICE_DECOR = new DecorRules(true, true);
+
+	/**
+	 * What the décor added up to, handed back for the caller's running totals.
+	 *
+	 * <p>
+	 * Both totals are write-only today — every read of them in this file is
+	 * commented out. They are returned and accumulated anyway, because removing
+	 * a total is a separate decision from writing this code once instead of
+	 * twice, and mixing the two would make it impossible to say this change
+	 * altered nothing.
+	 */
+	private record DecorTotals(BigDecimal categories, BigDecimal properties) {
+	}
+
+	/**
+	 * The décor chosen for a booking that already exists.
+	 *
+	 * <h3>What this replaced</h3>
+	 *
+	 * The same hundred and seventy lines in the journey's save and in the
+	 * office's, differing in the two things {@link DecorRules} names and
+	 * nothing else.
+	 *
+	 * <h3>Why only the bookings that already exist</h3>
+	 *
+	 * Each save path has a second décor block for a booking being created, and
+	 * those two are <em>not</em> copies of these. They skip the running totals,
+	 * handle reference documents the older way, and assign the collection with
+	 * {@code setDecorSelections} rather than adding to it. The journey's also
+	 * matches the décor catalogue by the wrong identifier — the id of the
+	 * selection row, which is not set on a booking being created, rather than
+	 * the id of the catalogue property. Folding those in here would silently
+	 * change four behaviours at once, so they are left where they are.
+	 *
+	 * <h3>Why the collection is cleared and added to</h3>
+	 *
+	 * {@code orphanRemoval} requires it. Assigning a new list leaves Hibernate
+	 * holding a collection it no longer manages and the old rows are never
+	 * deleted, which is the defect the commented-out {@code setDecorSelections}
+	 * beneath the loop used to cause.
+	 */
+	private DecorTotals applyDecorSelections(List<DtoEventDecorCategorySelection> given, EventMaster entity,
+			List<DecorCategoryPropertyMaster> propertyMasters, List<DecorCategoryPropertyValue> propertyValues,
+			List<MultipartFile> files, Map<String, MultipartFile> fileMap, DecorRules rules) throws IOException {
+
+		BigDecimal categoryTotal = BigDecimal.ZERO;
+		BigDecimal propertyTotal = BigDecimal.ZERO;
+
+		if (UtilRandomKey.isNull(given)) {
+			return new DecorTotals(categoryTotal, propertyTotal);
+		}
+
+		if (entity.getDecorSelections() != null) {
+			entity.getDecorSelections().clear();
+		}
+
+		List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
+
+		for (DtoEventDecorCategorySelection dto : given) {
+			EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
+			if (!rules.keepRowIds()) {
+				decorSelection.setSerEventDecorCategorySelectionId(null);
+			}
+			decorSelection.setEventMaster(entity);
+
+			if (decorSelection.getNumPrice() != null) {
+				categoryTotal = categoryTotal.add(decorSelection.getNumPrice());
+			}
+
+			if (dto.getSelectedProperties() != null && !dto.getSelectedProperties().isEmpty()) {
+				if (decorSelection.getSelectedProperties() != null) {
+					decorSelection.getSelectedProperties().clear();
+				}
+
+				List<EventDecorPropertySelection> newSelectedProperties = new ArrayList<>();
+				for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
+					EventDecorPropertySelection propertySelection = new EventDecorPropertySelection();
+					propertySelection.setBlnIsActive(true);
+					propertySelection.setBlnIsDeleted(false);
+					propertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
+					propertySelection.setEventDecorCategorySelection(decorSelection);
+
+					if (rules.takePricesFromPayload()) {
+						propertySelection.setNumPrice(property.getNumPrice());
+					}
+					if (propertySelection.getNumPrice() != null) {
+						propertyTotal = propertyTotal.add(propertySelection.getNumPrice());
+					}
+
+					propertySelection.setProperty(propertyMasters.stream()
+							.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId().intValue())
+							.findFirst().orElse(null));
+
+					Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
+					if (property.getSerPropertyValueIds() != null) {
+						for (Integer valueId : property.getSerPropertyValueIds()) {
+							EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
+							val.setEventDecorPropertySelection(propertySelection);
+							val.setPropertyValue(propertyValues.stream()
+									.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId)
+									.findFirst().orElse(null));
+							selectedValues.add(val);
+						}
+					}
+					propertySelection.setSelectedValues(selectedValues);
+
+					newSelectedProperties.add(propertySelection);
+				}
+
+				decorSelection.getSelectedProperties().addAll(newSelectedProperties);
+			}
+
+			applyReferenceDocuments(dto, decorSelection, files, fileMap);
+			decorSelections.add(decorSelection);
+		}
+
+		entity.getDecorSelections().addAll(decorSelections);
+		return new DecorTotals(categoryTotal, propertyTotal);
+	}
+
+	/**
+	 * The customer's own reference pictures for a décor choice.
+	 *
+	 * <h3>Why the entities are rebuilt rather than reused</h3>
+	 *
+	 * The pictures already on the booking arrive back as DTOs, detached from
+	 * any session. Handing those to Hibernate attached to a freshly built
+	 * selection makes it treat them as rows to update rather than insert, and
+	 * they end up pointing at the selection that has just been cleared away.
+	 * Building new ones and letting the ids be assigned is what stops a save
+	 * that changes nothing about the pictures from losing them.
+	 */
+	private void applyReferenceDocuments(DtoEventDecorCategorySelection dto,
+			EventDecorCategorySelection decorSelection, List<MultipartFile> files,
+			Map<String, MultipartFile> fileMap) throws IOException {
+
+		if (decorSelection.getUserUploadedDocuments() == null) {
+			return;
+		}
+
+		boolean hasNewFiles = files != null && files.stream().anyMatch(f -> f != null && !f.isEmpty());
+
+		if (hasNewFiles) {
+			decorSelection.getUserUploadedDocuments().clear();
+			List<EventDecorReferenceDocument> documents = new ArrayList<>();
+
+			for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
+				MultipartFile file = fileMap.get(dtoImg.getOriginalName());
+				if (file != null && !file.isEmpty()) {
+					EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
+					doc.setDocumentName(file.getName());
+					doc.setOriginalName(file.getOriginalFilename());
+					doc.setDocumentType(file.getContentType());
+					doc.setSize(String.valueOf(file.getSize()));
+					doc.setFilePath(UtilFileStorage.saveFile(file, "UserReferenceDecor"));
+					doc.setEventDecorCategorySelection(decorSelection);
+					documents.add(doc);
+				}
+			}
+			decorSelection.getUserUploadedDocuments().addAll(documents);
+
+		} else if (dto.getUserUploadedDocuments() != null && !dto.getUserUploadedDocuments().isEmpty()) {
+			decorSelection.getUserUploadedDocuments().clear();
+			List<EventDecorReferenceDocument> existingDocs = new ArrayList<>();
+
+			for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
+				EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
+				doc.setDocumentName(dtoImg.getDocumentName());
+				doc.setOriginalName(dtoImg.getOriginalName());
+				doc.setDocumentType(dtoImg.getDocumentType());
+				doc.setSize(dtoImg.getSize());
+				doc.setFilePath(dtoImg.getTxtDocumentUrl());
+				doc.setEventDecorCategorySelection(decorSelection);
+				existingDocs.add(doc);
+			}
+			decorSelection.getUserUploadedDocuments().addAll(existingDocs);
+		}
+		// else: no pictures at all — leave empty
+	}
 
 	/**
 	 * Which hall of which venue, or the reason the booking cannot have it.
