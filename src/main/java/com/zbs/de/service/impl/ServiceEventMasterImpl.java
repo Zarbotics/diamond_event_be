@@ -65,6 +65,7 @@ import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 import com.zbs.de.model.dto.DtoEventQuoteAndStatus;
 import com.zbs.de.model.dto.DtoEventExternalSupplier;
+import com.zbs.de.model.dto.DtoEventRunningOrder;
 import com.zbs.de.model.dto.DtoEventVenue;
 import com.zbs.de.model.dto.DtoMenuComponentRequest;
 import com.zbs.de.model.dto.DtoMenuFoodMaster;
@@ -1003,44 +1004,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Set optional event running order
 				// ********************************
-				if (dtoEventMaster.getDtoEventRunningOrder() != null) {
-					EventRunningOrder runningOrder = new EventRunningOrder();
-
-					if (UtilRandomKey.isNotNull(entity.getEventRunningOrder())) {
-
-						runningOrder = entity.getEventRunningOrder();
-						runningOrder.setTxtGuestArrival(dtoEventMaster.getDtoEventRunningOrder().getTxtGuestArrival());
-						runningOrder.setTxtBaratArrival(dtoEventMaster.getDtoEventRunningOrder().getTxtBaratArrival());
-						runningOrder
-								.setTxtBrideEntrance(dtoEventMaster.getDtoEventRunningOrder().getTxtBrideEntrance());
-						runningOrder.setTxtNikah(dtoEventMaster.getDtoEventRunningOrder().getTxtNikah());
-						runningOrder.setTxtMeal(dtoEventMaster.getDtoEventRunningOrder().getTxtMeal());
-						runningOrder.setTxtEndOfNight(dtoEventMaster.getDtoEventRunningOrder().getTxtEndOfNight());
-						runningOrder.setTxtBrideGuestArrival(
-								dtoEventMaster.getDtoEventRunningOrder().getTxtBrideGuestArrival());
-						runningOrder.setTxtGroomGuestArrival(
-								dtoEventMaster.getDtoEventRunningOrder().getTxtGroomGuestArrival());
-						runningOrder
-								.setTxtGroomEntrance(dtoEventMaster.getDtoEventRunningOrder().getTxtGroomEntrance());
-						runningOrder.setTxtCouplesEntrance(
-								dtoEventMaster.getDtoEventRunningOrder().getTxtCouplesEntrance());
-						runningOrder.setTxtDua(dtoEventMaster.getDtoEventRunningOrder().getTxtDua());
-						runningOrder.setTxtDance(dtoEventMaster.getDtoEventRunningOrder().getTxtDance());
-						runningOrder.setTxtCakeCutting(dtoEventMaster.getDtoEventRunningOrder().getTxtCakeCutting());
-						runningOrder.setTxtRingExchange(dtoEventMaster.getDtoEventRunningOrder().getTxtRingExchange());
-						runningOrder.setTxtRams(dtoEventMaster.getDtoEventRunningOrder().getTxtRams());
-						runningOrder.setTxtSpeeches(dtoEventMaster.getDtoEventRunningOrder().getTxtSpeeches());
-						runningOrder = repositoryEventRunningOrder.save(runningOrder);
-					} else {
-						runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
-						runningOrder = repositoryEventRunningOrder.save(runningOrder);
-						// entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-					}
-					entity.setEventRunningOrder(runningOrder);
-
-					// entity.setNumInfoFilledStatus(30);
-
-				}
+				applyRunningOrder(dtoEventMaster.getDtoEventRunningOrder(), entity);
 
 				// Setting Venue Master
 				// ********************
@@ -1057,23 +1021,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //				}
 
 				//This is For when you need to save which hall of the venu was selected				
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
-					if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
-						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-								dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
-						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-							entity.setVenueMasterDetail(venueMasterDetail);
-						} else {
-							dtoResult.setTxtMessage("Venue Hall Is Not Active");
-							return dtoResult;
-						}
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
-						return dtoResult;
-					}
-//					entity.setNumInfoFilledStatus(50);
-
+				DtoResult venueRefusal = applyVenue(dtoEventMaster.getDtoEventVenue(), entity);
+				if (venueRefusal != null) {
+					return venueRefusal;
 				}
 
 				// Set Decor Item Selections
@@ -1557,13 +1507,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Set optional event running order
 				// ********************************
-				if (dtoEventMaster.getDtoEventRunningOrder() != null) {
-					EventRunningOrder runningOrder = new EventRunningOrder();
-					runningOrder = MapperEventRunningOrder.toEntity(dtoEventMaster.getDtoEventRunningOrder());
-					runningOrder = repositoryEventRunningOrder.save(runningOrder);
-					entity.setEventRunningOrder(runningOrder);
-					// entity.setNumInfoFilledStatus(30);
-				}
+				applyRunningOrder(dtoEventMaster.getDtoEventRunningOrder(), entity);
 
 				// Set Venue Master
 				// ****************
@@ -1580,23 +1524,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //				}
 
 				//This is For when you need to save which hall of the venu was selected				
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue())) {
-					if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId())) {
-						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-								dtoEventMaster.getDtoEventVenue().getSerVenueMasterDetailId());
-						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-							entity.setVenueMasterDetail(venueMasterDetail);
-						} else {
-							dtoResult.setTxtMessage("Venue Hall Is Not Active");
-							return dtoResult;
-						}
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
-						return dtoResult;
-					}
-//					entity.setNumInfoFilledStatus(50);
-
+				DtoResult venueRefusal = applyVenue(dtoEventMaster.getDtoEventVenue(), entity);
+				if (venueRefusal != null) {
+					return venueRefusal;
 				}
 
 				// Set Decore Item Selections
@@ -2726,51 +2656,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Set optional event running order
 				// ********************************
-				if (dtoEventMasterAdminPortal.getDtoEventRunningOrder() != null) {
-					EventRunningOrder runningOrder = new EventRunningOrder();
-
-					if (UtilRandomKey.isNotNull(entity.getEventRunningOrder())) {
-
-						runningOrder = entity.getEventRunningOrder();
-						runningOrder.setTxtGuestArrival(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtGuestArrival());
-						runningOrder.setTxtBaratArrival(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtBaratArrival());
-						runningOrder.setTxtBrideEntrance(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtBrideEntrance());
-						runningOrder.setTxtNikah(dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtNikah());
-						runningOrder.setTxtMeal(dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtMeal());
-						runningOrder.setTxtEndOfNight(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtEndOfNight());
-						runningOrder.setTxtBrideGuestArrival(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtBrideGuestArrival());
-						runningOrder.setTxtGroomGuestArrival(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtGroomGuestArrival());
-						runningOrder.setTxtGroomEntrance(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtGroomEntrance());
-						runningOrder.setTxtCouplesEntrance(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtCouplesEntrance());
-						runningOrder.setTxtDua(dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtDua());
-						runningOrder.setTxtDance(dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtDance());
-						runningOrder.setTxtCakeCutting(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtCakeCutting());
-						runningOrder.setTxtRingExchange(
-								dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtRingExchange());
-						runningOrder.setTxtRams(dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtRams());
-						runningOrder
-								.setTxtSpeeches(dtoEventMasterAdminPortal.getDtoEventRunningOrder().getTxtSpeeches());
-						runningOrder = repositoryEventRunningOrder.save(runningOrder);
-					} else {
-						runningOrder = MapperEventRunningOrder
-								.toEntity(dtoEventMasterAdminPortal.getDtoEventRunningOrder());
-						runningOrder = repositoryEventRunningOrder.save(runningOrder);
-						// entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-					}
-					entity.setEventRunningOrder(runningOrder);
-
-					// entity.setNumInfoFilledStatus(30);
-
-				}
+				applyRunningOrder(dtoEventMasterAdminPortal.getDtoEventRunningOrder(), entity);
 
 				// Setting Venue Master
 				// ********************
@@ -2789,23 +2675,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //				}
 
 				//This is For when you need to save which hall of the venu was selected				
-				if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getDtoEventVenue())) {
-					if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getDtoEventVenue().getSerVenueMasterDetailId())) {
-						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-								dtoEventMasterAdminPortal.getDtoEventVenue().getSerVenueMasterDetailId());
-						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-							entity.setVenueMasterDetail(venueMasterDetail);
-						} else {
-							dtoResult.setTxtMessage("Venue Hall Is Not Active");
-							return dtoResult;
-						}
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
-						return dtoResult;
-					}
-//					entity.setNumInfoFilledStatus(50);
-
+				DtoResult venueRefusal = applyVenue(dtoEventMasterAdminPortal.getDtoEventVenue(), entity);
+				if (venueRefusal != null) {
+					return venueRefusal;
 				}
 
 				// Set Decor Item Selections
@@ -3272,14 +3144,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 				// Set optional event running order
 				// ********************************
-				if (dtoEventMasterAdminPortal.getDtoEventRunningOrder() != null) {
-					EventRunningOrder runningOrder = new EventRunningOrder();
-					runningOrder = MapperEventRunningOrder
-							.toEntity(dtoEventMasterAdminPortal.getDtoEventRunningOrder());
-					runningOrder = repositoryEventRunningOrder.save(runningOrder);
-					entity.setEventRunningOrder(runningOrder);
-					// entity.setNumInfoFilledStatus(30);
-				}
+				applyRunningOrder(dtoEventMasterAdminPortal.getDtoEventRunningOrder(), entity);
 
 				// Set Venue Master
 				// ****************
@@ -3298,23 +3163,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //				}
 
 				//This is For when you need to save which hall of the venu was selected				
-				if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getDtoEventVenue())) {
-					if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getDtoEventVenue().getSerVenueMasterDetailId())) {
-						DtoResult res = serviceVenueMaster.getVenueDetailByVenueMasterDetailId(
-								dtoEventMasterAdminPortal.getDtoEventVenue().getSerVenueMasterDetailId());
-						if (res.getTxtMessage().equalsIgnoreCase("Success")) {
-							VenueMasterDetail venueMasterDetail = (VenueMasterDetail) res.getResult();
-							entity.setVenueMasterDetail(venueMasterDetail);
-						} else {
-							dtoResult.setTxtMessage("Venue Hall Is Not Active");
-							return dtoResult;
-						}
-					} else {
-						dtoResult.setTxtMessage("Venue Hall Is Not Selected");
-						return dtoResult;
-					}
-//					entity.setNumInfoFilledStatus(50);
-
+				DtoResult venueRefusal = applyVenue(dtoEventMasterAdminPortal.getDtoEventVenue(), entity);
+				if (venueRefusal != null) {
+					return venueRefusal;
 				}
 
 				// Set Decore Item Selections
@@ -5310,6 +5161,104 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	}
 
 	/** How many events are on this day, never counting the one being edited. */
+
+	/**
+	 * Which hall of which venue, or the reason the booking cannot have it.
+	 *
+	 * <h3>Why a venue can be refused</h3>
+	 *
+	 * A hall taken out of service must not end up on a booking made after it
+	 * was withdrawn, so the save stops rather than storing a room the business
+	 * can no longer offer. The other refusal is a venue chosen without a hall,
+	 * which is not enough to cater or lay out.
+	 *
+	 * <p>
+	 * It hands back the refusal rather than a boolean, matching
+	 * {@code refuseUnreadableDate} above: {@code null} means the venue was
+	 * applied and the save may continue.
+	 *
+	 * <h3>What this replaced</h3>
+	 *
+	 * The same eighteen lines four times over — once per portal, and again in
+	 * each for whether the booking already existed. All four were identical,
+	 * down to the commented-out progress counter at the bottom.
+	 */
+	private DtoResult applyVenue(DtoEventVenue given, EventMaster entity) {
+		if (UtilRandomKey.isNull(given)) {
+			return null;
+		}
+
+		if (UtilRandomKey.isNull(given.getSerVenueMasterDetailId())) {
+			DtoResult refusal = new DtoResult();
+			refusal.setTxtMessage("Venue Hall Is Not Selected");
+			return refusal;
+		}
+
+		DtoResult found = serviceVenueMaster
+				.getVenueDetailByVenueMasterDetailId(given.getSerVenueMasterDetailId());
+		if (!found.getTxtMessage().equalsIgnoreCase("Success")) {
+			DtoResult refusal = new DtoResult();
+			refusal.setTxtMessage("Venue Hall Is Not Active");
+			return refusal;
+		}
+
+		entity.setVenueMasterDetail((VenueMasterDetail) found.getResult());
+		return null;
+	}
+
+	/**
+	 * The order of the evening, from whichever portal typed it.
+	 *
+	 * <h3>What this replaced</h3>
+	 *
+	 * Four copies of the same forty lines: the journey and the office each had
+	 * one for a booking that already exists and another for a booking being
+	 * created. The two "new booking" copies were the {@code else} half of the
+	 * two "existing booking" copies, written out again a few hundred lines
+	 * further down.
+	 *
+	 * <p>
+	 * Nothing is lost by collapsing them. A booking being created has no
+	 * running order yet, so it takes the same {@code else} branch the separate
+	 * copies hard-coded — the difference between the four was which of them the
+	 * reader happened to be looking at, not what any of them did.
+	 *
+	 * <h3>Why it updates in place rather than replacing</h3>
+	 *
+	 * The row is pointed at by {@code event_master}, so replacing it would
+	 * leave the old one orphaned and the booking briefly pointing at nothing.
+	 * Updating the existing row keeps the foreign key valid throughout.
+	 */
+	private void applyRunningOrder(DtoEventRunningOrder given, EventMaster entity) {
+		if (given == null) {
+			return;
+		}
+
+		EventRunningOrder runningOrder;
+		if (UtilRandomKey.isNotNull(entity.getEventRunningOrder())) {
+			runningOrder = entity.getEventRunningOrder();
+			runningOrder.setTxtGuestArrival(given.getTxtGuestArrival());
+			runningOrder.setTxtBaratArrival(given.getTxtBaratArrival());
+			runningOrder.setTxtBrideEntrance(given.getTxtBrideEntrance());
+			runningOrder.setTxtNikah(given.getTxtNikah());
+			runningOrder.setTxtMeal(given.getTxtMeal());
+			runningOrder.setTxtEndOfNight(given.getTxtEndOfNight());
+			runningOrder.setTxtBrideGuestArrival(given.getTxtBrideGuestArrival());
+			runningOrder.setTxtGroomGuestArrival(given.getTxtGroomGuestArrival());
+			runningOrder.setTxtGroomEntrance(given.getTxtGroomEntrance());
+			runningOrder.setTxtCouplesEntrance(given.getTxtCouplesEntrance());
+			runningOrder.setTxtDua(given.getTxtDua());
+			runningOrder.setTxtDance(given.getTxtDance());
+			runningOrder.setTxtCakeCutting(given.getTxtCakeCutting());
+			runningOrder.setTxtRingExchange(given.getTxtRingExchange());
+			runningOrder.setTxtRams(given.getTxtRams());
+			runningOrder.setTxtSpeeches(given.getTxtSpeeches());
+		} else {
+			runningOrder = MapperEventRunningOrder.toEntity(given);
+		}
+
+		entity.setEventRunningOrder(repositoryEventRunningOrder.save(runningOrder));
+	}
 
 	/**
 	 * Writes down that the customer agreed to the terms.
