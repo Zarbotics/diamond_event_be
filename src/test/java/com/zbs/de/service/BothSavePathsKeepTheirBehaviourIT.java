@@ -26,14 +26,19 @@ import org.springframework.test.context.TestPropertySource;
 
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.DecorCategoryMaster;
+import com.zbs.de.model.DecorCategoryPropertyMaster;
+import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventType;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
+import com.zbs.de.model.dto.DtoEventDecorPropertySelection;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
 import com.zbs.de.model.dto.DtoEventRunningOrder;
 import com.zbs.de.repository.RepositoryCustomerMaster;
 import com.zbs.de.repository.RepositoryDecorCategoryMaster;
+import com.zbs.de.repository.RepositoryDecorCategoryPropertyMaster;
+import com.zbs.de.repository.RepositoryDecorCategoryPropertyValue;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventType;
 
@@ -105,6 +110,12 @@ class BothSavePathsKeepTheirBehaviourIT {
 	private RepositoryDecorCategoryMaster repositoryDecorCategoryMaster;
 
 	@Autowired
+	private RepositoryDecorCategoryPropertyMaster repositoryDecorCategoryPropertyMaster;
+
+	@Autowired
+	private RepositoryDecorCategoryPropertyValue repositoryDecorCategoryPropertyValue;
+
+	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
 	private CustomerMaster customer;
@@ -170,6 +181,8 @@ class BothSavePathsKeepTheirBehaviourIT {
 		jdbcTemplate.update("DELETE FROM event_master WHERE ser_cust_id IN ("
 				+ "  SELECT ser_cust_id FROM customer_master WHERE txt_cust_code LIKE ?)", MARKER + "%");
 		jdbcTemplate.update("DELETE FROM customer_master WHERE txt_cust_code LIKE ?", MARKER + "%");
+		jdbcTemplate.update("DELETE FROM decor_category_property_value WHERE txt_property_value LIKE ?", MARKER + "%");
+		jdbcTemplate.update("DELETE FROM decor_category_property_master WHERE txt_property_code LIKE ?", MARKER + "%");
 		jdbcTemplate.update("DELETE FROM decor_category_master WHERE txt_decor_category_code LIKE ?", MARKER + "%");
 	}
 
@@ -234,8 +247,17 @@ class BothSavePathsKeepTheirBehaviourIT {
 				.containsEntry("dte_end_of_night", "23:00");
 	}
 
+	/**
+	 * The whole décor tree, not just the top of it.
+	 *
+	 * <p>
+	 * A décor choice is three tables deep — the category, the properties
+	 * chosen under it, and the values chosen for each property. Counting only
+	 * the categories would let an extraction drop the two levels below it and
+	 * still pass, which is exactly the failure this suite exists to catch.
+	 */
 	@Test
-	@DisplayName("the journey stores the décor the customer chose")
+	@DisplayName("the journey stores the décor the customer chose, to the last value")
 	void theJourneyStoresDecor() throws Exception {
 		EventMaster seeded = seedEvent();
 
@@ -243,8 +265,40 @@ class BothSavePathsKeepTheirBehaviourIT {
 		serviceEventMaster.saveAndUpdateWithDocs(dto, null);
 
 		assertThat(decorCategoryIdsOf(seeded))
-				.as("the décor the customer chose was not stored")
+				.as("the décor category the customer chose was not stored")
 				.hasSize(1);
+		assertThat(decorPropertyCountOf(seeded))
+				.as("the property chosen under that catgeory was not stored")
+				.isEqualTo(1);
+		assertThat(decorPropertyValueCountOf(seeded))
+				.as("the two drape colours chosen under that property were not stored")
+				.isEqualTo(2);
+	}
+
+	/**
+	 * A customer does not price their own décor.
+	 *
+	 * <p>
+	 * The office's save writes the price it was given onto each décor
+	 * property; the journey's does not, so a payload that names a price is
+	 * stored at the entity's default of zero instead. Pinned because it is
+	 * invisible — both paths accept the field, and only one of them reads it,
+	 * and the one that ignores it leaves a plausible-looking 0.00 behind
+	 * rather than an obvious null.
+	 */
+	@Test
+	@DisplayName("a price on a décor property from the journey is ignored")
+	void theJourneyIgnoresDecorPropertyPrices() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMaster dto = richJourneySave(seeded);
+		serviceEventMaster.saveAndUpdateWithDocs(dto, null);
+
+		assertThat(decorPropertyPricesOf(seeded))
+				.as("the journey started accepting a price the customer typed")
+				.hasSize(1)
+				.allSatisfy(price -> assertThat(new BigDecimal(String.valueOf(price)))
+						.isEqualByComparingTo("0.00"));
 	}
 
 	// ── the office ───────────────────────────────────────────────────────
@@ -304,7 +358,7 @@ class BothSavePathsKeepTheirBehaviourIT {
 	}
 
 	@Test
-	@DisplayName("the office stores the décor it was given")
+	@DisplayName("the office stores the décor it was given, to the last value")
 	void theOfficeStoresDecor() throws Exception {
 		EventMaster seeded = seedEvent();
 
@@ -312,8 +366,38 @@ class BothSavePathsKeepTheirBehaviourIT {
 		serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dto, null);
 
 		assertThat(decorCategoryIdsOf(seeded))
-				.as("the décor the office chose was not stored")
+				.as("the décor category the office chose was not stored")
 				.hasSize(1);
+		assertThat(decorPropertyCountOf(seeded))
+				.as("the property chosen under that category was not stored")
+				.isEqualTo(1);
+		assertThat(decorPropertyValueCountOf(seeded))
+				.as("the two drape colours chosen under that property were not stored")
+				.isEqualTo(2);
+	}
+
+	/**
+	 * The office does price décor, and that is the other half of the pair.
+	 *
+	 * <p>
+	 * The same payload that is stripped of its price on the way in from the
+	 * journey keeps it on the way in from the office. Both halves are pinned
+	 * because a shared helper could easily end up doing one thing for both
+	 * callers, and either direction would be wrong.
+	 */
+	@Test
+	@DisplayName("the office's price on a décor property is kept")
+	void theOfficeKeepsDecorPropertyPrices() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMasterAdminPortal dto = richOfficeSave(seeded);
+		serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dto, null);
+
+		assertThat(decorPropertyPricesOf(seeded))
+				.as("the office's price on a décor property was discarded")
+				.hasSize(1)
+				.allSatisfy(price -> assertThat(new BigDecimal(String.valueOf(price)))
+						.isEqualByComparingTo("120.00"));
 	}
 
 	/**
@@ -401,6 +485,35 @@ class BothSavePathsKeepTheirBehaviourIT {
 				"SELECT ser_decor_category_id FROM event_decor_category_selection"
 						+ " WHERE ser_event_master_id = ? AND bln_is_deleted = false",
 				event.getSerEventMasterId());
+	}
+
+	private Integer decorPropertyCountOf(EventMaster event) {
+		return jdbcTemplate.queryForObject(
+				"SELECT count(*) FROM event_decor_property_selection p"
+						+ " JOIN event_decor_category_selection s"
+						+ "   ON s.ser_event_decor_category_selection_id = p.ser_event_decor_category_selection_id"
+						+ " WHERE s.ser_event_master_id = ?",
+				Integer.class, event.getSerEventMasterId());
+	}
+
+	private Integer decorPropertyValueCountOf(EventMaster event) {
+		return jdbcTemplate.queryForObject(
+				"SELECT count(*) FROM event_decor_property_value_selection v"
+						+ " JOIN event_decor_property_selection p"
+						+ "   ON p.ser_event_decor_property_id = v.ser_event_decor_property_id"
+						+ " JOIN event_decor_category_selection s"
+						+ "   ON s.ser_event_decor_category_selection_id = p.ser_event_decor_category_selection_id"
+						+ " WHERE s.ser_event_master_id = ?",
+				Integer.class, event.getSerEventMasterId());
+	}
+
+	private List<Object> decorPropertyPricesOf(EventMaster event) {
+		return jdbcTemplate.queryForList(
+				"SELECT p.num_price FROM event_decor_property_selection p"
+						+ " JOIN event_decor_category_selection s"
+						+ "   ON s.ser_event_decor_category_selection_id = p.ser_event_decor_category_selection_id"
+						+ " WHERE s.ser_event_master_id = ?",
+				Object.class, event.getSerEventMasterId());
 	}
 
 	private static BigDecimal asDecimal(Object value) {
@@ -508,9 +621,33 @@ class BothSavePathsKeepTheirBehaviourIT {
 		category.setBlnIsDeleted(false);
 		category = repositoryDecorCategoryMaster.saveAndFlush(category);
 
+		DecorCategoryPropertyMaster property = new DecorCategoryPropertyMaster();
+		property.setTxtPropertyCode(MARKER + "-" + System.nanoTime());
+		property.setTxtPropertyName(MARKER + " Backdrop");
+		property.setDecorCategoryMaster(category);
+		property.setBlnIsActive(true);
+		property.setBlnIsDeleted(false);
+		final DecorCategoryPropertyMaster chosen = repositoryDecorCategoryPropertyMaster.saveAndFlush(property);
+
+		List<Integer> valueIds = new ArrayList<>();
+		for (String name : List.of("Ivory drape", "Gold drape")) {
+			DecorCategoryPropertyValue value = new DecorCategoryPropertyValue();
+			value.setTxtPropertyValue(MARKER + " " + name);
+			value.setDecorCategoryProperty(chosen);
+			value.setBlnIsActive(true);
+			value.setBlnIsDeleted(false);
+			valueIds.add(repositoryDecorCategoryPropertyValue.saveAndFlush(value).getSerPropertyValueId());
+		}
+
+		DtoEventDecorPropertySelection chosenProperty = new DtoEventDecorPropertySelection();
+		chosenProperty.setSerPropertyId(chosen.getSerPropertyId());
+		chosenProperty.setNumPrice(new BigDecimal("120.00"));
+		chosenProperty.setSerPropertyValueIds(valueIds);
+
 		DtoEventDecorCategorySelection selection = new DtoEventDecorCategorySelection();
 		selection.setSerDecorCategoryId(category.getSerDecorCategoryId());
 		selection.setNumPrice(new BigDecimal("500.00"));
+		selection.setSelectedProperties(List.of(chosenProperty));
 
 		List<DtoEventDecorCategorySelection> selections = new ArrayList<>();
 		selections.add(selection);
