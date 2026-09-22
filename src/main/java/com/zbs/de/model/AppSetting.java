@@ -84,6 +84,16 @@ public class AppSetting extends BaseEntity implements Serializable {
 	@Column(name = "num_max")
 	private BigDecimal numMax;
 
+	/*
+	 * For a CHOICE setting: the permitted values, comma separated, in the
+	 * order they should be offered.
+	 *
+	 * A free text box would let somebody type "Totl" into the VAT mode and
+	 * turn VAT off across the business without a word of complaint.
+	 */
+	@Column(name = "txt_allowed_values")
+	private String txtAllowedValues;
+
 	/**
 	 * Whether a customer-facing caller may read it.
 	 *
@@ -118,6 +128,14 @@ public class AppSetting extends BaseEntity implements Serializable {
 
 	public void setTxtValue(String txtValue) {
 		this.txtValue = txtValue;
+	}
+
+	public String getTxtAllowedValues() {
+		return txtAllowedValues;
+	}
+
+	public void setTxtAllowedValues(String txtAllowedValues) {
+		this.txtAllowedValues = txtAllowedValues;
 	}
 
 	public String getTxtValueType() {

@@ -149,9 +149,37 @@ public class ControllerAppSetting {
 				return "\"" + setting.getTxtLabel() + "\" needs a number.";
 			}
 
+		/*
+		 * A choice is refused unless it is one of the choices. The VAT mode is
+		 * the first of these, and a typo there would take VAT off every invoice
+		 * the business issues without a word of complaint — the kind of failure
+		 * nobody notices until it is expensive.
+		 */
+		case "CHOICE":
+			for (String allowed : allowedValuesOf(setting)) {
+				if (allowed.equalsIgnoreCase(value.trim())) {
+					return null;
+				}
+			}
+			return "\"" + setting.getTxtLabel() + "\" has to be one of: "
+					+ String.join(", ", allowedValuesOf(setting)) + ".";
+
 		default:
 			return null;
 		}
+	}
+
+	private static List<String> allowedValuesOf(AppSetting setting) {
+		if (setting.getTxtAllowedValues() == null || setting.getTxtAllowedValues().isBlank()) {
+			return List.of();
+		}
+		List<String> allowed = new ArrayList<>();
+		for (String each : setting.getTxtAllowedValues().split(",")) {
+			if (!each.trim().isEmpty()) {
+				allowed.add(each.trim());
+			}
+		}
+		return allowed;
 	}
 
 	private static String outsideBounds(AppSetting setting, BigDecimal value) {
@@ -178,6 +206,7 @@ public class ControllerAppSetting {
 		dto.setNumDisplayOrder(setting.getNumDisplayOrder());
 		dto.setNumMin(setting.getNumMin());
 		dto.setNumMax(setting.getNumMax());
+		dto.setTxtAllowedValues(setting.getTxtAllowedValues());
 		return dto;
 	}
 }

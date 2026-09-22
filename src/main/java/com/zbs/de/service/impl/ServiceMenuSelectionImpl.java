@@ -403,6 +403,30 @@ public class ServiceMenuSelectionImpl implements ServiceMenuSelection {
 			yield base.multiply(BigDecimal.valueOf(guests));
 		}
 
+		case PER_TABLE -> {
+			int tables = ctx.getNumTables() != null ? ctx.getNumTables() : 0;
+			yield base.multiply(BigDecimal.valueOf(tables));
+		}
+
+		/*
+		 * One station per so many guests, rounded up — half a grazing bar is
+		 * not a thing that can be supplied. An item that does not say how far a
+		 * station stretches is charged for one, which is the safe reading: a
+		 * business that has not said a bar serves fifty has not said it needs
+		 * two.
+		 */
+		case PER_STATION -> {
+			int guests = ctx.getNumGuests() != null ? ctx.getNumGuests() : 0;
+			BigDecimal per = item.getNumGuestsPerStation();
+			if (per == null || per.signum() <= 0 || guests <= 0) {
+				yield base;
+			}
+			BigDecimal stations = BigDecimal.valueOf(guests)
+					.divide(per, 0, java.math.RoundingMode.CEILING)
+					.max(BigDecimal.ONE);
+			yield base.multiply(stations);
+		}
+
 		case FLAT -> base;
 		};
 	}

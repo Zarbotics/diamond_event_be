@@ -18,6 +18,7 @@ public class DtoAppSetting {
 	private Integer numDisplayOrder;
 	private BigDecimal numMin;
 	private BigDecimal numMax;
+	private String txtAllowedValues;
 
 	public Integer getSerSettingId() {
 		return serSettingId;
@@ -97,5 +98,13 @@ public class DtoAppSetting {
 
 	public void setNumMax(BigDecimal numMax) {
 		this.numMax = numMax;
+	}
+
+	public String getTxtAllowedValues() {
+		return txtAllowedValues;
+	}
+
+	public void setTxtAllowedValues(String txtAllowedValues) {
+		this.txtAllowedValues = txtAllowedValues;
 	}
 }

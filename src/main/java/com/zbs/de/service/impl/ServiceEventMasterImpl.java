@@ -174,6 +174,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	private ServiceAppSettings serviceAppSettings;
 
 	@Autowired
+	private ServiceEventPricing serviceEventPricing;
+
+	@Autowired
 	private RepositoryEventPaymentMaster repositoryEventPaymentMaster;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventMasterImpl.class);
@@ -1833,6 +1836,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			
 			recordTermsAcceptance(dtoEventMaster.getBlnTermsAccepted(), entity.getSerEventMasterId());
 			replaceExternalSuppliers(dtoEventMaster.getExternalSuppliers(), entity);
+			priceTheBooking(entity.getSerEventMasterId(), dtoEventMaster.getDtoEventQuoteAndStatus());
 
 			DtoEventMaster dtoEvent = this.getEventById(entity.getSerEventMasterId());
 			dtoResult.setResult(dtoEvent);
@@ -3138,6 +3142,8 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			recordTermsAcceptance(dtoEventMasterAdminPortal.getBlnTermsAccepted(),
 					entity.getSerEventMasterId());
 			replaceExternalSuppliers(dtoEventMasterAdminPortal.getExternalSuppliers(), entity);
+			priceTheBooking(entity.getSerEventMasterId(),
+					dtoEventMasterAdminPortal.getDtoEventQuoteAndStatus());
 
 			DtoEventMasterAdminPortal dtoEvent = this.getEventByIdAdminPortal(entity.getSerEventMasterId());
 			dtoResult.setResult(dtoEvent);
@@ -5066,6 +5072,85 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	 * leaves without typing has not declared a blank supplier.
 	 */
 	/* Takes the list rather than the DTO, for the reason above. */
+	/**
+	 * Works out what the booking costs, and writes it down.
+	 *
+	 * <h3>Why it reloads rather than pricing what is in hand</h3>
+	 *
+	 * Because the entity in memory is not the booking. The menu is saved three
+	 * levels deep — a dish hangs off its course, which hangs off its category —
+	 * so {@code entity.getFoodSelections()} is still whatever it held when the
+	 * save began, and pricing that would miss every dish just chosen. Reading it
+	 * back is what makes "priced from what is stored" true rather than
+	 * aspirational.
+	 *
+	 * <h3>Why a failure here does not fail the save</h3>
+	 *
+	 * The booking is already written by this point. Refusing to save it because
+	 * a price could not be worked out would lose a customer's enquiry over an
+	 * arithmetic problem, which is the wrong trade in both directions: the
+	 * enquiry is the thing the business cannot replace, and a missing price is
+	 * visible on the next screen anybody opens.
+	 *
+	 * <h3>Why the client's figures are still used</h3>
+	 *
+	 * Until somebody turns {@code pricing.server.authoritative} on. Two sets of
+	 * rules that have never been compared will differ, and the place to find out
+	 * is a log on real bookings rather than a customer's invoice. Both sets of
+	 * figures are stored either way, which is what makes the comparison possible.
+	 */
+	private void priceTheBooking(Integer eventId, DtoEventQuoteAndStatus fromClient) {
+		if (eventId == null) {
+			return;
+		}
+
+		try {
+			EventMaster stored = repositoryEventMaster.findByIdAndBlnIsDeletedFalse(eventId).orElse(null);
+			if (stored == null) {
+				return;
+			}
+
+			ServiceEventPricing.Priced priced = serviceEventPricing.priceAndRecord(stored);
+
+			EventBudget budget = serviceEventBudget.getEventBudgetByEventId(eventId);
+			if (budget == null) {
+				return;
+			}
+
+			budget.setNumCalculatedFood(priced.getFood());
+			budget.setNumCalculatedDecor(priced.getDecor());
+			budget.setNumCalculatedExtras(priced.getExtras());
+			budget.setNumCalculatedServices(priced.getServices());
+			budget.setNumCalculatedVat(priced.getVat());
+			budget.setNumCalculatedSubtotal(priced.getSubtotal());
+			budget.setNumCalculatedTotal(priced.getTotal());
+			budget.setDteCalculatedOn(UtilDateAndTime.getCurrentDate());
+
+			if (serviceAppSettings.isServerPricingAuthoritative()) {
+				budget.setNumFoodAmount(priced.getFood());
+				budget.setNumDecorAmount(priced.getDecor().add(priced.getExtras()));
+				budget.setNumServicesAmount(priced.getServices());
+				budget.setNumDecorExtrasVat(priced.getVat());
+				budget.setNumQuotedPrice(priced.getSubtotal().add(priced.getVat()));
+				budget.setNumFinalAmount(priced.getTotal());
+			} else {
+				serviceEventPricing.reportDisagreement(eventId,
+						fromClient == null ? null : fromClient.getNumFinalAmount(),
+						priced.getTotal());
+			}
+
+			serviceEventBudget.save(budget);
+
+		} catch (Exception e) {
+			/*
+			 * Logged rather than thrown. See the note above: the booking is
+			 * already saved, and losing it over a pricing fault would be the
+			 * worse outcome by a long way.
+			 */
+			LOGGER.error("Could not price event {}: {}", eventId, e.getMessage(), e);
+		}
+	}
+
 	private void replaceExternalSuppliers(List<DtoEventExternalSupplier> given, EventMaster entity) {
 		if (given == null || entity == null || entity.getSerEventMasterId() == null) {
 			return;

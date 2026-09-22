@@ -595,6 +595,110 @@ back from the new helpers, because removing a total is a separate decision from
 writing this code once instead of twice, and doing both at once would make the
 change impossible to verify. Logged as D10d.
 
+### 5.10 Pricing, and who decides it ✅ 🟡
+
+The server did not work out what anything cost. Every figure stored against a
+booking — décor, food, VAT, the quoted price, the final amount — arrived from a
+browser and was written down as given.
+
+#### What that meant in practice
+
+| | Where its pricing lived | What it sent |
+| --- | --- | --- |
+| Office | `eventPayload.js`, ~556 lines of JavaScript | every figure, including VAT and the final amount |
+| Journey | its own separate arithmetic, in other files | per-category subtotals, and **no total at all** |
+
+Two consequences. A customer's browser could post any price it liked and the
+server kept it. And because the journey never sent a quoted total, the branch
+that reads it never fired — so **every customer enquiry was stored quoted at
+zero** and re-priced by hand in the office afterwards.
+
+There was already a `ServicePricingEngine`. It is preview-only, nothing in
+either portal calls it, it covers menu items and nothing else, and it uses
+`double` for money. It is untouched: replacing it while also moving pricing off
+the client would be two changes at once with no way to tell which broke a quote.
+
+#### What was built
+
+`ServiceEventPricing`. It prices the booking from **what is stored against it**
+rather than from the payload — the payload is what somebody is asking for; the
+selections are what the booking is — and it runs inside both saves, so a price
+is worked out and written down as part of saving.
+
+Every figure is a line, and every line carries its own sentence: *"£25.00 per
+guest × 250 guests"*. Built once, on the server, so the quote, the office and
+the journey cannot phrase it three different ways, which today they do.
+
+#### How a thing is priced
+
+`PER_GUEST`, `PER_TABLE`, `PER_STATION`, `FLAT` — the same four words the
+equipment rules use (§5.7), deliberately. A grazing bar that needs one station
+per fifty guests for its boards is charged for on the same basis. `PER_TABLE`
+and `PER_STATION` are new: the enum held only `PER_GUEST` and `FLAT`, so a dish
+priced by the table had nowhere to say so and was charged per head.
+
+Stations round **up**. 250 guests at one per 80 is four stations, not three —
+half a grazing bar cannot be supplied.
+
+#### VAT belongs to the office, not to the code
+
+The rate was a constant in a JavaScript file and what it applied to was decided
+by which variable it happened to be multiplied by: décor and extras, nothing
+else. That is defensible for some businesses, wrong for others, changes when a
+business crosses the registration threshold, and getting it wrong has
+consequences with HMRC rather than with a customer.
+
+It is now a mode plus six switches, on the settings screen:
+
+| Mode | What it does |
+| --- | --- |
+| `NONE` | no VAT at all |
+| `TOTAL` | VAT on the whole bill |
+| `SECTIONS` | VAT on whichever of food, décor, extras, services, itinerary and serving dishes are switched on |
+
+**Defaults reproduce today's behaviour exactly** — `SECTIONS`, 20%, décor and
+extras on, everything else off. Installing this changes no invoice.
+
+VAT is worked out **line by line and added up**, not taken as a percentage of a
+subtotal. The office can make it apply to some parts of a bill and not others,
+so a single percentage of the whole would be wrong the moment anybody used
+that — and a total that cannot show which lines carried the VAT is one nobody
+can check against a return.
+
+Settings gained a fifth type, `CHOICE`, for this. A free text box would let
+somebody type "Totl" and turn VAT off across the business without a word of
+complaint. The screen disables the six switches under `TOTAL` and `NONE` and
+says why, because a switch that saves happily and changes no quote is worse
+than one that is absent.
+
+#### The office's own prices are kept, and marked
+
+A member of staff agreeing £2,000 on a dish the catalogue prices at £2,500 is a
+decision, not an error. The engine keeps it, records `blnIsOverridden`, and
+stores what the rules *would* have said beside it. A naive "recalculate
+everything" would put the price back up on the next save of that booking.
+
+#### Why the engine does not yet decide anything
+
+`pricing.server.authoritative` is **off**. The engine computes, records its
+figures in their own columns, and the figures the screens send remain the ones
+used. When the two disagree it says so in the log, naming the booking and the
+difference.
+
+Two sets of rules that have never been compared will differ. The place to find
+out is a log on real bookings, not a customer's invoice. Turning the switch on
+is a business decision, and it has a second effect worth stating: a customer's
+browser stops being able to influence what a booking costs.
+
+#### Found on the way
+
+`event_menu_category_selection.num_final_price` is `NOT NULL` and is written
+straight from the payload. **A client that posts a menu without prices does not
+get a booking priced at zero — it gets a constraint violation that loses the
+whole save.** Pre-existing, found because a test fixture omitted the prices.
+Logged as P2; it is an argument for the engine filling these in, which is a
+behaviour change and so is not part of this one.
+
 ### 5.5 Marketing site 💀 ❓
 
 `Home`, `About`, `Stages`, `Venues`, `Catering`, `Events`, `Navbar` and
@@ -980,7 +1084,10 @@ Specified in §12. Requested 19 August 2026.
 
 | ~~D10b~~ | **Done — see §5.9.** The shared body was extracted into named helpers both entry points call, rather than merged behind a "who is saving this" flag. Running order 4 copies → 1, venue 4 → 1, menu 2 → 1, décor 4 → 2. The differences that are business rules were kept and are now pinned by tests. Proved against a characterisation suite written first and run green on unmodified code. |
 | D10c | **The journey's new-booking décor block matches the catalogue by the wrong id.** It uses `getSerEventDecorPropertyId()` — the selection row's id, unset on a booking that does not exist yet — where the other three copies use `getSerPropertyId()`. Almost certainly never fired, because the journey creates the booking before the décor step and the "existing booking" path runs instead. Left alone during the extraction so that "nothing changed" stayed provable. Fixing it would also let the two remaining décor copies collapse into the one helper. |
-| D10d | **Four price totals are accumulated and never read.** `numDecorCategoryPrice`, `numDecorPropertyPrice`, `numFoodCategoryPrice` and `numFoodSubcategoryPrice` are summed through both saves; every read of them is commented out. Either the pricing they were meant to feed is wanted, in which case it needs building, or they should go. A business question, not a tidy-up. |
+| ~~D10d~~ | **Answered by §5.10.** The four totals were the start of exactly this work. They are still accumulated, and the engine now produces the figures they were meant to feed. Removing them is tidy-up that belongs with P3, when the client stops sending prices at all. |
+| P2 | **A menu posted without prices loses the whole save.** `event_menu_category_selection.num_final_price` is NOT NULL and is written straight from the payload, so a client that omits it gets a constraint violation rather than a booking priced at zero. Found by a test fixture that omitted them. It is an argument for the engine filling these in before the insert — which is a behaviour change, so it was kept out of §5.10. |
+| P3 | **Turn `pricing.server.authoritative` on, and then stop the clients sending prices at all.** The engine records its figures alongside the client's and logs every disagreement. Once those logs are quiet on real bookings, the switch goes on; after that `eventPayload.js` loses its pricing rules and the journey stops computing subtotals, because neither would be read. Business decision on timing; the log is the evidence. |
+| P4 | **Retire the old `price_version` / `price_entry` / `pricing_rule` engine, or fold it in.** `ServicePricingEngine.preview` is called by nothing in either portal, covers menu items only, and uses `double` for money. Left untouched during §5.10 so that one change could be verified at a time. |
 
 
 | ~~D9~~ | ~~What must the equipment calculation produce?~~ **Answered and built.** Calculate only — no stock check, no owned-versus-hired. Quantities are per guest, per table, per station or per event. See §5.6. |
