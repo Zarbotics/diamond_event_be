@@ -10,8 +10,8 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 338 |
-| Controllers | 45 |
+| Endpoints | 343 |
+| Controllers | 46 |
 | Named like a read (`get…`, `search…`, `is…`) | 154 |
 
 Almost every endpoint is `POST`, including the reads. Nothing is cacheable,
@@ -516,6 +516,16 @@ most of this inventory carries no audience marker.
 | `GET` | `/notifications/stream` |  |
 | `POST` | `/notifications/unread` |  |
 | `GET` | `/notifications/unreadCount` |  |
+
+### ControllerNotifications
+
+| Verb | Path | Who |
+|---|---|---|
+| `GET` | `/notification/inbox` |  |
+| `POST` | `/notification/read-all` |  |
+| `GET` | `/notification/unread-count` |  |
+| `POST` | `/notification/{id}/dismiss` |  |
+| `POST` | `/notification/{id}/read` |  |
 
 ### ControllerPriceCalculator
 

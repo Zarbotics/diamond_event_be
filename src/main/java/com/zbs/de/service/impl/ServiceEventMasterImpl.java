@@ -99,6 +99,7 @@ import com.zbs.de.service.ServiceNotificationMaster;
 import com.zbs.de.service.ServiceVenueMaster;
 import com.zbs.de.spec.SepecificationsEventMaster;
 import com.zbs.de.util.UtilDateAndTime;
+import com.zbs.de.util.enums.EnmNotificationCategory;
 import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
 
@@ -175,6 +176,9 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 
 	@Autowired
 	private ServiceEventPricing serviceEventPricing;
+
+	@Autowired
+	private ServiceNotifications serviceNotifications;
 
 	@Autowired
 	private RepositoryEventPaymentMaster repositoryEventPaymentMaster;
@@ -2152,15 +2156,45 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 		return null;
 	}
 
-	private void sendNewEventRegistrationNotification(String eventTypeName, String txtEventCode, String Date,
-			Integer Id) {
-		// Inside ServiceEventMasterImpl, after saving event
-		DtoNotificationMaster notif = serviceNotificationMaster.createNotification(
-				ServiceCurrentUser.getCurrentUserId().longValue(), "Event Registered",
-				"A New '" + eventTypeName + "' Event With Code '" + txtEventCode + "'  Is Registered for " + Date,
-				"/eventMaster/getByEventId" + Id, "EVENT_REGISTERED");
+	/**
+	 * Tells the office a booking has been taken.
+	 *
+	 * <h4>What this replaced, and why it never worked</h4>
+	 *
+	 * The previous version addressed the notification to
+	 * {@code getCurrentUserId()} — the person who had just done the thing.
+	 * When a booking arrives through the customer journey that person is the
+	 * <em>customer</em>, so the customer was notified about their own booking
+	 * and the office was told nothing. That is why {@code notification_master}
+	 * holds no rows.
+	 *
+	 * <p>
+	 * It also called {@code .longValue()} on a possibly-null id, inside the
+	 * save's try block. A null current user did not skip the notification; it
+	 * turned a successful save into a reported failure.
+	 *
+	 * <p>
+	 * The target it carried was an API path rather than a route in the portal,
+	 * so following one went nowhere a person could use.
+	 */
+	private void sendNewEventRegistrationNotification(String eventTypeName, String txtEventCode, String date,
+			Integer eventId) {
 
-		serviceNotificationMaster.sendNotification(ServiceCurrentUser.getCurrentUserId().longValue(), notif);
+		Integer actor = null;
+		try {
+			actor = ServiceCurrentUser.getCurrentUserId();
+		} catch (Exception e) {
+			// Nobody in context. The office still needs telling.
+		}
+
+		serviceNotifications.raise(
+				new ServiceNotifications.Event(EnmNotificationCategory.BOOKING_TAKEN,
+						(eventTypeName == null || eventTypeName.isBlank() ? "An event" : eventTypeName)
+								+ " booked for " + date)
+						.body("Reference " + txtEventCode + ". Nothing has been quoted yet.")
+						.about("EVENT", eventId == null ? null : eventId.longValue(),
+								"/admin/event-master/" + eventId)
+						.causedBy(actor == null ? null : actor.longValue()));
 	}
 
 	@Override

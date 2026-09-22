@@ -713,6 +713,82 @@ whole save.** Pre-existing, found because a test fixture omitted the prices.
 Logged as P2; it is an argument for the engine filling these in, which is a
 behaviour change and so is not part of this one.
 
+### 5.11 Notifications, and why the table was empty ✅ 🟡
+
+`notification_master` held **zero rows** in a production database with 296
+bookings on it. Not zero unread — zero.
+
+#### The cause was the address, not the plumbing
+
+Two things fire: a new event, and a new customer. Both called
+
+```java
+createNotification(ServiceCurrentUser.getCurrentUserId(), ...)
+```
+
+which addresses the notification to **the person who just did the thing**.
+Telling somebody what they themselves have this second done is a receipt, not
+a notification — the screen in front of them has already said so.
+
+And when the thing is done in the customer journey, the current user is the
+*customer*. So a booking arriving from the website notified the customer about
+their own booking and told the office nothing at all.
+
+Two more defects in the same eight lines: the target was an API path
+(`/eventMaster/getByEventId123`) rather than a portal route, so following one
+went nowhere a person could use; and it called `.longValue()` on a
+possibly-null id **inside the save's try block**, so a null current user did
+not skip the notification — it turned a successful save into a reported
+failure.
+
+#### What replaced it
+
+A `notification` table, one row per recipient, addressed to an audience.
+
+| | |
+| --- | --- |
+| Recipient | one row each, because read is a fact about a reader |
+| Category | a fixed vocabulary — the old column was free text and had one value in two spellings |
+| Priority | `LOW` / `NORMAL` / `URGENT`; low does not light the badge |
+| Read | a timestamp, not a flag: "when did the office first see this" is worth being able to answer |
+| Dismissed | separate from read, because reading is not finishing |
+| Group key | repeats collapse — twelve payments in an afternoon is one line saying twelve |
+| Route | a portal path |
+| Actor | who did it, so they are not told about themselves |
+
+#### The mistake I made building it, and the fix
+
+The service caught every exception and documented that raising a notification
+"can never fail a save". **That was false, and the integration suite proved
+it.** A failure inside the caller's transaction marks it rollback-only, so the
+save dies at commit however politely the exception was swallowed — the booking
+is lost and the log says only that a notification could not be raised.
+
+`REQUIRES_NEW` is what makes the guarantee real: the bell gets its own
+transaction and can fail in it alone. This is the second time in this work that
+catching an exception has been mistaken for containing it; the first was the
+pricing engine.
+
+The actor is also **deliberately not a foreign key**. It is a label on a record
+of something that has already happened, and a constraint there can only ever do
+one thing: refuse to record it.
+
+#### The bell
+
+Grouped by day against the reader's own clock — a notification from 23:50 is
+"yesterday" in London and "today" in Karachi, and the server cannot know which.
+Unread carries a dot *and* a weight *and* the word, because the only question
+the list answers is "which of these have I dealt with" and a tint alone
+withholds it. Opening one marks it read immediately rather than after the round
+trip, since a badge still counting something whose screen is already open is a
+badge nobody trusts.
+
+It polls once a minute rather than using the existing SSE stream. That stream's
+emitters are created with `Long.MAX_VALUE`, so nothing on the server closes an
+idle connection and a heartbeat is all that keeps it alive — a fragile thing to
+hang a bell on, whose failure is silent. The stream is worth keeping and worth
+fixing; this does not depend on it.
+
 ### 5.5 Marketing site 💀 ❓
 
 `Home`, `About`, `Stages`, `Venues`, `Catering`, `Events`, `Navbar` and
@@ -1109,7 +1185,7 @@ redesigned rather than polished.
 |---|---|---|---|
 | UX1 | **Premium control panel UI/UX** | 🔴 | 46 screens on antd v4, sharing a palette with the journey (§6) and grouped into nine areas by frequency of use, but no design system beneath that: spacing, type scale, elevation and component variants are decided per screen. Tables, forms, filters, buttons and modals each acquired their own conventions as they were built. The navigation and palette work already done is the floor this builds on, not a substitute for it. The target is a product that reads as professionally designed rather than as a CRUD interface over a schema. |
 | UX2 | **Redesign booking creation and editing** | 🔴 | `EventStatFormModal.js` is **2,727 lines**, with `eventPayload.js` carrying another 556 of pricing rules that used to live inside it. It is one continuous form over every field a booking has: the customer, the date, the venue, nine categories of food, décor with its options, extras, services, suppliers, the running order, payment and status. Everything is visible at once regardless of relevance, dependencies between fields are invisible, and the only feedback that anything is wrong arrives on submit. The request is a genuine redesign — steps or sections, progressive disclosure, intelligent grouping, interactive components rather than rows of inputs, running summaries, and an edit experience as good as the create one — proposing the best interaction model rather than being constrained by the current one. **Note the dependency:** the server now prices the booking (§5.10), so the redesign inherits a form that no longer has to compute money. |
-| UX3 | **Redesign and professionalise notifications** | 🔴 | `notification_master` is one flat table — user, title, message, target URL, a type string and a read flag. No categories beyond that string, no priority, no grouping, no expiry, no delivery channel, no per-channel preference. The service is 159 lines, the frontend component 222, and delivery is SSE whose heartbeat fired at the timeout rather than inside it until A9 fixed it. **The live table holds zero rows**, which is the most useful fact about it: whatever the feature was meant to do, it is not currently doing it for anybody. The brief explicitly permits replacing the implementation rather than preserving it — architecture, types and categorisation, the in-app experience, the centre/dropdown, read and unread state, counts and badges, prioritisation, real-time updates, actions on a notification, the API behind it, and consistency with whatever design system UX1 establishes. |
+| ~~UX3~~ | **Rebuilt — see §5.11.** The table was empty because every notification was addressed to the person who caused the thing; a booking from the journey notified the customer and told the office nothing. New `notification` table addressed to an audience, with category, priority, per-reader read and dismiss state, grouping for repeats, and portal routes. New bell with day grouping, legible unread state and an explained empty. 9 integration tests, 11 component tests. | ✅ |
 
 **Sequencing.** UX1 should land first or alongside, because UX2 and UX3 both
 have to be consistent with whatever design system it establishes — doing them
