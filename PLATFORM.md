@@ -1,6 +1,6 @@
 # Diamond Events — Platform Requirements, Analysis and Plan
 
-**Status:** living document. Last updated 14 August 2026.
+**Status:** living document. Last updated 22 September 2026.
 
 ---
 
@@ -10,6 +10,20 @@ This is the single source of truth for what the platform does, what is
 actually wired up, what is dead, what has been fixed, and what is left. It
 covers all three repositories together, because most real behaviour crosses
 at least two of them.
+
+### The other two documents
+
+This one covers the platform: the domain, the schema, the decisions and the
+backlog. The two front ends each carry their own record of what changed in
+them and why.
+
+| Document | Covers |
+|---|---|
+| `diamond_ev_cj/CHANGES.md` | The customer journey — 42 commits, what they replaced, and what to know before changing it |
+| `diamond_ev_admin/CHANGES.md` | The control panel — 34 commits, same |
+
+**The task list is here and only here** (§10). A backlog kept in three places
+disagrees with itself within a fortnight.
 
 **It is updated as work happens, not afterwards.** When a task is finished the
 row moves to Done with a note on how it was verified. When a new use case or
@@ -1003,6 +1017,29 @@ Recorded because they are the kind of mistake worth not repeating:
 
 Ordered by what actually costs the business the most.
 
+### At a glance
+
+Everything still open, across all three repositories. The sections below carry
+the reasoning; this is the list.
+
+| # | Item | Where | Size |
+|---|---|---|---|
+| **UX1** | Premium control panel UI/UX | Control panel | Large |
+| **UX2** | Redesign booking creation and editing | Control panel | Large |
+| **UX3** | Redesign and professionalise notifications | All three | Large |
+| **P3** | Turn server pricing on, then stop the clients pricing | All three | Medium — business decision on timing |
+| **B1** | Booking above Event | Backend | Large |
+| **P2** | A menu posted without prices loses the whole save | Backend | Small |
+| **D10c** | New-booking décor matches the catalogue by the wrong id | Backend | Small |
+| **B6 / M5c** | Retire the menu price fallback | Backend | Small |
+| **P4** | Retire or fold in the old preview pricing engine | Backend | Small |
+| **C4** | Extend control panel test coverage | Control panel | Ongoing |
+| **A5b** | How far ahead bookings are actually taken | — | Question for the business |
+| **D9 / D10** | Catering toggle and equipment — remaining questions | — | Question for the business |
+
+**Not on this list, and not ours:** rotating the Google client secret (it is in
+git history) and revoking the Gmail app password. Both need doing.
+
 ### A. Correctness and risk
 
 | # | Item | Status | Why |
@@ -1059,6 +1096,26 @@ Specified in §12. Requested 19 August 2026.
 | E4a | `CalendarProvider` port, write-target rule, video link on confirmation | ✅ Done — 8 integration tests against a stand-in provider |
 | E4b | The Google and Microsoft adapters, and token encryption | ✅ Written and tested up to the socket; needs credentials to run against the real thing |
 | E5 | Admin: connect and disconnect accounts, choose the write target, sync health | ✅ Done — OAuth flow, busy import on a timer, and a fifth admin tab |
+
+### F. Experience and design ⭐
+
+Asked for as a block, and the largest piece of work now outstanding. The order
+of priority given for all three: **premium UI → excellent UX → simplicity →
+consistency → maintainability → production quality.** Explicitly *not*
+cosmetic-only — where the existing workflow is fundamentally poor it is to be
+redesigned rather than polished.
+
+| # | Item | Status | What is actually there today |
+|---|---|---|---|
+| UX1 | **Premium control panel UI/UX** | 🔴 | 46 screens on antd v4, sharing a palette with the journey (§6) and grouped into nine areas by frequency of use, but no design system beneath that: spacing, type scale, elevation and component variants are decided per screen. Tables, forms, filters, buttons and modals each acquired their own conventions as they were built. The navigation and palette work already done is the floor this builds on, not a substitute for it. The target is a product that reads as professionally designed rather than as a CRUD interface over a schema. |
+| UX2 | **Redesign booking creation and editing** | 🔴 | `EventStatFormModal.js` is **2,727 lines**, with `eventPayload.js` carrying another 556 of pricing rules that used to live inside it. It is one continuous form over every field a booking has: the customer, the date, the venue, nine categories of food, décor with its options, extras, services, suppliers, the running order, payment and status. Everything is visible at once regardless of relevance, dependencies between fields are invisible, and the only feedback that anything is wrong arrives on submit. The request is a genuine redesign — steps or sections, progressive disclosure, intelligent grouping, interactive components rather than rows of inputs, running summaries, and an edit experience as good as the create one — proposing the best interaction model rather than being constrained by the current one. **Note the dependency:** the server now prices the booking (§5.10), so the redesign inherits a form that no longer has to compute money. |
+| UX3 | **Redesign and professionalise notifications** | 🔴 | `notification_master` is one flat table — user, title, message, target URL, a type string and a read flag. No categories beyond that string, no priority, no grouping, no expiry, no delivery channel, no per-channel preference. The service is 159 lines, the frontend component 222, and delivery is SSE whose heartbeat fired at the timeout rather than inside it until A9 fixed it. **The live table holds zero rows**, which is the most useful fact about it: whatever the feature was meant to do, it is not currently doing it for anybody. The brief explicitly permits replacing the implementation rather than preserving it — architecture, types and categorisation, the in-app experience, the centre/dropdown, read and unread state, counts and badges, prioritisation, real-time updates, actions on a notification, the API behind it, and consistency with whatever design system UX1 establishes. |
+
+**Sequencing.** UX1 should land first or alongside, because UX2 and UX3 both
+have to be consistent with whatever design system it establishes — doing them
+first means doing the visual work twice. UX2 is the largest single piece and
+the one with the most business risk attached, since the booking form is what
+the office uses all day.
 
 ### D. Blocked on a business decision ❓
 
