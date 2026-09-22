@@ -155,6 +155,28 @@ class EventCalendarEntriesIT {
 		assertThat(names).containsExactly(MARKER + " first", MARKER + " second");
 	}
 
+	/**
+	 * An enquiry is still on the calendar.
+	 *
+	 * <p>
+	 * The status and the venue were added by joining two more tables, and an
+	 * enquiry has neither — no hall has been chosen and there may be no budget
+	 * row yet. An inner join on either would have taken exactly those events out
+	 * of the calendar, which is the opposite of what a calendar is for, and it
+	 * would have looked like the feature working.
+	 */
+	@Test
+	@DisplayName("an event with no venue and no budget is still drawn")
+	void anEventWithNeitherIsStillDrawn() {
+		seed("bare", LATER, false);
+
+		DtoEventCalendarEntry entry = find("bare");
+
+		assertThat(entry).as("adding the venue and status joins dropped events that have neither").isNotNull();
+		assertThat(entry.getTxtVenueName()).isNull();
+		assertThat(entry.getTxtStatus()).isNull();
+	}
+
 	@Test
 	@DisplayName("the entry carries nothing beyond what a calendar draws")
 	void theEntryStaysNarrow() {
@@ -164,10 +186,15 @@ class EventCalendarEntriesIT {
 		 * whole event DTO back, and the 624 KB returns. Asserting the shape means
 		 * that is a deliberate decision with a failing test in front of it rather
 		 * than a quiet regression.
+		 *
+		 * The status and the venue were added that way — this assertion failed
+		 * first, which is what it is for. Both are single columns reached by a
+		 * left join, and both answer the question the calendar exists to answer:
+		 * which days are taken, and by what.
 		 */
 		assertThat(DtoEventCalendarEntry.class.getDeclaredFields())
 				.extracting(java.lang.reflect.Field::getName)
 				.containsExactlyInAnyOrder("serEventMasterId", "txtEventMasterCode", "txtEventMasterName",
-						"dteEventDate", "txtEventTypeName");
+						"dteEventDate", "txtEventTypeName", "txtVenueName", "txtStatus");
 	}
 }

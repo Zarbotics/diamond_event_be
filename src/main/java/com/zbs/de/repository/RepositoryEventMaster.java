@@ -125,7 +125,7 @@ public interface RepositoryEventMaster
 	List<DtoEventSummary> findEventSummariesByCustomerId(@Param("custId") Integer custId);
 
 	/**
-	 * Every event, as five fields rather than sixty.
+	 * Every event, as seven fields rather than sixty.
 	 *
 	 * <p>
 	 * For the admin calendar, which needs all of them — a month view missing some
@@ -134,11 +134,17 @@ public interface RepositoryEventMaster
 	 * width of a row rather than the number of them.
 	 *
 	 * <p>
+	 * Every join is a LEFT JOIN, including the two added for the status and the
+	 * venue. An enquiry has no hall chosen and may have no budget row yet, and an
+	 * inner join would have taken exactly those events out of the calendar —
+	 * which is the opposite of what a calendar is for.
+	 *
+	 * <p>
 	 * Ordered by date, because that is the only order a calendar has any use for.
 	 */
 	@Query("SELECT new com.zbs.de.model.dto.DtoEventCalendarEntry(e.serEventMasterId, e.txtEventMasterCode, "
-			+ "e.txtEventMasterName, e.dteEventDate, t.txtEventTypeName) "
-			+ "FROM EventMaster e LEFT JOIN e.eventType t "
+			+ "e.txtEventMasterName, e.dteEventDate, t.txtEventTypeName, v.txtVenueName, b.txtStatus) "
+			+ "FROM EventMaster e LEFT JOIN e.eventType t LEFT JOIN e.venueMaster v LEFT JOIN e.eventBudget b "
 			+ "WHERE e.blnIsDeleted = false AND e.dteEventDate IS NOT NULL "
 			+ "ORDER BY e.dteEventDate ASC")
 	List<DtoEventCalendarEntry> getCalendarEntries();
