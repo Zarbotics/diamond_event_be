@@ -1100,8 +1100,7 @@ the reasoning; this is the list.
 
 | # | Item | Where | Size |
 |---|---|---|---|
-| **UX1b** | Convert the remaining screens onto the design system | Control panel | Medium — 8 screens left of ~23 |
-| **UX1c** | Drop the theme leftovers nothing routes to | Control panel | Small |
+| **UX1c** | Drop the screens nothing routes to, including the three pricing screens | Control panel | Small — needs a business decision on pricing |
 | **UX2** | Redesign booking creation and editing | Control panel | Large |
 | **UX3** | Redesign and professionalise notifications | All three | Large |
 | **P3** | Turn server pricing on, then stop the clients pricing | All three | Medium — business decision on timing |
@@ -1184,7 +1183,7 @@ redesigned rather than polished.
 
 | # | Item | Status | What is actually there today |
 |---|---|---|---|
-| UX1 | **Premium control panel UI/UX** | 🟡 | **The design system is built; the conversion is about two-thirds done.** `src/config/theme/tokens.js` holds the scales — space, type, weight, line height, radius, elevation, motion, z-index, breakpoints — and `src/components/ds/` holds the eight pieces a screen is assembled from: `Screen`, `Panel`, `DataTable`, `EmptyState`, `StatusTag`, `Money`, `Field`, `Toolbar`. No button, deliberately: the portal already has one, and a second would be the exact problem the directory exists to solve. Converted so far: supplier categories, equipment, settings, event types, customers, calendar, venues, décor categories, décor services, décor extras, décor properties, consultations, bookings, menu, catering. Remaining: itineraries (3), prices (3), décor property values, dashboard — tracked as **UX1b**. Unrouted theme leftovers that inflate the count are tracked as **UX1c**. |
+| UX1 | **Premium control panel UI/UX** | 🟢 | **The design system is built and every reachable screen is on it.** `src/config/theme/tokens.js` holds the scales — space, type, weight, line height, radius, elevation, motion, z-index, breakpoints — and `src/components/ds/` holds the eight pieces a screen is assembled from: `Screen`, `Panel`, `DataTable`, `EmptyState`, `StatusTag`, `Money`, `Field`, `Toolbar`. No button, deliberately: the portal already has one, and a second would be the exact problem the directory exists to solve. Converted: supplier categories, equipment, settings, event types, customers, calendar, venues, the five décor screens, consultations, bookings, menu, catering, the three itinerary screens and the dashboard. What still carries the old chrome is unreachable or is a form — tracked as **UX1c** and **UX2**. 385 tests across 36 files. |
 | UX2 | **Redesign booking creation and editing** | 🔴 | `EventStatFormModal.js` is **2,727 lines**, with `eventPayload.js` carrying another 556 of pricing rules that used to live inside it. It is one continuous form over every field a booking has: the customer, the date, the venue, nine categories of food, décor with its options, extras, services, suppliers, the running order, payment and status. Everything is visible at once regardless of relevance, dependencies between fields are invisible, and the only feedback that anything is wrong arrives on submit. The request is a genuine redesign — steps or sections, progressive disclosure, intelligent grouping, interactive components rather than rows of inputs, running summaries, and an edit experience as good as the create one — proposing the best interaction model rather than being constrained by the current one. **Note the dependency:** the server now prices the booking (§5.10), so the redesign inherits a form that no longer has to compute money. |
 | ~~UX3~~ | **Rebuilt — see §5.11.** The table was empty because every notification was addressed to the person who caused the thing; a booking from the journey notified the customer and told the office nothing. New `notification` table addressed to an audience, with category, priority, per-reader read and dismiss state, grouping for repeats, and portal routes. New bell with day grouping, legible unread state and an explained empty. 9 integration tests, 11 component tests. | ✅ |
 
@@ -1194,21 +1193,30 @@ first means doing the visual work twice. UX2 is the largest single piece and
 the one with the most business risk attached, since the booking form is what
 the office uses all day.
 
-**What the conversion has been finding.** Reading forty-six screens carefully
-turns up more than layout, and the defects have a shape: things written, then
-commented out, and then forgotten. The venue list's halls column. The bookings
-card view — a whole tested component, unreachable because the two buttons that
-set its flag were commented out. The catering status column. The catering
-screen's three handlers still referring to variables that only exist in the
-screen it was copied from. Alongside those, three outright crashes: a customer
-saved with no email address taking the customer list down, and two price
-sorters calling `localeCompare` on a number.
+**What the conversion found.** Reading forty-six screens carefully turns up more
+than layout, and the defects have two shapes.
 
-The one worth reading twice is the catering pager. Paging is done by the server,
-the total was fetched and held in state, and it was never passed to the pager —
-so the pager knew about the ten rows in front of it and offered one page. There
-has been no way to reach the eleventh catering booking. Nothing about the screen
-looked broken.
+The first is things written, then commented out, and then forgotten: the venue
+list's halls column; the catering status column; the bookings card view — a
+whole tested component, unreachable because the two buttons that set its flag
+were commented out; and, three times over, an entire food-menu screen left
+inside a screen cloned from it, complete with a `getFoodTypeString` over six
+boolean flags and a delete pointed at `menuFoodMaster/deleteById`.
+
+The second is pagination that silently does not page. **Catering** fetched the
+total, held it in state and never passed it to the pager, so there has been no
+way to reach the eleventh catering booking. **Décor property values** had its
+real pagination commented out and replaced with `pagination={true}`, so the
+table paged in the browser over one server page and never asked for the next —
+every value past the first ten categories unreachable. Neither screen looked
+broken.
+
+Four outright crashes: a customer saved with no email address taking the
+customer list down (`record.txtEmail.substring(0, 15)`, with the optional
+chaining on a later reference to the same field); two price sorters calling
+`localeCompare` on a number; and the dashboard's own session check calling
+`navigate(location.pathname('/sign-in'))` — `location.pathname` is a string, so
+it threw at exactly the moment it was meant to help.
 
 ### D. Blocked on a business decision ❓
 
