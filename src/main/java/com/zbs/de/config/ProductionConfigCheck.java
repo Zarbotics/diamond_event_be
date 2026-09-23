@@ -62,6 +62,12 @@ public class ProductionConfigCheck {
 	@Value("${spring.jpa.hibernate.ddl-auto:}")
 	private String ddlAuto;
 
+	@Value("${app.upload.public-base-url:}")
+	private String uploadPublicBaseUrl;
+
+	@Value("${server.servlet.context-path:}")
+	private String contextPath;
+
 	@Value("${apple.enabled:false}")
 	private boolean appleEnabled;
 
@@ -137,6 +143,37 @@ public class ProductionConfigCheck {
 		// --- Schema ----------------------------------------------------------
 		if ("create".equals(ddlAuto) || "create-drop".equals(ddlAuto)) {
 			problems.add("DDL_AUTO is '" + ddlAuto + "', which would DROP the production schema.");
+		}
+
+		/*
+		 * --- Where uploaded pictures are fetched from ------------------------
+		 *
+		 * This one is checked because getting it wrong is invisible until a
+		 * customer looks at a decor photograph. The value is stored against the
+		 * picture and handed to the front end, which is on a different origin,
+		 * so it has to be absolute — a relative URL resolves against the front
+		 * end's own host, where the file does not exist.
+		 *
+		 * And it has to carry the context path. The code's default is
+		 * `/diamond/deimg`, written when the context path was `/diamond`; a
+		 * deployment serving on `/api/diamond` that leaves the default alone is
+		 * wrong by one path segment, and every picture 404s.
+		 */
+		if (isBlank(uploadPublicBaseUrl)) {
+			problems.add("UPLOAD_PUBLIC_BASE_URL is not set. It is the absolute URL uploaded "
+					+ "pictures are fetched from, e.g. https://api.example.com"
+					+ (isBlank(contextPath) ? "" : contextPath) + "/deimg");
+		} else {
+			if (!uploadPublicBaseUrl.startsWith("http://") && !uploadPublicBaseUrl.startsWith("https://")) {
+				problems.add("UPLOAD_PUBLIC_BASE_URL must be absolute — the front end is on a "
+						+ "different origin, so a relative URL resolves against its host: "
+						+ uploadPublicBaseUrl);
+			}
+			if (!isBlank(contextPath) && !uploadPublicBaseUrl.contains(contextPath)) {
+				problems.add("UPLOAD_PUBLIC_BASE_URL does not include the context path '"
+						+ contextPath + "', so every uploaded picture would 404: "
+						+ uploadPublicBaseUrl);
+			}
 		}
 
 		if (!problems.isEmpty()) {

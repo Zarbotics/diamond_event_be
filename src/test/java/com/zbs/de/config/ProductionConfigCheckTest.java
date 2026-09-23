@@ -38,12 +38,58 @@ class ProductionConfigCheckTest {
 		set("googleClientId", "910542917624-real.apps.googleusercontent.com");
 		set("ddlAuto", "update");
 		set("appleEnabled", false);
+		set("contextPath", "/api/diamond");
+		set("uploadPublicBaseUrl", "https://api.diamondevents.uk/api/diamond/deimg");
 	}
 
 	@Test
 	@DisplayName("a fully configured production environment starts")
 	void validConfigurationPasses() {
 		assertThatCode(() -> check.verify()).doesNotThrowAnyException();
+	}
+
+	/**
+	 * The one that is invisible until a customer sees it.
+	 *
+	 * <p>
+	 * The URL is stored against the picture and handed to the front end, which
+	 * is on a different origin. A relative URL resolves against the front end's
+	 * own host, where the file does not exist — so every decor photograph, menu
+	 * picture and uploaded document 404s, and nothing in the deploy says so.
+	 */
+	@Test
+	@DisplayName("a relative upload URL is refused, because the front end is elsewhere")
+	void relativeUploadUrlIsRefused() {
+		set("uploadPublicBaseUrl", "/diamond/deimg");
+
+		assertThatThrownBy(() -> check.verify())
+				.hasMessageContaining("UPLOAD_PUBLIC_BASE_URL must be absolute");
+	}
+
+	/**
+	 * And wrong by one path segment is still wrong.
+	 *
+	 * <p>
+	 * The code's default is `/diamond/deimg`, from when the context path was
+	 * `/diamond`. A deployment serving on `/api/diamond` that leaves it alone
+	 * points every picture at a path nothing is listening on.
+	 */
+	@Test
+	@DisplayName("an upload URL missing the context path is refused")
+	void uploadUrlWithoutContextPathIsRefused() {
+		set("uploadPublicBaseUrl", "https://api.diamondevents.uk/diamond/deimg");
+
+		assertThatThrownBy(() -> check.verify())
+				.hasMessageContaining("does not include the context path");
+	}
+
+	@Test
+	@DisplayName("an unset upload URL is refused")
+	void unsetUploadUrlIsRefused() {
+		set("uploadPublicBaseUrl", "");
+
+		assertThatThrownBy(() -> check.verify())
+				.hasMessageContaining("UPLOAD_PUBLIC_BASE_URL is not set");
 	}
 
 	@Test
