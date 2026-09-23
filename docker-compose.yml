@@ -1,0 +1,81 @@
+# The demo deployment.
+#
+# This lived only in /opt/diamond_event_demo on the server. It is the file that
+# says how the demo is actually assembled — the database container, the network
+# Traefik reaches the application on, and the two volumes that hold everything
+# not in the image — so losing the server lost it. It is versioned now.
+#
+# It expects, beside it:
+#
+#   .env      the environment, which is NOT versioned and must not be.
+#             See .env.example for what belongs in it.
+#   app/      a checkout of this repository, which the image is built from.
+#
+# Start it with:  docker compose up -d --build
+
+services:
+  diamond-postgres:
+    image: postgres:17-alpine
+    container_name: diamond-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      # A named volume, so the data is not in the container. Nothing publishes
+      # a port: the database is reachable only from diamond-network, which is
+      # the application and nothing else.
+      - diamond_postgres_data:/var/lib/postgresql/data
+    networks:
+      - diamond-network
+    healthcheck:
+      # So `depends_on` can wait for a database that is actually accepting
+      # connections rather than one whose container has merely started. Without
+      # it the application can reach Flyway before Postgres is listening, and
+      # the failure reads as a migration problem.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  diamond-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: diamond-app
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      diamond-postgres:
+        condition: service_healthy
+    volumes:
+      # Uploaded documents and generated reports. A named volume, so a
+      # redeploy does not take them with it — the rows would stay in the
+      # database and the files would stop existing, with nothing reporting it.
+      - diamond_uploads:/app/uploads
+    networks:
+      - diamond-network
+      - root_default
+    labels:
+      # Traefik terminates TLS and forwards to 8080 with the path unchanged, so
+      # the /api/diamond prefix is the application's own context path. Do not
+      # add a StripPrefix middleware: it would take the /api off and every
+      # endpoint would 404.
+      - "traefik.enable=true"
+      - "traefik.http.routers.diamond.rule=Host(`api-de-demo.happy-moser.77-68-54-2.plesk.page`)"
+      - "traefik.http.routers.diamond.tls=true"
+      - "traefik.http.routers.diamond.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.diamond.loadbalancer.server.port=8080"
+      - "traefik.docker.network=root_default"
+
+networks:
+  diamond-network:
+    driver: bridge
+  # Traefik's own network, created outside this file.
+  root_default:
+    external: true
+
+volumes:
+  diamond_postgres_data:
+  diamond_uploads:
