@@ -50,7 +50,7 @@ public class MapperEventPayment {
 		p.setNumAmount(dto.getNumAmount());
 		p.setTxtPaymentMode(dto.getTxtPaymentMode());
 		p.setTxtTransactionRef(dto.getTxtTransactionRef());
-		p.setDtePaymentDate(UtilDateAndTime.ddmmyyyyStringToDate(dto.getDtePaymentDate()));
+		p.setDtePaymentDate(UtilDateAndTime.parseDateFromClient(dto.getDtePaymentDate()));
 		p.setTxtPaymentStatus(dto.getTxtPaymentStatus());
 		p.setTxtRemarks(dto.getTxtRemarks());
 		// Documents are handled by service after file upload

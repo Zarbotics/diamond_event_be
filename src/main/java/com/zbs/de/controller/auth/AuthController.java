@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import com.zbs.de.config.security.SsoHandoffService;
 import com.zbs.de.model.EmailVerificationToken;
 import com.zbs.de.model.RefreshToken;
 import com.zbs.de.model.UserMaster;
@@ -23,6 +24,8 @@ import com.zbs.de.repository.RepositoryUserMaster;
 import com.zbs.de.service.ServiceEmailSender;
 import com.zbs.de.service.ServiceEmailVerification;
 import com.zbs.de.service.ServiceRefreshToken;
+import com.zbs.de.service.impl.ServiceCurrentUser;
+import com.zbs.de.config.security.SecurityRoles;
 import com.zbs.de.util.JwtTokenUtil;
 import com.zbs.de.util.ResponseMessage;
 
@@ -50,6 +53,75 @@ public class AuthController {
 
 	@Value("${app.frontend-email-verification-url}")
 	private String frontEndVerificationPageUrl;
+
+	@Autowired
+	private SsoHandoffService ssoHandoffService;
+
+	/**
+	 * Exchanges the one-time code from an SSO redirect for the real tokens.
+	 *
+	 * <p>
+	 * The redirect after Google or Apple sign-in used to carry the tokens
+	 * themselves in the query string, where they were captured by browser
+	 * history, server access logs, proxy logs and any {@code Referer} header sent
+	 * onward. It now carries only a code, which this endpoint redeems exactly
+	 * once and destroys.
+	 *
+	 * <p>
+	 * Every failure — unknown code, already used, expired — returns the same 400
+	 * with the same message, so the endpoint cannot be used to probe which codes
+	 * exist.
+	 */
+	@PostMapping("/exchange")
+	public ResponseEntity<?> exchangeHandoffCode(@RequestBody(required = false) Map<String, String> body) {
+		String code = body == null ? null : body.get("code");
+
+		return ssoHandoffService.redeem(code)
+				.<ResponseEntity<?>>map(tokens -> ResponseEntity.ok(Map.of(
+						"accessToken", tokens.accessToken(),
+						"refreshToken", tokens.refreshToken())))
+				.orElseGet(() -> ResponseEntity.badRequest().body(Map.of(
+						"message",
+						"That sign-in link has already been used or has expired. Please sign in again.")));
+	}
+
+	/**
+	 * A one-time code for opening the customer journey as the signed-in user.
+	 *
+	 * <p>
+	 * The admin portal has an "open the client portal" button, so somebody taking
+	 * a booking over the telephone can walk the customer's own screens. It built
+	 * a link carrying {@code ?accessToken=…&refreshToken=…} — the exact thing the
+	 * SSO redirect was changed to stop doing, and worse, because these are an
+	 * administrator's credentials rather than a customer's.
+	 *
+	 * <p>
+	 * A URL is not a private place. It is written to browser history, to server
+	 * access logs, to any proxy in between, and sent onward in the
+	 * {@code Referer} header of the next request the page makes. A leaked refresh
+	 * token is a standing key to the back office.
+	 *
+	 * <p>
+	 * This mints a fresh pair for the caller and hands back the same single-use
+	 * code the SSO handoff uses, which {@code /auth/exchange} redeems exactly once
+	 * and destroys. Authentication is required — it is deliberately carved out of
+	 * the otherwise-public {@code /auth/**} — and the tokens are the caller's own,
+	 * so it grants nothing they did not already have.
+	 */
+	@PostMapping("/handoff")
+	public ResponseEntity<?> issueHandoffCode() {
+		UserMaster user = ServiceCurrentUser.getCurrentUser();
+
+		if (user == null) {
+			return ResponseEntity.status(401).body(Map.of("message", "Please sign in again."));
+		}
+
+		String accessToken = jwtTokenUtil.generateToken(user.getSerUserId().intValue(), user.getTxtEmail(),
+				user.getTxtRole());
+		RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+
+		return ResponseEntity.ok(Map.of("code", ssoHandoffService.issue(accessToken, refreshToken.getToken())));
+	}
 
 	@PostMapping("/refresh-token")
 	public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> body) {
@@ -181,7 +253,19 @@ public class AuthController {
 
 		}
 		newUser.setTxtFirstName(req.getFirstName());
-		newUser.setTxtRole("ROLE_ADMIN");
+		// Self-registration creates a customer, never a member of staff.
+		//
+		// This line read setTxtRole("ROLE_ADMIN"). /auth/signup is public — it has
+		// to be, it is how a customer creates an account — so anyone at all could
+		// POST an email and a password and be granted the administrator role.
+		// Under the old chain, which ended in anyRequest().authenticated(), that
+		// was already full access to every back-office endpoint including the
+		// complete customer list. Under the default-deny chain it is the single
+		// thing that would still hand it over.
+		//
+		// Staff accounts are provisioned through the admin portal by someone who
+		// already holds the role, which is the only path that should mint one.
+		newUser.setTxtRole(SecurityRoles.USER);
 		newUser.setTxtLastName(req.getLastName());
 		newUser.setBlnEmailVerified(false); // Require email verification before login
 		newUser.setBlnIsActive(true);
@@ -244,4 +328,12 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 		}
 	}
+	
+	@GetMapping("/checkin")
+	public ResponseEntity<?> checkin(@RequestParam String token) {
+
+		return ResponseEntity.ok(Map.of("checked in", "checked in",
+				"checked in", null));
+	}
+	
 }

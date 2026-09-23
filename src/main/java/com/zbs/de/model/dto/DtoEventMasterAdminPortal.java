@@ -11,6 +11,16 @@ public class DtoEventMasterAdminPortal {
 	private String txtEventMasterCode;
 	private String txtEventMasterName;
 	private String dteEventDate;
+
+	/**
+	 * When the customer accepted the terms and payment policy, or null.
+	 *
+	 * <p>
+	 * The date rather than a flag, because the office's question is not "did
+	 * they agree" — the enquiry could not have been sent otherwise — it is
+	 * "when", which is what matters if a clause is ever disputed.
+	 */
+	private String dteTermsAcceptedOn;
 	private Integer numNumberOfGuests;
 	private String txtNumberOfGuests;
 	private Integer numNumberOfTables;
@@ -47,14 +57,26 @@ public class DtoEventMasterAdminPortal {
 	private String txtVenueCode;
 	private String txtVenueName;
 
-	private Integer serVendorId;
-	private String txtVendorCode;
-	private String txtVendorName;
 
 	private String txtEventRemarks;
 	private String txtDecoreRemarks;
 	private String txtCateringRemarks;
 	private String txtExternalSupplierRemarks;
+
+	/**
+	 * The suppliers the customer is bringing.
+	 *
+	 * <p>
+	 * Missing until now, which made the office's own suppliers panel a form
+	 * that showed nothing and saved nothing: the rows were posted, Jackson
+	 * dropped them as an unknown property, and the save path never looked for
+	 * them. Most of these arrive by telephone a fortnight before the day, so
+	 * the office is the side that most needs to record them.
+	 */
+	private List<DtoEventExternalSupplier> externalSuppliers;
+
+	/** Whether the customer accepted the terms. The office may need to check. */
+	private Boolean blnTermsAccepted;
 	private String txtEventExtrasRemarks;
 	private String txtVenueRemarks;
 	private String txtEventServicesRemarks;
@@ -68,6 +90,13 @@ public class DtoEventMasterAdminPortal {
 	private Boolean blnIsCE;
 
 	private Integer numFormState;
+
+	/**
+	 * Which revision of the booking this copy is. Travels with the row so that
+	 * an administrator saving from the portal cannot overwrite a change the
+	 * customer made while the form was open.
+	 */
+	private Long numVersion;
 
 	private DtoEventRunningOrder dtoEventRunningOrder;
 	private DtoEventVenue dtoEventVenue;
@@ -89,7 +118,6 @@ public class DtoEventMasterAdminPortal {
 
 	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
 	
-	private List<DtoEventVendorMasterSelection> vendorMasterSelections;
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -113,6 +141,14 @@ public class DtoEventMasterAdminPortal {
 
 	public void setTxtEventMasterName(String txtEventMasterName) {
 		this.txtEventMasterName = txtEventMasterName;
+	}
+
+	public String getDteTermsAcceptedOn() {
+		return dteTermsAcceptedOn;
+	}
+
+	public void setDteTermsAcceptedOn(String dteTermsAcceptedOn) {
+		this.dteTermsAcceptedOn = dteTermsAcceptedOn;
 	}
 
 	public String getDteEventDate() {
@@ -331,30 +367,6 @@ public class DtoEventMasterAdminPortal {
 		this.txtVenueName = txtVenueName;
 	}
 
-	public Integer getSerVendorId() {
-		return serVendorId;
-	}
-
-	public void setSerVendorId(Integer serVendorId) {
-		this.serVendorId = serVendorId;
-	}
-
-	public String getTxtVendorCode() {
-		return txtVendorCode;
-	}
-
-	public void setTxtVendorCode(String txtVendorCode) {
-		this.txtVendorCode = txtVendorCode;
-	}
-
-	public String getTxtVendorName() {
-		return txtVendorName;
-	}
-
-	public void setTxtVendorName(String txtVendorName) {
-		this.txtVendorName = txtVendorName;
-	}
-
 	public String getTxtEventRemarks() {
 		return txtEventRemarks;
 	}
@@ -531,12 +543,12 @@ public class DtoEventMasterAdminPortal {
 		this.numFormState = numFormState;
 	}
 
-	public List<DtoEventVendorMasterSelection> getVendorMasterSelections() {
-		return vendorMasterSelections;
+	public Long getNumVersion() {
+		return numVersion;
 	}
 
-	public void setVendorMasterSelections(List<DtoEventVendorMasterSelection> vendorMasterSelections) {
-		this.vendorMasterSelections = vendorMasterSelections;
+	public void setNumVersion(Long numVersion) {
+		this.numVersion = numVersion;
 	}
 
 	public List<DtoEventDecorExtrasSelection> getServicesSelections() {
@@ -572,4 +584,20 @@ public class DtoEventMasterAdminPortal {
 	}
 	
 
+
+	public List<DtoEventExternalSupplier> getExternalSuppliers() {
+		return externalSuppliers;
+	}
+
+	public void setExternalSuppliers(List<DtoEventExternalSupplier> externalSuppliers) {
+		this.externalSuppliers = externalSuppliers;
+	}
+
+	public Boolean getBlnTermsAccepted() {
+		return blnTermsAccepted;
+	}
+
+	public void setBlnTermsAccepted(Boolean blnTermsAccepted) {
+		this.blnTermsAccepted = blnTermsAccepted;
+	}
 }

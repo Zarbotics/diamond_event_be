@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zbs.de.config.security.AccessGuard;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
@@ -42,26 +43,118 @@ public class ControllerEventMaster {
 	@Autowired
 	ServiceEventMaster serviceEventMaster;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
+	@Autowired
+	AccessGuard accessGuard;
 
-	@PostMapping(value = "/saveOrUpdate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage saveOrUpdate(@RequestBody DtoEventMaster dtoEventMaster, HttpServletRequest request) {
-		LOGGER.info("Saving Event Master: {}", dtoEventMaster);
-		DtoResult result = serviceEventMaster.saveAndUpdate(dtoEventMaster);
-		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
-			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());
+	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventMaster.class);
+
+	/** Matches {@code ServiceEventMasterImpl.BAD_EVENT_DATE}. */
+	private static final String BAD_EVENT_DATE = "bad_event_date";
+
+	/**
+	 * The request gave a date that is not a date, so nothing was saved.
+	 *
+	 * <h4>Why every save endpoint has to say so explicitly</h4>
+	 *
+	 * Three of the four end with {@code else if (!"Failure".equals(message))} →
+	 * <strong>200 OK</strong>. Any refusal the service invents that is not spelled
+	 * out above that line is therefore reported to the client as a successful
+	 * save, with an empty body: the screen closes, the booking is not stored, and
+	 * nobody finds out until somebody looks for it.
+	 *
+	 * <p>
+	 * 400 rather than 422 — the request is malformed, the caller can fix it, and
+	 * 400 is what the frontends already treat as "show me what is wrong".
+	 */
+	private ResponseMessage badEventDate(DtoResult result) {
+		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+				String.valueOf(result.getResult()), result.getResult());
+	}
+
+	/**
+	 * Upcoming days holding more events than the capacity rule allows.
+	 *
+	 * <p>
+	 * Administrator-only, by being absent from the customer allowlist. These days
+	 * exist because the rule was not applied on every save path until recently,
+	 * and the bookings that resulted are commitments to real customers — they are
+	 * grandfathered rather than corrected. The team cannot act on a day they
+	 * cannot see, and staffing one is the action that matters.
+	 */
+	@PostMapping(value = "/daysOverCapacity", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage daysOverCapacity() {
+		DtoResult result = serviceEventMaster.getDaysOverCapacity();
+
+		if (!"Success".equalsIgnoreCase(result.getTxtMessage())) {
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+					HttpStatus.INTERNAL_SERVER_ERROR, "Could not work out which days are over capacity",
+					null);
 		}
-		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
-				dtoEventMaster);
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK,
+				"Days over capacity", result.getResult());
+	}
+
+	/**
+	 * Every event, in the shape the admin calendar draws.
+	 *
+	 * <p>
+	 * Administrator-only, by being absent from the customer allowlist. The
+	 * calendar used to call {@code getAllDataAdminPortal}, which answers with the
+	 * whole of every event that has ever existed — 624 KB across 296 events on a
+	 * development database — to draw boxes carrying a reference and a name.
+	 */
+	@PostMapping(value = "/calendarEntries", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage calendarEntries() {
+		DtoResult result = serviceEventMaster.getCalendarEntries();
+
+		if (!"Success".equalsIgnoreCase(result.getTxtMessage())) {
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					result.getTxtMessage(), null);
+		}
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+				result.getResulList());
 	}
 
 	@PostMapping(value = "/saveWithDocs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithDocs(@RequestPart("eventMaster") String eventMaster,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
-		LOGGER.info("Saving Event Master: {}", eventMaster);
 		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
+		/*
+		 * The booking's identity, not its contents. This logged the whole
+		 * request body — around eight kilobytes per save, twelve saves per
+		 * booking, carrying the customer's name, their contact's name and
+		 * phone number, the couple's names and the full menu. Personal data
+		 * in an application log is processing nobody has accounted for: logs
+		 * are shipped to aggregators, copied onto laptops and kept
+		 * indefinitely, none of it covered by the retention that applies to
+		 * the database. The id and the reference are what you actually need
+		 * to correlate a log line with a booking.
+		 */
+		LOGGER.info("Saving event {} ({})", dtoEventMaster.getSerEventMasterId(),
+				dtoEventMaster.getTxtEventMasterCode());
+
+		// Ownership is asserted before the try/catch below: an AccessDeniedException
+		// must reach the exception handler as a 403, not be flattened into a 400 by
+		// the catch-all.
+		accessGuard.assertCanAccessCustomer(dtoEventMaster.getSerCustId());
+		if (dtoEventMaster.getSerEventMasterId() != null) {
+			accessGuard.assertCanAccessEvent(dtoEventMaster.getSerEventMasterId());
+		}
+
 		try {
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocs(dtoEventMaster, files);
+			/*
+			 * Somebody else saved this booking while the caller had it open. 409
+			 * rather than 200: the save did not happen, and a client that reads
+			 * only the status must not conclude that it did.
+			 */
+			if (result != null && "changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
+				return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
+						String.valueOf(result.getResult()), result.getResult());
+			}
+			if (result != null && BAD_EVENT_DATE.equalsIgnoreCase(result.getTxtMessage())) {
+				return badEventDate(result);
+			}
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
 						result.getResult().toString(), result.getResult());
@@ -79,30 +172,6 @@ public class ControllerEventMaster {
 
 	}
 
-	
-	@PostMapping(value = "/saveWithDocsCE", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseMessage saveWithDocsCE(@RequestPart("eventMaster") String eventMaster,
-			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
-		LOGGER.info("Saving Event Master: {}", eventMaster);
-		DtoEventMaster dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMaster.class);
-		try {
-			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsCE(dtoEventMaster, files);
-			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
-				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
-						result.getResult().toString(), result.getResult());
-			} else if (result != null && !result.getTxtMessage().equalsIgnoreCase("Failure")) {
-				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
-						result.getResult());
-			} else {
-				return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
-						result.getTxtMessage(), dtoEventMaster);
-			}
-		} catch (Exception e) {
-			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
-					dtoEventMaster);
-		}
-
-	}
 	
 	@PostMapping(value = "/generateEventCode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage generateEventCode(HttpServletRequest request) {
@@ -113,6 +182,8 @@ public class ControllerEventMaster {
 	@PostMapping(value = "/getByEventIdAndCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getByEventIdAndCustomerId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Searching Event Master: {}", dtoSearch);
+		// id1 carries the customer id for this endpoint; id carries the event type.
+		dtoSearch.setId1(accessGuard.resolveCustomerId(dtoSearch.getId1()));
 		DtoResult result = serviceEventMaster.getByEventTypeIdAndCustId(dtoSearch);
 		if (result.getResult() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
@@ -125,6 +196,9 @@ public class ControllerEventMaster {
 	@PostMapping(value = "/getByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getByCustomerId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Searching Event Master: {}", dtoSearch);
+		// A customer id supplied by the client is never trusted. For a customer it is
+		// replaced with their own; for staff it is passed through unchanged.
+		dtoSearch.setId(accessGuard.resolveCustomerId(dtoSearch.getId()));
 		DtoResult result = serviceEventMaster.getByCustId(dtoSearch);
 		if (result.getResulList() != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
@@ -136,6 +210,33 @@ public class ControllerEventMaster {
 		return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to Fetch",
 				dtoSearch);
 
+	}
+
+	/**
+	 * One customer's events, in the narrow shape the "choose an event" step draws.
+	 *
+	 * <p>
+	 * The step used to call {@code getByCustomerId}, which answers with every one
+	 * of the customer's events in full — 1.1 MB across 278 events on a development
+	 * database, on the second screen of the journey, on a phone. This sends seven
+	 * fields each; the full event is fetched through {@code getEventById} for the
+	 * one that is actually chosen.
+	 *
+	 * <p>
+	 * A customer id supplied by the client is never trusted: for a customer it is
+	 * replaced with their own, for staff it is passed through.
+	 */
+	@PostMapping(value = "/getSummariesByCustomerId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage getSummariesByCustomerId(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
+		Integer customerId = accessGuard.resolveCustomerId(dtoSearch.getId());
+		DtoResult result = serviceEventMaster.getEventSummariesByCustomerId(customerId);
+
+		if (!"Success".equalsIgnoreCase(result.getTxtMessage())) {
+			return new ResponseMessage(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR,
+					result.getTxtMessage(), null);
+		}
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully Fetched",
+				result.getResulList());
 	}
 
 	@PostMapping(value = "/getAllData", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -191,9 +292,22 @@ public class ControllerEventMaster {
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) {
 		DtoEventMasterAdminPortal dtoEventMaster = null;
 		try {
-			LOGGER.info("Saving Event Master: {}", eventMaster);
 			dtoEventMaster = new ObjectMapper().readValue(eventMaster, DtoEventMasterAdminPortal.class);
+			LOGGER.info("Saving event {} ({}) from the admin portal",
+					dtoEventMaster.getSerEventMasterId(), dtoEventMaster.getTxtEventMasterCode());
 			DtoResult result = serviceEventMaster.saveAndUpdateWithDocsAdminPortal(dtoEventMaster, files);
+			/*
+			 * Somebody else saved this booking while the caller had it open. 409
+			 * rather than 200: the save did not happen, and a client that reads
+			 * only the status must not conclude that it did.
+			 */
+			if (result != null && "changed_elsewhere".equalsIgnoreCase(result.getTxtMessage())) {
+				return new ResponseMessage(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT,
+						String.valueOf(result.getResult()), result.getResult());
+			}
+			if (result != null && BAD_EVENT_DATE.equalsIgnoreCase(result.getTxtMessage())) {
+				return badEventDate(result);
+			}
 			if (result != null && "already_booked".equalsIgnoreCase(result.getTxtMessage())) {
 				return new ResponseMessage(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED,
 						result.getResult().toString(),
@@ -320,10 +434,21 @@ public class ControllerEventMaster {
 	}
 	
 	@PostMapping(value = "/getAlreadyBookedDates", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage getAlreadyBookedDates(HttpServletRequest request) {
+	public ResponseMessage getAlreadyBookedDates(@RequestBody(required = false) DtoSearch dtoSearch,
+			HttpServletRequest request) {
 		try {
 			LOGGER.info("getAlreadyBookedDates");
-			DtoResult result = serviceEventMaster.getAlreadyBookedDates();
+			/*
+			 * `id` is the event the customer is editing, if they are editing one.
+			 * It is left out of the counts so that their own booking does not
+			 * close the day it is on against them — see the service method.
+			 *
+			 * Optional, and optional in both directions: the journey sends no id
+			 * while the booking does not exist yet, and an older build of the
+			 * frontend sends an empty body.
+			 */
+			DtoResult result = serviceEventMaster
+					.getAlreadyBookedDates(dtoSearch == null ? null : dtoSearch.getId());
 			if (result != null && result.getResult() != null) {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
 						result.getResult());
@@ -369,6 +494,8 @@ public class ControllerEventMaster {
 	@PostMapping(value = "/getEventById", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseMessage getEventById(@RequestBody DtoSearch dtoSearch, HttpServletRequest request) {
 		LOGGER.info("Searching Event Master: {}", dtoSearch);
+		// Asserted outside the try/catch so a denial surfaces as 403, not 400.
+		accessGuard.assertCanAccessEvent(dtoSearch.getId());
 		try {
 			DtoEventMaster result = serviceEventMaster.getEventById(dtoSearch.getId());
 			if (result != null) {

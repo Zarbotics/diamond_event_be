@@ -14,6 +14,8 @@ public interface RepositoryUserMaster extends JpaRepository<UserMaster, Long> {
 	Optional<UserMaster> findByTxtGoogleId(String googleId);
 
 	Optional<UserMaster> findByTxtEmail(String email);
+	
+	Optional<UserMaster> findByTxtAppleId(String txtAppleId);
 
 	@Query("SELECT u FROM UserMaster u WHERE LOWER(u.txtRole) = 'role_admin' AND u.blnIsDeleted = false and u.blnIsActive = true and u.blnReceiveEmail = true")
 	List<UserMaster> getAdminUsersForEmail();

@@ -84,14 +84,23 @@ public class ServiceEventPaymentImpl implements ServiceEventPayment {
 		 * =============================== MAP PAYMENT FIELDS
 		 * ===============================
 		 */
-		payment.setEventBudget(budget);
+		// Budget and booking together — see EventPayment.attachTo.
+		payment.attachTo(budget);
 		payment.setSerEventMasterId(dtoPayment.getSerEventMasterId() != null ? dtoPayment.getSerEventMasterId()
 				: budget.getEventMaster().getSerEventMasterId());
 
 		payment.setNumAmount(dtoPayment.getNumAmount());
 		payment.setTxtPaymentMode(dtoPayment.getTxtPaymentMode());
 		payment.setTxtTransactionRef(dtoPayment.getTxtTransactionRef());
-		payment.setDtePaymentDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoPayment.getDtePaymentDate()));
+		/*
+		 * The same parser the event date uses. This read ddmmyyyyStringToDate,
+		 * which takes dd/MM/yyyy and yyyy-MM-dd but not the dd-MM-yyyy that both
+		 * frontends send everywhere else — so a payment date written the way the
+		 * rest of the API expects came back as nothing and the payment saved with
+		 * no date on it at all. The admin portal happens to send ISO for this one
+		 * field, which is why it works today and why nobody has hit it.
+		 */
+		payment.setDtePaymentDate(UtilDateAndTime.parseDateFromClient(dtoPayment.getDtePaymentDate()));
 		payment.setTxtPaymentStatus(dtoPayment.getTxtPaymentStatus());
 		payment.setTxtRemarks(dtoPayment.getTxtRemarks());
 

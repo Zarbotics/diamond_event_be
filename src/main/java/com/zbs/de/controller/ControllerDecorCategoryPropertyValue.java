@@ -86,9 +86,19 @@ public class ControllerDecorCategoryPropertyValue {
 	@PostMapping(value = "/saveValuesWithDocuments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithDocs(@RequestPart("dtoDecorCategoryProperty") String dtoDecorCategoryProperty,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
-		LOGGER.info("Saving Property Values: {}", dtoDecorCategoryProperty);
 		DtoDecorCategoryPropertyMaster dtoDecorCategoryPropertyMaster = new ObjectMapper()
 				.readValue(dtoDecorCategoryProperty, DtoDecorCategoryPropertyMaster.class);
+		/*
+		 * What was saved, not the body that said so. These payloads are
+		 * several kilobytes each and the log is more useful with a name in
+		 * it than a blob. Bodies stay out of the log everywhere, at every
+		 * level, so that the rule is one a person can follow without having
+		 * to judge whether this particular one carries personal data —
+		 * RequestPayloadLoggingTest holds it.
+		 */
+		LOGGER.info("Saving values for decor property {} ({})",
+				dtoDecorCategoryPropertyMaster.getSerPropertyId(),
+				dtoDecorCategoryPropertyMaster.getTxtPropertyName());
 		DtoResult result = serviceDecorCategoryPropertyValue.saveListValuesWithDocuments(dtoDecorCategoryPropertyMaster,
 				files);
 		if (result != null && result.getTxtMessage().equalsIgnoreCase("success")) {

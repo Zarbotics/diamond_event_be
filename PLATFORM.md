@@ -1,0 +1,2747 @@
+# Diamond Events — Platform Requirements, Analysis and Plan
+
+**Status:** living document. Last updated 22 September 2026.
+
+---
+
+## 0. How to use this document
+
+This is the single source of truth for what the platform does, what is
+actually wired up, what is dead, what has been fixed, and what is left. It
+covers all three repositories together, because most real behaviour crosses
+at least two of them.
+
+### The other two documents
+
+This one covers the platform: the domain, the schema, the decisions and the
+backlog. The two front ends each carry their own record of what changed in
+them and why.
+
+| Document | Covers |
+|---|---|
+| `diamond_ev_cj/CHANGES.md` | The customer journey — 42 commits, what they replaced, and what to know before changing it |
+| `diamond_ev_admin/CHANGES.md` | The control panel — 34 commits, same |
+
+**The task list is here and only here** (§10). A backlog kept in three places
+disagrees with itself within a fortnight.
+
+**It is updated as work happens, not afterwards.** When a task is finished the
+row moves to Done with a note on how it was verified. When a new use case or
+edge case turns up mid-work — and they do; several in §9 were found by writing
+tests, not by reading code — it is added to the relevant section on the spot,
+whether or not it gets fixed straight away.
+
+### Status vocabulary
+
+| | Meaning |
+|---|---|
+| ✅ | Working, and a test proves it |
+| ✔︎ | Working, verified by hand, no automated test |
+| 🟡 | Works, with a known gap recorded here |
+| ❌ | Broken or missing |
+| ⬜ | Not started |
+| ❓ | Blocked on a business decision, not a technical one |
+| 💀 | Dead code — present, unreachable |
+
+### Where the work happens
+
+| Repository | Branch | What it is |
+|---|---|---|
+| `diamond_event_be` | `feat/platform-rebuild` | Spring Boot 3.4.5 / Java 21 API, PostgreSQL 16. Serves `http://localhost:8080/diamond` |
+| `diamond_ev_cj` | `feat/platform-rebuild` | React 19 / Vite customer booking journey |
+| `diamond_ev_admin` | `feat/platform-rebuild` | React admin portal (CRA + craco) |
+
+The existing branches are never touched. All work is on `feat/platform-rebuild`
+in each repository.
+
+---
+
+## 1. What the business does
+
+Diamond Events is a UK events company. A customer books a venue and everything
+that goes in it — a hall, a menu, decor, services, extras and outside
+suppliers — for a wedding, a walima, a birthday or a corporate event. Staff
+price the booking, take payments against it, and the kitchen works from an
+itinerary derived from the menu the customer chose.
+
+Three applications serve that:
+
+- **Customer journey** — a fourteen-step booking flow, signed in with Google.
+- **Admin portal** — staff manage the catalogue, price it, and work bookings.
+- **API** — the domain, the database and the documents.
+
+---
+
+## 2. Domain model
+
+61 entities. Grouped by what they are for, with an honest status.
+
+### 2.1 The booking itself
+
+| Entity | Table | Status | Note |
+|---|---|---|---|
+| `EventMaster` | `event_master` | ✅ | The booking. The aggregate root in practice. |
+| `EventRunningOrder` | `event_running_order` | ✅ | Times: guest arrival, meal, end of night, plus ceremony-specific slots. |
+| `EventBudget` | `event_budget` | ✅ | Totals per booking. |
+| `EventPayment` + `EventPaymentDocument` | `event_payment` | ✔︎ | Staff-side. No customer-facing payment. |
+| `EventQuote` / `EventQuoteLine` | `event_quote` | 💀 | **Orphaned.** Nothing references them. Tables exist, empty. Superseded by `EventBudget`. |
+
+### 2.2 What the customer chose
+
+| Entity | Status | Note |
+|---|---|---|
+| `EventMenuCategorySelection` | ✅ | No repository — cascaded from `EventMaster`. |
+| `EventMenuSubCategorySelection` | ✅ | As above. |
+| `EventMenuFoodSelection` | ✅ | The dishes. 320 rows in dev. |
+| `EventDecorCategorySelection` | ✅ | |
+| `EventDecorPropertySelection` | ✅ | |
+| `EventDecorPropertyValueSelection` | ✅ | Cascaded. |
+| `EventDecorExtrasSelection` | ✅ | Services and extras both land here. |
+| `EventDecorReferenceDocument` | ✅ | Customer's uploaded inspiration images. |
+| `EventExternalSupplier` | ✅ | The suppliers the customer declared, each against a category. Replaced `EventVendorMasterSelection`, which was dropped in V20 with 0 rows. |
+| `EventFoodSelection` | 💀 | **Orphaned.** Superseded by `EventMenuFoodSelection`. |
+| `EventServicesMaster` | 💀 | **Orphaned.** Services are stored as `EventDecorExtrasSelection`. |
+
+### 2.3 Catalogue
+
+| Entity | Status | Dev rows |
+|---|---|---|
+| `MenuItem` (ltree tree: category → sub-category → dish) | ✅ | 37 |
+| `MenuItemRole` | ✅ | 3 |
+| `MenuFoodMaster` | ✔︎ | 20 |
+| `MenuComponent` | ✔︎ | 0 |
+| `Ingredient`, `MenuItemIngredient` | ✔︎ | 0 |
+| `VenueMaster` / `VenueMasterDetail` (halls) / `VenueMasterDetailDocument` | ✅ | 5 / 8 |
+| `DecorCategoryMaster` → `DecorCategoryPropertyMaster` → `DecorCategoryPropertyValue` (+ documents) | ✅ | 4 / 6 / 16 |
+| `DecorExtrasMaster` / `DecorExtrasOption` (+ documents) | ✅ | 10 / 18 |
+| `EventType` (+ `EventTypeDocument`) | ✅ | 11 |
+| `ExternalSupplierCategory` | ✅ | 12, seeded by V19. Replaced `VendorMaster` (5 seed rows, dropped in V20). |
+| `CountryMaster` / `StateMaster` / `CityMaster` | 🟡 | 1 / 1 / 3. `CountryMaster.isActive` was a primitive over a nullable column — a NULL took out the whole venue list with a 500. Fixed. |
+
+### 2.4 Pricing
+
+| Entity | Status | Note |
+|---|---|---|
+| `PriceVersion` | ✅ | Versioned price books. Exactly one default — now enforced under failure. |
+| `MenuItemPrice` | ✅ | Price per item per version. |
+| `PriceEntry` | ✔︎ | |
+| `PricingRule` | ✔︎ | |
+
+### 2.5 Kitchen itinerary
+
+| Entity | Status | Note |
+|---|---|---|
+| `ItineraryItem` / `ItineraryItemType` | ✔︎ | Prep steps and their kinds. |
+| `ItineraryAssignment` / `ItineraryAssignmentDetail` | ✔︎ | Which prep steps a dish needs, with a multiplier. |
+| `MenuItemItineraryMap` | ✔︎ | |
+| `EventMenuItinerary` | ✔︎ | Per-dish calculated quantities for one booking. |
+| `EventItinerarySummary` | ✔︎ | Aggregated per booking. |
+| `EventItineraryResult` | 💀 | **Orphaned.** |
+
+### 2.6 Catering-only (food delivery, no venue)
+
+| Entity | Status |
+|---|---|
+| `CateringDeliveryBooking` / `CateringDeliveryItemDetail` | 💀 ❓ See §5.4 — the feature is parked, both entry points commented out |
+
+### 2.7 Identity
+
+| Entity | Status | Note |
+|---|---|---|
+| `UserMaster` | ✅ | Roles `ROLE_ADMIN` / `ROLE_USER`. |
+| `CustomerMaster` | ✅ | The booking customer. |
+| `RefreshToken` | ✅ | |
+| `EmailVerificationToken` | ✔︎ | |
+| `SsoHandoffCode` | ✅ | Single-use code for the OAuth → SPA handoff. |
+| `NotificationMaster` | ✔︎ | The only paginated endpoint in the API. |
+
+### 2.8 Dead entities — summary
+
+Five entities are referenced by nothing outside their own file. Hibernate
+`ddl-auto=update` still creates their tables, so they exist and are empty:
+
+`EventFoodSelection`, `EventItineraryResult`, `EventQuote`, `EventQuoteLine`,
+`EventServicesMaster`
+
+**Recommendation:** delete the classes, leave the tables. Dropping tables is
+irreversible and they cost nothing; the classes cost attention every time
+somebody greps for how food selection works and finds two answers. ⬜ *Not yet
+done — see §10.*
+
+---
+
+## 3. API surface
+
+**Base address: `http://localhost:8080/diamond`.** Port and context path are
+set in `application.properties` and three things are configured against them —
+`VITE_API_BASE_URL` in each frontend, and the authorised redirect URI on the
+Google OAuth client (`/diamond/login/oauth2/code/google`). Changing either half
+means changing all three.
+
+
+40 controllers, roughly 340 endpoints.
+
+**Every endpoint is `POST`**, including reads (`POST /customerMaster/getAllData`).
+
+Pagination is partial. `eventMaster/search`, `customerMaster/search` and
+`/notifications` page properly, each capping the requested size at 250 so a
+client cannot opt out of it. Everything else returns every row — fine for a
+catalogue that grows when someone adds a venue, not fine for anything that
+grows with trade.
+
+*(An earlier version of this section said only `/notifications` paginated.
+That was wrong: `eventMaster/search` already did, with the same cap. Found
+while implementing A1.)*
+
+| Area | Base path |
+|---|---|
+| Auth | `/auth` |
+| Bookings | `/eventMaster`, `/eventBudget`, `/eventPayment` |
+| Customers | `/customerMaster` |
+| Menu | `/menu/item`, `/menu/component`, `/menu/ingredient`, `/menuFoodMaster`, `/menuItemRole`, `/admin/menu` |
+| Pricing | `/menu/price-version`, `/api/menu-item-price`, `/menu/price-entry`, `/api/price-calculator` |
+| Decor | `/decorCategoryMaster`, `/decorCategoryPropertyMaster`, `/decorCategoryPropertyValue`, `/decorExtras`, `/extrasOption` |
+| Venues | `/venueMaster`, `/countryMaster`, `/stateMaster`, `/cityMaster` |
+| Itinerary | `/itinerary/assignment`, `/itinerary/item-type`, `/admin/itinerary`, `/eventItinerary` |
+| Catering-only | `/cateringDelivery`, `/cateringPayment` |
+| Other | `/externalSupplierCategory`, `/eventType`, `/notifications`, `/analytics`, `/dashboardStats`, `/deimg` |
+
+---
+
+## 4. Security model
+
+> **Open action, not a code change.** The Google client secret was committed to
+> `application.properties` and is still in this repository's git history.
+> Removing it from the current file does not remove it from the commits that
+> carried it, and rewriting history would not help — every existing clone still
+> has it. The only thing that closes it is **rotating the secret in the Google
+> console**. See RUNNING.md.
+
+
+| Concern | Status | Note |
+|---|---|---|
+| Sign-in | ✅ | Needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`; unset, the backend now refuses the sign-in and says so rather than letting Google answer `invalid_client`. Google OAuth2 in development; **master also has Apple**, kept out of dev branches because there is one Apple developer account and it is bound to production. `VITE_APPLE_SIGNIN_ENABLED` gates the button. |
+| Handoff to the SPA | ✅ | Single-use `SsoHandoffCode`. A token-in-URL path still exists and the tests use it. 🟡 Worth retiring — see §10. |
+| Roles | ✅ | `ROLE_ADMIN`, `ROLE_USER`. |
+| Privilege escalation | ✅ | `/auth/signup` is public and set `ROLE_ADMIN` on every new account — anyone who posted an email and password became an administrator. Now `ROLE_USER`. |
+| Ownership | ✅ | `AccessGuard` asserts a customer may only touch their own bookings. 10 tests. |
+| Unauthenticated API calls | ✅ | 401 JSON, never a 302 — the frontend interceptor follows redirects silently and the customer sits on a screen that never recovers. |
+| CORS | ✅ | localhost origins included by default. |
+| Personal data in logs | ✅ | Fixed; guarded by a test. See §9. |
+
+---
+
+## 5. The customer journey
+
+Fourteen steps. `numFormState` is saved with the booking at each one and is
+what restores a returning customer. Redux is persisted to `localStorage`, so a
+reload in the same browser is restored from there; `numFormState` covers a
+different device, a cleared browser, or picking a booking from the list.
+
+### 5.1 The steps
+
+| # | Route | Purpose | Status |
+|---|---|---|---|
+| 1 | `personalDetail` | Name, phone, email | ✅ |
+| 2 | `selectEvent` | New booking, or resume one | ✅ |
+| 3 | `getStarted` | Which kind of event | ✅ |
+| 4 | `clientDetail` | Couple / celebrant / contact | ✅ |
+| 5 | `selectEventType` | The date | ✅ |
+| 6 | `eventDetail` | Guests, tables, running order | ✅ |
+| 7 | `eventVenue` | City → venue → hall | ✅ |
+| 8 | `eventCatering` | Menu | ✅ |
+| 9 | `services` | Optional | ✅ |
+| 10 | `decor` | Optional, with image upload | ✅ |
+| 11 | `extras` | Optional | ✅ |
+| 12 | `externalSuppliers` | The suppliers the customer is bringing | ✅ |
+| 13 | `notes` | Table plan, room layout, terms and payment policy | ✅ |
+| 14 | `review` | Check everything before submitting | ✅ |
+| 15 | `confirmed` | Reference number, consultation booking | ✅ |
+
+*(The misspelled `externalSuuppliers` still resolves, and renders the notes
+rather than the suppliers. It is the route `numFormState` on live bookings
+points at and the one the review page has always linked to, so it stays as an
+alias; the component behind it is now called `Notes`, which is what it is.)*
+
+Every step from 4 onward ends in the same action row (`StepActions`): its own
+Save, a **Back** to the step before it, and — when it was opened from Review —
+**Back to review** instead. Before that, the journey had no Back control on any
+of its ten screens: the only routes backwards were the progress rail, which was
+hidden for the first three steps and again from Review onward, and the
+browser's own button.
+
+### 5.2 Business rules
+
+| Rule | Status | Note |
+|---|---|---|
+| A date already booked cannot be chosen | ✅ | Day cells render inert. Verified — repeated test runs filled August 2026 and the calendar correctly offered nothing. |
+| Past dates cannot be chosen | ✅ | |
+| A hall smaller than the guest count is refused | ✅ | "Your guest count is 150, which exceeds the hall's capacity." |
+| Each course has a selection limit | ✅ | Remaining dishes lock once reached. |
+| Couple events ask for bride and groom | ✅ | wedding, nikkah, walima, mehndi, reception, engagement, anniversary. Others ask for a celebrant. |
+| Services, decor and extras are optional | ✅ | The step advances with nothing chosen. |
+| Terms must be accepted | ✅ | Real checkbox. |
+| The event reference is unique | ✅ | Was read-max-and-add-one with nothing preventing collisions; two customers starting at once both got `DE-26-1005`. Now a retry loop plus a partial unique index. |
+
+### 5.3 Edge cases
+
+Anything not marked ✅/✔︎ is an open item and is carried into §10.
+
+| Edge case | Status |
+|---|---|
+| Customer reloads mid-journey | ✅ Redux persisted to localStorage |
+| Customer returns on another device | ✅ Restored from `numFormState` |
+| Customer finishes the last selection step and comes back | ✅ Resumes at Review. Recorded step 4 (Client Details) until fixed — eight steps of position discarded |
+| Customer has several bookings | ✅ Listed on `selectEvent` |
+| A month is fully booked | ✅ Calendar offers the next month |
+| A menu course has no options | ✔︎ "Low-lying fog" is seeded with none to exercise this |
+| Access token expires mid-journey | ✔︎ Axios interceptor refreshes and retries on 401 |
+| Refresh token invalid | ✔︎ Interceptor logs out |
+| Two customers race for the same date | 🟡 Server rejects the second with `already_booked`, but there is no database constraint behind it |
+| Two customers race for the same reference | ✅ Partial unique index |
+| A step half-saves | ✅ One transaction; a caught failure rolls back |
+| Backend unreachable mid-journey | 🟡 Toast, no retry offered |
+| Vite falls back to 5174 because 5173 is busy | ✅ Fallback ports in the dev CORS default; both failure modes documented in the CJ README |
+| Customer uploads a huge or non-image file | ✅ Client checks type and 3MB; server now allowlists extensions and caps at 3MB/30MB |
+| Upload named `../../../etc/…` | ✅ Was an arbitrary file write **as root**. See §9 |
+| Uploaded SVG or HTML served back from the API origin | ✅ Refused at write; content type now mapped from the extension, `nosniff` set |
+| Customer books with 0 guests | ✅ Refused, with the message on the field |
+| Guest count larger than every room the company has | ✅ Was an unwinnable screen — see §9 |
+| Guest count larger than a particular room | ✅ Refused up front and says why, rather than on click |
+| Customer picks a date years out | 🟡 No upper bound |
+| Journey completed twice in two tabs | ❌ Not considered |
+| Admin edits a booking a customer has open | ❌ No optimistic locking anywhere |
+
+### 5.4 Catering-only flow 💀 ❓
+
+`BookCatering` is a complete second booking flow for food delivery without a
+venue. Its route is registered and `cateringDelivery/saveOrUpdate` still
+exists, but **nothing can reach it**: the "Book Food Delivery" selector in
+`GetStarted` is commented out, and so is the branch in
+`AddOrSelectExistingEvent` that lists existing catering bookings to resume.
+
+It has been repaired anyway (real checkboxes, named info button) so it works if
+it comes back, and the finding is recorded at the top of the file. **Whether it
+comes back is a business decision, not a technical one.**
+
+### 5.6 External suppliers ✅
+
+**Was:** step 12 was named `externalSuuppliers` and rendered two static blocks
+— "Table plan" and "Room layout" — the terms checkbox and Submit. It was a
+notes-and-terms step wearing a supplier step's name. The supplier question
+itself was one free-text box, into which a customer might write "none", or
+three paragraphs containing two names and a phone number.
+
+**Now:** the suppliers have a step of their own (12) and a table of their own
+(`event_external_supplier`, V18): trade, business, contact name, phone, email,
+notes, display order. The customer adds as many as they have; the office sees
+and edits the same list on the event form; the enquiry document lists them with
+a contact each.
+
+It matters more than a convenience, because clause 5 of the terms the customer
+accepts on the next step says the venue may cancel the booking and keep the
+deposit if a third-party decorator or caterer is brought in. That clause cannot
+be run fairly from a box a customer may reasonably leave blank.
+
+A save that does not mention suppliers leaves them alone; an empty list is a
+statement and is honoured. Same rule as C4c, and for the same reason — every
+step posts the whole event back, and a step that has never heard of suppliers
+must not delete the photographer declared two screens earlier.
+
+#### The trade is a category, not a word
+
+`txt_supplier_type` was free text on both screens. Free text gives you "DJ",
+"dj", "Disc Jockey", "Music" and "dj + sound" as five different things, so
+nothing can be counted, filtered or planned from the kind of supplier it is —
+which is exactly what the office wants to do with it: every photographer
+arriving on Saturday, different access instructions for the cake maker than for
+the mehndi artist. V19 introduced `external_supplier_category`, backfilled
+every existing value losslessly (creating inactive categories for anything that
+did not match a seeded trade), and dropped the column.
+
+Retiring a category never rewrites history: `/delete` sets `bln_is_deleted` and
+`bln_is_active`, the row stays, and every supplier declared under it keeps
+printing on its run sheet. The office's list shows how many suppliers use one
+before they press it.
+
+#### `vendor_master` is gone (V20)
+
+It held the venue's *own* approved suppliers — a different question from the
+one the business has, which is who the *customer* is bringing. The evidence
+that nobody was asking it: 5 seed rows, 0 rows in
+`event_vendor_master_selection`, 0 of 195 events carrying a `ser_vendor_id`,
+and the journey step that read it commented out. `EventMaster` also held two
+contradictory relationships to it. V20 drops the column, the link table and the
+table; 12 Java classes went with it.
+
+Removing it exposed a pre-existing bug that only a compile error could have
+found: `MapperEventMaster` wrote `getVenueMaster().getTxtVenueCode()` into
+`dto.setTxtVendorCode()` — the *venue's* code in a *vendor* field, in both
+mappers.
+
+### 5.4b Décor selections ✅
+
+Décor is one of the four things this business sells and nothing tested that
+choosing any of it was remembered. All three selection tables are empty, which
+is **not** evidence of a defect: the journey's décor step is optional and the
+end-to-end suite walks past it, so "nobody in this database has chosen any
+décor" explains it.
+
+Writing the test found a real break elsewhere. `saveAndUpdateWithDocs` — what
+the booking screens post to — clears the collection and adds to it, the pattern
+`orphanRemoval` requires. `saveAndUpdate` replaced it wholesale, which throws
+*"A collection with orphan deletion was no longer referenced by the owning
+entity instance"* on every save carrying décor. It backs
+`POST /eventMaster/saveOrUpdate`, a live administrator endpoint neither
+frontend calls. All four save methods use the safe pattern now, and six tests
+run against both paths so the copies cannot drift apart again silently.
+
+**This is the third defect found in one of four near-identical copies of the
+save logic**, each several thousand lines, with a comment in the source
+instructing the reader to repeat any change across them by hand. That is the
+root cause behind several bugs already paid for, and it is the single
+highest-value piece of remaining work — and the highest-risk. See D10.
+
+### 5.6 Equipment requirements ✅
+
+What a booking needs on the day, worked out from what was sold. A wedding for
+300 with a plated main, a dessert buffet and a grazing bar needs 300 plates,
+boards and tongs for the station, linen for 30 tables and chafing dishes for
+the buffet — arithmetic on the menu, the guest count and the table count,
+which the system already holds.
+
+**One rule table, one vocabulary.** A rule is one sentence: a dish — or every
+event — needs a quantity of something, counted `PER_GUEST`, `PER_TABLE`,
+`PER_STATION` or `PER_EVENT`. A check constraint enforces exactly one source,
+so a rule that can never fire cannot be saved. Quantities are decimal, so "one
+chafing dish per 40 guests" is 0.025 rather than being forced into a station
+rule it is not.
+
+**What it deliberately does not do:** stock. It says what is needed and stops
+there, and draws no distinction between owned and hired. A half-built version
+of either would be a screen that looks like it knows the cupboard when it does
+not.
+
+**Two arithmetic decisions.** Rounding happens once, at the end — three dishes
+each wanting 0.4 spoons per table want 12 across 10 tables, not 30. Stations
+round up: 180 guests at one per 50 is four, and three leaves thirty guests
+queueing.
+
+**Computed, never stored.** Derived data that is stored goes stale silently.
+A run sheet frozen for the kitchen would be a deliberate snapshot, not a
+cache, and should be built when somebody asks for it.
+
+**Why the old shape was not reused.** The itinerary tables said the same thing
+twice: a rule could live in `itinerary_assignment_detail` with a multiplier
+from an enum of `PER_GUEST, PER_TABLE, PER_ITEM, PER_PORTION, FLAT`, or in
+`menu_item_itinerary_map` with a free-text multiplier documented as
+`PER_GUEST|PER_DISH|PER_STATION|FIXED`. Two vocabularies, neither a subset of
+the other, no rule about which wins — and `PER_STATION`, the one a grazing bar
+needs, existed only in the half that was not type-checked. The eight old
+tables are **not yet dropped**; V23 adds the replacement beside them so the
+two can be compared on a real database first.
+
+**A bug this found:** the calculation runs outside a transaction and the rules
+held their dish lazily, so every dish-attached rule would have thrown
+`LazyInitializationException` the moment it tried to name its dish. Fixed with
+fetch joins, which also removes a query per rule.
+
+### 5.7 Settings ✅
+
+Things the business configures, in a table with an admin screen. Each row
+declares its own type, bounds, heading and a sentence saying what changing it
+does — so the screen is generated from the answer rather than hard-coded
+against a list of keys, and a migration can add a setting that appears with
+the right control and the right validation.
+
+Reading never throws: every accessor takes a fallback, because failing a save
+over a mistyped setting turns a configuration mistake into an outage. Writing
+refuses early, with a sentence naming the setting. Booleans are read
+generously — not `Boolean.parseBoolean`, which answers false to everything it
+does not recognise, so "yes", "1" and the typo "treu" would each silently turn
+a feature off.
+
+`/forJourney` returns only rows marked public, by its own query rather than by
+filtering the office's list, so adding a private setting cannot start leaking
+it because somebody reused the wrong method.
+
+### 5.8 The event save, and how many there were ✅ 🟡
+
+The owner asked why four copies existed, believing events were saved in three
+places: the journey, the control panel, and the control panel's "open with
+client portal". The last of those turned out not to be a third place at all —
+it hands off to the journey, which posts to the same endpoint with a
+`blnIsCE` flag in the payload.
+
+**Two of the four had no caller.**
+
+- `saveAndUpdateWithDocsCE` — **96.4% identical** to `saveAndUpdateWithDocs`,
+  its endpoint called by neither frontend, and carrying a comment instructing
+  the reader to copy any change into its twin by hand. 1,418 lines, removed.
+- `saveAndUpdate` — `POST /eventMaster/saveOrUpdate`, no frontend caller,
+  though four integration suites used it as a convenient entry point. 517
+  lines, removed.
+
+**The deletion was proved, not assumed.** All 17 assertions in those four
+suites were repointed from `saveAndUpdate` to `saveAndUpdateWithDocs` first.
+Every test body passed unchanged — optimistic locking, date preservation,
+booking creation, décor persistence. The only failures were in teardown, where
+`saveAndUpdateWithDocs` leaves attached collections that a repository-based
+cleanup trips over; an artefact of clearing up after the service in its own
+context, not a difference in behaviour.
+
+`ServiceEventMasterImpl`: **7,367 → 5,528 lines.**
+
+#### The bug this found
+
+The office's External Suppliers panel could neither show nor save a supplier.
+`DtoEventMasterAdminPortal` had no `externalSuppliers` field so Jackson dropped
+the rows; the admin save never called `replaceExternalSuppliers`; the admin
+read never called `readExternalSuppliers`. Three omissions, all in the copy
+nobody had changed — the fourth documented instance of exactly this drift.
+
+The helpers took a `DtoEventMaster`, which meant only the journey could call
+them. They take the value and the list now, so both paths can. That is the
+shape of every drift bug in this file: a helper typed to one caller's DTO
+cannot be reused by the other, so the other quietly goes without.
+
+#### `blnIsCE` is inert
+
+`blnIsCE == null || (blnIsCE != null && blnIsCE)` is true when the flag is
+absent *or* true, and the journey only ever sets it to true or omits it. It
+was presumably meant to suppress the customer's confirmation email when staff
+drive the journey on their behalf. It suppresses nothing. **Left alone** — who
+receives email is a business decision.
+
+#### Three structural guards fired, and all three were right
+
+Two needed recalibrating for the smaller file. The third flagged
+`setPaidAmount` as creating events with no booking, which was a real weakness
+exposed rather than caused: the scan reads the file as text, and a
+commented-out copy of `generateNextEventMasterCode` used to fall inside the
+span of a method that did call `giveItABooking`. Delete that method and the
+comment attaches itself elsewhere. A structural test that can be fooled by a
+comment into shouting will eventually be fooled by one into silence, so it
+reads live lines only now, and counts against what the file contains rather
+than a remembered number.
+
+### 5.9 The two that were left, written once ✅ 🟡
+
+The two live save paths stayed, because they are two entry points with real
+differences. What went was the body they had in common, which was copied
+between them rather than shared — and copied again inside each, because both
+had one version for a booking that already exists and another for one being
+created. Four copies of most sections, not two.
+
+#### What was extracted, and what it cost
+
+| Section | Copies before | Copies after | Notes |
+| --- | --- | --- | --- |
+| Running order | 4 | 1 | Identical. The "new booking" pair was the `else` half of the other two |
+| Venue | 4 | 1 | Identical, down to the same commented-out counter in each |
+| Décor | 4 | 2 | Only the "existing booking" pair merged — see below |
+| Menu | 2 | 1 | Byte-for-byte identical, emoji in the comments included |
+
+`ServiceEventMasterImpl` went 5,528 → 5,207 lines, on top of the 7,367 → 5,528
+from removing the dead paths. The remaining difference between the two save
+methods is now mostly the things that are genuinely different.
+
+#### The differences that were kept
+
+They are the point. A "make both paths the same" change would have removed
+these, and each one is a business rule:
+
+- **`numFormState`** is the journey's alone. The office's save does not read
+  it, so a member of staff editing a booking cannot rewind the customer's
+  progress through the form.
+- **`numDiscount`, `numItineraryPrice`, `numServingDishesPrice`** are the
+  office's alone. A customer does not name their own discount, even though the
+  journey's DTO carries all three fields.
+- **Décor property prices** are the office's. The journey drops the price in
+  the payload — and leaves a plausible `0.00` behind rather than a null,
+  because the column defaults to zero, which is why nobody had noticed.
+- **Décor row ids** are kept by the office and cleared by the journey, so a
+  journey save always inserts fresh rows.
+
+The last two are named in a `DecorRules` record rather than passed as bare
+booleans, because `applyDecorSelections(…, false, false)` at a call site says
+nothing about what is different, and what is different is the whole reason the
+code existed twice.
+
+#### How "nothing changed" was demonstrated
+
+A characterisation suite was written **first**, against unmodified code, and
+run green before anything moved: 22 columns, the running order, the décor tree
+three levels deep, the menu three levels deep, and both halves of every
+asymmetry above. Most of that had no coverage at all — the existing suites each
+pinned one narrow thing and left the rest of the booking unobserved.
+
+For the menu, which had no coverage whatsoever, the four new tests were run
+against the original code, the extraction was then applied, and they were run
+again: same 15 tests, same results. That is what makes it a demonstration
+rather than a hope.
+
+#### The bug found on the way, and deliberately not fixed
+
+The journey's décor block **for a booking being created** matches the décor
+catalogue by `getSerEventDecorPropertyId()` — the id of the selection row,
+which is not set on a booking that does not exist yet — where the other three
+copies use `getSerPropertyId()`, the catalogue id. It would throw on a null,
+or match nothing.
+
+It has almost certainly never fired, because the journey creates the booking on
+an early step and reaches the décor step afterwards, by which point the
+"existing booking" path runs instead. That is also why it survived: the path is
+effectively unreachable for any payload that carries décor.
+
+**Not fixed here.** Correcting it changes behaviour, and this change was meant
+to alter nothing — mixing the two would make "nothing changed" unprovable. It
+is the reason the two "new booking" décor blocks were left standing while their
+"existing booking" twins were merged: folding them in would have silently
+changed four behaviours at once, that one included. Logged as D10c.
+
+#### Two totals that are written and never read
+
+`numDecorCategoryPrice`, `numDecorPropertyPrice`, `numFoodCategoryPrice` and
+`numFoodSubcategoryPrice` are accumulated throughout both saves. Every read of
+them in the file is commented out. They are still accumulated and still handed
+back from the new helpers, because removing a total is a separate decision from
+writing this code once instead of twice, and doing both at once would make the
+change impossible to verify. Logged as D10d.
+
+### 5.10 Pricing, and who decides it ✅ 🟡
+
+The server did not work out what anything cost. Every figure stored against a
+booking — décor, food, VAT, the quoted price, the final amount — arrived from a
+browser and was written down as given.
+
+#### What that meant in practice
+
+| | Where its pricing lived | What it sent |
+| --- | --- | --- |
+| Office | `eventPayload.js`, ~556 lines of JavaScript | every figure, including VAT and the final amount |
+| Journey | its own separate arithmetic, in other files | per-category subtotals, and **no total at all** |
+
+Two consequences. A customer's browser could post any price it liked and the
+server kept it. And because the journey never sent a quoted total, the branch
+that reads it never fired — so **every customer enquiry was stored quoted at
+zero** and re-priced by hand in the office afterwards.
+
+There was already a `ServicePricingEngine`. It is preview-only, nothing in
+either portal calls it, it covers menu items and nothing else, and it uses
+`double` for money. It is untouched: replacing it while also moving pricing off
+the client would be two changes at once with no way to tell which broke a quote.
+
+#### What was built
+
+`ServiceEventPricing`. It prices the booking from **what is stored against it**
+rather than from the payload — the payload is what somebody is asking for; the
+selections are what the booking is — and it runs inside both saves, so a price
+is worked out and written down as part of saving.
+
+Every figure is a line, and every line carries its own sentence: *"£25.00 per
+guest × 250 guests"*. Built once, on the server, so the quote, the office and
+the journey cannot phrase it three different ways, which today they do.
+
+#### How a thing is priced
+
+`PER_GUEST`, `PER_TABLE`, `PER_STATION`, `FLAT` — the same four words the
+equipment rules use (§5.7), deliberately. A grazing bar that needs one station
+per fifty guests for its boards is charged for on the same basis. `PER_TABLE`
+and `PER_STATION` are new: the enum held only `PER_GUEST` and `FLAT`, so a dish
+priced by the table had nowhere to say so and was charged per head.
+
+Stations round **up**. 250 guests at one per 80 is four stations, not three —
+half a grazing bar cannot be supplied.
+
+#### VAT belongs to the office, not to the code
+
+The rate was a constant in a JavaScript file and what it applied to was decided
+by which variable it happened to be multiplied by: décor and extras, nothing
+else. That is defensible for some businesses, wrong for others, changes when a
+business crosses the registration threshold, and getting it wrong has
+consequences with HMRC rather than with a customer.
+
+It is now a mode plus six switches, on the settings screen:
+
+| Mode | What it does |
+| --- | --- |
+| `NONE` | no VAT at all |
+| `TOTAL` | VAT on the whole bill |
+| `SECTIONS` | VAT on whichever of food, décor, extras, services, itinerary and serving dishes are switched on |
+
+**Defaults reproduce today's behaviour exactly** — `SECTIONS`, 20%, décor and
+extras on, everything else off. Installing this changes no invoice.
+
+VAT is worked out **line by line and added up**, not taken as a percentage of a
+subtotal. The office can make it apply to some parts of a bill and not others,
+so a single percentage of the whole would be wrong the moment anybody used
+that — and a total that cannot show which lines carried the VAT is one nobody
+can check against a return.
+
+Settings gained a fifth type, `CHOICE`, for this. A free text box would let
+somebody type "Totl" and turn VAT off across the business without a word of
+complaint. The screen disables the six switches under `TOTAL` and `NONE` and
+says why, because a switch that saves happily and changes no quote is worse
+than one that is absent.
+
+#### The office's own prices are kept, and marked
+
+A member of staff agreeing £2,000 on a dish the catalogue prices at £2,500 is a
+decision, not an error. The engine keeps it, records `blnIsOverridden`, and
+stores what the rules *would* have said beside it. A naive "recalculate
+everything" would put the price back up on the next save of that booking.
+
+#### Why the engine does not yet decide anything
+
+`pricing.server.authoritative` is **off**. The engine computes, records its
+figures in their own columns, and the figures the screens send remain the ones
+used. When the two disagree it says so in the log, naming the booking and the
+difference.
+
+Two sets of rules that have never been compared will differ. The place to find
+out is a log on real bookings, not a customer's invoice. Turning the switch on
+is a business decision, and it has a second effect worth stating: a customer's
+browser stops being able to influence what a booking costs.
+
+#### Found on the way
+
+`event_menu_category_selection.num_final_price` is `NOT NULL` and is written
+straight from the payload. **A client that posts a menu without prices does not
+get a booking priced at zero — it gets a constraint violation that loses the
+whole save.** Pre-existing, found because a test fixture omitted the prices.
+Logged as P2; it is an argument for the engine filling these in, which is a
+behaviour change and so is not part of this one.
+
+### 5.11 Notifications, and why the table was empty ✅ 🟡
+
+`notification_master` held **zero rows** in a production database with 296
+bookings on it. Not zero unread — zero.
+
+#### The cause was the address, not the plumbing
+
+Two things fire: a new event, and a new customer. Both called
+
+```java
+createNotification(ServiceCurrentUser.getCurrentUserId(), ...)
+```
+
+which addresses the notification to **the person who just did the thing**.
+Telling somebody what they themselves have this second done is a receipt, not
+a notification — the screen in front of them has already said so.
+
+And when the thing is done in the customer journey, the current user is the
+*customer*. So a booking arriving from the website notified the customer about
+their own booking and told the office nothing at all.
+
+Two more defects in the same eight lines: the target was an API path
+(`/eventMaster/getByEventId123`) rather than a portal route, so following one
+went nowhere a person could use; and it called `.longValue()` on a
+possibly-null id **inside the save's try block**, so a null current user did
+not skip the notification — it turned a successful save into a reported
+failure.
+
+#### What replaced it
+
+A `notification` table, one row per recipient, addressed to an audience.
+
+| | |
+| --- | --- |
+| Recipient | one row each, because read is a fact about a reader |
+| Category | a fixed vocabulary — the old column was free text and had one value in two spellings |
+| Priority | `LOW` / `NORMAL` / `URGENT`; low does not light the badge |
+| Read | a timestamp, not a flag: "when did the office first see this" is worth being able to answer |
+| Dismissed | separate from read, because reading is not finishing |
+| Group key | repeats collapse — twelve payments in an afternoon is one line saying twelve |
+| Route | a portal path |
+| Actor | who did it, so they are not told about themselves |
+
+#### The mistake I made building it, and the fix
+
+The service caught every exception and documented that raising a notification
+"can never fail a save". **That was false, and the integration suite proved
+it.** A failure inside the caller's transaction marks it rollback-only, so the
+save dies at commit however politely the exception was swallowed — the booking
+is lost and the log says only that a notification could not be raised.
+
+`REQUIRES_NEW` is what makes the guarantee real: the bell gets its own
+transaction and can fail in it alone. This is the second time in this work that
+catching an exception has been mistaken for containing it; the first was the
+pricing engine.
+
+The actor is also **deliberately not a foreign key**. It is a label on a record
+of something that has already happened, and a constraint there can only ever do
+one thing: refuse to record it.
+
+#### The bell
+
+Grouped by day against the reader's own clock — a notification from 23:50 is
+"yesterday" in London and "today" in Karachi, and the server cannot know which.
+Unread carries a dot *and* a weight *and* the word, because the only question
+the list answers is "which of these have I dealt with" and a tint alone
+withholds it. Opening one marks it read immediately rather than after the round
+trip, since a badge still counting something whose screen is already open is a
+badge nobody trusts.
+
+It polls once a minute rather than using the existing SSE stream. That stream's
+emitters are created with `Long.MAX_VALUE`, so nothing on the server closes an
+idle connection and a heartbeat is all that keeps it alive — a fragile thing to
+hang a bell on, whose failure is silent. The stream is worth keeping and worth
+fixing; this does not depend on it.
+
+### 5.5 Marketing site 💀 ❓
+
+`Home`, `About`, `Stages`, `Venues`, `Catering`, `Events`, `Navbar` and
+`Footer` all exist, and the entire `Layout` route that renders them is
+commented out. The portal links out to `https://diamondevents.uk/` instead.
+
+The Navbar's five nav links are `<span onClick>` — not keyboard operable — and
+point at routes that no longer resolve. **Deliberately left alone:** fixing
+accessibility on a screen nobody can reach is waste, and whether the React
+marketing site returns or the WordPress site stays is a business decision.
+
+---
+
+## 6. Admin portal
+
+182 components. Screens, by route:
+
+| Area | Routes |
+|---|---|
+| Bookings | `events`, `event-master/add`, `event-master/:eventId`, `event-master/view/:eventId`, `event-stats` |
+| Customers | `customers`, `customers/:id` |
+| Menu | `food-menu`, `menu-category`, `menu-management`, `menu-composition` |
+| Pricing | `price-setup`, `price-assignment`, `price-assignment/add`, `price-assignment/:id` |
+| Decor | `decor`, `decor-extras`, `decor-properties`, `decor-property-values`, `decor-services` |
+| Itinerary | `itinerary-item`, `itinerary-type`, `itinerary-assignment` |
+| Catalogue | `venues`, `supplier-categories`, `caterings` |
+
+**Navigation (rebuilt).** The sidebar had fourteen top-level entries, filed by
+which table each screen edits — so the day's bookings sat between the catalogue
+of event types and the diary, and décor was five screens in three places. It is
+two groups now, by how often somebody opens the thing: *Work* (Bookings,
+Calendar, Consultations, Customers, Catering deliveries) and *Catalogue* (Menu,
+Venues, Event types, Supplier categories), with Décor's five screens together
+under one heading. Nothing was removed or merged; every URL is unchanged.
+
+Fixed on the way through: the **Events entry had two destinations** — its label
+went to `/event-stats` (the bookings list) and its icon to `/events` (the
+catalogue of event *types*), under the same word. Reaching for the icon to
+check Saturday's bookings opened a screen for renaming "Walima". Every other
+live entry was checked the same way.
+
+**Food Menu screen removed.** It edited `menu_food_master`, a flat list of 20
+dishes that no booking has ever selected from; the journey reads the
+`menu_item` tree, which holds all 410 selections. Two screens for "the food"
+with one of them connected to nothing. The table stays.
+| Other | `calender-schedule`, `campaign-analysis`, `demo-2`, `fb*` (Firebase demo leftovers) |
+
+**Status:** ✅ third-party CDN assets removed (Jost self-hosted, Font Awesome
+and jVectorMap dropped). Otherwise largely unreviewed — see §10.
+
+`demo-2` and the `fb*` routes are template leftovers. 💀
+
+---
+
+## 7. Cross-cutting concerns
+
+| Concern | Status | Note |
+|---|---|---|
+| Schema ownership | ✅ | Flyway owns it (V2–V5). `ddl-auto=update` still on, which is why orphan entities still get tables. 🟡 |
+| Transactions | ✅ | See §9. |
+| Logging | ✅ | See §9. |
+| Third-party assets | ✅ | Nothing loaded from an external host, in either frontend. Asserted by a test. |
+| Accessibility | 🟡 | Journey is WCAG 2.2 AA on the paths covered. Admin portal unreviewed. |
+| Pagination | ❌ | One endpoint out of ~340. |
+| REST semantics | ❌ | Everything is POST. |
+| Optimistic locking | ❌ | Nowhere. |
+| API documentation | ❌ | None. |
+| Error monitoring | ❌ | None. |
+
+---
+
+## 8. Testing
+
+| Suite | Count | Runs with |
+|---|---|---|
+| Backend unit | 136 | `mvn test` |
+| Backend integration | 135 | `mvn verify` (skips itself without a database) |
+| Journey end-to-end | 48 | `npm run test:e2e` — desktop and mobile |
+| Admin portal | 57 | `npm test` |
+| Admin portal end-to-end | 8 | `npm run test:e2e` — desktop only |
+
+*(Counts as of this pass. The admin portal figure was 19 and could not have
+grown: Create React App excludes `node_modules` from Jest transformation
+wholesale, so any test rendering a real screen died on `Cannot use import
+statement outside a module` before reaching an assertion, and portal components
+throw from inside a stylesheet without a styled-components provider. Both are
+fixed once, in `customize-cra-config.js` and `utility/testRender.js`.)*
+
+The end-to-end tests write real bookings and must be pointed at a development
+database. They found faults no unit test could: a Save button that saved and
+did not advance on seven separate steps; nine controls that could not be
+operated by keyboard; a menu rail that covered the Save button on a phone.
+
+**Every fix below was checked by removing it and watching the test fail.** A
+test that passes with and without the fix proves nothing.
+
+---
+
+## 9. Work completed
+
+### Security
+- ✅ **Privilege escalation.** `/auth/signup` set `ROLE_ADMIN` on every new
+  account. Anyone who posted an email and a password became an administrator.
+- ✅ **401 not 302** for unauthenticated API calls.
+- ✅ **Ownership checks** — `AccessGuard`, 10 tests.
+
+### Correctness
+- ✅ **Venue never saved.** `ser_venue_master_id` was null on every booking.
+  Set in eight places in the service; now derived in the setter so a ninth
+  cannot get it wrong.
+- ✅ **Catalogue hiding 4 of 5 services.** `LEFT JOIN FETCH … WHERE o.blnIsDeleted = false`
+  collapses the outer join to an inner one, so anything without options vanished.
+- ✅ **Duplicate event references.** Read-max-and-add-one with no constraint.
+  Retry loop plus partial unique index (`V5`).
+- ✅ **`CountryMaster.isActive`** primitive over a nullable column — one NULL
+  returned a 500 for the entire venue list.
+- ✅ **Multi-step writes commit whole or not at all.** 16 methods did 2+
+  repository writes with no transaction. The subtlety: this service layer
+  catches its own exceptions and returns an error result, and Spring only rolls
+  back on exceptions that *propagate out* — so the annotation alone would have
+  changed nothing. `UtilTransaction.markRollbackOnly()` closes it.
+  `ServicePriceVersionImpl.setAsDefault` is the sharpest case: clear the old
+  default, set the new one, and if the second failed the menu was left with **no
+  default price version at all** — pricing returns nothing rather than erroring,
+  so the customer sees a blank total.
+- ✅ **Bulk operations reported impossible outcomes.** "Success: 12, Failed: 3"
+  inside one transaction describes something the database will never produce.
+  Both now fail the batch and say so.
+
+### The enquiry document
+- ✅ **It would not download.** The browser was sent to a blob URL through a
+  freshly opened tab, which Chrome blocks as a cross-document navigation — so
+  the customer's only way to get a copy was to open the print dialogue and
+  "save as PDF". The uploaded example confirms it: its Producer is *Microsoft:
+  Print To PDF*. An anchor with a `download` attribute does what was intended.
+- ✅ **The cover did not fit the page.** It claimed a page of its own with zero
+  margins so a purple band could bleed to the paper edge; openhtmltopdf laid it
+  out at the *default* page's content width and then placed it against the left
+  edge, so the band stopped seven-eighths of the way across and the whole cover
+  sat off-centre with a 32mm gutter down the right. On the first page a
+  customer downloads.
+- ✅ **The note at the foot of the cover was cut off mid-sentence.** It was
+  positioned absolutely; this renderer places such a box at the top of its
+  container's bottom edge rather than against it, so the page break took the
+  rest. A two-row table does it without positioning.
+- ✅ **The running order was not in time order.** Entries came out in the order
+  of the assembler's label map — the sequence a wedding usually runs in — so a
+  couple cutting the cake at 21:30 and speaking at 21:00 got a page headed
+  "Running order" listing 21:30 above 21:00. Staff work from this on the day.
+  Sorted by the clock, with times in the small hours counted as the end of the
+  night rather than the start of it.
+- ✅ **Section six lists the declared suppliers**, with a contact each, and
+  says plainly that anyone not listed needs agreeing beforehand. It rendered
+  one paragraph of free text.
+
+### Customer journey
+- ✅ **The journey could not be completed.** `onClick={handleSubmit}` on seven
+  steps hands React's click event to `isSilent` — an object, therefore truthy —
+  so the step advance never ran. Each step saved and left the customer where
+  they were.
+- ✅ **Nine controls unusable by keyboard** — date picker, time picker, terms
+  checkbox, accordions, event cards, ceremony choice, city filter, hall list,
+  decor upload. Date, times and terms are all required, so a keyboard user
+  could not book at all.
+- ✅ **Time picker Confirm did not commit.**
+- ✅ **Phone field turned UK numbers Russian.**
+- ✅ **Mobile menu rail covered the Save button** — visible, not tappable.
+  Found by the mobile project, not by reading code.
+- ✅ **Review screen under-reported** — "1 item chosen" for five dishes, and
+  never showed a venue.
+- ✅ **Errors arrived as toasts** in the corner, 103 call sites, unattached to
+  their fields.
+- ✅ **Resume recorded the wrong step.** The last selection step wrote
+  `numFormState: 4`, sending a returning customer back eight steps.
+- ✅ **Calendar steppers had no accessible name** — four identical unnamed
+  buttons around the one date the customer must get right.
+- ✅ **Two-second blocking overlay per step** — ~24 seconds of imposed waiting
+  across the journey, with nothing loading.
+
+### Pagination
+- ✅ **The admin's customer table fetched every customer to show ten.** It
+  paged and searched in the browser over the whole table. Invisible at fifty
+  customers; the kind of thing that stops working all at once rather than
+  gradually. `customerMaster/search` now pages server-side, capped at 250 —
+  paging a client can opt out of by asking for a million rows is not paging,
+  and that is the assertion the test leans on hardest.
+- ✅ **A search box, because paging without one is a step backwards.** Ten rows
+  at a time and no way to reach someone on page ninety is worse than what was
+  there before. The query matches name, code, email and phone; the input is
+  debounced and resets to page one, since page five of the previous results
+  almost never exists in the new ones and an empty table reads as "no such
+  customer" when it means "no such page".
+
+### Consultations
+- ✅ **Calendly is gone.** The widget was an iframe from calendly.com pointed at
+  two hardcoded personal links, so the consultation lived where this system
+  could not see it and the last screen of the journey depended on a third
+  party's script loading.
+- ✅ **Two bugs found only by the end-to-end tests.** The booking sent an empty
+  email, because I read it from the event and `event_master` has no customer
+  email column — its only email fields are flags about whether a notification
+  was sent. And on a conflict I set the error message then refreshed the list,
+  and the refresh clears the error as it starts: the message appeared and
+  vanished in the same tick, so pressing a slot somebody had just taken looked
+  exactly like pressing a slot and nothing happening.
+
+- ✅ **A customer can move a consultation, not only cancel it.** The page
+  reached from the link in every confirmation email said, in as many words,
+  *"If you only want to move it, ring us."* Moving an appointment is the
+  commonest thing anybody does to one. The row now moves rather than being
+  cancelled and rebooked — same booking, same event, same history — so there is
+  no window in which the customer has none, and a simultaneous move and booking
+  is settled by the same exclusion constraint that makes double booking
+  impossible.
+- ✅ **`/consultation/forEvent` was handing out management tokens.** It took an
+  event id, looked the booking up with it, and returned the single-use token
+  the cancel link is built from — so any signed-in customer could count upwards
+  through event ids and collect the tokens to cancel other people's meetings.
+  It now asserts access to the event through `AccessGuard` and withholds the
+  token regardless.
+- ✅ **The journey never asked whether a consultation already existed.** The
+  endpoint had been there since the calendar was written and nothing called it,
+  so a customer who booked on Tuesday and came back on Thursday saw "Book your
+  consultation" with no sign that one existed. The honest thing for them to do
+  was book a second.
+- ✅ **The office can see it from the event.** The event form said nothing
+  about the meeting where the booking gets agreed, and the diary has no way to
+  ask "for this event" — so "has anybody sat down with them yet?" meant opening
+  a second screen and reading down a list.
+
+### Venue step
+- ✅ **A room too small looked identical to one that fits**, and refused on
+  click with a toast. The capacity was on screen but nothing tied it to the
+  guest count, so the only way to find out was to press and be refused. It is
+  now disabled and says *"Too small for 300 guests"* in words beside the
+  capacity — not by being dimmed, which is colour alone.
+- ✅ **A party larger than every room was an unwinnable screen.** The customer
+  could press every hall in every venue, get the same message each time, and
+  never learn that the problem was the number rather than the choice. The step
+  now says so once, gives the largest size available, and names both ways out.
+  Checked across every city, because discovering it city by city is the same
+  dead end with more steps.
+
+### File uploads — the most serious finding since the signup endpoint
+- ✅ **Arbitrary file write, as root.** The stored path was
+  `folder + "/" + UUID + "_" + file.getOriginalFilename()`. That name arrives
+  in the multipart body, not the URL, so nothing in Tomcat or Spring inspects
+  it — worth being precise about, because the same `../` in a *URL* is rejected
+  with a 400 before any controller runs, which made the write path look safer
+  than it was. I checked that separately rather than assuming it. Six `../`
+  segments cleared the folder, the category and the UUID prefix; a test shows
+  the old code landing a file in `/tmp`. The application writes under
+  `/root/`, so it runs as root. Anyone who could reach an upload endpoint
+  could write anywhere.
+- ✅ **Stored cross-site scripting.** `/deimg` is fully public and served a
+  content type from `Files.probeContentType`, which reports what a file
+  actually is — so an uploaded `.svg` or `.html` came back as
+  `image/svg+xml` or `text/html` from the API's own origin. Uploads are now
+  restricted to real image formats and PDF at the point of writing, and the
+  served type is mapped from the stored extension with `nosniff`.
+- ✅ **Hardcoded paths.** The writer used `/root/diamondevent_be/uploads/` and
+  returned a URL hardcoded to `https://diamondevents.uk:8081`, so a file
+  uploaded on a developer's machine came back with a URL pointing at
+  production. The reader carried three copies of the path, two commented out,
+  one of them a `C:/Users/hp/Pictures` directory. An `app.upload.dir` property
+  already existed and was ignored. Both now read it.
+
+### Data protection
+- ✅ **Customer data out of the logs.** Every booking save wrote the full
+  request body at INFO — ~8KB, twelve times per booking, carrying the
+  customer's name, their contact's phone number, the couple's names and the
+  whole menu. Payments logged the transaction reference and a free-text remarks
+  field. Customer lookups logged the email three times per request. Measured
+  over two complete journeys afterwards: **zero lines contain customer data**,
+  longest save line down from ~8,000 characters to 136. Guarded by
+  `RequestPayloadLoggingTest`.
+
+### Housekeeping
+- ✅ Third-party CDN assets removed from both frontends.
+- ✅ Flyway owns the schema; Jasper replaced by Thymeleaf + openhtmltopdf for
+  the customer document.
+- ✅ Integration tests actually run (`maven-failsafe-plugin` was never bound, so
+  the only test that boots the app was never executed by the build).
+- ✅ Three unreachable screens deleted (`Caterings2`, `DecorForms`,
+  `DecorInputRow`).
+- ✅ Two controllers logged under a third controller's name.
+
+### Corrections to my own analysis
+
+Recorded because they are the kind of mistake worth not repeating:
+
+1. I claimed `white/50` empty-state text failed contrast. It measures 5.28:1
+   and passes. Only `text-[grey]` (#808080, 3.4:1) was a genuine failure.
+2. I diagnosed "a reload loses your place in the journey" and wrote a fix. The
+   Redux store *is* persisted to localStorage; reload was never affected. The
+   real fault was `numFormState`, on a different path. Fix reverted, correct
+   one shipped.
+
+---
+
+## 10. Outstanding work
+
+Ordered by what actually costs the business the most.
+
+### At a glance
+
+Everything still open, across all three repositories. The sections below carry
+the reasoning; this is the list.
+
+| # | Item | Where | Size |
+|---|---|---|---|
+| **UX1c** | Drop the screens nothing routes to, including the three pricing screens | Control panel | Small — needs a business decision on pricing |
+| **UX2b** | Lift the remaining booking sections out of the form | Control panel | Large — 5 of ~10 done |
+| **UX2c** | The running order ignores the event type | Control panel | Small — needs a data question answered first |
+| **UX3** | Redesign and professionalise notifications | All three | Large |
+| **P3** | Turn server pricing on, then stop the clients pricing | All three | Medium — business decision on timing |
+| **B1** | Booking above Event | Backend | Large |
+| **P2** | A menu posted without prices loses the whole save | Backend | Small |
+| **D10c** | New-booking décor matches the catalogue by the wrong id | Backend | Small |
+| **B6 / M5c** | Retire the menu price fallback | Backend | Small |
+| **P4** | Retire or fold in the old preview pricing engine | Backend | Small |
+| **C4** | Extend control panel test coverage | Control panel | Ongoing |
+| **A5b** | How far ahead bookings are actually taken | — | Question for the business |
+| **D9 / D10** | Catering toggle and equipment — remaining questions | — | Question for the business |
+
+**Not on this list, and not ours:** rotating the Google client secret (it is in
+git history) and revoking the Gmail app password. Both need doing.
+
+### A. Correctness and risk
+
+| # | Item | Status | Why |
+|---|---|---|---|
+| ~~A1~~ | ~~Pagination on `event_master` and `customer_master`~~ | ✅ | Both done. `event_master` already had it; `customer_master` now does, end to end. See §9. |
+| ~~A1b~~ | ~~`eventMaster/getAllDataAdminPortal` returns every event, in full, on every page load~~ | ✅ | **Done, and there were two callers rather than one — but only one of them reachable.** The admin Events *grid* fetches all 296 events — 624 KB measured, 60 fields each with the food, extras, decor and running-order collections nested inside — and then discarded almost all of it with `events.slice()` to show ten. It now reads the page the parent already fetches from the paginated search endpoint for the table view, which also fixes a bug nobody had reported: the status tabs and the search box were silently ignored in card view. **Correction, found later by the admin end-to-end suite:** the List View / Grid View toggle in `EventStats` is commented out — and was before this work — so `EventGrid` cannot currently be reached from the interface at all. The fix to it is therefore protective rather than a live saving: it stops the 624 KB request coming back the moment somebody uncomments that button. The caller that was actually firing in production was the *calendar*. The *calendar* was the second caller. A month view cannot be paginated — one missing event makes it wrong — so that one got a narrower row instead: `eventMaster/calendarEntries`, five fields built in the query. Five integration tests, one asserting the shape of the DTO itself, because the way this regresses is somebody needing one more field and putting the whole event back. |
+| ~~A2~~ | ~~Optimistic locking on `EventMaster`~~ | ✅ | **Done, and the first design was wrong in a way worth recording.** `@Version` alone catches only overlapping transactions — the writes have to land milliseconds apart — while the case that actually happens is an administrator and a customer with the same booking open for several minutes. So the version the client fetched travels back with the save. The first attempt refused on staleness alone, and broke the journey: every step saves, so by the second screen the browser's copy is a revision behind through nothing but its own progress, and the customer was told somebody else had edited their booking — by their own previous click. Caught by the end-to-end suite, not by reasoning. The rule is now *who* rather than *how old*: the save is refused only when the last person to save was somebody else. That needed `updated_by` to be written at all — the column is annotated `@LastModifiedBy` but Spring Data auditing is not switched on, so it had sat at 0 on every booking since the beginning. Refusals come back as 409 with words a person can act on. Five integration tests plus a structural one, matching the capacity guard: a fifth update path that forgets the check fails the build. |
+| ~~A3~~ | ~~Database constraint behind date availability~~ | ✅ | **Not a constraint — it could not be one.** How many events a day holds is a *count* (two, or three on a Sunday unless the Monday is used), and a constraint cannot count. It is an advisory lock on the day instead, taken inside `canBookEvent` so all six call sites get it. Proved by racing two real transactions: without the lock both customers are told they have the last place and the day ends with three events; with it, exactly one wins. A second test asserts two *different* days still do not contend, because a lock that serialised the whole journey would pass the first test and be far worse. |
+| ~~A3b~~ | ~~One save path writes the event date without ever checking capacity~~ | ✅ | **Answered by the business: the capacity is a hard limit and `canBookEvent` must run wherever an event is created.** `saveAndUpdate` now checks, before the create/update branch rather than inside it — both halves write a date, the update branch directly and the create branch through `MapperEventMaster.toEntity`, so a check in one would have left the other exactly as it was. Existing over-capacity days stay editable, which matters for the rows already in production: the count excludes the event being edited, is only incremented when the date actually changes, and the comparison is strictly greater — so saving one of those three without moving it is allowed, while moving a fourth onto that day is not. |
+| ~~A4~~ | ~~File upload validation~~ | ✅ | Done, and it was worse than the row said — see §9. |
+| ~~A5~~ | ~~Guest count bounds~~ | ✅ | My row was wrong: 0 guests **is** validated. The real gap was the upper end, and it was a dead-end screen rather than a missing bound. See §9. |
+| A5b | Upper bound on the event date | 🟡 | **The typo is guarded; the business question is still open.** The year stepper goes forward indefinitely, so 2027 becomes 2207 with one stray keypress — and that booking was accepted, never appeared in any diary, never got chased, and would be found years later by somebody wondering why the earliest booking is in the twenty-third century. Dates more than ten years out are now refused with a message naming the year, in `canBookEvent`, so all six save paths get it. Ten years rejects only the impossible: **how far ahead the business actually takes bookings is still a question for them**, and this deliberately has not pre-empted it. |
+| ~~A6~~ | ~~Confirm `EventVendorMasterSelection` persists~~ | ✅ | **Resolved by removal.** Nothing ever wrote it and the journey step was commented out; V20 drops the table. Customer-declared suppliers replaced it — see §5.4. |
+| A9 | **SSE heartbeat fired every 60s, with comments either side saying 15** | ✅ | Fixed to 15s. The emitters are created with `Long.MAX_VALUE`, so nothing on this side ever closes an idle connection — the ping is the only thing stopping nginx or a load balancer doing it at their 60-second default. A heartbeat *at* the timeout is a race against it, and losing drops the notification stream silently: nothing errors, notifications just stop until the page is reloaded. Found by auditing the other `@Scheduled` work after the lapsed-hold job turned out never to have been wired. |
+| ~~A7~~ | ~~Turn off `ddl-auto=update`~~ | ✅ | Now `validate`. It compares the entities against the real schema at startup and refuses to run if they have drifted — turning a class of bug that used to surface as a runtime error on one unlucky screen into a failure to start that nobody can miss. |
+| ~~A7b~~ | ~~Capture a V1 baseline so Flyway owns the schema~~ | ✅ | **Done, from a production dump.** `V1__baseline_schema.sql` is production's schema as it actually is, so a database can now be built from nothing by the migrations alone. Verified against a restored dump in all three shapes it has to handle — see §13. |
+| ~~A8~~ | ~~The "choose an event" step renders every event a customer has ever had~~ | ✅ | **The screen is fixed.** Newest first, six shown, the rest behind a press, and a search once there are more than six. Ordered by id rather than event date: a booking being worked on this week may be for next summer, and sorting by date buries it behind everything already booked. Four end-to-end tests, one checked by removing the trim and watching it fail. |
+| ~~A8b~~ | ~~`eventMaster/getByCustomerId` still returns every event in full~~ | ✅ | **Done — and the hard part turned out to be already gone.** The row said this touched resume because `computeNextStepFromEvent` read eight fields off the full DTO to work out which step to return to. It did, but its call site had already been commented out in favour of the event's own `numFormState`, which the save path writes rather than infers. So the forty lines went, and with them the reason this screen needed the whole event. `eventMaster/getSummariesByCustomerId` sends seven fields per event; the full event is fetched through `getEventById` for the one the customer actually picks. That fetch takes a moment on a phone, so the card says “Opening…” and every card is disabled until it lands — a second press would otherwise race the first through localStorage and the step counter. If it fails the journey stays in `new` rather than half-opening a booking against whatever `serEventMasterData` happened to hold. Seven backend integration tests, three new end-to-end tests. |
+
+### B. Architecture
+
+| # | Item | Status | Why |
+|---|---|---|---|
+| B1 | Booking-above-Event domain model | 🟡 | **Stages 1–2 landed, and stage 3 has started with the money — see §15.** Stage 3's first piece is done before any schema move: a booking's paid amount was being overwritten by whatever the event form was holding, which had already cost one production booking its record of a £500 payment. It is now derived from the payments wherever any exist, repaired by V15, and guarded structurally and behaviourally. The largest item. `EventMaster` is doing the job of both a booking and an event, so a wedding that is a mehndi, a nikkah and a walima is three rows that know nothing about each other: three budgets, no total, a deposit with no row to live on, and three separate cancellations. §15.3 stages it so that every step before the last is reversible by dropping a column, and the step the business actually wants — "add another day to this wedding" — comes fourth rather than first. Stage 1 built the table and backfilled a parent for all 405 events in the development database; stage 2 wired the four create paths, so the invariant stops decaying with every sale. Neither changes what any screen shows — nothing reads a booking yet, and the column can still be dropped. |
+| B2 | REST semantics and pagination across the API | 🟡 | **Designed — see §15.4.** ~340 endpoints, all POST including reads. Rewriting them wholesale means changing every call site in two frontends at once with no way to test the halves separately, in exchange for tidiness — a bad trade. Instead the `/booking` endpoints B1 adds are REST from the first line, and the old surface shrinks as screens move across. Pagination is split out and does **not** wait for any of it: it is where the measured harm is, and it needs no coordination. |
+| ~~B3~~ | ~~Delete the five orphan entities~~ | ✅ | Gone: `EventQuote`, `EventQuoteLine`, `EventFoodSelection`, `EventServicesMaster`, `EventItineraryResult`. Tables untouched, and all five were empty in the development database and the production dump alike. `EventItineraryResult` is the one worth naming: it looks like groundwork for the itinerary table C2 will build, which is exactly why it goes — a speculative empty class a future feature *might* reuse is what makes somebody grep for how itineraries work and find two answers. If C2 needs a results table it will be written to fit C2. |
+| ~~B4~~ | ~~Retire the token-in-URL sign-in path~~ | ✅ | **Done, and the last caller was not the tests.** It was the admin portal's "open the client portal" button, which built `?accessToken=…&refreshToken=…` out of a member of staff's own localStorage — the exact thing the Google redirect was changed to stop doing, and worse, because those are back-office credentials. A URL is not a private place: browser history, server access logs, every proxy in between, and the `Referer` header of the next request the page makes. `POST /auth/handoff` mints the same single-use code the SSO redirect uses, and is deliberately carved out of the otherwise-public `/auth/**` so that a public endpoint cannot mint a signed-in session on request. The journey no longer reads tokens from its address bar at all — an old bookmark carrying them simply does not sign anybody in, which is correct: they have been through a query string. The end-to-end suite moved onto the handoff too, which is what makes it the only route. Four integration tests. |
+| B6 | The food menu: one dish is five rows | 🟡 | **Designed from the production data — see §17. Approved 27 August 2026.** 368 selectable rows hold 238 distinct dishes; twenty-one desserts exist five times each, once per serving style, because the model gives an item exactly one parent. Renaming a dish is five edits and the copies have already drifted. Two of nineteen composites have any sections, and the other seventeen have their contents typed into the item's *name* — the model was fine, the screen was not. Four dishes are parented to a dessert and have never been orderable. `enm_price_multiplier_type` defaults to PER_GUEST in silence, on 238 items that never said. `price_version`, `price_entry` and `menu_item_price` are empty, and 94% of the catalogue has no price. §17.3 stages it M1–M5, additive first. **M1–M5 are done** — the empty recipe code is deleted, a dish is now offered in many places rather than copied into each, the four menu reads are one, an unstated price rule is warned about rather than assumed, and prices belong to a dated list. **M5b is done too**: the price charged is now looked up on the list effective on the event's date, from the dish's offering rather than the dish — so a brownie can cost £3.50 plated and £4.00 on a stand, and next year's prices apply to next year's weddings. No figure changes today, because M5's backfill put every offering on an open-ended list at the price it already had. **M6 replaced the three old menu screens with one** — and found that the tree endpoint had never returned a tree, the code generator handed out the same code every time, and the development seed's roles made a dev database unable to accept a single menu item. What is left is three names that are really lists and about ten stand flags to clear (the screen offers both), and M5c, which removes the price fallback and retires `menu_item.num_price`, `price_entry` and `menu_item_price`. |
+| ~~B5~~ | ~~Two copies of the capacity rule~~ | ✅ | **Folded into `EventDayCapacity`, and the copies had already drifted.** `countEventsOnDate` excludes the event being edited; the old Sunday and Monday branches then subtracted it a second time when it was moving off the adjacent day. Moving an event from a Monday onto the Sunday before it therefore under-counted that Monday by one, the Sunday's limit went up to three, and the booking was accepted while a Monday event still stood — the one pairing the rule exists to prevent, since the team need the Monday to break down. Proved by reintroducing the subtraction and watching the new test name it. Six new integration tests; one of them records a deliberate change of behaviour — a Monday booking beside a full Sunday can now be edited in place, which the old code refused, and which is the same grandfathering already agreed for over-capacity days. |
+
+### C. Features
+
+| # | Item | Status | Note |
+|---|---|---|---|
+| ~~C1~~ | ~~Admin operations dashboard~~ | ✅ | **The dashboard is about events now.** Everything below the over-capacity warning came with the template — "Sales Report", "Sales Growth", "Top Selling Products". This business does not sell products, and the number that matters on a Monday morning is not revenue this month but what is booked for Saturday. Those panels are replaced by **Coming up**: the next three weeks grouped by day, with the count on each day so that a third event stands out, today marked, and a line for consultations waiting on us. Built entirely from endpoints that already existed — `calendarEntries` and `consultation/bookings/pending` — because inventing an endpoint per panel is how a dashboard becomes the most expensive screen in an application. Twelve tests, including the one that matters: an unreachable server and a genuinely empty diary render identically unless one of them says so, and only one means the team has nothing on. |
+| C2 | Itinerary table | ❓ | **Moved to a business question — see D6.** The row said only "itinerary table", and investigating it found the feature is built and unused: seven tables (`itinerary_item`, `itinerary_item_type`, `itinerary_assignment`, `itinerary_assignment_detail`, `menu_item_itinerary_map`, `event_menu_itinerary`, `event_itinerary_summary`) with **zero rows in every one of them**, three admin screens that manage them, and a Jasper kitchen itinerary report that already renders one per event. Building a table on top of that would be guessing at what is wanted and then maintaining the guess. |
+| ~~C3~~ | ~~Admin portal accessibility review~~ | ✅ | **Audited, and the portal was in better shape than a first scan suggested.** A line-by-line grep reported seventeen images with no alt text and two hundred unlabelled inputs; a scan that understands multi-line JSX found *zero* images without alt text, and antd's `Form.Item label` covers almost every control. Two real defects: the three consultation-diary filters were placeheld rather than labelled — and a placeholder vanishes the moment a value is chosen, leaving a screen-reader user hearing "Aisha" with no idea what it filters — and the sidebar toggle's accessible name came from its icon's alt text, "menu", which says nothing about pressing it or which way it goes. Both fixed, with the diary's labels asserted by test. The mobile menu backdrop is now `aria-hidden`: it is a convenience, not the way out, and it was being announced as a control that cannot be operated. **One gap this audit missed, found later by the end-to-end harness: the portal has no headings at all.** antd's `PageHeader` renders its title as a styled `div`, so there is no `h1` on any screen and the pages cannot be navigated by heading structure — which is how somebody using a screen reader moves around a page they already know. The static scan was looking for missing labels rather than missing structure. **Now fixed**: `PageHeader` wraps a string title in an `h1`, with the styling made to inherit so the change is structural and nothing moves on screen. A title that is already an element is left alone — those pass their own markup, and wrapping it would nest headings inside headings. Asserted on two screens rather than one, because a fix to a shared component that only works on the dashboard is a fix to the dashboard; checked by taking the `h1` out again and watching the test fail. |
+| C4 | Admin portal test suite | 🟡 | 19 → 178 tests. The blocker was never the tests: Create React App excludes `node_modules` from Jest transformation wholesale, so any test that rendered a real screen died on `Cannot use import statement outside a module` before reaching an assertion, and portal components throw from inside a stylesheet without a styled-components provider. Both fixed once, in `customize-cra-config.js` and `utility/testRender.js`, which is what makes any of the rest possible. Covered so far: the consultation API client, the event progress rule, the Events grid, the over-capacity panel, the "Coming up" dashboard panel, the consultation diary, and error reporting. **The event form is now covered from outside instead.** It is 2,500 lines and assembles its save payload across four hundred of them, so it needs breaking up before it can be unit-tested — and breaking it up without a safety net is how a working save path stops working quietly. So the portal gained an end-to-end suite first: sign in through the form, the dashboard, the over-capacity panel, the events list, the card/table filter bug from A1b, and opening a booking. The order is deliberate — prove the screen works from outside, then change its inside. **The first step of the refactor is now taken:** the payload assembly — four hundred lines in the middle of `onFinish` — is `src/utility/eventPayload.js`, a pure function with 35 tests of its own, and `onFinish` is down to forty-five lines. Every pricing rule the business depends on is now assertable without a browser: what VAT is charged on (decor and extras, nothing else), whether a decor category price replaces its properties or adds to them, what an unpriced food category contributes, how composite dishes are separated from plain ones. Extracting it found a rule that looks like a bug and is not — categories 4, 5 and 6 are quoted as one line under 4, and the lookup that implements it compares a string id against a list of numbers, so it never matches and 5 and 6 contribute nothing, which is the wanted answer. Correcting the types would charge the group three times. That one has a test and a comment naming the trap. The file is 2,939 → 2,573 lines; the components inside it are the next slice. |
+| ~~C4b~~ | ~~The event form's save~~ | ✅ | **Four faults, and one of my own findings corrected.** The E2E called "a booking can be opened and saved" never pressed Save, so the payload it exists to protect had never once been sent. Making it press turned up: **(1)** the seed carried no event at all, so the portal test could only run after the journey test had left one behind — an invisible ordering, reported as "no events to open". The seed now carries `DEV-EV-001`, complete with a date five years out, a guest count and a table count, and the test opens it by name through the search box. **(2)** A date the API could not read was accepted and the event saved **with no date at all** — and a dateless event is worse than it sounds, because the capacity check on an edit reads `newDate != null && entity.getDteEventDate() != null`, so it skips entirely and the next save can put that booking on a day that is already full. Now refused with a 400 and a sentence saying so, on all four save paths. **(3)** The four save paths did not agree on what a date looks like: three read `dd-MM-yyyy`, `saveOrUpdate` read `dd/MM/yyyy` falling back to ISO — and both frontends send dashes. They now share one parser that accepts all three, strictly. **(4)** Every refusal the API is careful to explain arrived at the admin form and was replaced with "Failed to save event." — the same five words for "somebody else saved this", "that day is full" and "that date is not a date". Also fixed while in there: `setLoading(true)` was commented out, so the in-flight guard could never fire and neither Save button ever showed its spinner. **Two things I recorded here were wrong.** The date was not "silently ignored": `SimpleDateFormat` is lenient by default, so `2033-08-01` parsed as day 2033 of month 8 of year 1 — **Wednesday 23 February in the year 7** — and `31-02-2026` parsed as the 3rd of March. And the date input is not `readonly` to a person: rc-picker marks it readonly only until it is focused, so clicking or tabbing into it makes it typable; what cannot type into it is a script calling `fill()` cold, which is what the earlier run hit. The double-submit suspicion was also unfounded — the Save buttons sit after `</Form>`, where `htmlType="submit"` is inert — but eight screens carried that misleading pair and a scanning test now refuses it. **One more thing fell out of seeding a booking:** a row whose completion percentage has never been recorded took the whole Events list down. antd's `Progress` calls `percent.toString()` unguarded, and because it threw during render React discarded the tree — not the row, the screen, replaced by a red error overlay. `num_inof_filled_status` is null on any event predating the column and on any enquiry the journey has not touched, so this was one telephone booking away from happening in production. |
+| ~~C4c~~ | ~~The event save replaces, it does not patch~~ | ✅ | **Closed on the date, and deliberately only on the date.** Saving an event with a field omitted did not leave that field as it was — it cleared it. `{serEventMasterId, serCustId, serEventTypeId}` and nothing else returned 200 and wiped a booked wedding's date, because `parseDateFromClient` answers null for a date nobody sent exactly as it does for one it cannot read, and every save path wrote that null straight onto the entity. The damage is not only the missing date: the capacity check on the next save reads `newDate != null && entity.getDteEventDate() != null`, so a booking whose date has been wiped skips it and can then be put on a day that is already full — C4b's hazard, reached by omission instead of by a typo. All four save paths now go through `setEventDate`, which keeps the stored date when the request carries none. **Why this is silence rather than a refusal, unlike its sibling C4b:** the admin portal builds its payload from the form's values, so a date absent because its field was never mounted is indistinguishable from a date absent because nobody meant to send one — and refusing would block a legitimate save in a case that cannot be seen from the server. What is given up is clearing a date by omitting it, which neither frontend does and which can be given an explicit route the day somebody needs one. A malformed date is still a 400, because that is the case where the caller did mean something. **And only the date.** A guest count or a name arriving empty still overwrites what is stored: emptying one of those in a form is something a person does on purpose, and quietly keeping the old value would be its own silent failure. So the endpoint is still a PUT and is still named as though it were a PATCH — what has changed is that the one field whose loss disables a safety check can no longer be lost by accident. Four tests, including the two that stop the fix becoming a worse bug: a date that *is* supplied still moves the booking, and an event that has never had a date is still allowed to have none — the journey creates the booking before the customer reaches the calendar. Verified by reverting the fix and watching `anOmittedDateIsKept` fail. |
+| ~~C5~~ | ~~API documentation~~ | ✅ | **`API.md`, generated from the controllers and checked by the build.** 333 endpoints across 44 controllers, each with the one thing an OpenAPI document generated from the controllers alone could not tell you: who is allowed to call it. Authorisation lives in `PortalEndpoints`, not in the annotations, so the audience column is derived by matching each path against the allowlists. `ApiInventoryTest` regenerates the file with `-Dapi.docs.write=true` and fails when it drifts — documentation that is generated but never checked is documentation nobody trusts after the second month. Writing it found a real gap: a third of the controllers use the older `@RequestMapping(method = RequestMethod.POST)` form, and the first scan missed every one of them, reporting four live customer-facing endpoints as pointing at nothing. **springdoc-openapi is still the right long-term answer** and should be added when the build can resolve a new dependency again — see §16. |
+| ~~C6~~ | ~~Error monitoring~~ | ✅ | **Both halves, with no new dependency.** Server-side: every unhandled exception now logs with an eight-character reference and returns it to the caller, so "something went wrong" becomes a single grep instead of a guess at a timestamp. Client-side: a failure in a browser used to leave a line in a console on somebody's phone and then vanish — the only evidence reaching the business was a customer saying the site did not work, weeks later, on a device nobody can reproduce. Both frontends now report what they catch, including the errors an ErrorBoundary never sees (a rejected save, a failed fetch in an event handler — most of what actually goes wrong). The admin portal had no ErrorBoundary at all, so one thrown error left a blank white page. The endpoint is public, because the failures most worth hearing about are the ones that stop somebody signing in; that is bounded by truncation, control-character stripping so a report cannot forge log lines around itself, and a ceiling per minute. No customer name, email or event detail is sent, and never the query string — that is where the single-use tokens in our own emails live. |
+
+### E. Consultations — replacing Calendly
+
+Specified in §12. Requested 19 August 2026.
+
+| # | Item | Status |
+|---|---|---|
+| E1 | Domain, availability rules, slot generation, double-booking constraint | ✅ Done — 21 unit + 15 integration tests |
+| E2 | Customer books a consultation at the end of the journey | ✅ Calendly removed; 3 tests, desktop and mobile |
+| E3 | Admin: hosts, availability, meeting types, pending queue, manual booking | ✅ Done — 25 backend integration tests, 4 screens |
+| E3b | Consultation emails, and the page the cancel link opens | ✅ Done — 12 integration + 4 end-to-end tests |
+| E4a | `CalendarProvider` port, write-target rule, video link on confirmation | ✅ Done — 8 integration tests against a stand-in provider |
+| E4b | The Google and Microsoft adapters, and token encryption | ✅ Written and tested up to the socket; needs credentials to run against the real thing |
+| E5 | Admin: connect and disconnect accounts, choose the write target, sync health | ✅ Done — OAuth flow, busy import on a timer, and a fifth admin tab |
+
+### F. Experience and design ⭐
+
+Asked for as a block, and the largest piece of work now outstanding. The order
+of priority given for all three: **premium UI → excellent UX → simplicity →
+consistency → maintainability → production quality.** Explicitly *not*
+cosmetic-only — where the existing workflow is fundamentally poor it is to be
+redesigned rather than polished.
+
+| # | Item | Status | What is actually there today |
+|---|---|---|---|
+| UX1 | **Premium control panel UI/UX** | 🟢 | **The design system is built and every reachable screen is on it.** `src/config/theme/tokens.js` holds the scales — space, type, weight, line height, radius, elevation, motion, z-index, breakpoints — and `src/components/ds/` holds the eight pieces a screen is assembled from: `Screen`, `Panel`, `DataTable`, `EmptyState`, `StatusTag`, `Money`, `Field`, `Toolbar`. No button, deliberately: the portal already has one, and a second would be the exact problem the directory exists to solve. Converted: supplier categories, equipment, settings, event types, customers, calendar, venues, the five décor screens, consultations, bookings, menu, catering, the three itinerary screens and the dashboard. What still carries the old chrome is unreachable or is a form — tracked as **UX1c** and **UX2**. 385 tests across 36 files. |
+| UX2 | **Redesign booking creation and editing** | 🟡 | **The workspace foundation is built and the sections are being lifted out of the form, one at a time.** `EventStatFormModal.js` was **2,727 lines** holding every field a booking has, with `eventPayload.js` carrying another 556 of pricing rules that used to live inside it: one continuous form over the customer, the date, the venue, nine categories of food, décor with its options, extras, services, suppliers, the running order, payment and status. Everything visible at once regardless of relevance, dependencies between fields invisible, and no feedback that anything is wrong until submit. `booking/` now holds `BookingWorkspace` (rail, one section at a time, pinned summary), `SectionRail`, `BookingSummary` and `QuickCreate`; `booking/sections/` holds the sections lifted out so far — contact person, the couple, the running order, services and extras — as components that render inside the form's own `Form` context, so nothing is rewired, only moved. The form is **2,468 lines**. Each extraction is pinned by tests that assert the exact payload keys, because a renamed field does not fail loudly: the save succeeds and the value is quietly absent. Remaining: event details, the food menu, décor, and the two cost sections — tracked as **UX2b**. **Note the dependency:** the server now prices the booking (§5.10), so the redesign inherits a form that no longer has to compute money. |
+| ~~UX3~~ | **Rebuilt — see §5.11.** The table was empty because every notification was addressed to the person who caused the thing; a booking from the journey notified the customer and told the office nothing. New `notification` table addressed to an audience, with category, priority, per-reader read and dismiss state, grouping for repeats, and portal routes. New bell with day grouping, legible unread state and an explained empty. 9 integration tests, 11 component tests. | ✅ |
+
+**Sequencing.** UX1 should land first or alongside, because UX2 and UX3 both
+have to be consistent with whatever design system it establishes — doing them
+first means doing the visual work twice. UX2 is the largest single piece and
+the one with the most business risk attached, since the booking form is what
+the office uses all day.
+
+**What the conversion found.** Reading forty-six screens carefully turns up more
+than layout, and the defects have two shapes.
+
+The first is things written, then commented out, and then forgotten: the venue
+list's halls column; the catering status column; the bookings card view — a
+whole tested component, unreachable because the two buttons that set its flag
+were commented out; and, three times over, an entire food-menu screen left
+inside a screen cloned from it, complete with a `getFoodTypeString` over six
+boolean flags and a delete pointed at `menuFoodMaster/deleteById`.
+
+The second is pagination that silently does not page. **Catering** fetched the
+total, held it in state and never passed it to the pager, so there has been no
+way to reach the eleventh catering booking. **Décor property values** had its
+real pagination commented out and replaced with `pagination={true}`, so the
+table paged in the browser over one server page and never asked for the next —
+every value past the first ten categories unreachable. Neither screen looked
+broken.
+
+Four outright crashes: a customer saved with no email address taking the
+customer list down (`record.txtEmail.substring(0, 15)`, with the optional
+chaining on a later reference to the same field); two price sorters calling
+`localeCompare` on a number; and the dashboard's own session check calling
+`navigate(location.pathname('/sign-in'))` — `location.pathname` is a string, so
+it threw at exactly the moment it was meant to help.
+
+### D. Blocked on a business decision ❓
+
+| # | Question |
+|---|---|
+| D1 | **Is food delivery (catering-only booking) coming back?** Both entry points are commented out. The code is repaired and ready either way. If it is not returning, `BookCatering`, `CateringDeliveryBooking` and `/cateringDelivery` should all go. |
+| D2 | **Does the React marketing site return, or does WordPress stay?** Six page components and the whole `Layout` route are commented out. If WordPress stays, delete them and the Navbar with them. |
+| D3 | **Should Apple sign-in be available in development?** Currently Google-only because the one Apple developer account is bound to production. |
+| D4 | **Is `menu_component` / `ingredient` a live feature?** Entities, controllers and admin screens exist; no rows anywhere and nothing in the journey uses them. |
+| ~~D6~~ | ~~Who takes consultations, and when?~~ **Answered:** all of it configurable in the admin portal — hosts, hours, meeting lengths, buffers, notice. Nothing hardcoded; seed data is starting data, not defaults. |
+| ~~D7~~ | ~~Google, Microsoft, or both?~~ **Answered:** both, connected per person. Busy read from every connected calendar, consultations written to one nominated calendar. See §12.6. |
+| ~~D8~~ | ~~Automatic Meet/Teams link?~~ **Answered:** yes, and configurable — `blnCreateVideoLink` per consultation type. Created on confirmation, not on request. |
+| ~~D6~~ | ~~Is the itinerary feature live?~~ **Answered:** it was an attempt at calculating the equipment an event needs from the menu chosen for it — crockery, linen, the boards a grazing bar wants, the stands a dessert buffet wants. The owner's words: the model built for it is not good logic, and it can be replaced with whatever the right one is. So the *feature* is wanted and the *implementation* is not. Nothing has ever been stored in any of its seven tables. See D9. |
+| ~~D1~~ | ~~Is food delivery coming back?~~ **Answered: yes, and switchable.** `catering.booking.enabled` closes the line of business — the journey stops offering it and the sidebar entry goes. The route stays reachable by URL on purpose: deliveries already booked are real work with real customers, and closing a line must not strand them. |
+
+| ~~D4~~ | ~~Is `menu_component` / `ingredient` a live feature?~~ **Half answered, and the half matters.** `ingredient` and `menu_item_ingredient` were empty with their Java already deleted; V22 drops them. **`menu_component` is live** — it carries the sections of a composite dish ("Cheeses, choose 3", "Also on the table"), has rows, and the pricing engine reads it. It was grouped with the recipe tables here on the basis that all three were empty, which was never true of it. |
+
+| ~~A5b~~ | ~~Upper bound on the event date~~ **Answered: configurable.** `booking.horizon.months` replaces the hardcoded ten years. See §5.7. |
+
+| ~~D5~~ | ~~Should customers pick external suppliers?~~ **Answered: no, and the question was the wrong way round.** The venue does not engage outside firms — clause 5 of its own terms says third-party décor and catering are grounds for cancelling. The customer brings their own and declares them, against a category the office maintains. `vendor_master` is gone (V20); see §5.4. |
+
+| ~~D10~~ | ~~Do the four copies of the event save get unified?~~ **Investigated and half done — see §5.8.** There were never four live paths: two had no caller at all and are gone, 1,839 lines with them. The two that remain differ for real reasons and are best served by extracting their shared body rather than merging them. |
+
+| ~~D10b~~ | **Done — see §5.9.** The shared body was extracted into named helpers both entry points call, rather than merged behind a "who is saving this" flag. Running order 4 copies → 1, venue 4 → 1, menu 2 → 1, décor 4 → 2. The differences that are business rules were kept and are now pinned by tests. Proved against a characterisation suite written first and run green on unmodified code. |
+| D10c | **The journey's new-booking décor block matches the catalogue by the wrong id.** It uses `getSerEventDecorPropertyId()` — the selection row's id, unset on a booking that does not exist yet — where the other three copies use `getSerPropertyId()`. Almost certainly never fired, because the journey creates the booking before the décor step and the "existing booking" path runs instead. Left alone during the extraction so that "nothing changed" stayed provable. Fixing it would also let the two remaining décor copies collapse into the one helper. |
+| ~~D10d~~ | **Answered by §5.10.** The four totals were the start of exactly this work. They are still accumulated, and the engine now produces the figures they were meant to feed. Removing them is tidy-up that belongs with P3, when the client stops sending prices at all. |
+| P2 | **A menu posted without prices loses the whole save.** `event_menu_category_selection.num_final_price` is NOT NULL and is written straight from the payload, so a client that omits it gets a constraint violation rather than a booking priced at zero. Found by a test fixture that omitted them. It is an argument for the engine filling these in before the insert — which is a behaviour change, so it was kept out of §5.10. |
+| P3 | **Turn `pricing.server.authoritative` on, and then stop the clients sending prices at all.** The engine records its figures alongside the client's and logs every disagreement. Once those logs are quiet on real bookings, the switch goes on; after that `eventPayload.js` loses its pricing rules and the journey stops computing subtotals, because neither would be read. Business decision on timing; the log is the evidence. |
+| P4 | **Retire the old `price_version` / `price_entry` / `pricing_rule` engine, or fold it in.** `ServicePricingEngine.preview` is called by nothing in either portal, covers menu items only, and uses `double` for money. Left untouched during §5.10 so that one change could be verified at a time. |
+
+
+| ~~D9~~ | ~~What must the equipment calculation produce?~~ **Answered and built.** Calculate only — no stock check, no owned-versus-hired. Quantities are per guest, per table, per station or per event. See §5.6. |
+
+
+---
+
+---
+
+## 14. The capacity rule, and making it unforgettable
+
+**Status:** done. Was A3/A3b in §10.
+
+### The rule
+
+Two events on an ordinary day. Three on a Sunday, unless the Monday after it is
+used, in which case two. A Monday is closed entirely if its Sunday has three. No
+same-day booking. The business confirmed it is a **hard limit**, not a default
+an administrator may override.
+
+### Two separate failures, found together
+
+**The race.** How many events a day holds is a *count*, and counting rules
+cannot be a constraint — there is no row to collide with, only a total to
+exceed. So the check is "count what is there, then insert", and between those
+two steps a second request does the same thing. Both count one, both see room,
+both insert. Fixed with an advisory lock on the day, taken inside
+`canBookEvent` so all six call sites get it. Proved by racing two real
+transactions and then removing the lock to watch both succeed.
+
+**The unguarded path**, which is the one that had actually bitten.
+`saveAndUpdate` wrote the event date and never called `canBookEvent`, where the
+other three save paths did. Production carries the result: **three events on
+Friday 1 May 2026**, on a day that holds two — created on the 22nd, 23rd and
+25th of April, so days apart rather than in one race.
+
+### Why a structural test rather than a note in the review
+
+These save methods are hundreds of lines long, near-identical to one another,
+and one of them carries a comment saying that any change made in it must be
+copied by hand into its twin. The next one added will be a copy of one of these,
+and whether it keeps the check is a matter of which one was copied.
+
+So `EventDateCapacityIsCheckedEverywhereTest` asserts the rule structurally: if
+a method writes an event date — directly or through the mapper — it must also
+call `canBookEvent`. Adding a sixth save path without the check fails the build
+rather than reaching production and being found in the data months later. It was
+verified by taking the new check out and watching the test name the method.
+
+### What was deliberately not done
+
+A database trigger would cover every write path, including any future one that
+bypasses the service entirely, and was the first instinct. It was rejected for
+now on two grounds: it would duplicate a rule with Sunday/Monday coupling into
+SQL, where it would drift from the Java; and it would refuse writes to the
+existing over-capacity rows unless they were grandfathered or corrected first.
+The structural test buys most of the same protection without either problem.
+
+### The existing over-capacity day: decided
+
+**Grandfathered. Nothing in the data was touched, and nothing should be.**
+
+Three events on Friday 1 May 2026, on a day that holds two. The reasoning, in
+the order it mattered:
+
+1. **Those are three commitments to three families.** Correcting them is a
+   conversation with customers, not a data fix. An engineer who "tidied" that
+   row would be cancelling somebody's wedding to make a number look right.
+2. **It is already in the past.** Checked against the restored dump: today is
+   20 August 2026, so the day has been and gone. There is nothing to staff,
+   move or resource. Editing it now would be rewriting the record of what was
+   delivered, for no operational benefit at all.
+3. **It is the only one.** There are bookings out to August 2029 and not one of
+   them breaches the rule. This is a single historical exception, not a pattern.
+
+So the standard shape for introducing a constraint over legacy data applies:
+**grandfather what exists, enforce forward, surface the exceptions.**
+
+- *Grandfathered* — and proved, not assumed. Two integration tests build an
+  over-capacity day and check the team can still open and save each booking on
+  it, while a fourth is refused and nothing can be moved onto it. That works
+  because of three details that are easy to break separately: the count excludes
+  the event being edited, it is only incremented when the date actually changes,
+  and the comparison is strictly greater.
+- *Enforced forward* — `canBookEvent` on every path, with a structural test that
+  fails the build if a new one forgets.
+- *Surfaced* — `/eventMaster/daysOverCapacity` reports upcoming days holding more
+  than the rule allows, and it is on the dashboard, above the charts. Verified
+  against the restored production dump: it correctly returns nothing today, and
+  correctly reports a planted future breach.
+
+  Two decisions in that panel are worth more than the panel. It **says nothing
+  when there is nothing to say** — a warning that reports "0 problems" every
+  morning is one people stop reading, and then it is worth nothing on the
+  morning it matters. And it **says so loudly when it could not check**, because
+  a swallowed error renders as "nothing to report", which reads as a clear diary:
+  the one thing it must never imply. Both are tested.
+
+Past days are deliberately left out of that report. They are history, and a list
+nobody can act on is a list people learn to ignore.
+
+### The third copy, and the customer who could not have their own date
+
+**Status:** done.
+
+The rule had three statements of it, not two. `EventDayCapacity` is the one
+`canBookEvent` enforces and `getDaysOverCapacity` reports from. The third was
+inside `getAlreadyBookedDates` — the endpoint the customer's calendar greys days
+out from — written out by hand, and nobody had noticed because it usually agreed.
+
+It disagreed in two ways, in opposite directions — which is what a second
+statement of a rule does: it is not wrong in a pattern, it is just separately
+wrong.
+
+**A customer's own booking closed the day against them.** The counts included
+the event being edited, so a customer reopening their booking on a Saturday that
+held two — theirs and somebody else's — was shown their own date greyed out. Not
+"unavailable, here is why": a day at 55% opacity, not a control, nothing said.
+The date they had chosen, paid a deposit against and were reading off their
+confirmation email looked as though it had gone. `canBookEvent` would have
+accepted that same date without complaint, because it has excluded the event
+being edited since the grandfathering work above — that exclusion is exactly what
+lets the team open an over-capacity day and save it.
+
+**A Monday closed by its Sunday was still offered.** The hand-written copy only
+looked at days that *hold* events, and a Monday after a Sunday with three holds
+none. So it was selectable, and refused on save.
+
+Both are gone with the copy. `getAlreadyBookedDates` now counts through
+`EventDayCapacity`, takes the id of the event being edited and leaves it out, and
+tests the day after each busy day as well as the busy days themselves.
+`BookedDatesMatchWhatCanBeBookedIT` walks a stretch of calendar asking both the
+drawing and the enforcing, day by day, and fails if they ever disagree — so a
+fourth copy cannot appear quietly.
+
+### The document that printed in black and white
+
+**Status:** done.
+
+The customer's event document is one Thymeleaf template rendered two ways: as
+HTML in a browser, and through openhtmltopdf as the PDF they download. Every
+colour in it was a CSS custom property, declared on `:root`, written the way
+the journey's own stylesheet is written.
+
+openhtmltopdf does not implement custom properties, and it does not complain:
+an unresolvable `var()` is an invalid declaration and is dropped. So the HTML
+view was perfect and the PDF — the version that gets saved, printed and
+forwarded — had the right words at the right sizes and no colour, no
+backgrounds, no cover and no rules. Four kilobytes of black Helvetica. Nobody
+had registered a font with the renderer either, so "Helvetica" was literal.
+
+It survived because the test rendered its own `PdfRendererBuilder` rather than
+the service's, so the pipeline being asserted on was not the pipeline customers
+downloaded from. There is one now, `EventDocumentService.pdfFrom`, and the test
+drives it. Two assertions guard the failure directly: a document with no fill
+operations has no backgrounds or rules, and a document with no embedded font is
+being set in whatever the reader happens to have.
+
+The template was re-themed to the journey's palette while it was open, as
+literals, and the cover changed from a full-bleed dark slab to paper — it is a
+printed document, and a dark A4 cover is several millilitres of ink on the page
+most likely to be run off on its own.
+
+---
+
+## 15. Booking above Event, and the road to a REST API
+
+**Status:** stages 1 and 2 done, 3–5 designed. This is B1 and B2 in §10, written
+down in full before any code moved, because both are staged changes across three
+repositories and a live database and the staging is most of the work.
+
+### 15.1 What is actually wrong
+
+`EventMaster` is doing two jobs at once.
+
+It is the **event** — a date, a venue, a running order, a guest count, a menu,
+a decor scheme. And it is the **booking** — the customer, the contact person,
+the budget, the payments, the consultation, the documents, the quote.
+
+For a single-event customer the two coincide and nothing looks wrong. The
+problem appears in the case the business actually trades on: a wedding is a
+mehndi on the Friday, a nikkah on the Saturday and a walima on the Sunday. That
+is one family, one negotiation, one deposit, one conversation — and three
+`EventMaster` rows that know nothing about each other.
+
+What follows from that today:
+
+- **The customer re-enters everything three times.** Contact details, the
+  couple's names, the venue, the consultation. The journey has no notion of "the
+  same wedding, the next day".
+- **There is no total.** `EventBudget` hangs off `EventMaster`, so the family
+  gets three budgets and nobody can answer "what does the weekend cost".
+- **Payments are per event.** A single deposit against a three-event wedding has
+  no row to live on. In practice it is recorded against one of them, which makes
+  that event's figures wrong and the other two's incomplete.
+- **The capacity rule counts events, correctly, but the diary reads as three
+  unrelated jobs.** Staffing a weekend means noticing the pattern by eye.
+- **Cancelling "the wedding" is three cancellations**, and nothing stops two of
+  them going through and the third being missed.
+
+None of this is hypothetical: it is the shape of the data in production.
+
+### 15.2 The target
+
+Two aggregates, with the booking on top.
+
+```
+Booking                     one negotiation with one family
+├── customer, contact person
+├── budget, payments, deposit
+├── consultation
+├── documents, quote, status
+└── Event (1..n)            one thing that happens on one day
+    ├── date, venue, hall
+    ├── running order, guest count, tables
+    ├── menu selections
+    ├── decor, extras, services
+    └── itinerary
+```
+
+Everything that is *negotiated once* moves up. Everything that is *delivered on
+a day* stays down. That test settles most of the field-by-field questions, and
+where it does not — the couple's names, which belong to the booking but are
+printed on each event's documents — the field lives on the booking and the event
+reads through.
+
+The capacity rule is unaffected: it counts **events on a day**, which is what it
+already counts, and what the kitchen and the venue actually experience.
+
+### 15.3 How to get there without a flag day
+
+The constraint is that production is live, two frontends read this API, and a
+booking in progress must not break mid-journey. So the move is additive first,
+and nothing is deleted until both frontends have stopped reading the old shape.
+
+**Stage 1 — the table, alongside. ✅ Done, V11.** `booking`, and
+`event_master.ser_booking_id` nullable. One booking backfilled per existing
+event — deleted ones included, so the invariant has no exceptions to remember;
+an exception is what makes a later join quietly drop rows. Verified on the
+development database: 405 events, 405 bookings, none parentless, no duplicates,
+no mismatched customer or reference.
+
+Nothing reads the column. The mapping on `EventMaster` is a plain id, and
+`updatable = false` is the important part rather than a detail: Hibernate writes
+every updatable column on every save, so a mapping nothing populates would write
+NULL over the backfill on the first save of each event — undoing the migration
+one booking at a time, silently, starting with the events people touch most. A
+test reproduces that through the path that actually does it, an entity built
+from a DTO, and it was checked by making the column writable and watching it
+fail. (The first version of that test reloaded the entity and passed either way,
+which proved nothing.)
+
+The column stays nullable, and events created between this stage and the next
+have no booking. That is expected rather than an oversight: NOT NULL here would
+reject every new booking the moment it deployed. This stage is reversible by
+dropping a column.
+
+**Stage 2 — every new event gets one too. ✅ Done.** The four create branches in
+`ServiceEventMasterImpl` now make a booking and attach the event to it, so the
+invariant V11 established — every event has a parent — stays true instead of
+decaying with every sale. Without this, stage 3 would have had to begin by
+inventing parents for whatever accumulated in between.
+
+Four, not three. The plan for this change accounted for three; writing the
+structural test found a fourth — the admin portal's, which builds its entity
+through a different mapper and so does not match on the obvious pattern. That is
+the third time a rule has been found missing from one of these four
+near-identical methods, and `EveryNewEventGetsABookingTest` now guards this one
+the way `EventDateCapacityIsCheckedEverywhereTest` guards the capacity rule.
+
+Attaching it needs two mechanisms, because the four paths disagree about when
+the event row appears. `saveAndUpdate` builds the whole event and inserts it
+once, at the end, so its own insert carries the booking id. The other three
+insert a bare row immediately after the capacity check — associations
+deliberately nulled — and fill it in afterwards, so by the time there is a
+customer and a reference code to make a booking from, the insert that would have
+carried the id has already happened. Those get an explicit
+`attachToBooking(eventId, bookingId)`: a native statement carrying `AND
+ser_booking_id IS NULL`, so it can only fill an empty column and never move an
+event from one booking to another. The first version of this change had only the
+first mechanism and quietly did nothing at all down three of the four paths
+while passing every structural check, which is why a behavioural test now drives
+two of them for real.
+
+Still one booking per event. Several events sharing one — the mehndi, the nikkah
+and the walima of one wedding — is stage 4, and it needs the journey to ask "is
+this another day of a booking you already have?", which nothing does yet.
+Guessing at it here by matching on a customer and a nearby date would silently
+merge two unrelated bookings for the same family, and there would be no way to
+tell afterwards which money belonged to which.
+
+**Deliberate deviation from the plan below.** The original stage 2 also added
+`/booking` REST endpoints. They are not here, because nothing calls them yet.
+Adding endpoints in anticipation of a caller is the same speculative pattern
+that produced the five orphan entity classes deleted in B3, and the argument
+against it does not weaken because this time the plan was mine. They arrive in
+stage 3, with the screens that read them. §15.4's rule — new endpoints are REST
+— is unaffected.
+
+**Known cost, accepted.** These four methods wrap everything in a `try/catch`
+that logs at debug and returns `"Failure"`, and `jakarta.transaction.Transactional`
+commits on a normal return. So a save that fails after the booking is made
+leaves a booking with no events. That is a wasted row rather than wrong data —
+nothing points at it, and stage 3 moves money by event — and the real fault is
+the swallow-and-commit, which is an item of its own rather than one to take on
+inside a migration.
+
+**Stage 3 — move what is negotiated once.** Budget, payments, consultation and
+contact details move to hang off `booking`. Each is a separate migration with
+its own backfill, and each keeps a read-through on the event so existing screens
+keep working. Do these one at a time, in production, a week apart. Payments
+first — that is where the wrong figures are today.
+
+**Payments, part one: the money stops being overwritten. ✅ Done, V15.** Before
+moving anything, the figure itself had to stop being wrong. Two things owned
+`event_budget.num_paid_amount`: `recalculateBudget` sums the payments recorded
+against the budget, and the four event-save methods set it to whatever the form
+sent. The form sends the figure it loaded, read before the payment was taken,
+and the save runs last.
+
+Production carries one instance. **Budget 146 reads `num_paid_amount = 0.00`
+against a recorded payment of £500**, updated four seconds after the payment —
+the save that followed, carrying the zero it had loaded. Nothing announced it:
+the payment row is still there and the booking simply reads as unpaid, on the
+screen, on the report, and in every total the office works from.
+
+All twelve write sites now go through `setPaidAmount`, which keeps the payments
+where any exist and uses the figure sent where none do. That second half is not
+politeness — the catering form has a Paid Amount box that is the only record of
+money taken for a delivery, and both production payments belong to events rather
+than deliveries, so "payments always win" would have quietly stopped that box
+working. V15 repairs the one budget the old behaviour already spoiled, touching
+only budgets that have payments; rehearsed against a copy of production, where
+it changes exactly that row and nothing else.
+
+Guarded twice, because this is the sixth time copies of one routine in this file
+have turned out to disagree: `PaidAmountSurvivesASaveIT` drives the production
+sequence — take a payment, then save the booking from a form that does not know
+about it — and `PaidAmountIsNotDictatedByTheFormTest` fails the build if a
+thirteenth site appears or one of the twelve goes back to writing the field
+directly.
+
+**Stage 3 is done, 17 September 2026.** `ser_booking_id` is on `event_payment`,
+backfilled through budget → event → booking by V16, and filled on write by
+`EventPayment.attachTo`. `ser_event_budget_id` stays, stays NOT NULL, and stays
+the column every read path uses — nothing is moved off the budget, a second
+parent is added beside it, and stage 5 is still the only stage that deletes
+anything.
+
+Nothing observable changes, which is the point: one booking has one event, so
+the column is filled while it cannot matter, and stage 4 becomes a change to
+behaviour rather than a change to behaviour plus a migration of live payment
+records.
+
+Three decisions worth keeping:
+
+  - **`updatable = false`,** the same as `EventMaster.serBookingId` and for the
+    same reason: every save here writes a detached entity assembled from a DTO,
+    no DTO carries a booking id, and an updatable column would have Hibernate
+    write NULL over the parent on the first save of each payment — undoing the
+    backfill one row at a time, starting with the bookings the office edits
+    most. `PaymentBelongsToBookingIT.resavingAPaymentKeepsItsBooking` is that
+    failure; verified by making the column updatable and watching it fail.
+  - **`attachTo(budget)` rather than `setEventBudget` plus a second line at each
+    call site.** Both payment services and `EventBudget.addPayment` go through
+    it. This file has a history of one routine living in several near-identical
+    copies that drift — the paid-amount field had twelve — and "set the parent,
+    then work out the other parent" is exactly that shape.
+  - **A catering delivery keeps a null booking.** Its budget hangs off
+    `catering_delivery_booking`, a different thing with a confusingly similar
+    name, and it has no event and no wedding. Null there is correct rather than
+    missing.
+
+**Stage 4 — the journey learns about multiple events.** "Add another day to
+this wedding" appears in the customer journey. This is the stage the business
+actually asked for, and it is only safe once 1–3 are done.
+
+**Stage 5 — remove the read-throughs**, once neither frontend uses them. This is
+the only stage that deletes anything.
+
+The order matters: every stage before 5 can be abandoned without a rollback, and
+stage 4 is the one that pays for the rest.
+
+### 15.4 B2: what to do about 340 POST endpoints
+
+Every endpoint is `POST`, including reads. It is not merely unfashionable — it
+costs real things: nothing is cacheable, a read cannot be retried safely by any
+intermediary, and "which of these 340 changes data" is unanswerable without
+reading each one.
+
+Rewriting them is not the move. A big-bang REST migration means changing 340
+endpoints and every call site in two frontends at once, with no way to test the
+halves separately, in exchange for tidiness. That trade is bad.
+
+**Do it as a by-product of §15.3 instead.** The `/booking` endpoints are new
+code with no callers, so they can be REST-shaped from the first line: `GET
+/booking/{id}`, `POST /booking`, `PATCH /booking/{id}`, `GET
+/booking?customer=…&page=…`. Every stage above adds a few more properly shaped
+endpoints, and the old surface shrinks as screens move across.
+
+Two rules make that work rather than producing a third convention:
+
+1. **New endpoints are REST.** No exceptions, including "just this one to match
+   its neighbour".
+2. **A screen that moves to the new shape stops calling the old one**, and the
+   old endpoint is deleted in the same release. Otherwise both live for ever.
+
+What should *not* wait for any of this: **pagination**. It is independent of the
+verb, it is where the actual harm is (see A1b and A8b, both measured in hundreds
+of kilobytes per page load), and it can be added endpoint by endpoint with no
+coordination at all.
+
+### 15.5 What this is not
+
+It is not a rewrite. `EventMaster` keeps its table, its id, its columns and most
+of its behaviour throughout; what changes is what hangs off it. Nothing here
+requires the customer journey to be rebuilt, and no stage requires both
+frontends to ship on the same day.
+
+---
+
+## 16. What the build cannot currently do
+
+**Not a code problem, and worth writing down so the next person does not spend
+an afternoon on it.**
+
+Maven cannot resolve this project's dependency tree in a sandboxed environment
+without access to `jaspersoft.jfrog.io`. `net.sf.jasperreports:jasperreports`
+depends on `com.github.librepdf:openpdf:1.3.30.jaspersoft.3`, a fork published
+only to Jaspersoft's own repository. Maven Central answers 404 for that
+version, so with the host blocked the build fails at dependency collection —
+before compiling anything.
+
+What that costs, concretely: **no new dependency can be added or verified**.
+That is why C5 was answered with a generated inventory rather than
+springdoc-openapi, and why C6 was built from the exception handler and a
+controller rather than an error-reporting SDK. Both decisions are defensible on
+their own merits, but neither was a free choice.
+
+The work still gets compiled and tested — the classpath can be assembled from
+the previously built application jar plus the local Maven cache, and JUnit
+driven through the platform launcher directly. Compilation, test compilation
+and test execution are all real; only dependency *resolution* is bypassed.
+
+**To lift this**, either allow `jaspersoft.jfrog.io` through the egress policy,
+or mirror that one artifact into an internal repository. It is a single POM and
+JAR.
+
+---
+
+## 17. The food menu, and why one dish is five rows
+
+**Status:** designed from the production data, staged below. Approved 27 August
+2026 after the analysis in §17.1.
+
+Everything in this section is measured against a restored copy of the live
+database — 436 menu items, 893 chosen dishes across 109 events — rather than
+inferred from the code. Where a number appears it came from a query.
+
+### 17.1 What is actually wrong
+
+The catalogue is a tree: `menu_item`, with `parent_menu_item_id`, a rigid three
+level ladder of roles (CATEGORY → SUBCATEGORY → ITEM), and prices on the leaves.
+That shape is not the problem. Five other things are.
+
+**One dish is five rows.** 368 selectable rows hold only **238 distinct
+dishes**; 48 names exist more than once and 130 rows are copies. Desserts is the
+clearest case: twenty-one dishes — Chocolate Brownie, Cheesecake, Churros,
+Tiramisu, Eton Mess, Cake Pops — exist **five times each**, once under Served To
+The Table, Trio Dessert, Classic Desserts, Dessert Buffet and Dessert Stand.
+
+That is not carelessness. The model gives an item exactly one parent, so
+offering a brownie four ways requires four brownies. The structure left nobody
+any alternative.
+
+What it costs: renaming or repricing a dish is five edits, and the copies have
+already drifted — `Trifle` is `PER_GUEST` in three places and unset in a fourth,
+`Flavoured Mousse` and `Peach Cobbler` likewise. No report can answer "how many
+brownies for Saturday", because five ids are five different dishes.
+
+**A composite editor nobody could use.** Sections *are* modelled, and modelled
+well: `menu_component` links a composite to its children, with a component role
+naming the section and a sequence order. `Reception Displays` uses it exactly as
+intended — ten items under "Selections Include", four under "Dips &
+Accompaniments". `Waffle Station` has six under "Include".
+
+But **only 2 of the 19 items flagged composite have any components at all**. The
+other seventeen are marked composite and empty, and their names say why:
+
+- "Irn-bru, Cola, Water & Diet on request"
+- "Strawberry Daquiri, Virgin Mojito, Mixed Fruit Juice"
+- "Samosa Chaat, Mini Burgers, Firecracker Chicken Shots"
+
+The section contents were typed into the item's **name**. When a screen is hard
+enough to use, people find a free-text field and use that instead. The data
+model is not what failed here.
+
+**Three representations of one tree, and they disagree.** `parent_menu_item_id`
+is what the code walks. `txt_path` is an `ltree` that nothing maintains and
+**14 rows have wrong** — eight raitas and chutneys claim `MI_1007.SUB_023.*`
+while their parent says `MI_1006`. `menu_component` is a third edge, and
+"Artisan Cheeses" is both a tree child and a component. The `ltree` is
+`NOT NULL`, decorative, and misleading.
+
+**Four dishes nobody can order.** Sweet & Sour Soup, Chicken Noodle Soup,
+Chicken & Corn Soup and Vegetable Soup are parented to *Gajar Ka Halwa*, a
+dessert. The reader stops at the third level, so children of an item are never
+fetched. Chosen zero times in 109 events.
+
+**A silent pricing default.** `getMenuWithPrices` multiplies by guest count, and
+when `enm_price_multiplier_type` is null it defaults to `PER_GUEST` — 238 of the
+selectable items are null, 130 say `PER_GUEST` explicitly. A £2.00 item becomes
+£600 at a three hundred guest wedding, and nothing on any screen says which rule
+was applied.
+
+**A price list built and never adopted.** `price_version`, `price_entry` and
+`menu_item_price` are **completely empty** in production — roughly 1,100 lines
+of service code that has never run — while only 21 of 368 items carry a
+catalogue price. Staff type prices into the admin form per booking instead.
+
+**Dead weight.** `metadata` is `{}` on all 341 rows that have it.
+`num_default_servings_per_guest` is null on all 436. `bln_is_catering_item` is
+true on 416 of 436, so it separates almost nothing. `ingredient`,
+`menu_item_ingredient`, `menu_item_itinerary_map` and `event_menu_itinerary` are
+empty.
+
+### 17.2 The target
+
+Three ideas, and the first is most of the value.
+
+**A dish exists once. It is *offered* in as many places as you like.** The
+offering carries the price, the per-guest rule, the position and the selection
+limits; the dish carries the name, the description and what it is. 368 rows
+become 238 dishes and a list of offerings. Rename once, reprice once, and the
+kitchen can count brownies.
+
+This is deliberately *not* arbitrary depth. Category → subcategory → item is how
+the business sells and how a customer chooses, and it makes a better screen than
+a tree of unknown shape. What changes is that a dish is no longer imprisoned in
+one branch of it.
+
+**Composites keep the model they already have, and gain a screen.** Sections
+come from component roles with a sequence order and their own minimum and
+maximum. The seventeen free-text names migrate into real sections.
+
+**The price rule is stated, never assumed.** Every priced offering declares
+`PER_GUEST` or `FLAT`. There is no default, and an offering that has not said is
+an error the menu screen shows rather than a multiplication nobody sees.
+
+Selection limits gain a **minimum**. `menu_item` has only a maximum — used on
+four subcategories: Served To The Table 2, Trio Dessert 3, Dessert Buffet 8,
+Dessert Stand 5 — while `menu_component` already carries both and uses neither.
+"Choose between three and five" is a thing the business says out loud, so it
+should be a thing the model can hold.
+
+### 17.3 How to get there
+
+Same discipline as §15.3: additive first, nothing deleted until nothing reads
+it, and every stage before the last is undone by dropping a table.
+
+**M1 — delete what is provably dead. ✅ Done.** `ingredient` and
+`menu_item_ingredient` are gone: two entities, two DTOs, two repositories, two
+service interfaces, two implementations, two mappers and two controllers,
+fourteen files and eighteen endpoints. Tables left in place. Zero rows in
+production, no caller in either frontend — the admin form's "Ingredient" field
+is a plain text box bound to `txt_description` and has nothing to do with the
+entity. Same reasoning as B3, and the same reason it goes first: it shrinks the
+surface everything after has to be read against.
+
+`menu_item_itinerary_map` and `event_menu_itinerary` were on this list and are
+**deliberately still here**. They are empty too, but unlike the ingredient
+tables they are wired into the itinerary feature — `ControllerItinerary` and
+`ServiceEventItinerarySummaryImpl` both depend on them — and that feature is an
+open business question (D6), not a menu one. Deleting them would answer D6 by
+the back door. They go with whatever D6 decides.
+
+**M2 — the offering, alongside. ✅ Done, V12.** A `menu_offering` table: which
+dish, in which section, at what price, under which rule, in what position.
+Nothing reads it. Reversible by dropping a table.
+
+**The backfill deliberately does not merge anything.** The plan said it would
+collapse the 130 copies onto the 238 originals by matching names. That was
+wrong, and writing it changed my mind: deciding by name that two rows are the
+same dish is a judgement, not a fact — one "Kheer" may be plated and another
+part of a set menu, priced differently on purpose — and a wrong guess silently
+changes what a customer is charged, with no way to tell afterwards. So the
+migration is an identity mapping: every selectable dish gets one offering of
+itself, under its current parent, with its own price and rule. Merging is
+offered to a person in M4, one dish at a time, and the repository reports the
+candidates rather than acting on them.
+
+Price and rule sit on the *offering* rather than the dish, which is the whole
+point: a brownie can legitimately cost £3.50 per head plated and £4.00 flat on a
+stand, and today that requires two brownies.
+
+**The tests had to be rewritten before they meant anything.** The first version
+asserted against whatever the database held, and the test database holds no menu
+at all — zero selectable items, so every count was zero and every assertion
+passed. Deleting an offering by hand did not make it fail. They now seed a small
+menu carrying the two shapes that matter (one dish in two sections at two
+prices, one priced dish that has never said whether the price is per guest) and
+run **the migration's own backfill statement, read out of the migration file** so
+that the test cannot drift from the thing it tests. Checked by deleting a seeded
+offering and watching two of them fail.
+
+Worth recording for the next person: an applied migration cannot be edited to
+test a change to it. Flyway validates checksums at startup, so the application
+refuses to start rather than the assertion failing — which is correct, and means
+"break it and watch the test fail" has to be done to the data, not the SQL.
+
+**M3 — the reads move across.** Three parts, two of them done.
+
+**The tree agrees with itself again. ✅ Done, V13.** Fourteen rows had a
+`txt_path` that contradicted `parent_menu_item_id`. Repaired by recomputing the
+path from the parent, top down, since the parent pointer is what the application
+has always walked and therefore what the live menu actually is. Rehearsed
+against a restored copy of production: 14 → 0, no nulls, all 436 paths still
+distinct.
+
+The column was kept rather than dropped, because an ltree does earn its keep —
+"every dish anywhere under Desserts" is one operator against an index instead of
+a recursive query — and `MenuPathMatchesParentIT` now fails the build if the two
+ever disagree again. Checked by pointing a seeded leaf at the wrong parent and
+watching it name the row.
+
+The repair also corrected the record: five of the nine items I first reported as
+sitting at depth four were a path artefact and were always at depth three. Only
+the **four soups** are genuinely too deep, and they remain the only anomaly.
+
+**The price rule is named and counted, not yet compulsory. 🟡 Part done.**
+`calculateItemPrice` read `type = PER_GUEST; // safe default`. It is not a safe
+default: it multiplies by the guest count for items whose pricing nobody has
+stated. Twenty priced offerings in production are in that position, twelve of
+them carrying money — a Grazing Bar at £2.50 and a Decorative Fruit Display at
+£3.00 become £750 and £900 at three hundred guests.
+
+On the evidence those twelve *are* per-head items and the figures are right,
+which is exactly the point: right by luck rather than by decision, and the first
+genuinely flat item somebody prices — a fountain hired at £250 — becomes £75,000
+the same silent way.
+
+The fallback is still there, because removing it today changes what twenty live
+items cost and that is the business's decision rather than a side effect of a
+refactor. What has changed is that it is no longer invisible: it is a named
+constant, it logs the item and the price that needed it, and
+`countPricedOfferingsWithNoRule` counts the population. M4 makes the rule a
+required field and shows the outstanding twenty; when the count reaches zero the
+branch goes and an unstated rule becomes a refusal.
+
+**One walk instead of four. ✅ Done.** `ServiceMenuSelectionImpl` had four
+near-identical readers — menu, catering menu, and each again with prices — in
+352 lines differing on exactly two axes: which finders to use, and whether to
+price what they return. It is 269 lines with one `walk(catering, pricingCtx)`,
+and the four public methods are one line each.
+
+They had already drifted, in ways nobody would see by reading any one of them:
+
+- the **catering menus never sent a subcategory's description**, so a note
+  explaining what a station includes reached the ordinary menu and not the
+  catering one;
+- the **priced menus never sent a category or subcategory's own `numPrice`**, and
+  the **unpriced ones never sent the selection limits** — so "choose 3 of these"
+  existed on one response and not the other, for the same subcategory.
+
+Consolidating gives every caller the union, which is additive and was checked
+before doing it: the customer journey computes its own category and subcategory
+totals by summing items and ignores what the server sends for them.
+
+It also halves the queries per subcategory. Each one used to fetch its children
+twice — once filtered to plain dishes and once to composites — which on the live
+catalogue is thirty-two redundant round trips to build one menu.
+
+That is the **fourth** time in this codebase that near-identical copies of one
+routine turned out to disagree: the capacity rule, the concurrency guard, the
+booking creation, and now this. The consolidation is the point rather than the
+line count.
+
+**Still to do:** the four soups are **not** moved. They sit under *Gajar Ka
+Halwa* and there is no "Soups" subcategory to move them to, so choosing one
+would be inventing a menu decision. They are reported for the business to
+place.
+
+**M4 — the screens. 🟡 The menu editor is done; the event form's food section
+is next.**
+
+The reason any of this happened. Three screens between them made a simple job
+impossible: `menu-management` listed all 436 items in a flat table, so looking
+for "Chocolate Brownie" returned five identical rows with **no column saying
+which section each was in** — the only fact that told them apart.
+`menu-category` managed the *role* lookup table under a name that says category.
+`menu-composition` kept composite contents somewhere else again.
+
+The consequence is in the data: seventeen of the nineteen composite items have
+no sections, and their contents were typed into the item's *name* instead.
+"Irn-bru, Cola, Water & Diet on request" is one menu item. Nobody was being
+careless; the screen made the right thing harder than the wrong one.
+
+**What replaced them: one screen, at `/admin/menu`.** The menu as a tree,
+searchable — and a search keeps the branch that leads to a match, so "brownie"
+shows *Desserts › Dessert Buffet › Chocolate Brownie* rather than five bare
+rows. Choosing a dish shows where else it is offered and what it costs there,
+which was unaskable before. Two banners carry the decisions the catalogue is
+owed: how many priced dishes have not said whether the price is per head — with
+the consequence spelled out, because "1 dish needs attention" tells nobody that
+it is being charged per guest meanwhile — and which names are used by more than
+one dish, phrased as a question rather than an error.
+
+The header says **"368 rows · 238 dishes"**. One number would have hidden the
+thing this whole section is about.
+
+Three `GET` endpoints under `/menu/offerings` feed it, REST-shaped because
+§15.4's rule has no exceptions. The tree logic is a separate module with
+eighteen tests of its own, for the reason the event form taught: arithmetic and
+filtering buried in a component is arithmetic nobody checks.
+
+The old three screens are **kept for now**. They can still do things this one
+cannot — creating items, editing composites — and removing a working screen
+before its replacement covers the ground is how a working system stops working.
+They go when it does.
+
+**The event form's food section and its pricing. ✅ Done.**
+
+The form had **no total anywhere**. Somebody quoting a customer on the telephone
+could tick dishes, set decor and add extras, and the only way to find out what
+any of it came to was to save the booking and look at the quote afterwards.
+
+One rule made that dangerous rather than merely awkward: a food category is
+charged **what somebody typed against it and nothing at all otherwise**, however
+many dishes were ticked. That is deliberate — food is sold per head against an
+agreed menu, not as a running total of what has been selected — but nothing said
+so, and ticking dishes shows item prices beside them, so the form looked like it
+was adding up. A full menu could be chosen and a customer quoted £0 of food.
+
+`QuoteSummary` now sits at the foot of the form: decor, VAT, services, food, the
+total, and a warning naming any category with dishes chosen and no price. It
+says what VAT is charged on, because one figure cannot tell you it is decor and
+extras only.
+
+Its numbers come from `summariseQuote`, which builds the real payload and reads
+the real quote off it. Adding them up separately in the component would give two
+implementations of "what VAT is charged on", agreeing until somebody changed
+one — and then the screen and the saved quote disagree, with the customer having
+been told the wrong one. A test asserts the two are identical.
+
+**A binding fault worth recording.** Every price input in the form is a
+`Form.Item` wrapping a `<span>` wrapping the control. antd passes `value` and
+`onChange` to a `Form.Item`'s *direct child*, so all five were binding to the
+wrapper. Four work around it with a manual `value={form.getFieldValue(...)}` and
+their own `onChange`; the category price had neither, so **a saved category price
+never appeared when a booking was reopened** — re-typing it was the only reason
+the figure survived a second save. That one is fixed. The other four are left as
+they are on purpose: rewriting five live pricing controls at once is risk with no
+gain today, and they now at least have the labels and currency prefix they
+lacked. Recorded here so the next person knows the plumbing is deliberate rather
+than overlooked.
+
+The "↑ applied" badge is a button now, reading "Use £2.50 from the last saved
+quote". It was a `<span>` with a `title`: unreachable by keyboard, invisible to a
+screen reader, and labelled with something that describes neither what it is nor
+what pressing it would do. Categories 5 and 6 say on screen that they are quoted
+with the set menu above — that was a code comment and nothing else.
+
+**Still to do:** migrating the seventeen free-text composite names into real
+sections, and retiring the three old menu screens once the new one covers
+creating items and editing composites.
+
+**M5 — versioned prices. 🟡 The table and the choosing are done, V14. The reads
+have not moved yet.**
+
+What it makes answerable: *"what did this dish cost when the Khans booked in
+March?"* and *"put next year's prices in now, to take effect on the first of
+April."* Neither was possible — an offering carried one price, so changing it
+overwrote what the old one was, and a price rise had to be typed in on the
+morning it started.
+
+`price_version` is **reused rather than replaced**: a named, dated, prioritised
+list with DRAFT / PUBLISHED / RETIRED is exactly the right shape, and it being
+empty was never a fault of its design. `price_entry` beside it is **not** used,
+and would not be even if a price list were wanted there: it prices a target id
+under ITEM, ROLE, BUNDLE, COMBINATION, STATION or TYPE by DIRECT, MIN_OF,
+MAX_OF, SUM or FORMULA — a general pricing engine, never populated, for a
+business that prices dishes — and it prices an *item*, which would collapse the
+distinction M2 exists for: a brownie is £3.50 plated and £4.00 on a stand.
+
+So `menu_offering_price` is (offering × version), and the price rule travels
+with the price, because a price change can change how it is charged: the same
+sweet cart may be £2.00 a head this year and a £600 flat hire next.
+
+Unpriced offerings are recorded as unpriced rather than left out. 334 of the
+live catalogue's are, and omitting them would make "this dish had no price in
+March" indistinguishable from "this dish did not exist in March".
+
+**Choosing the list for a day** is where a booking gets quoted the wrong figure,
+so that is where the tests are: published only, effective on the day, highest
+priority first where two overlap — which is what lets a short Christmas list sit
+on top of the standing one without either being edited. A **draft is never
+quoted from**; it is next year's prices half-entered, and charging a customer
+from one charges them a figure nobody has agreed. A day no list covers returns
+**nothing rather than the nearest guess**. Both of those were checked by removing
+the status filter and watching them fail.
+
+The date used is the *event's*, not today's: a booking taken in March for a
+September wedding is quoted at September's prices if a September list exists,
+which is the entire point of preparing one in advance.
+
+**A latent fault this turned up.** The migration first marked the new version
+`bln_is_default`, and an existing test failed with *"Query did not return a
+unique result: 2 results were returned"*. `ServicePriceVersionImpl` calls
+`findByBlnIsDefaultTrue…` in five places and it returns a single `Optional` — so
+the application assumes **at most one default price version and nothing in the
+schema enforces it**. Two defaults, and every one of those five call sites
+throws. The migration no longer claims the flag (it does not need to: the
+version is published, open-ended and the only one, so it is selected on every
+date anyway), and the missing partial unique index is recorded here rather than
+added, because deciding what happens to a database that already has two defaults
+is a data decision and not a migration's to take.
+
+**M6 — one menu screen, and the three faults that made the last one useless.
+✅ Done.** M4 built a menu screen and left the three old ones beside it, on the
+grounds that they could still do things the new one could not. That was the
+wrong call twice over. It left five entries under "Menu Management" — two of
+them the Itinerary screens, which are not the menu — so somebody adding a dish
+still had to know which to open. And the new screen did not work.
+
+**`/menu/item/tree` had never returned a tree.**
+`ServiceTreeUtilityImpl.buildTreeDto` assembled a map of children and then
+returned the roots *without it*; `DtoMenuItem` had no `children` field to attach
+them to, so nothing complained. Every call since the endpoint was written
+answered twelve categories with nothing under any of them. The screen built on
+it therefore showed twelve rows, which is most of why the menu felt unchanged
+after the work meant to change it.
+
+**`generateCode` returned the same code every time.** It took the highest code
+by *text* order and parsed whatever followed the last dash. That is right only
+while every code under a prefix is the prefix, a dash and digits — true of
+production by luck, false the moment a code is typed by hand, which the old
+screen allowed. When it was false the parse failed, the counter restarted at 1,
+and the second item anybody created came back as a 500 with no explanation.
+
+**The development seed invented its own roles.** `MENU` / `COURSE` / `DISH`,
+with no `parent_menu_role_id`, so `validateParentRole` treated every role as a
+root and refused every parent: "DISH cannot have a parent" for a dish, a section
+and a category alike. Nothing could be added on a development database at all.
+It now mirrors production — `CATEGORY` › `SUBCATEGORY` › `ITEM` — and carries
+two stands, one of them with its contents typed into its name, because that is
+the case the screen exists for.
+
+With those fixed, the one screen does what the three did. **The role and the
+parent are no longer asked for**: they follow from where you clicked, which in
+the live catalogue they always have — all twelve depth-1 rows are Category, all
+thirty-two depth-2 rows are Subcategory, all 392 deeper rows are Item, without
+one exception. The panel shows only the fields that can mean anything for what
+is in front of you: a category has a name, a description, a position and whether
+it is on; a section adds a selection limit; a dish adds a price and how that
+price is charged. The old form showed all sixteen to everything.
+
+**A stand's contents can be lifted out of its name.** Where a name is plainly a
+list — commas only, because "Sour Cream & Chive" and "Dips & Accompaniments" are
+single dishes — the screen offers the parts, lets them be corrected, and creates
+them properly on confirmation. Never on its own: two of the three live cases end
+in a qualifier rather than another item, and only somebody who knows the stand
+can say which.
+
+**A correction to what §17 recorded.** "Seventeen composites have no sections"
+was true and misleading. Of the nineteen: two are properly built; four are
+*parts of* Reception Displays and are correctly leaves, though wrongly flagged;
+one ("Most Popular for Reception") is a section mislabelled as a stand; three
+have their contents in the name; and the remaining nine — Saffron Rice, Turkish
+Tea and the like — are single dishes carrying the flag for no reason. So the
+work outstanding is three splits and about ten flags to clear, not seventeen
+unknowns. The screen shows the flag as "this is a stand with several things on
+it" so it can be cleared without knowing what "composite" means.
+
+**And a fourth fault, found by the new screen being able to delete.** Removing
+one stand emptied the customer's entire food menu. `delete` is a soft delete —
+it sets `bln_is_deleted` and leaves `bln_is_active` alone — and
+`findByParentId`, the query the menu walk uses for a section's children,
+filtered on active and not on deleted. So the removed row still came back, the
+walk asked `getCompositeWithComponents` for it, that lookup *does* exclude
+deleted rows, it threw, and the controller answered the whole menu as an error.
+Every customer saw no food at all, and the row responsible was invisible by
+definition. Two of the four near-identical parent queries already had the
+clause; two did not. The walk now also skips a stand it cannot read rather than
+failing the request, because no single row is worth the whole menu.
+
+`menuManagement.js`, `MenuFoodItem.js`, `menuComposition.js` and
+`menuCategory.js` are gone — 2,575 lines — and their three routes redirect to
+the one screen, because somebody has them bookmarked.
+
+**M5b — the price charged comes from the list. ✅ Done.** The menu read now
+resolves the published list effective on the *event's* date, loads that list in
+one statement, and prices each dish from its offering there. Two things that
+existed in the database and nowhere else are finally read: a dish costs
+different amounts in different sections (M2), and next year's prices apply to
+next year's weddings (M5). The pricing rule comes off the list price too, not
+off the dish — the same sweet cart can be £2.00 a head this year and a £600 flat
+hire next, and reading the rule off the dish would multiply next year's £600 by
+the guest count.
+
+Both frontends send the date with the request: the event form from the field on
+screen so the figures follow what the person has just typed, the journey and the
+catering screens from the booking. Absent means today, which is the state the
+journey is in before a day has been chosen.
+
+**It changes no figure today, on purpose.** M5's backfill put every offering on
+`PV-CURRENT` at exactly the price it already carried, and that list is
+open-ended from 2000, so every existing quote resolves to the same number it did
+before. A dish on no published list falls back to its own price and logs a
+warning naming the dish and the section; a date no list covers falls back the
+same way and logs the date. Refusing to price would be the more principled
+answer and the wrong one — it would show a customer a menu of zeroes because
+somebody had not published next year's list yet.
+
+**A latent fault this turned up.** `EnmPriceMultiplierType.of(String)` returned
+`EnmItineraryUnitType` — a different enum, from the itinerary feature, which
+happens to have members called `PER_GUEST` and `FLAT` as well as three others.
+It compiled, and it would have answered an itinerary unit to a caller asking how
+a dish is priced. Nothing had ever called it; M5b is the first caller.
+
+**Still to do (M5c):** remove the fallback and retire `menu_item.num_price`,
+`price_entry` and `menu_item_price`. Not yet, and not on a schedule:
+`countOfferingsOnNoPriceList` has to be zero and stay zero first, and the
+fallback is what makes M5b safe to ship on its own.
+
+**How to tell when it is time.** The gate was written down without a way to
+read it, which is how a condition like this becomes indefinite. Against
+production:
+
+```sql
+-- Dishes offered somewhere that no published price list covers.
+-- M5c waits for this to be 0, and to stay 0 across a price-list publish.
+SELECT COUNT(*) FROM menu_offering o
+WHERE NOT EXISTS (SELECT 1 FROM menu_offering_price p WHERE p.ser_offering_id = o.ser_offering_id);
+```
+
+Two other things must be true before the retirement, and neither is about
+that number:
+
+  - `price_entry` still has a controller, a service and an admin screen. It
+    holds no rows on the development database, which proves nothing — check
+    production before deleting a feature somebody may be using.
+  - The fallback logs a warning naming the dish and the section every time it
+    fires. Those warnings going quiet is the same signal as the count reaching
+    zero, and is visible without a database.
+
+Reviewed 17 September 2026: still blocked, and deliberately so.
+
+### 17.4 What this is not
+
+It is not a rewrite. `menu_item` keeps its table, its ids and its meaning
+throughout; what changes is that where a dish appears stops being a property of
+the dish. Nothing here requires the customer journey to be rebuilt, and no stage
+requires both frontends to ship on the same day.
+
+---
+
+## 13. The schema, and who owns it
+
+**Status:** done, 19 August 2026. Was A7/A7b in §10.
+
+### What was actually wrong
+
+Flyway did not own this schema. There was no `V1` at all: `baseline-version=1`
+stamped whatever Hibernate had built as "version 1" and started at `V2`. On a
+database built by the migrations alone, **9 tables existed out of the 68 the
+entities need** — the other 59, including `event_master`, `customer_master`,
+`user_master` and the whole menu and decor trees, came from
+`ddl-auto=update` at startup.
+
+The consequence was sharper than the drift, and it is the part worth
+remembering. Every statement in `V2` is guarded on its table existing — it has
+to be, or an empty database cannot start — and **Flyway runs before Hibernate**.
+So on a *fresh* database `V2` found nothing, applied none of its integrity
+repairs, and reported nothing. Every new environment came up without the
+constraints `V2` was written to add. `V5`'s `ux_event_master_code`, the index
+that stops two events sharing a reference, was among them.
+
+### The fix
+
+`V1__baseline_schema.sql`, captured from a production `pg_dump --schema-only`.
+`ddl-auto` moved to `validate`.
+
+**From production rather than from the entities**, deliberately. Hibernate can
+export what the entities describe and that was the tempting shortcut, but
+`ddl-auto=update` never drops and never narrows, so production holds things the
+entities no longer mention: `decor_event_extras` and `detail_seq` map to no
+entity at all, and there are four views the Java code knows nothing about. An
+entity export would have silently omitted every one of them, and the first fresh
+environment would have differed from production in ways nobody would notice
+until something failed.
+
+### Three shapes of database, all verified against the real dump
+
+| | What happens | Verified |
+|---|---|---|
+| **Empty** | Runs `V1`, then `V2`–`V9`; ends up matching production | ✅ 71 tables, starts under `validate` |
+| **Production** | No Flyway history at all, so `baseline-on-migrate` adopts the schema at version 1 and **skips `V1`** — running it would try to create tables holding live data | ✅ Simulated by restoring the dump into an empty database: baselined at 1, applied 8 migrations, started under `validate` |
+| **Made during this branch** | History starts at `2`; Flyway refuses to start — *"Detected resolved migration not applied to database: 1"* | ✅ Reproduced the failure, then fixed it with `FlywayBaselineStamp` |
+
+That third case is why `FlywayBaselineStamp` exists. The alternatives were a
+line in a release note plus a hard startup failure for anybody who did not read
+it, or `ignore-migration-patterns=*:ignored` — which would have silenced this
+and also silenced a genuinely forgotten migration for ever afterwards. That last
+one was the option worth refusing. The stamp is tightly scoped, self-disabling,
+and deletable once every database has started once.
+
+### What this also proved
+
+Production's schema **already matches the entities**. `validate` passes against
+it untouched, which means `ddl-auto=update` had nothing left to do — it was
+carrying risk without doing work.
+
+---
+
+## 12. Consultations — replacing Calendly
+
+**Status:** specified, build in progress. Tracked as E1–E5 in §10.
+
+At the end of the booking journey the customer is offered a consultation. That
+is currently a Calendly widget (`react-calendly`), pointed at what used to be
+two hardcoded personal Calendly links. It is being replaced with a first-party
+scheduling system that reads and writes the team's own Google and Microsoft
+calendars.
+
+### 12.1 What it has to do
+
+| | |
+|---|---|
+| **Customer** | Sees real available slots at the end of the journey and books one. Gets a confirmation, a calendar invitation, and a way to cancel or move it. |
+| **Team** | Their existing calendar is respected — anything already in it blocks a slot. A booked consultation appears in their own calendar, not only in this system. |
+| **Admin** | Connects and disconnects calendar accounts, sets who takes consultations and when, sees what is booked, and adds or reschedules a meeting by hand. |
+
+### 12.2 Design decisions
+
+Taken up front, because they are the ones that are expensive to change later.
+
+**Times are stored in UTC** (`timestamptz`) and rendered in the reader's zone.
+The business is in the UK, so hosts see Europe/London and the clocks change
+twice a year under them; a customer may be anywhere. Storing local time and a
+zone name means every query has to convert before it can compare, and the hour
+that repeats each October is genuinely ambiguous. UTC in the database is the
+only representation with no ambiguous values in it.
+
+**Double booking is prevented by the database, not by the application.** Two
+customers pressing the same slot at the same moment is the defining failure of
+a booking system, and a check-then-insert in application code cannot prevent
+it — between the check and the insert is exactly where the other booking
+lands. PostgreSQL can express the constraint directly:
+
+```sql
+EXCLUDE USING gist (
+    ser_host_id WITH =,
+    tstzrange(dte_starts_at, dte_ends_at) WITH &&
+) WHERE (txt_status = 'BOOKED')
+```
+
+Needs `btree_gist`, which joins `ltree` in the extensions migration. The
+application still checks first, so the customer gets a civil "that slot has
+just gone" rather than a constraint violation — but the constraint is what
+makes it true.
+
+**One port, two providers.** Google Calendar and Microsoft Graph differ in
+their APIs and agree on everything that matters here: list busy periods,
+create an event, update it, delete it. A `CalendarProvider` interface with an
+adapter each keeps the scheduling logic free of either, and means the domain
+can be built and tested before any provider credentials exist.
+
+**Availability is rules, not slots.** Storing generated slots means
+regenerating them whenever anything changes and having stale rows the moment a
+host adds a meeting. Slots are computed on request from recurring rules minus
+exceptions, existing bookings, and imported busy periods.
+
+**Refresh tokens are encrypted at rest.** A token in the database in plaintext
+is a standing grant to read and write the team's calendars for anyone who
+reaches the database or a backup of it.
+
+### 12.3 Domain
+
+| Entity | What it is |
+|---|---|
+| `ConsultationHost` | A team member who takes consultations. Linked to `UserMaster`. |
+| `CalendarConnection` | One host's connected Google or Microsoft account: provider, account email, selected calendar, encrypted tokens, sync state. |
+| `AvailabilityRule` | Recurring weekly availability — day, start, end, per host. |
+| `AvailabilityException` | A one-off: a bank holiday closed, a Saturday opened. |
+| `ConsultationType` | Duration, the interval start times are offered on, buffer before and after, minimum notice, how far ahead bookings are allowed, where it happens, whether it needs confirming, and whether confirming makes a video link. |
+| `ConsultationBooking` | The meeting. Host, customer, optional `EventMaster`, start and end in UTC, status, the external calendar event it created, and a single-use token for the customer's cancel/reschedule link. |
+| `ExternalBusyBlock` | Busy periods imported from a connected calendar, so a host's own meetings block slots without this system reading what those meetings are. |
+
+### 12.4 Edge cases
+
+The list is the point of writing this down. Anything unticked is unbuilt.
+
+| Edge case | Handling |
+|---|---|
+| Two customers book the same slot at once | ✅ Constraint proven against a real database, and two threads racing through the service prove exactly one wins; loser is told the slot has gone and shown fresh ones |
+| Host's own calendar gains a meeting after slots were displayed | ✅ Re-checked at the moment of booking, not only when listing |
+| Provider unreachable when confirming | ✅ Booking stands, failure recorded as `SYNC_FAILED` on the row; proven by a test |
+| Provider unreachable when listing slots | ✅ Last imported busy periods are kept rather than cleared — erring towards the host looking busier, because the other way double-books them |
+| Refresh token expired or access revoked | ✅ Marked `NEEDS_RECONNECT`, taken out of the retry sweep and shown on the Connected calendars tab |
+| A booking is deleted in Google by the host | ⬜ Not reconciled — the consultation stays booked here. Needs a decision: silently cancelling on the strength of a calendar edit is a strong reading of a delete |
+| Host disconnects a calendar with future bookings | 🟡 Allowed, with the consequence stated in the confirmation. Removing the *host* is still refused, which is the case that leaves a customer with nobody |
+| Clocks change between listing and the meeting | ✅ Four tests: BST, GMT, the 25-hour day and the 23-hour day |
+| Customer is in another timezone | ✅ Slots rendered in their browser's zone, with the zone named on screen |
+| Customer books five minutes from now | ✅ Minimum notice on the consultation type |
+| Customer books three years out | ✅ Maximum advance on the consultation type |
+| Back-to-back meetings with no gap | ✅ Buffers before and after, counted as busy |
+| Bank holidays | ✅ Availability exceptions, and a closure beats a weekly rule |
+| Customer already has a consultation for this booking | ⬜ Offered the existing one to move, rather than a second |
+| A request is left unanswered | ✅ The hold lapses on a five-minute sweep, the slot returns, the customer is told, and confirming late is refused. **The sweep had no caller until E5** — see §12.6 |
+| Two customers request the same slot before either is confirmed | ✅ `PENDING` holds the slot under the same constraint as `BOOKED` |
+| No slots available at all | ✅ Says so plainly and offers the phone number — the venue-capacity lesson |
+| Admin manually books over a customer slot | ✅ Manual booking goes through the same service, so the same exclusion constraint applies; proven by a test |
+| Customer cancels | ✅ Single-use link, slot released, both sides emailed. Calendar event removal comes with E4 |
+| A mail server is down or has no credentials | ✅ The booking still succeeds — sending is after commit and swallows its own failures. This is the *ordinary* case in development, where there are no SMTP credentials at all |
+| An email scanner follows the cancel link | ✅ The link only opens a page; cancelling takes a press. Outlook Safe Links and similar fetch every URL in an email, so a page that acted on load would cancel meetings by itself |
+| An OAuth callback arrives with a forged or stale state | ✅ Refused before anything is done — HMAC-signed, ten-minute expiry, constant-time comparison. It is the only thing protecting a necessarily public endpoint |
+| The cancel link is used twice, or forwarded | ✅ The token is spent on use; the second attempt says the meeting is already cancelled rather than reading as a fault |
+| Customer is in another timezone when the email arrives | ✅ Every time in every email is written in the zone they booked from, and the host's copy carries both clocks |
+| Event booking is cancelled after the consultation is set | ⬜ Consultation flagged for the team, not silently cancelled |
+| Two hosts, one customer | ✅ Round-robin by least-recently-booked, skipping anyone not actually free; a named host can be requested |
+
+### 12.5 Delivery, and what I cannot verify here
+
+Staged, because Google and Microsoft credentials are needed and I cannot obtain
+them — the same constraint as Apple sign-in.
+
+| Stage | | Verifiable here |
+|---|---|---|
+| **E1** | Domain, availability rules, slot generation, booking with the exclusion constraint | ✅ Fully |
+| **E2** | Customer-facing booking at the end of the journey, replacing the Calendly widget | ✅ Fully, end to end |
+| **E3** | Admin: hosts, availability, meeting types, request queue, manual booking | ✅ Fully |
+| **E4a** | `CalendarProvider` port, write-target rule, video link on confirmation | ✅ Fully, against a stand-in provider |
+| **E4b** | The Google and Microsoft adapters, and encryption of the stored tokens | 🟡 Everything on this side of the socket; the round trip needs credentials |
+| **E5** | Admin: connect and disconnect, choose the write target, sync health, busy import | 🟡 Everything but the click-through on a real consent screen |
+
+E1–E3 give a working consultation system with no external dependency at all.
+E4–E5 make the team's existing calendars part of it. Built in that order so
+there is something working before anything depends on a third party.
+
+#### What E3 actually built
+
+Four screens under **Consultations** in the admin portal, ordered by how often
+they are used rather than by how the data is shaped:
+
+| Screen | What it is for | Who opens it |
+|---|---|---|
+| **Diary** | Every consultation, filtered by person, status and date. Paged on the server — it is the only table here that grows without limit. Cancelling from it releases the slot. | Daily |
+| **Requests** | Requests waiting on somebody, with how long the hold has left. Confirm or decline, with a reason. | Daily |
+| **Who takes them** | Add and remove people, set which zone they work in, and open their working hours. | On a change |
+| **Kinds of meeting** | Length, interval, buffers, notice, how far ahead, whether it needs confirming, how long a request is held, and whether confirming makes a video link. | On a change |
+
+Everything the business asked to be configurable is on those last two screens.
+Nothing about consultations is a constant in the code any more.
+
+Removing somebody with meetings in the diary is refused rather than cascaded,
+and the refusal says how many — customers would otherwise hold an appointment
+with nobody and find out on the day. Booking by hand goes through the same
+service as a customer booking, so the double-booking constraint applies to it
+too; an admin path that bypassed it would have been the one way to double-book.
+
+#### Three bugs E3's tests found
+
+Worth recording because none of them would have shown up in ordinary use until
+somebody depended on them.
+
+1. **A one-off opening did nothing for a host with no weekly hours.** The slot
+   finder gave up the instant the rules list was empty, so "we are not normally
+   available, but we are open this Saturday for the wedding fair" saved
+   correctly and produced an empty calendar, with nothing anywhere saying why.
+   Every existing test of openings happened to pass a weekly rule as well,
+   which is what hid it.
+
+2. **The diary query failed outright on PostgreSQL.** Absent date filters were
+   written `:from IS NULL`; a parameter that appears only inside a null check
+   has no type to infer, so PostgreSQL answered "could not determine data type
+   of parameter $5" and the screen 500'd. The id and status filters get away
+   with the same shape because their types come from the columns they are
+   compared against. Absent bounds are now widened to ones that exclude nothing.
+
+3. **The interval between offered times was a constant.** `SLOT_STEP_MINUTES =
+   30` meant an hour-long meeting was always offered on the hour and the half
+   hour. It is a column on the meeting type now. It is deliberately *not* the
+   same as the duration: a 60-minute meeting on a 30-minute interval is offered
+   at 09:00, 09:30, 10:00 — overlapping candidates, of which booking one
+   removes its neighbours. That is why an empty three-hour morning offers five
+   hour-long starts and not three, and it is the thing that confuses everybody
+   the first time, so the portal spells it out on the field.
+
+#### The emails
+
+The loop the business described — a customer requests, the team confirms, and
+the confirmation carries the link — is complete. Five messages:
+
+| What happened | Customer gets | Host gets |
+|---|---|---|
+| Booked outright | "Your consultation is booked", joining link, cancel link | The booking, with both clocks |
+| Requested | "We have your request" — says plainly it is **not a booking yet**, and when the hold runs out | "A request is waiting for you" |
+| Confirmed | "Your consultation is confirmed", joining link, cancel link | — |
+| Declined | The reason, and an invitation to pick another time | — |
+| Cancelled | A receipt if they cancelled; an apology and another time if the team did | Told, either way |
+
+Three decisions worth recording:
+
+1. **Nothing an email does can undo a booking.** Sending happens after the
+   transaction commits, through `UtilTransaction.afterCommit`, and every send
+   swallows its own failure. The mail server is somebody else's machine, reached
+   over the network, and in development it has no credentials at all — so it
+   failing is not an edge case, it is what happens on every developer laptop
+   every time. A test proves a booking still succeeds when the mail server
+   throws.
+
+2. **Every time is written in the customer's own zone**, and labelled with an
+   offset rather than an abbreviation. The JDK's short zone names are not
+   dependable — on this JVM `Asia/Dubai` formats as "GTS", which nobody uses
+   (the real abbreviation is GST), and `America/New_York` formats as
+   "GMT-04:00", so the shape is not even consistent. The label exists so the
+   reader can catch a mistake, and one they do not recognise cannot do that.
+   An offset needs no locale data to be right. That is what the
+   `txtCustomerTimeZone` column has been for. An email telling somebody in Dubai
+   their consultation is at 10:00, meaning 10:00 in London, is a missed meeting
+   and a customer who believes they were stood up. The host's copy carries both,
+   because ringing somebody at their midnight is the other half of the same
+   mistake.
+
+3. **The cancel link opens a page; it does not cancel.** Mail clients, corporate
+   security gateways and link scanners fetch the URLs in an email before a person
+   sees them — Outlook's Safe Links does it as a matter of course. A page that
+   acted on load would have meetings cancelled by a spam filter, and the customer
+   would find out by turning up to nothing. Four end-to-end tests cover this,
+   including one that was checked by making the page cancel on load and watching
+   three of them fail.
+
+The page lives at `/consultation/manage?token=…` in the customer journey,
+deliberately outside `ProtectedRoute`: the customer may not be signed in, may
+not have an account, and may be opening it weeks later on a different device.
+The unguessable single-use token is what authorises it, and the server spends
+it on use.
+
+#### Access, and how it is proved
+
+Everything under `/admin/consultation` is administrator-only because the
+security policy is default-deny. `/admin` is **not** a protected prefix in
+itself — several menu reads live under `/admin/menu` and are on the customer
+allowlist — so what keeps these closed is being absent from that list, not the
+path they sit on.
+
+That is asserted twice, deliberately. `PortalEndpointPolicyTest` checks the
+rule; `ConsultationAccessIT` drives all sixteen endpoints over HTTP with real
+signed tokens and checks the filter chain enforces it: 401 anonymous, 403 for a
+signed-in customer, 200 for an administrator. The middle one is the case worth
+the test — a customer holds a perfectly valid token, so authentication settles
+nothing, and a slip there means reading every other customer's consultations.
+
+### 12.5a Requested, or booked outright
+
+Asked for by the business on 19 August: a customer requests a meeting, the team
+confirms it, and the confirmation email carries the link.
+
+**It is a good approach, and it is a setting rather than the only mode.** Both
+Calendly and Cal.com have exactly this — "requires confirmation" — and both
+default it off. Three reasons the default matters:
+
+- A customer who has just finished a fourteen-step journey is at the point of
+  most commitment. "Somebody will confirm this later" is where that goes.
+- Somebody has to act. A request made on a Friday evening waits until Monday.
+- **The slot question.** While a request is pending, is the slot held? If not,
+  the team can confirm a meeting into a time somebody else has since taken. If
+  it is, one request nobody answers takes a slot off sale for good.
+
+So: per consultation type, off by default; a pending request **does** hold its
+slot — the exclusion constraint covers `PENDING` as well as `BOOKED` — and the
+hold **lapses** after a configurable window, which puts the slot back on sale.
+Confirming after the hold has lapsed is refused rather than granted, because by
+then somebody else may have the time.
+
+`DECLINED` is separate from `CANCELLED`. The team saying no and the customer
+pulling out are different events and should not read as the same one in a list.
+
+The video link is created **on confirmation**, which suits both modes: instant
+bookings confirm immediately, requested ones when somebody agrees. A link for a
+meeting nobody has said yes to is a link to nothing.
+
+| Setting (per consultation type) | Default |
+|---|---|
+| `blnRequiresConfirmation` | off — book outright |
+| `numConfirmationWindowHours` | 48 |
+| `blnCreateVideoLink` | on |
+
+#### What E4a built, and the trap it fell into
+
+The port is in and everything above it is finished: which calendar gets written
+to, when the write happens, whether a joining link is asked for, and what
+happens when the provider fails. Only the two adapters are left, and they are
+the part that cannot be written without credentials.
+
+Four rules the tests pin down:
+
+- **A provider that is down cannot cost a customer their booking.** Google being
+  unreachable, a revoked token and an expired refresh token all land in the same
+  place, and none of them is a reason to tell somebody their meeting did not
+  happen. The failure is recorded on the row as `SYNC_FAILED` for a person to
+  chase.
+- **A host with nothing connected still takes consultations.** That is the state
+  every installation is in before anybody connects anything, and a small team may
+  stay in it for ever.
+- **Read from every connected calendar, write to exactly one.** Enforced by a
+  partial unique index rather than by remembering to clear the old target.
+- **A request is not put in anybody's diary until it is confirmed.** Otherwise a
+  host turns down other work for something they may well decline.
+
+**The trap.** Publishing runs from `afterCommit`, and a `save()` there quietly
+does nothing: the EntityManager is still bound to the thread so there is no
+error, but its transaction has already finished and the flush never reaches the
+database. The symptom is nastier than a failure would be — the provider is
+called, the calendar entry really is created, the joining link really is
+returned, and the column stays null. So the customer's email goes out without
+the link, and a later retry creates a *second* calendar entry because the row
+still looks unwritten.
+
+`REQUIRES_NEW` on the two public methods fixes it. It was checked by taking the
+annotation off and watching the test fail, because an annotation that turns out
+to be decoration is worse than none.
+
+### 12.6 Calendar providers — the approach, and why
+
+Answering "Google, Microsoft, or both?" and "should it sync with both or only
+one?". Decided 19 August 2026.
+
+**Both providers, connected per person, not per company.**
+
+A team does not all use the same thing, and the person who joins next may not
+use what everyone else does. Every scheduling product of consequence — Calendly,
+Cal.com, SavvyCal — connects each individual's own account for that reason. It
+also avoids the alternative: a domain-wide installation that can read every
+mailbox in the company whether or not its owner agreed. That needs an
+administrator's blessing, is a far larger thing to be responsible for, and buys
+nothing here.
+
+**Read busy from every connected calendar. Write consultations to exactly one.**
+
+This is the part that is easy to get wrong, and it is the real answer to
+"both or only one":
+
+| Direction | Which calendars | Why |
+|---|---|---|
+| **Read** — when is this person busy? | *All* of them | Someone with work in Outlook and personal life in Google is genuinely unavailable for both. Reading only one produces a system that books meetings over their dentist. |
+| **Write** — where does this consultation go? | *One*, nominated per host | Writing to several means the same meeting exists two or three times, and every later edit has to find and match all the copies. |
+
+Put another way: their calendars are the authority on when they are busy; this
+system is the authority on consultations. Nothing is authoritative for the same
+fact in two places, which is where sync loops and duplicated meetings come from.
+
+**Busy times only, never event contents.** Both providers have an API for
+exactly this — Google's `freeBusy.query`, Microsoft's `getSchedule` — which
+returns periods and nothing else. Asking for less means the team's private
+meetings never enter this database, there is nothing sensitive to leak, and the
+permission being requested is one a person can reasonably agree to.
+
+**The narrowest scopes that do the job.**
+
+| | Read availability | Write the consultation |
+|---|---|---|
+| Google | `calendar.freebusy` | `calendar.app.created` — a calendar this app makes and only it can touch |
+| Microsoft | `Calendars.ReadBasic` | `Calendars.ReadWrite`, delegated |
+
+`calendar.app.created` is worth the specific mention: Google added it so a
+scheduling app need not ask for access to everything in someone's calendar, and
+it keeps this out of the heavier verification review that the broad `calendar`
+scope now attracts.
+
+**Push notifications, with polling underneath.** Google's watch channels and
+Microsoft's Graph subscriptions both tell us when something changes, which
+beats asking every few minutes. Both need a public HTTPS endpoint to call, so
+polling stays as the fallback for development and for when a subscription
+lapses.
+
+#### E4b: the adapters, and what "needs credentials" actually means
+
+Both adapters are written. What cannot be done here is run them against the
+real Google and Microsoft — that needs an account, a consent screen and a
+person to click through it. Everything on this side of the socket is tested:
+the request that would go out, and the reading of a response shaped like
+theirs.
+
+That is not a token gesture, because most of what goes wrong with these
+integrations is on this side. Each of the following is a real failure of this
+kind and each is now pinned by a test:
+
+- **`conferenceDataVersion=1` missing** — the call succeeds, the event appears,
+  and there is simply no Meet link. A silent no-op that reads as Google ignoring
+  the request.
+- **A time sent to Graph without its zone** — interpreted in the mailbox's own
+  zone, moving every consultation by that offset, silently.
+- **A rotated Microsoft refresh token discarded** — everything works for a
+  fortnight, then every connection fails together when the original expires,
+  long after the change that caused it.
+- **A Google per-calendar error inside a 200** — a deleted or unshared calendar
+  comes back as an `errors` array, not an HTTP failure. Read as an empty busy
+  list it means "free all week", and the system starts offering times the host
+  is committed to.
+
+**Token encryption.** The schema had said `txt_refresh_token_encrypted` since
+V6; nothing made that true until now. It matters more than encryption at rest
+usually does: a refresh token is not a password that expires or a session that
+ends, it is a standing grant to read and write the whole team's calendars until
+somebody revokes it. AES-GCM, a fresh IV per value, and — deliberately — **no
+key means refusing to store rather than storing in the clear**. The tempting
+fallback turns a missing setting into a silent permanent leak that nothing ever
+reports.
+
+**One bug the tests caught.** `@ConditionalOnProperty` was the obvious way to
+register an adapter only when configured, and it was wrong: it matches a
+property that *exists*, and an empty one exists, because
+`application.properties` declares every calendar setting with an empty default
+so the application starts without them. Both adapters registered on every
+installation — present and failing on use, where the entire design is that an
+unconfigured provider is *absent*. It surfaced as two adapters both claiming to
+be Google; without that collision it would have reached production as
+consultations failing to sync on a system nobody had connected anything to.
+
+#### E5: connecting a calendar, and the bug underneath it
+
+A fifth admin tab, **Connected calendars**: connect Google or Microsoft per
+person, disconnect, choose which one consultations are written to, and see
+whether syncing is working. Busy times are imported on a ten-minute timer.
+
+**The callback is the security-critical part.** It has to be publicly reachable
+— the provider redirects the administrator's *browser* to it, so it arrives as
+a plain GET with no bearer token and no way to ask for one. That makes the
+signed `state` parameter the only thing standing between it and anyone on the
+internet.
+
+Without it the attack is quiet and complete: someone finishes an OAuth flow
+against *their own* Google account, then sends an administrator a link to the
+callback carrying that code and a chosen `serHostId`. The system connects the
+attacker's calendar to a member of the team, and from then on every consultation
+booked with that person — name, email, phone, time — is written into a calendar
+the attacker controls, automatically. The state is HMAC-signed, carries the host
+and provider it was issued for, expires in ten minutes, and is compared in
+constant time. Eight unit tests and one over HTTP.
+
+**A bug found on the way.** `releaseLapsedHolds()` was written in E1, tested,
+documented — and **nothing ever called it**. So the half of "requested, then
+confirmed" that makes the other half safe simply did not happen: every
+unanswered request held its slot for ever, which is precisely the failure the
+lapse window exists to prevent. It is on a timer now, and the customer is told
+when their request lapses rather than being left expecting a meeting.
+
+Worth recording as a category, not an incident. A scheduled job that was never
+scheduled produces no error and no log line; the only symptom is slots that
+quietly never come back. Nothing in the test suite could have caught it, because
+every test called the method directly.
+
+**Two deliberate choices in the import.** A failed sync *keeps* the busy times
+it imported before, rather than clearing them — stale busy times block slots the
+host probably still cannot take, whereas deleting them offers those times out
+the moment a provider has a bad five minutes. Erring towards a host looking
+busier than they are costs a missed booking; the other way costs somebody a
+double-booked afternoon. And a revoked grant is marked `NEEDS_RECONNECT` rather
+than `ERROR`, which takes it out of the retry sweep and puts it on the screen —
+otherwise it is retried every ten minutes for ever while the slots stay wrong.
+
+### 12.7 What this needs from the business
+
+Nothing, to start with. E1–E3 are a complete consultation system with no
+provider connected at all: hosts, hours, slots, bookings, admin management. A
+calendar connection makes it better, and nothing waits on one.
+
+When you want the sync, each provider needs an OAuth app registered once:
+
+| | What to register | Redirect URI |
+|---|---|---|
+| Google | A project in Google Cloud Console with the Calendar API enabled | `{backend}/login/oauth2/code/google-calendar` |
+| Microsoft | An app registration in Entra ID with delegated Graph permissions | `{backend}/login/oauth2/code/microsoft-calendar` |
+
+Either can be done without the other, and either can be added later. Hosts
+connect their own accounts from the admin screen; nobody needs to hand over a
+password.
+
+**Still open, and worth an answer before E4:**
+
+- Should a consultation carry a video link — Google Meet or Teams — created
+  automatically with the meeting? It is a small amount of extra work at the
+  time and an awkward retrofit later. Assumed yes unless told otherwise.
+- Should the customer receive a calendar invitation they can add to their own
+  calendar? Assumed yes; it is an `.ics` attachment and needs no provider.
+
+## 11. Decisions taken
+
+| Decision | Reasoning |
+|---|---|
+| Keep `BookCatering`, delete `Caterings2` / `DecorForms` / `DecorInputRow` | The first has a live route and a live backend endpoint — parked, not withdrawn. The others have no route and no importer. |
+| Bulk operations fail whole rather than reporting partial success | Inside one transaction partial success is not available. Reporting it described an outcome the database cannot produce, and sent administrators hunting for failures instead of re-running. |
+| Rollback marking via a helper, not inline | `TransactionAspectSupport.currentTransactionStatus()` throws where no transaction is running, and these methods are reachable from paths that were never transactional. |
+| Request bodies never logged, at any level | A rule that needs no case-by-case judgement about whether this particular payload carries personal data. |
+| Leave the `externalSuuppliers` misspelling | Renaming breaks bookmarked URLs for no functional gain. |
+| Mobile tests run Chromium, not WebKit | The project tests a phone viewport, not Safari's engine. Safari is explicitly not covered. |
+| No test for `BookCatering` | There is no path through the application to drive it. Inventing a route in would test something no customer can do. |

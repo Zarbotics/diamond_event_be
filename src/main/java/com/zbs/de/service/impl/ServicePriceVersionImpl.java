@@ -18,6 +18,7 @@ import com.zbs.de.mapper.MapperPriceVersion;
 import com.zbs.de.model.PriceVersion;
 import com.zbs.de.repository.RepositoryPriceVersion;
 import com.zbs.de.service.ServicePriceVersion;
+import com.zbs.de.util.UtilTransaction;
 import com.zbs.de.util.enums.EnmPriceVersionStatus;
 
 @Service
@@ -77,6 +78,9 @@ public class ServicePriceVersionImpl implements ServicePriceVersion {
 			return new DtoResult("Price version created successfully.", null, mapper.toDto(entity), null);
 
 		} catch (Exception e) {
+			// Creating a default version first clears the flag on the existing
+			// one. Without this the clear commits even though the create failed.
+			UtilTransaction.markRollbackOnly();
 			LOGGER.error("Error creating price version", e);
 			return new DtoResult("Failed to create price version: " + e.getMessage(), null, null, null);
 		}
@@ -133,6 +137,7 @@ public class ServicePriceVersionImpl implements ServicePriceVersion {
 			return new DtoResult("Price version updated successfully.", null, mapper.toDto(entity), null);
 
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			LOGGER.error("Error updating price version", e);
 			return new DtoResult("Failed to update price version: " + e.getMessage(), null, null, null);
 		}
@@ -305,6 +310,10 @@ public class ServicePriceVersionImpl implements ServicePriceVersion {
 			return new DtoResult("Price version set as default successfully.", null, mapper.toDto(entity), null);
 
 		} catch (Exception e) {
+			// Two saves: clear the old default, then set the new one. If the
+			// second fails and the first commits, there is no default price
+			// version at all and every price lookup falls through to nothing.
+			UtilTransaction.markRollbackOnly();
 			LOGGER.error("Error setting price version as default", e);
 			return new DtoResult("Failed to set price version as default: " + e.getMessage(), null, null, null);
 		}

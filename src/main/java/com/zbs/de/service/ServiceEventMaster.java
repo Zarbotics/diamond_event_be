@@ -18,7 +18,6 @@ import com.zbs.de.model.dto.DtoSearch;
 
 public interface ServiceEventMaster {
 
-	DtoResult saveAndUpdate(DtoEventMaster dtoEventMaster);
 
 	DtoResult getByEventTypeIdAndCustId(DtoSearch dtoSearch);
 
@@ -53,9 +52,54 @@ public interface ServiceEventMaster {
 	
 	DtoResult validateEventDateAvailability(Date eventDate);
 	
-	DtoResult getAlreadyBookedDates();
-	
-	DtoResult saveAndUpdateWithDocsCE(DtoEventMaster dtoEventMaster, List<MultipartFile> files)throws IOException;
+	/**
+	 * The dates a customer cannot choose, for the calendar to grey out.
+	 *
+	 * @param excludeEventId the event being edited. Its own date must not be
+	 *                       counted against it: it already holds that slot, and
+	 *                       {@code canBookEvent} — which is what actually decides
+	 *                       whether a save is allowed — excludes it too. Null
+	 *                       when the date is being chosen for a booking that does
+	 *                       not exist yet.
+	 */
+	DtoResult getAlreadyBookedDates(Integer excludeEventId);
+
+	/**
+	 * Upcoming days holding more events than the capacity rule allows.
+	 *
+	 * <p>
+	 * These exist because the rule was not applied on every save path until
+	 * recently, and the bookings that resulted are real commitments to real
+	 * customers — they are grandfathered rather than corrected. What the team
+	 * needs is not for them to disappear but to know which days they are, so
+	 * those days can be staffed and resourced for what is actually happening.
+	 *
+	 * <p>
+	 * Past days are left out. They are history, and nothing can be done about
+	 * them.
+	 */
+	DtoResult getDaysOverCapacity();
+
+	/**
+	 * Every event, in the narrow shape the admin calendar draws.
+	 *
+	 * <p>
+	 * Deliberately not paginated — a month view missing some of its events is
+	 * worse than no month view. The saving is in the width of each row: five
+	 * fields instead of sixty, and none of the nested selection collections.
+	 */
+	DtoResult getCalendarEntries();
+
+	/**
+	 * One customer's events, in the narrow shape the "choose an event" step draws.
+	 *
+	 * <p>
+	 * The full event is fetched only for the one the customer picks. Anything
+	 * needed to decide <em>whether</em> to pick it — the date, the guest count,
+	 * whether it can still be edited — travels with the summary.
+	 */
+	DtoResult getEventSummariesByCustomerId(Integer serCustId);
+
 	
 	DtoEventMaster getEventById(Integer serEventMasterId);
 }

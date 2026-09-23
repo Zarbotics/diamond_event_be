@@ -1,0 +1,666 @@
+package com.zbs.de.service.impl;
+
+import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zbs.de.model.CalendarBusyBlock;
+import com.zbs.de.model.ConsultationBooking;
+import com.zbs.de.model.ConsultationHost;
+import com.zbs.de.model.ConsultationType;
+import com.zbs.de.repository.RepositoryCalendarBusyBlock;
+import com.zbs.de.repository.RepositoryConsultationAvailabilityException;
+import com.zbs.de.repository.RepositoryConsultationAvailabilityRule;
+import com.zbs.de.repository.RepositoryConsultationBooking;
+import com.zbs.de.repository.RepositoryConsultationHost;
+import com.zbs.de.repository.RepositoryConsultationType;
+import com.zbs.de.service.ConsultationSlotFinder;
+import com.zbs.de.service.ConsultationSlotFinder.Busy;
+import com.zbs.de.service.ConsultationSlotFinder.Slot;
+import com.zbs.de.service.ServiceConsultation;
+import com.zbs.de.service.ServiceConsultationNotifier;
+import com.zbs.de.service.calendar.ServiceCalendarSync;
+import com.zbs.de.util.UtilTransaction;
+
+/**
+ * Booking consultations.
+ *
+ * <p>
+ * The scheduling arithmetic lives in {@link ConsultationSlotFinder}, which has
+ * no Spring and no database in it. This class is the part that talks to both:
+ * it gathers what the finder needs, and it writes the result down safely.
+ */
+@Service
+public class ServiceConsultationImpl implements ServiceConsultation {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConsultationImpl.class);
+
+	/**
+	 * How far apart offered start times are placed, when the type does not say.
+	 *
+	 * <p>
+	 * A fallback, not a policy — the interval is a column on the consultation
+	 * type so the portal can set it per kind of meeting. This value only applies
+	 * to a row written before that column existed.
+	 */
+	private static final int DEFAULT_SLOT_STEP_MINUTES = 30;
+
+	/** How far ahead a request may look, whatever it asks for. */
+	private static final int MAX_WINDOW_DAYS = 120;
+
+	private static final SecureRandom RANDOM = new SecureRandom();
+
+	@Autowired
+	private RepositoryConsultationHost repositoryHost;
+
+	@Autowired
+	private ServiceConsultationNotifier notifier;
+
+	@Autowired
+	private ServiceCalendarSync serviceCalendarSync;
+
+	@Autowired
+	private RepositoryConsultationType repositoryType;
+
+	@Autowired
+	private RepositoryConsultationAvailabilityRule repositoryRule;
+
+	@Autowired
+	private RepositoryConsultationAvailabilityException repositoryException;
+
+	@Autowired
+	private RepositoryConsultationBooking repositoryBooking;
+
+	@Autowired
+	private RepositoryCalendarBusyBlock repositoryBusyBlock;
+
+	// -----------------------------------------------------------------
+	// Listing
+	// -----------------------------------------------------------------
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<OfferedSlot> availableSlots(Integer serConsultationTypeId, Integer serHostId,
+			LocalDate from, LocalDate to) {
+
+		ConsultationType type = repositoryType
+				.findBySerConsultationTypeIdAndBlnIsDeletedFalse(serConsultationTypeId)
+				.orElse(null);
+		if (type == null || !Boolean.TRUE.equals(type.getBlnIsActive())) {
+			return List.of();
+		}
+
+		LocalDate windowFrom = from != null ? from : LocalDate.now();
+		LocalDate windowTo = to != null ? to : windowFrom.plusDays(30);
+
+		// A request for five years of slots is a request to generate a very large
+		// list nobody will read. Cap it here rather than trusting the caller.
+		if (windowTo.isAfter(windowFrom.plusDays(MAX_WINDOW_DAYS))) {
+			windowTo = windowFrom.plusDays(MAX_WINDOW_DAYS);
+		}
+		if (!windowTo.isAfter(windowFrom)) {
+			return List.of();
+		}
+
+		List<ConsultationHost> hosts = serHostId != null
+				? repositoryHost.findBySerHostIdAndBlnIsDeletedFalse(serHostId)
+						.filter(h -> Boolean.TRUE.equals(h.getBlnIsActive()))
+						.map(List::of).orElse(List.of())
+				: repositoryHost.findByBlnIsActiveTrueAndBlnIsDeletedFalseOrderBySerHostIdAsc();
+
+		Instant now = Instant.now();
+		List<OfferedSlot> offered = new ArrayList<>();
+
+		for (ConsultationHost host : hosts) {
+			ZoneId zone = host.zone();
+			Instant windowStart = windowFrom.atStartOfDay(zone).toInstant();
+			Instant windowEnd = windowTo.atStartOfDay(zone).toInstant();
+
+			for (Slot slot : ConsultationSlotFinder.findSlots(
+					type, zone,
+					repositoryRule.findBySerHostIdAndBlnIsDeletedFalse(host.getSerHostId()),
+					repositoryException.findBySerHostIdAndDteOnDateBetweenAndBlnIsDeletedFalse(
+							host.getSerHostId(), windowFrom, windowTo),
+					busyFor(host.getSerHostId(), windowStart, windowEnd),
+					windowStart, windowEnd, now, slotStepFor(type))) {
+
+				offered.add(new OfferedSlot(host.getSerHostId(), host.getTxtDisplayName(), slot));
+			}
+		}
+
+		offered.sort(Comparator.comparing((OfferedSlot o) -> o.slot().startsAt())
+				.thenComparing(OfferedSlot::serHostId));
+		return offered;
+	}
+
+	/**
+	 * Everything that makes a host unavailable: consultations already booked
+	 * here, and anything imported from their own calendar.
+	 */
+	private List<Busy> busyFor(Integer serHostId, Instant windowStart, Instant windowEnd) {
+		List<Busy> busy = new ArrayList<>();
+
+		for (ConsultationBooking booking : repositoryBooking
+				.liveBookingsOverlapping(serHostId, windowStart, windowEnd)) {
+			busy.add(new Busy(booking.getDteStartsAt(), booking.getDteEndsAt()));
+		}
+
+		for (CalendarBusyBlock block : repositoryBusyBlock
+				.overlapping(serHostId, windowStart, windowEnd)) {
+			busy.add(new Busy(block.getDteStartsAt(), block.getDteEndsAt()));
+		}
+
+		return busy;
+	}
+
+	// -----------------------------------------------------------------
+	// Booking
+	// -----------------------------------------------------------------
+
+	/*
+	 * Deliberately NOT @Transactional, and this is the subtle part.
+	 *
+	 * The insert below can violate the exclusion constraint — that is the whole
+	 * point of it. Inside a transaction, a constraint violation marks that
+	 * transaction rollback-only, and catching the exception does not undo that:
+	 * the method then returns normally and the *commit* fails instead, with
+	 * "Transaction silently rolled back because it has been marked as
+	 * rollback-only". The caller gets an exception from a method that handled
+	 * its error perfectly well. I wrote it with @Transactional first and the
+	 * concurrency test found exactly that.
+	 *
+	 * It is the mirror image of the fault fixed across the service layer
+	 * earlier, and it comes from the same wrong assumption — that catching an
+	 * exception inside a transaction puts things back. It does not. A
+	 * persistence failure poisons the transaction whether or not anybody
+	 * catches it; there it meant the partial work committed, here it means
+	 * nothing can.
+	 *
+	 * So the insert runs in its own transaction — Spring Data's save is
+	 * transactional by itself — and the handler sits outside it, where there is
+	 * no poisoned transaction to commit. Nothing here needs the wider
+	 * atomicity: the booking is a single row, and the constraint rather than
+	 * the transaction is what makes it safe. The host's round-robin timestamp
+	 * is the only other write, and a stale one costs nothing.
+	 */
+	@Override
+	public BookingOutcome book(Integer serConsultationTypeId, Integer serHostId, Instant startsAt,
+			String customerName, String customerEmail, String customerPhone,
+			String customerTimeZone, String notes, Integer serCustId, Integer serEventMasterId) {
+
+		if (startsAt == null || customerName == null || customerName.isBlank()
+				|| customerEmail == null || customerEmail.isBlank()) {
+			return BookingOutcome.refused("A name, an email address and a time are all needed.");
+		}
+
+		ConsultationType type = repositoryType
+				.findBySerConsultationTypeIdAndBlnIsDeletedFalse(serConsultationTypeId)
+				.orElse(null);
+		if (type == null || !Boolean.TRUE.equals(type.getBlnIsActive())) {
+			return BookingOutcome.refused("That kind of consultation is not available.");
+		}
+
+		Integer hostId = serHostId != null ? serHostId : chooseHost(type, startsAt);
+		if (hostId == null) {
+			/*
+			 * Either somebody took it, or nobody works then. The customer only
+			 * ever presses a slot that was offered to them, so from where they
+			 * are standing those are the same event and neither is their fault.
+			 * Saying "nobody is available" about a time we had just displayed
+			 * reads as though the list was lying.
+			 */
+			return BookingOutcome.taken();
+		}
+
+		ConsultationHost host = repositoryHost.findBySerHostIdAndBlnIsDeletedFalse(hostId).orElse(null);
+		if (host == null || !Boolean.TRUE.equals(host.getBlnIsActive())) {
+			return BookingOutcome.refused("That person is not taking consultations.");
+		}
+
+		Instant endsAt = startsAt.plus(Duration.ofMinutes(type.getNumDurationMinutes()));
+
+		/*
+		 * Re-checked here, not trusted from the listing. Between a customer being
+		 * shown a slot and pressing it, somebody else may have taken it or the
+		 * host may have filled the time in their own calendar. The listing is a
+		 * suggestion; this is the decision.
+		 */
+		if (!isStillOffered(type, host, startsAt)) {
+			return BookingOutcome.taken();
+		}
+
+		ConsultationBooking booking = new ConsultationBooking();
+		booking.setSerHostId(hostId);
+		booking.setSerConsultationTypeId(serConsultationTypeId);
+		booking.setSerCustId(serCustId);
+		booking.setSerEventMasterId(serEventMasterId);
+		booking.setTxtCustomerName(customerName.trim());
+		booking.setTxtCustomerEmail(customerEmail.trim());
+		booking.setTxtCustomerPhone(customerPhone);
+		booking.setTxtCustomerTimeZone(customerTimeZone);
+		booking.setTxtNotes(notes);
+		booking.setDteStartsAt(startsAt);
+		booking.setDteEndsAt(endsAt);
+		/*
+		 * Instant, unless this kind of meeting is set to need agreeing. A
+		 * pending request still holds the slot — the exclusion constraint
+		 * covers PENDING too — because otherwise the team could confirm a
+		 * meeting into a time somebody else took while they were deciding.
+		 */
+		boolean needsConfirming = Boolean.TRUE.equals(type.getBlnRequiresConfirmation());
+		booking.setTxtStatus(needsConfirming
+				? ConsultationBooking.STATUS_PENDING
+				: ConsultationBooking.STATUS_BOOKED);
+		if (needsConfirming) {
+			// And the hold lapses, so one request nobody answers does not take
+			// a slot off sale for good.
+			booking.setDteHoldExpiresAt(Instant.now().plus(Duration.ofHours(
+					type.getNumConfirmationWindowHours() == null
+							? 48
+							: type.getNumConfirmationWindowHours())));
+		} else {
+			booking.setDteConfirmedAt(Instant.now());
+		}
+		booking.setTxtManagementToken(newManagementToken());
+		booking.setTxtExternalSyncStatus(ConsultationBooking.SYNC_PENDING);
+
+		try {
+			repositoryBooking.saveAndFlush(booking);
+		} catch (DataIntegrityViolationException e) {
+			/*
+			 * The exclusion constraint in V6 caught a booking that the check above
+			 * could not, because it was made in the moment between the two. That
+			 * is the constraint doing exactly its job, and it is the only reason
+			 * double booking is actually impossible rather than merely unlikely.
+			 *
+			 * The customer gets the same civil answer either way.
+			 */
+			LOGGER.info("Slot at {} for host {} was taken concurrently", startsAt, hostId);
+			return BookingOutcome.taken();
+		}
+
+		host.setDteLastAssigned(Instant.now());
+		repositoryHost.save(host);
+
+		LOGGER.info("Consultation {} booked with host {} at {}",
+				booking.getSerConsultationBookingId(), hostId, startsAt);
+
+		/*
+		 * Told about after the write, never before it, and never in a way that
+		 * can undo it. book() is not transactional (see the note on the method),
+		 * so afterCommit runs this immediately — the row is already there.
+		 */
+		UtilTransaction.afterCommit(() -> {
+			if (needsConfirming) {
+				// No calendar entry and no link yet: a request is not a meeting,
+				// and putting it in the host's diary before they have agreed
+				// would have them turning down other work for it.
+				notifier.bookingRequested(booking);
+			} else {
+				// The calendar first, so that if it produced a joining link the
+				// customer's email carries it rather than arriving without one.
+				serviceCalendarSync.publish(booking);
+				notifier.bookingConfirmed(booking);
+			}
+		});
+
+		return BookingOutcome.confirmed(booking);
+	}
+
+	/** The interval this kind of meeting is offered on. */
+	private int slotStepFor(ConsultationType type) {
+		Integer configured = type.getNumSlotIntervalMinutes();
+		return configured == null || configured < 5 ? DEFAULT_SLOT_STEP_MINUTES : configured;
+	}
+
+	/** Whether the finder still offers this exact start for this host. */
+	private boolean isStillOffered(ConsultationType type, ConsultationHost host, Instant startsAt) {
+		ZoneId zone = host.zone();
+		LocalDate day = startsAt.atZone(zone).toLocalDate();
+
+		Instant windowStart = day.atStartOfDay(zone).toInstant();
+		Instant windowEnd = day.plusDays(1).atStartOfDay(zone).toInstant();
+
+		return ConsultationSlotFinder.findSlots(
+				type, zone,
+				repositoryRule.findBySerHostIdAndBlnIsDeletedFalse(host.getSerHostId()),
+				repositoryException.findBySerHostIdAndDteOnDateBetweenAndBlnIsDeletedFalse(
+						host.getSerHostId(), day, day),
+				busyFor(host.getSerHostId(), windowStart, windowEnd),
+				windowStart, windowEnd, Instant.now(), slotStepFor(type))
+				.stream()
+				.anyMatch(slot -> slot.startsAt().equals(startsAt));
+	}
+
+	/**
+	 * Round-robin: whoever has waited longest gets the next one.
+	 *
+	 * <p>
+	 * Only considers hosts who are actually free then, so a fair rotation never
+	 * hands a booking to somebody who cannot take it.
+	 */
+	private Integer chooseHost(ConsultationType type, Instant startsAt) {
+		return repositoryHost.findByBlnIsActiveTrueAndBlnIsDeletedFalseOrderBySerHostIdAsc().stream()
+				.filter(host -> isStillOffered(type, host, startsAt))
+				.min(Comparator.comparing(
+						(ConsultationHost h) -> h.getDteLastAssigned() == null
+								? Instant.EPOCH
+								: h.getDteLastAssigned()))
+				.map(ConsultationHost::getSerHostId)
+				.orElse(null);
+	}
+
+	// -----------------------------------------------------------------
+	// Confirming
+	// -----------------------------------------------------------------
+
+	@Override
+	@Transactional
+	public BookingOutcome confirm(Integer serConsultationBookingId) {
+		ConsultationBooking booking = repositoryBooking.findById(serConsultationBookingId).orElse(null);
+		if (booking == null) {
+			return BookingOutcome.refused("That request could not be found.");
+		}
+		if (ConsultationBooking.STATUS_BOOKED.equals(booking.getTxtStatus())) {
+			return new BookingOutcome(true, "That consultation was already confirmed.", booking);
+		}
+		if (!booking.isAwaitingConfirmation()) {
+			return BookingOutcome.refused("That request is no longer waiting to be confirmed.");
+		}
+		if (booking.hasLapsed(Instant.now())) {
+			/*
+			 * Answered too late. Refusing rather than confirming is the safe
+			 * side: the slot went back on sale when the hold ran out, and
+			 * somebody else may already have it.
+			 */
+			releaseHold(booking, "The confirmation window ran out.");
+			return BookingOutcome.refused(
+					"That request expired before it was confirmed, and the slot has been released.");
+		}
+
+		booking.setTxtStatus(ConsultationBooking.STATUS_BOOKED);
+		booking.setDteConfirmedAt(Instant.now());
+		booking.setDteHoldExpiresAt(null);
+		booking.setUpdatedDate(Instant.now());
+		repositoryBooking.save(booking);
+
+		/*
+		 * The video link belongs here rather than at request time. A link for a
+		 * meeting nobody has agreed to is a link to nothing, and sending one
+		 * before confirmation tells the customer they have a meeting when they
+		 * have a request. Creating it needs a connected calendar, which is E4 —
+		 * until then the flag is honoured by leaving the field empty rather
+		 * than by pretending.
+		 */
+		LOGGER.info("Consultation {} confirmed", booking.getSerConsultationBookingId());
+		UtilTransaction.afterCommit(() -> {
+			serviceCalendarSync.publish(booking);
+			notifier.requestApproved(booking);
+		});
+		return new BookingOutcome(true, "That consultation has been confirmed.", booking);
+	}
+
+	@Override
+	@Transactional
+	public BookingOutcome decline(Integer serConsultationBookingId, String reason) {
+		ConsultationBooking booking = repositoryBooking.findById(serConsultationBookingId).orElse(null);
+		if (booking == null) {
+			return BookingOutcome.refused("That request could not be found.");
+		}
+		if (!booking.isAwaitingConfirmation()) {
+			return BookingOutcome.refused("That request is no longer waiting to be confirmed.");
+		}
+
+		booking.setTxtStatus(ConsultationBooking.STATUS_DECLINED);
+		booking.setTxtDeclinedReason(reason);
+		booking.setDteHoldExpiresAt(null);
+		booking.setTxtManagementToken(null);
+		booking.setUpdatedDate(Instant.now());
+		repositoryBooking.save(booking);
+
+		LOGGER.info("Consultation request {} declined", booking.getSerConsultationBookingId());
+		UtilTransaction.afterCommit(() -> notifier.requestDeclined(booking, reason));
+		return new BookingOutcome(true, "That request has been declined and the slot released.", booking);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ConsultationBooking> awaitingConfirmation() {
+		return repositoryBooking.awaitingConfirmation();
+	}
+
+	@Override
+	@Transactional
+	public int releaseLapsedHolds() {
+		List<ConsultationBooking> lapsed = repositoryBooking.lapsedHolds(Instant.now());
+		for (ConsultationBooking booking : lapsed) {
+			releaseHold(booking, "Nobody confirmed this within the window.");
+
+			/*
+			 * And the customer is told. They were promised the time would be
+			 * held until a stated moment; letting it pass in silence leaves them
+			 * believing they have a request outstanding, and possibly turning up.
+			 *
+			 * Worded as the team's failure rather than theirs, because it is.
+			 */
+			UtilTransaction.afterCommit(() -> notifier.requestDeclined(booking,
+					"We are sorry — we did not manage to confirm this in time, "
+							+ "so the slot has gone back on the calendar."));
+		}
+		if (!lapsed.isEmpty()) {
+			LOGGER.info("Released {} consultation holds that ran out", lapsed.size());
+		}
+		return lapsed.size();
+	}
+
+	/** Sends a lapsed request to DECLINED, which puts its slot back on sale. */
+	private void releaseHold(ConsultationBooking booking, String reason) {
+		booking.setTxtStatus(ConsultationBooking.STATUS_DECLINED);
+		booking.setTxtDeclinedReason(reason);
+		booking.setDteHoldExpiresAt(null);
+		booking.setTxtManagementToken(null);
+		booking.setUpdatedDate(Instant.now());
+		repositoryBooking.save(booking);
+	}
+
+	// -----------------------------------------------------------------
+	// Cancelling
+	// -----------------------------------------------------------------
+
+	@Override
+	@Transactional
+	public BookingOutcome cancel(Integer serConsultationBookingId, String reason) {
+		return cancelBooking(repositoryBooking.findById(serConsultationBookingId), reason, false);
+	}
+
+	@Override
+	@Transactional
+	public BookingOutcome cancelByToken(String managementToken, String reason) {
+		if (managementToken == null || managementToken.isBlank()) {
+			return BookingOutcome.refused("That link is not valid.");
+		}
+		return cancelBooking(repositoryBooking.findByTxtManagementToken(managementToken), reason, true);
+	}
+
+	/**
+	 * @param byCustomer which side called it off. The two are not the same
+	 *                   event: the customer needs a receipt and the host needs
+	 *                   telling, whereas a cancellation by the team owes the
+	 *                   customer an apology and another time.
+	 */
+	private BookingOutcome cancelBooking(Optional<ConsultationBooking> found, String reason,
+			boolean byCustomer) {
+		ConsultationBooking booking = found.orElse(null);
+		if (booking == null) {
+			return BookingOutcome.refused("That consultation could not be found.");
+		}
+		if (!booking.isLive()) {
+			// Not an error: somebody following a stale link should be told the
+			// meeting is already cancelled, not shown a failure.
+			return new BookingOutcome(true, "That consultation was already cancelled.", booking);
+		}
+
+		booking.setTxtStatus(ConsultationBooking.STATUS_CANCELLED);
+		booking.setTxtCancellationReason(reason);
+		booking.setDteCancelledAt(Instant.now());
+		booking.setUpdatedDate(Instant.now());
+		/*
+		 * Spent on cancellation. The link is the only thing standing between a
+		 * stranger and somebody else's meeting, so it stops working once used.
+		 */
+		booking.setTxtManagementToken(null);
+		repositoryBooking.save(booking);
+
+		LOGGER.info("Consultation {} cancelled", booking.getSerConsultationBookingId());
+		UtilTransaction.afterCommit(() -> {
+			serviceCalendarSync.withdraw(booking);
+			notifier.bookingCancelled(booking, reason, byCustomer);
+		});
+		return new BookingOutcome(true, "That consultation has been cancelled.", booking);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ConsultationBooking findByToken(String managementToken) {
+		if (managementToken == null || managementToken.isBlank()) {
+			return null;
+		}
+		return repositoryBooking.findByTxtManagementToken(managementToken).orElse(null);
+	}
+
+	/**
+	 * Moves a booking to another time.
+	 *
+	 * <h3>Why the row moves rather than being replaced</h3>
+	 *
+	 * Cancel-then-book leaves a gap in which the customer has no consultation
+	 * at all, and if the second half fails — the slot went while they were
+	 * choosing — they are left with nothing, having asked only to move it. The
+	 * office's diary would also show a cancellation and a separate new booking
+	 * where one meeting moved.
+	 *
+	 * <h3>What makes it safe</h3>
+	 *
+	 * The row is freed of its old time and given the new one in a single save,
+	 * so the exclusion constraint in V6 sees exactly one booking throughout. If
+	 * somebody takes the new slot in the same moment the constraint refuses one
+	 * of the two writes, and the loser is told the time has gone rather than
+	 * quietly ending up double booked. Same mechanism as {@code book}.
+	 *
+	 * <p>
+	 * A booking still awaiting confirmation may be moved too. It is a time the
+	 * customer has asked for, and the answer to "may I come at four instead"
+	 * should not depend on whether anybody has got round to agreeing the first
+	 * request yet.
+	 */
+	@Override
+	@Transactional
+	public BookingOutcome rescheduleByToken(String managementToken, Instant newStartsAt,
+			Integer serHostId) {
+		if (newStartsAt == null) {
+			return BookingOutcome.refused("A new time is needed.");
+		}
+
+		ConsultationBooking booking = findByToken(managementToken);
+		if (booking == null) {
+			return BookingOutcome.refused("That link is not valid.");
+		}
+		if (!booking.isLive()) {
+			return BookingOutcome.refused(
+					"That consultation has already been cancelled, so there is nothing to move.");
+		}
+		if (newStartsAt.equals(booking.getDteStartsAt())) {
+			// Not a failure: somebody pressed the time they already have.
+			return new BookingOutcome(true, "That is already when your consultation is.", booking);
+		}
+
+		ConsultationType type = repositoryType
+				.findBySerConsultationTypeIdAndBlnIsDeletedFalse(booking.getSerConsultationTypeId())
+				.orElse(null);
+		if (type == null || !Boolean.TRUE.equals(type.getBlnIsActive())) {
+			return BookingOutcome.refused("That kind of consultation is no longer available.");
+		}
+
+		Integer hostId = serHostId != null ? serHostId : chooseHost(type, newStartsAt);
+		if (hostId == null) {
+			return BookingOutcome.taken();
+		}
+
+		ConsultationHost host = repositoryHost.findBySerHostIdAndBlnIsDeletedFalse(hostId).orElse(null);
+		if (host == null || !Boolean.TRUE.equals(host.getBlnIsActive())) {
+			return BookingOutcome.refused("That person is not taking consultations.");
+		}
+
+		// Re-checked rather than trusted from the listing, for the reason book()
+		// re-checks it: the list is a suggestion, this is the decision.
+		if (!isStillOffered(type, host, newStartsAt)) {
+			return BookingOutcome.taken();
+		}
+
+		Instant previousStartsAt = booking.getDteStartsAt();
+
+		booking.setSerHostId(hostId);
+		booking.setDteStartsAt(newStartsAt);
+		booking.setDteEndsAt(newStartsAt.plus(Duration.ofMinutes(type.getNumDurationMinutes())));
+		booking.setUpdatedDate(Instant.now());
+		/*
+		 * A fresh token. The old one has been through an email, a mail client
+		 * and whatever scanned the link on the way, and it should not keep
+		 * power over an arrangement the customer has since changed.
+		 */
+		booking.setTxtManagementToken(newManagementToken());
+		booking.setTxtExternalSyncStatus(ConsultationBooking.SYNC_PENDING);
+
+		try {
+			repositoryBooking.saveAndFlush(booking);
+		} catch (DataIntegrityViolationException e) {
+			LOGGER.info("Slot at {} for host {} was taken while a booking was being moved",
+					newStartsAt, hostId);
+			return BookingOutcome.taken();
+		}
+
+		LOGGER.info("Consultation {} moved from {} to {}",
+				booking.getSerConsultationBookingId(), previousStartsAt, newStartsAt);
+
+		UtilTransaction.afterCommit(() -> {
+			// Withdraw then publish rather than an update: the host may have
+			// changed too, and the providers are told the same way either way.
+			serviceCalendarSync.withdraw(booking);
+			serviceCalendarSync.publish(booking);
+			notifier.bookingMoved(booking, previousStartsAt);
+		});
+
+		return new BookingOutcome(true, "Your consultation has been moved.", booking);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ConsultationBooking liveBookingForEvent(Integer serEventMasterId) {
+		if (serEventMasterId == null) {
+			return null;
+		}
+		return repositoryBooking.liveBookingsForEvent(serEventMasterId).stream()
+				.findFirst().orElse(null);
+	}
+
+	/** 256 bits, URL-safe. Guessing one has to be harder than finding a meeting. */
+	private String newManagementToken() {
+		byte[] bytes = new byte[32];
+		RANDOM.nextBytes(bytes);
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+	}
+}

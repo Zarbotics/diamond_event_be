@@ -42,8 +42,27 @@ public class CountryMaster extends BaseEntity implements Serializable {
 	@Column(name = "txt_country_name")
 	private String txtCountryName;
 
+	/**
+	 * Legacy duplicate of {@code BaseEntity.blnIsActive}, kept because rows in the
+	 * live database still carry it.
+	 *
+	 * <p>
+	 * This was declared as a primitive {@code boolean} against a nullable column.
+	 * Hibernate cannot represent NULL in a primitive, so it throws
+	 * {@code PropertyAccessException: Null value was assigned to a property of
+	 * primitive type} while hydrating the row — and because {@code CountryMaster}
+	 * is reached through {@code StateMaster} from {@code CityMaster}, that took
+	 * out the whole venue list with a 500, on a screen the customer cannot get
+	 * past. Any country row inserted by anything that did not know about this
+	 * second flag was enough to trigger it.
+	 *
+	 * <p>
+	 * {@code Boolean} tolerates the NULL. {@link #isActive()} still answers a
+	 * primitive so no caller has to change, treating "not stated" as inactive,
+	 * which matches how the flag is read everywhere else.
+	 */
 	@Column(name = "is_active")
-	private boolean isActive;
+	private Boolean isActive;
 
 	@Column(name = "short_name")
 	private String shortName;
@@ -80,8 +99,9 @@ public class CountryMaster extends BaseEntity implements Serializable {
 		this.txtCountryName = txtCountryName;
 	}
 
+	/** NULL — the flag was never set on this row — reads as inactive. */
 	public boolean isActive() {
-		return isActive;
+		return Boolean.TRUE.equals(isActive);
 	}
 
 	public void setActive(boolean isActive) {

@@ -1,6 +1,8 @@
 package com.zbs.de.model.dto;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class DtoMenuItem {
@@ -240,6 +242,28 @@ public class DtoMenuItem {
 	public void setTxtPriceMultiplierType(String txtPriceMultiplierType) {
 		this.txtPriceMultiplierType = txtPriceMultiplierType;
 	}
-	
 
+	/**
+	 * What sits under this item on the menu.
+	 *
+	 * <p>
+	 * Added because there was no such field, and {@code /menu/item/tree} has
+	 * therefore never returned a tree: {@code ServiceTreeUtilityImpl.buildTreeDto}
+	 * assembled a map of children and then returned the roots without it. Twelve
+	 * categories, nothing under any of them, on every call since the endpoint was
+	 * written — which is why the screen built on it looked empty and the flat
+	 * 436-row list stayed the only way to see the menu.
+	 *
+	 * <p>
+	 * Empty rather than null on a leaf, so a caller can walk it without asking.
+	 */
+	private List<DtoMenuItem> children = new ArrayList<>();
+
+	public List<DtoMenuItem> getChildren() {
+		return children;
+	}
+
+	public void setChildren(List<DtoMenuItem> children) {
+		this.children = children;
+	}
 }

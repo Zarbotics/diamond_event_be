@@ -31,6 +31,7 @@ import com.zbs.de.service.ServiceDecorExtrasOptionDocument;
 import com.zbs.de.service.ServiceEventDecorExtrasSelection;
 import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
+import com.zbs.de.util.UtilTransaction;
 
 import jakarta.transaction.Transactional;
 
@@ -557,7 +558,13 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 		return dtoResult;
 	}
 
+	/*
+	 * A soft delete that has to reach the options as well as the service
+	 * itself. Deleting the service and leaving its options live shows the
+	 * customer choices for something no longer on sale.
+	 */
 	@Override
+	@Transactional
 	public DtoResult deleteById(Integer id) {
 		DtoResult dtoResult = new DtoResult();
 		try {
@@ -580,6 +587,7 @@ public class ServiceDecorExtrasMasterImpl implements ServiceDecorExtrasMaster {
 				dtoResult.setTxtMessage("Extras not found with ID: " + id);
 			}
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			LOGGER.debug(e.getMessage(), e);
 			dtoResult.setTxtMessage("Error deleting extras");
 		}

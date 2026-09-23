@@ -10,6 +10,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zbs.de.config.security.AccessGuard;
+
+/**
+ * Generated PDF reports.
+ *
+ * <p>
+ * These endpoints were previously matched by a {@code /report/**} entry in the
+ * security chain's permit-all list, which made every report — including the
+ * kitchen itinerary and the full client summary — downloadable by anyone who
+ * could guess an event id, with no authentication at all. They are now
+ * authenticated, and the customer-facing summary additionally checks that the
+ * caller owns the event.
+ */
 @RestController
 @RequestMapping("report")
 @CrossOrigin("")
@@ -17,6 +30,9 @@ public class ControllerReport {
 
 	@Autowired
 	private ServiceReport reportService;
+
+	@Autowired
+	private AccessGuard accessGuard;
 
 //	@GetMapping("/event/{eventId}")
 //	public ResponseEntity<byte[]> getEventReport(@PathVariable Integer eventId) throws Exception {
@@ -44,6 +60,8 @@ public class ControllerReport {
 
 	@GetMapping("/eventClientSide/{eventId}")
 	public ResponseEntity<byte[]> getEventReportClientSide(@PathVariable Integer eventId) throws Exception {
+		// The only report a customer may pull, and only for their own event.
+		accessGuard.assertCanAccessEvent(eventId);
 		byte[] pdfBytes = reportService.generateNewCustomeReport(eventId);
 
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=event_summary_client_side.pdf")

@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en-GB">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="'Your event — ' + ${doc.reference}">Your event</title>
+  <style>
+    /* =================================================================
+       Diamond Events — the customer's event document
+
+       WHY THERE ARE NO CSS VARIABLES HERE
+
+       There were. Every colour in this file was a `var(--navy)` or a
+       `var(--bronze)`, declared on `:root`, exactly as the journey's own
+       stylesheet does it. openhtmltopdf — which turns this page into the PDF
+       the customer downloads — does not implement custom properties, and it
+       does not complain: an unresolvable `var()` is simply an invalid
+       declaration, so it is dropped.
+
+       The result was a PDF with correct text at correct sizes and *no colour
+       and no backgrounds at all* — black Helvetica on white, no cover, no
+       rules, no panels. It had been that way since the template was written,
+       because the HTML view renders in a browser, where the variables work
+       perfectly, and only the PDF goes through the other renderer. Decompress
+       one and there is not a single fill operation in it.
+
+       So: literal colours, in one block at the top, with the name they carry
+       in the journey's tokens.css beside them. If a colour changes there it
+       has to be changed here too — which is a real cost, and smaller than a
+       document that silently prints in black and white.
+
+       ONE TYPEFACE
+
+       Inter, registered with the renderer in EventDocumentService. The journey
+       sets display headings in Fraunces, but Fraunces ships as a variable
+       font and PDFBox cannot embed one, so a second face would mean vendoring
+       a static cut of it. Inter at 600 carries the headings perfectly well,
+       and one embedded family keeps the file small.
+
+       PAPER, NOT INK
+
+       The cover was a full-bleed dark slab. This document is printed — by the
+       customer at home and by staff for the file — and a dark A4 cover is
+       several millilitres of ink, prints muddily on a home printer, and is the
+       page most likely to be run off on its own. It is paper now, with the
+       accent carrying the weight instead.
+
+         --de-ground     #FAF7F5   panels
+         --de-surface    #FFFFFF   the page
+         --de-text       #1B1425   ink
+         --de-text-muted #574C66   secondary
+         --de-text-subtle#736A80   uppercase labels
+         --de-border     #E8E1DC   hairlines
+         --de-accent     #6D28D9   section rules
+         --de-accent-str #5B21B6   accent text on white
+         --de-accent-soft#F4EEFF   the closing panel
+         --de-accent-line#C9B3F0   panel edges
+       ================================================================= */
+
+    @page {
+      size: A4;
+      margin: 18mm 16mm 20mm 16mm;
+      @bottom-left {
+        content: element(pageFooter);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.55;
+      color: #1B1425;
+      background: #FFFFFF;
+      margin: 0;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+
+    /* ---------------------------------------------------------------
+       Cover
+       --------------------------------------------------------------- */
+    /*
+      The cover sits inside the ordinary page margins.
+
+      It used to claim a page of its own — `page: cover` with `@page cover {
+      margin: 0 }` — so that a purple band could bleed to the paper edge. It
+      did not work: openhtmltopdf laid the cover out at the *default* page's
+      content width and then placed it against the left edge, so the band
+      stopped about seven-eighths of the way across and the whole cover sat
+      off-centre with a 32mm gutter down the right-hand side. On the first page
+      of the document a customer downloads.
+
+      Full-bleed is not worth a second page context to get. A rule the width of
+      the text does the same work — it is the same gesture the section heads
+      make, which is the point — and the cover now shares its measure with
+      every page after it.
+
+      The height is the printable area: A4 less the 18mm and 20mm the page
+      margins already take. That is what lets the footnote sit on the bottom
+      margin rather than four-fifths of the way down.
+    */
+    .cover {
+      page-break-after: always;
+      background: #FFFFFF;
+      color: #1B1425;
+      border-top: 3mm solid #6D28D9;
+      padding-top: 10mm;
+    }
+
+    .cover__frame {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    /*
+      The height goes on the first cell, not on the table.
+
+      openhtmltopdf treats a table's height as a minimum for its *first* row
+      and then adds the rest on top, so a 246mm table with a 14mm footer came
+      to 260mm and pushed the footer onto a second page — a cover page
+      followed by a page holding one sentence. Fixing the body cell instead
+      makes the arithmetic the obvious one: body plus footer, inside the
+      printable area.
+
+      228mm is A4 (297) less the page margins (18 + 20), less this section's
+      rule and the space under it (13), less the room the footer needs.
+    */
+    .cover__body { vertical-align: top; padding: 0; height: 228mm; }
+
+    .cover__footcell { vertical-align: bottom; padding: 0; }
+
+    .cover__mark {
+      font-size: 8pt;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: #736A80;
+      margin-bottom: 42mm;
+    }
+
+    .cover__eyebrow {
+      font-size: 9pt;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #5B21B6;
+      margin-bottom: 6mm;
+    }
+
+    .cover__title {
+      font-size: 34pt;
+      line-height: 1.1;
+      color: #1B1425;
+      margin-bottom: 8mm;
+    }
+
+    .cover__date {
+      font-size: 15pt;
+      color: #574C66;
+      letter-spacing: 0.01em;
+    }
+
+    .cover__rule {
+      width: 40mm;
+      height: 2pt;
+      background: #6D28D9;
+      margin: 12mm 0;
+    }
+
+    .cover__meta {
+      font-size: 10pt;
+      color: #574C66;
+      line-height: 1.9;
+    }
+
+    .cover__meta strong {
+      color: #736A80;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+    }
+
+    .cover__foot {
+      font-size: 8.5pt;
+      color: #736A80;
+      border-top: 0.5pt solid #E8E1DC;
+      padding-top: 4mm;
+    }
+
+    /* ---------------------------------------------------------------
+       Running footer
+       --------------------------------------------------------------- */
+    #pageFooter {
+      position: running(pageFooter);
+      font-size: 8pt;
+      color: #736A80;
+      letter-spacing: 0.06em;
+      border-top: 0.5pt solid #E8E1DC;
+      padding-top: 2mm;
+      width: 100%;
+    }
+
+    /* ---------------------------------------------------------------
+       Sections
+       --------------------------------------------------------------- */
+    .section {
+      page-break-inside: avoid;
+      margin-bottom: 9mm;
+    }
+
+    /* A section that is likely to be long may break, but never immediately
+       after its own heading. */
+    .section--long { page-break-inside: auto; }
+
+    .section__head {
+      border-bottom: 1.5pt solid #6D28D9;
+      padding-bottom: 2mm;
+      margin-bottom: 4mm;
+      page-break-after: avoid;
+    }
+
+    .section__title {
+      font-size: 15pt;
+      color: #1B1425;
+    }
+
+    .section__note {
+      font-size: 8.5pt;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #736A80;
+      margin-bottom: 1mm;
+    }
+
+    /* ---------------------------------------------------------------
+       Key/value rows
+       --------------------------------------------------------------- */
+    table.kv {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.kv td {
+      padding: 1.6mm 0;
+      vertical-align: top;
+      border-bottom: 0.5pt solid #E8E1DC;
+    }
+
+    table.kv td.k {
+      width: 42mm;
+      color: #574C66;
+      font-size: 9.5pt;
+    }
+
+    table.kv tr:last-child td { border-bottom: none; }
+
+    /* ---------------------------------------------------------------
+       Running order — a timeline, not a table of strings
+       --------------------------------------------------------------- */
+    table.timeline {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.timeline td {
+      padding: 2mm 0;
+      border-bottom: 0.5pt solid #E8E1DC;
+      vertical-align: top;
+    }
+
+    table.timeline td.time {
+      width: 24mm;
+      font-weight: 600;
+      color: #5B21B6;
+    }
+
+    table.timeline tr:last-child td { border-bottom: none; }
+
+    /* ---------------------------------------------------------------
+       Menu — grouped by course
+       --------------------------------------------------------------- */
+    .course { margin-bottom: 5mm; page-break-inside: avoid; }
+
+    .course__name {
+      font-size: 8.5pt;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #5B21B6;
+      margin-bottom: 1.5mm;
+      border-bottom: 0.5pt solid #E8E1DC;
+      padding-bottom: 1mm;
+    }
+
+    /*
+      One column, not two.
+
+      This was `column-count: 2`, which openhtmltopdf does not implement — and
+      here it did not fail silently and harmlessly: dish descriptions came out
+      of the renderer truncated mid-sentence ("…tandoor." with the rest of the
+      line gone). A dish and the sentence describing it belong on one line
+      anyway, which is what the menu step shows the customer on screen.
+    */
+    .course__items {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .course__items li {
+      padding: 0.9mm 0;
+      page-break-inside: avoid;
+      font-size: 10pt;
+    }
+
+    .course__items li:before {
+      content: "·";
+      color: #C9B3F0;
+      margin-right: 2.5mm;
+    }
+
+    .item__note {
+      color: #574C66;
+      font-size: 8.5pt;
+    }
+
+    /* ---------------------------------------------------------------
+       Notes from the customer
+       --------------------------------------------------------------- */
+    .note {
+      background: #FAF7F5;
+      border-left: 2pt solid #C9B3F0;
+      padding: 3mm 4mm;
+      margin-top: 3mm;
+      font-size: 9.5pt;
+      color: #1B1425;
+      page-break-inside: avoid;
+    }
+
+    .note__label {
+      font-size: 8pt;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #736A80;
+      display: block;
+      margin-bottom: 1mm;
+    }
+
+    .empty {
+      color: #736A80;
+      font-size: 9.5pt;
+      font-style: italic;
+    }
+
+    /* ---------------------------------------------------------------
+       Suppliers the customer is bringing
+
+       A table rather than a bulleted list, because this is the one section
+       somebody reads across rather than down: on the morning of the event
+       the office wants a trade, a business and a telephone number side by
+       side, and a list makes them hunt for the number in a sentence.
+       --------------------------------------------------------------- */
+    table.suppliers {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.suppliers td {
+      padding: 2.4mm 0;
+      border-bottom: 0.5pt solid #E8E1DC;
+      vertical-align: top;
+      font-size: 9.5pt;
+    }
+
+    table.suppliers td.who { width: 62mm; padding-right: 5mm; }
+
+    table.suppliers tr:last-child td { border-bottom: none; }
+
+    .supplier__name { font-weight: 600; color: #1B1425; }
+
+    .supplier__type {
+      display: block;
+      font-size: 8pt;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #5B21B6;
+      margin-bottom: 0.8mm;
+    }
+
+    .supplier__contact { color: #1B1425; }
+
+    .supplier__note {
+      display: block;
+      color: #574C66;
+      font-size: 8.5pt;
+      margin-top: 1mm;
+    }
+
+    /* ---------------------------------------------------------------
+       The record of agreement
+       --------------------------------------------------------------- */
+    .agreed {
+      margin-top: 4mm;
+      padding: 3mm 4mm;
+      border: 0.5pt solid #C9B3F0;
+      background: #FAF7F5;
+      font-size: 9pt;
+      color: #574C66;
+      page-break-inside: avoid;
+    }
+
+    .agreed strong { color: #1B1425; }
+
+    /* ---------------------------------------------------------------
+       Closing
+       --------------------------------------------------------------- */
+    .closing {
+      margin-top: 10mm;
+      padding: 5mm 6mm;
+      background: #F4EEFF;
+      border-top: 2pt solid #6D28D9;
+      color: #1B1425;
+      page-break-inside: avoid;
+    }
+
+    .closing h3 {
+      color: #1B1425;
+      font-size: 13pt;
+      margin-bottom: 3mm;
+    }
+
+    .closing ol {
+      margin: 0 0 4mm 0;
+      padding-left: 5mm;
+      font-size: 9.5pt;
+      line-height: 1.8;
+    }
+
+    .closing a { color: #5B21B6; text-decoration: none; }
+
+    .closing__contact {
+      border-top: 0.5pt solid #C9B3F0;
+      padding-top: 3mm;
+      font-size: 9pt;
+      color: #574C66;
+    }
+
+    /* On screen the document sits on a neutral ground rather than filling the
+       viewport edge to edge, so it reads as a document. */
+    @media screen {
+      body { background: #EDE8E4; padding: 24px 0; }
+      .page-wrap {
+        max-width: 210mm;
+        margin: 0 auto;
+        background: #FFFFFF;
+        box-shadow: 0 2px 24px rgba(27, 20, 37, 0.14);
+      }
+      .content { padding: 18mm 16mm; }
+      /*
+        In print the cover's measure comes from the page margins. A browser has
+        no page margins, so it gets the same inset here — without it the cover
+        alone runs to the edge of the sheet while every section after it is
+        indented, which is the one place the two views may not disagree.
+      */
+      .cover { padding: 10mm 16mm 18mm 16mm; }
+      .cover__body { height: 215mm; }
+      #pageFooter { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- =============================================================
+       Cover
+       ============================================================= -->
+  <section class="cover">
+    <!--
+      A table, to put the note on the bottom of the page.
+
+      It was `position: absolute; bottom: 0` on the note inside a cover of
+      fixed height, which is what a browser would need. openhtmltopdf places
+      such a box at the *top* of its container's bottom edge rather than
+      against it, so the note started where the cover ended and its second and
+      third lines were cut off by the page break — on the first page of the
+      document, mid-sentence.
+
+      A two-row table of fixed height does it without positioning: the first
+      cell absorbs the slack, the second sits on the bottom. The old technique,
+      and the one this renderer is reliable about.
+    -->
+    <table class="cover__frame">
+      <tr>
+        <td class="cover__body">
+          <div class="cover__mark">Diamond Events</div>
+
+          <p class="cover__eyebrow" th:text="${doc.eventTypeName} ?: 'Your event'">Wedding</p>
+          <h1 class="cover__title" th:text="${doc.headline}">Aisha &amp; Bilal</h1>
+          <p class="cover__date" th:if="${doc.eventDate}" th:text="${doc.eventDate}">Saturday 15 August 2026</p>
+
+          <div class="cover__rule"></div>
+
+          <div class="cover__meta">
+            <div th:if="${doc.reference}">
+              <strong>Reference</strong>&#160;&#160;<span th:text="${doc.reference}">EVT-001</span>
+            </div>
+            <div th:if="${doc.venueName}">
+              <strong>Venue</strong>&#160;&#160;<span th:text="${doc.venueLine}">Diamond Suite</span>
+            </div>
+            <div th:if="${doc.guestCount}">
+              <strong>Guests</strong>&#160;&#160;<span th:text="${doc.guestCount}">250</span>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="cover__footcell">
+          <div class="cover__foot">
+            This document sets out everything you have chosen so far. It is not a
+            quote and nothing here is confirmed until you accept one in writing.
+            <span th:if="${doc.generatedOn}">
+              Prepared <span th:text="${doc.generatedOn}">13 August 2026</span>.
+            </span>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </section>
+
+  <div id="pageFooter">
+    <span th:text="${doc.headline}">Aisha &amp; Bilal</span>
+    &#160;·&#160;
+    <span th:text="${doc.reference}">EVT-001</span>
+    &#160;·&#160; Diamond Events
+  </div>
+
+  <div class="content">
+
+    <!-- =============================================================
+         Your event
+         ============================================================= -->
+    <section class="section">
+      <div class="section__head">
+        <p class="section__note">Section one</p>
+        <h2 class="section__title">Your event</h2>
+      </div>
+
+      <table class="kv">
+        <tr th:if="${doc.eventTypeName}">
+          <td class="k">Occasion</td>
+          <td th:text="${doc.eventTypeName}">Wedding</td>
+        </tr>
+        <tr th:if="${doc.eventDate}">
+          <td class="k">Date</td>
+          <td th:text="${doc.eventDate}">Saturday 15 August 2026</td>
+        </tr>
+        <tr th:if="${doc.venueLine}">
+          <td class="k">Venue</td>
+          <td th:text="${doc.venueLine}">Diamond Suite, Grand Hall</td>
+        </tr>
+        <tr th:if="${doc.guestCount}">
+          <td class="k">Guests</td>
+          <td>
+            <span th:text="${doc.guestCount}">250</span>
+            <span th:if="${doc.tableCount}" class="item__note"
+                  th:text="' · ' + ${doc.tableCount} + ' tables'"> · 25 tables</span>
+          </td>
+        </tr>
+        <tr th:if="${doc.brideName}">
+          <td class="k">Bride</td>
+          <td th:text="${doc.brideName}">Aisha</td>
+        </tr>
+        <tr th:if="${doc.groomName}">
+          <td class="k">Groom</td>
+          <td th:text="${doc.groomName}">Bilal</td>
+        </tr>
+        <tr th:if="${doc.contactName}">
+          <td class="k">Main contact</td>
+          <td>
+            <span th:text="${doc.contactName}">A. Khan</span>
+            <span th:if="${doc.contactPhone}" class="item__note"
+                  th:text="' · ' + ${doc.contactPhone}"> · 07700 900123</span>
+          </td>
+        </tr>
+      </table>
+
+      <div class="note" th:if="${doc.eventNotes}">
+        <span class="note__label">Your notes</span>
+        <span th:text="${doc.eventNotes}"></span>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         Running order
+         ============================================================= -->
+    <section class="section section--long">
+      <div class="section__head">
+        <p class="section__note">Section two</p>
+        <h2 class="section__title">Running order</h2>
+      </div>
+
+      <table class="timeline" th:if="${!doc.runningOrder.isEmpty()}">
+        <tr th:each="item : ${doc.runningOrder}">
+          <td class="time" th:text="${item.time}">18:00</td>
+          <td th:text="${item.label}">Guest arrival</td>
+        </tr>
+      </table>
+
+      <p class="empty" th:if="${doc.runningOrder.isEmpty()}">
+        No timings agreed yet — we will set these together at your consultation.
+      </p>
+    </section>
+
+    <!-- =============================================================
+         Food menu
+         ============================================================= -->
+    <section class="section section--long">
+      <div class="section__head">
+        <p class="section__note">Section three</p>
+        <h2 class="section__title">Your menu</h2>
+      </div>
+
+      <div th:if="${!doc.menuCourses.isEmpty()}">
+        <div class="course" th:each="course : ${doc.menuCourses}">
+          <p class="course__name" th:text="${course.name}">Starters</p>
+          <ul class="course__items">
+            <li th:each="item : ${course.items}">
+              <span th:text="${item.name}">Seekh Kebab</span>
+              <span class="item__note" th:if="${item.note}"
+                    th:text="' — ' + ${item.note}"> — chargrilled lamb</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="empty" th:if="${doc.menuCourses.isEmpty()}">
+        No dishes chosen yet.
+      </p>
+
+      <div class="note" th:if="${doc.cateringNotes}">
+        <span class="note__label">Your notes on catering</span>
+        <span th:text="${doc.cateringNotes}"></span>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         Décor
+         ============================================================= -->
+    <section class="section section--long">
+      <div class="section__head">
+        <p class="section__note">Section four</p>
+        <h2 class="section__title">Décor</h2>
+      </div>
+
+      <div th:if="${!doc.decorGroups.isEmpty()}">
+        <div class="course" th:each="group : ${doc.decorGroups}">
+          <p class="course__name" th:text="${group.name}">Themed stage</p>
+          <ul class="course__items">
+            <li th:each="item : ${group.items}">
+              <span th:text="${item.name}">Gold drapes</span>
+              <span class="item__note" th:if="${item.note}"
+                    th:text="' — ' + ${item.note}"> — ivory</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="empty" th:if="${doc.decorGroups.isEmpty()}">
+        No décor chosen yet.
+      </p>
+
+      <div class="note" th:if="${doc.decorNotes}">
+        <span class="note__label">Your notes on décor</span>
+        <span th:text="${doc.decorNotes}"></span>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         Services and extras
+         ============================================================= -->
+    <section class="section" th:if="${!doc.services.isEmpty() or !doc.extras.isEmpty() or doc.servicesNotes != null or doc.extrasNotes != null}">
+      <div class="section__head">
+        <p class="section__note">Section five</p>
+        <h2 class="section__title">Services and extras</h2>
+      </div>
+
+      <div class="course" th:if="${!doc.services.isEmpty()}">
+        <p class="course__name">Services</p>
+        <ul class="course__items">
+          <li th:each="item : ${doc.services}" th:text="${item.name}">Photography</li>
+        </ul>
+      </div>
+
+      <div class="course" th:if="${!doc.extras.isEmpty()}">
+        <p class="course__name">Extras</p>
+        <ul class="course__items">
+          <li th:each="item : ${doc.extras}" th:text="${item.name}">Chocolate fountain</li>
+        </ul>
+      </div>
+
+      <div class="note" th:if="${doc.servicesNotes}">
+        <span class="note__label">Your notes on services</span>
+        <span th:text="${doc.servicesNotes}"></span>
+      </div>
+      <div class="note" th:if="${doc.extrasNotes}">
+        <span class="note__label">Your notes on extras</span>
+        <span th:text="${doc.extrasNotes}"></span>
+      </div>
+    </section>
+
+    <!-- =============================================================
+         Suppliers
+         ============================================================= -->
+    <section class="section" th:if="${!doc.suppliers.isEmpty() or doc.supplierNotes != null}">
+      <div class="section__head">
+        <p class="section__note">Section six</p>
+        <h2 class="section__title">Suppliers you are bringing</h2>
+      </div>
+
+      <table class="suppliers" th:if="${!doc.suppliers.isEmpty()}">
+        <tr th:each="supplier : ${doc.suppliers}">
+          <td class="who">
+            <span class="supplier__type" th:if="${supplier.type}"
+                  th:text="${supplier.type}">Photographer</span>
+            <span class="supplier__name" th:text="${supplier.name}">Noor Photography</span>
+          </td>
+          <td>
+            <span class="supplier__contact" th:if="${supplier.contact}"
+                  th:text="${supplier.contact}">Noor Ahmed · 07700 900123</span>
+            <span class="supplier__note" th:if="${supplier.note}"
+                  th:text="${supplier.note}">Arriving at 2pm, needs a parking space.</span>
+          </td>
+        </tr>
+      </table>
+
+      <div class="note" th:if="${doc.supplierNotes}">
+        <span class="note__label">Your notes on suppliers</span>
+        <span th:text="${doc.supplierNotes}"></span>
+      </div>
+
+      <!--
+        The reason this section exists. The terms say the venue may cancel the
+        booking over a third party it was never told about, so the document
+        that lists them has to say what happens to the ones it does not list.
+      -->
+      <p class="empty" style="margin-top: 3mm;">
+        Anyone not listed here needs to be agreed with us before the day.
+      </p>
+    </section>
+
+    <!-- =============================================================
+         What happens next
+         ============================================================= -->
+    <section class="closing">
+      <h3>What happens next</h3>
+      <ol>
+        <li>We check availability for your date and read through your choices.</li>
+        <li>We come back to you within one working day.</li>
+        <li>We book a consultation to go through the detail and talk about pricing.</li>
+        <li>You receive a written quote. Nothing is confirmed, and no payment is
+            taken, until you accept it.</li>
+      </ol>
+      <div class="closing__contact">
+        Questions about anything here? Call <strong>0121 200 0000</strong> or email
+        <a href="mailto:enquiries@diamondevents.uk">enquiries@diamondevents.uk</a>,
+        quoting <span th:text="${doc.reference}">EVT-001</span>.
+      </div>
+    </section>
+
+    <!--
+      What the customer agreed to, on the customer's own copy.
+
+      Whether, not when: the timestamp is the business's record and appears on
+      the office's view of the booking. This says the thing the customer needs
+      to be able to check — that they have read the terms, and that the deposit
+      clause they read applies to what is set out above.
+    -->
+    <div class="agreed" th:if="${doc.termsAccepted}">
+      <strong>You have accepted our terms and payment policy.</strong>
+      They cover the deposit, when the balance falls due, and what happens if
+      plans change. Ask us for another copy at any time.
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

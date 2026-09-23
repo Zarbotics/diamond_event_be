@@ -33,13 +33,23 @@ public class ControllerDecorExtrasMaster {
 	@Autowired
 	private ServiceDecorExtrasMaster serviceDecorExtrasMaster;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ControllerEventType.class);
+	private static final Logger LOGGER = // Was ControllerEventType.class, copied in with the field: every line
+	// this controller logged was filed under a different controller's name.
+	LoggerFactory.getLogger(ControllerDecorExtrasMaster.class);
 
 	@PostMapping(value = "/saveWithDocs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithDocs(@RequestPart("decorExtrasMaster") String decorExtrasMaster,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
-		LOGGER.info("Saving Event Master: {}", decorExtrasMaster);
 		DtoDecorExtrasMaster dto = new ObjectMapper().readValue(decorExtrasMaster, DtoDecorExtrasMaster.class);
+		/*
+		 * What was saved, not the body that said so. These payloads are
+		 * several kilobytes each and the log is more useful with a name in
+		 * it than a blob. Bodies stay out of the log everywhere, at every
+		 * level, so that the rule is one a person can follow without having
+		 * to judge whether this particular one carries personal data —
+		 * RequestPayloadLoggingTest holds it.
+		 */
+		LOGGER.info("Saving decor extras {} ({})", dto.getSerExtrasId(), dto.getTxtExtrasName());
 		DtoResult result = serviceDecorExtrasMaster.saveWithListOptions(dto, files);
 		if (result != null && result.getTxtMessage().equalsIgnoreCase("success")) {
 			return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Successfully saved", result.getResult());

@@ -91,6 +91,15 @@ public class MenuItem extends BaseEntity {
 	@Column(name = "enm_price_multiplier_type")
 	private EnmPriceMultiplierType enmPriceMultiplierType = EnmPriceMultiplierType.PER_GUEST;
 
+	/*
+	 * How many guests one station serves, for a dish priced PER_STATION.
+	 *
+	 * Null means one station, which is the safe reading: a business that has
+	 * not said how far a grazing bar stretches has not said it needs two.
+	 */
+	@Column(name = "num_guests_per_station")
+	private BigDecimal numGuestsPerStation;
+
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "metadata", columnDefinition = "jsonb")
 	private Map<String, Object> metadata;
@@ -243,6 +252,14 @@ public class MenuItem extends BaseEntity {
 
 	public void setNumPrice(BigDecimal numPrice) {
 		this.numPrice = numPrice;
+	}
+
+	public BigDecimal getNumGuestsPerStation() {
+		return numGuestsPerStation;
+	}
+
+	public void setNumGuestsPerStation(BigDecimal numGuestsPerStation) {
+		this.numGuestsPerStation = numGuestsPerStation;
 	}
 
 	public EnmPriceMultiplierType getEnmPriceMultiplierType() {

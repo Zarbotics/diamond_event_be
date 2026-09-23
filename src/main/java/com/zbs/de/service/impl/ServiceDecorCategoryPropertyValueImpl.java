@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.zbs.de.controller.ControllerEventType;
@@ -27,6 +28,7 @@ import com.zbs.de.service.ServiceDecorCategoryPropertyValue;
 import com.zbs.de.service.ServiceDecorCategoryPropertyValueDocument;
 import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
+import com.zbs.de.util.UtilTransaction;
 
 @Service("serviceDecorCategoryPropertyValue")
 public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCategoryPropertyValue {
@@ -86,7 +88,14 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 		return dtoResult;
 	}
 
+	/*
+	 * Saves a property's values and the uploaded images that belong to them.
+	 * Half of that committed is a decor option whose swatches are missing, or
+	 * images with no value to hang off, and the customer is choosing decor
+	 * from whichever half survived.
+	 */
 	@Override
+	@Transactional
 	public DtoResult saveListValuesWithDocuments(DtoDecorCategoryPropertyMaster dto, List<MultipartFile> files) {
 		DtoResult dtoResult = new DtoResult();
 		try {
@@ -161,6 +170,7 @@ public class ServiceDecorCategoryPropertyValueImpl implements ServiceDecorCatego
 			}
 
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			LOGGER.debug(e.getMessage(), e);
 			dtoResult.setTxtMessage(e.getMessage());
 		}

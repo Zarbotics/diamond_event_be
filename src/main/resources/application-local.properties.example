@@ -1,0 +1,15 @@
+# Copy to application-local.properties and fill in. That file is gitignored.
+#
+#   ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+#
+# This exists because the credentials used to live in application.properties
+# itself, in plaintext, and were committed. Anything in here stays on your
+# machine.
+
+spring.security.oauth2.client.registration.google.client-id=YOUR-ID.apps.googleusercontent.com
+spring.security.oauth2.client.registration.google.client-secret=YOUR-SECRET
+
+# The Google client's authorised redirect URI has to match the port and context
+# path this backend serves:
+#
+#   http://localhost:8080/diamond/login/oauth2/code/google

@@ -10,12 +10,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.zbs.de.model.EventMaster;
+import com.zbs.de.model.dto.DtoEventCalendarEntry;
 import com.zbs.de.model.dto.DtoEventMasterStats;
+import com.zbs.de.model.dto.DtoEventSummary;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
 
 @Repository("repositoryEventMaster")
@@ -71,11 +74,21 @@ public interface RepositoryEventMaster
 
 	// override findAll so Spring Data will apply entity-graph when using paging
 	@Override
-	@EntityGraph(attributePaths = { "customerMaster", "eventType", "venueMaster", "vendorMaster", "eventBudget" })
+	@EntityGraph(attributePaths = { "customerMaster", "eventType", "venueMaster", "eventBudget" })
 	Page<EventMaster> findAll(Specification<EventMaster> spec, Pageable pageable);
 
 	@Query("SELECT MAX(e.txtEventMasterCode) FROM EventMaster e WHERE e.txtEventMasterCode LIKE CONCAT('DE-', :year, '-%')")
 	String findMaxEventCodeForYear(@Param("year") int year);
+
+	/**
+	 * Whether a reference is already in use.
+	 *
+	 * <p>
+	 * Used when allocating the next one, so a gap or a code claimed since the
+	 * maximum was read is stepped over rather than handed out twice. See
+	 * {@code ServiceEventMasterImpl.generateNextEventMasterCode}.
+	 */
+	boolean existsByTxtEventMasterCode(String txtEventMasterCode);
 
 	boolean existsByDteEventDateAndBlnIsDeletedFalse(Date dteEventDate);
 
@@ -90,6 +103,52 @@ public interface RepositoryEventMaster
 			""")
 	int countEventsOnDate(@Param("start") Date start, @Param("end") Date end, @Param("eventId") Integer eventId);
 
+	/**
+	 * One customer's events, as seven fields rather than sixty.
+	 *
+	 * <p>
+	 * For the "choose an event" step of the journey. Same filter as
+	 * {@link #findActiveEventMasterByCustomerId} — active, not deleted — so the
+	 * two agree about which of a customer's events exist.
+	 *
+	 * <p>
+	 * Newest first, by id rather than by event date: a booking being worked on
+	 * this week may be for next summer, and ordering by date buries it behind
+	 * everything already booked.
+	 */
+	@Query("SELECT new com.zbs.de.model.dto.DtoEventSummary(e.serEventMasterId, e.txtEventMasterCode, "
+			+ "e.txtEventMasterName, e.dteEventDate, t.txtEventTypeName, e.txtNumberOfGuests, "
+			+ "e.numNumberOfGuests, e.isEditAllowed, e.numFormState) "
+			+ "FROM EventMaster e LEFT JOIN e.eventType t "
+			+ "WHERE e.customerMaster.serCustId = :custId AND e.blnIsDeleted = false AND e.blnIsActive = true "
+			+ "ORDER BY e.serEventMasterId DESC")
+	List<DtoEventSummary> findEventSummariesByCustomerId(@Param("custId") Integer custId);
+
+	/**
+	 * Every event, as seven fields rather than sixty.
+	 *
+	 * <p>
+	 * For the admin calendar, which needs all of them — a month view missing some
+	 * of its events is worse than no month view — but needs almost nothing about
+	 * each one. A calendar cannot be paginated, so the saving has to come from the
+	 * width of a row rather than the number of them.
+	 *
+	 * <p>
+	 * Every join is a LEFT JOIN, including the two added for the status and the
+	 * venue. An enquiry has no hall chosen and may have no budget row yet, and an
+	 * inner join would have taken exactly those events out of the calendar —
+	 * which is the opposite of what a calendar is for.
+	 *
+	 * <p>
+	 * Ordered by date, because that is the only order a calendar has any use for.
+	 */
+	@Query("SELECT new com.zbs.de.model.dto.DtoEventCalendarEntry(e.serEventMasterId, e.txtEventMasterCode, "
+			+ "e.txtEventMasterName, e.dteEventDate, t.txtEventTypeName, v.txtVenueName, b.txtStatus) "
+			+ "FROM EventMaster e LEFT JOIN e.eventType t LEFT JOIN e.venueMaster v LEFT JOIN e.eventBudget b "
+			+ "WHERE e.blnIsDeleted = false AND e.dteEventDate IS NOT NULL "
+			+ "ORDER BY e.dteEventDate ASC")
+	List<DtoEventCalendarEntry> getCalendarEntries();
+
 	@Query("""
 			    SELECT e.dteEventDate, COUNT(e)
 			    FROM EventMaster e
@@ -98,4 +157,79 @@ public interface RepositoryEventMaster
 			    GROUP BY e.dteEventDate
 			""")
 	List<Object[]> getEventDateCounts();
+
+	/**
+	 * The same counts, with one event left out of them.
+	 *
+	 * <p>
+	 * For the customer's calendar while they are editing a booking. Their own
+	 * event already holds its slot, so counting it would have the day it is on
+	 * close against them — and {@code canBookEvent}, which decides whether the
+	 * save is actually allowed, has always excluded it. The same exclusion here
+	 * is what keeps the two answering the same question.
+	 *
+	 * @param excludeEventId null to count everything, which is the case when the
+	 *                       booking does not exist yet.
+	 */
+	@Query("""
+			    SELECT e.dteEventDate, COUNT(e)
+			    FROM EventMaster e
+			    WHERE e.blnIsDeleted = false
+			    AND e.dteEventDate IS NOT NULL
+			    AND (:excludeEventId IS NULL OR e.serEventMasterId <> :excludeEventId)
+			    GROUP BY e.dteEventDate
+			""")
+	List<Object[]> getEventDateCounts(@Param("excludeEventId") Integer excludeEventId);
+
+	/**
+	 * Records that the customer accepted the terms, the first time they do.
+	 *
+	 * <p>
+	 * A statement of its own rather than a field written through the entity,
+	 * because {@code dteTermsAcceptedOn} is {@code updatable = false} — it has
+	 * to be, or every detached save built from a DTO would blank it — and that
+	 * closes the ordinary route for setting it on a booking that already
+	 * exists. This is the deliberate exception, and being deliberate is the
+	 * point: exactly one statement in the codebase can write this column.
+	 *
+	 * <p>
+	 * The {@code IS NULL} makes it idempotent. A customer who returns to the
+	 * last step and saves it again has not agreed a second time, and moving the
+	 * timestamp forward would destroy the only record of when they actually
+	 * did.
+	 *
+	 * @return 1 when this call recorded it, 0 when it was already recorded —
+	 *         the normal case on every save after the first.
+	 */
+	@Modifying
+	@Query("UPDATE EventMaster e SET e.dteTermsAcceptedOn = :acceptedOn "
+			+ "WHERE e.serEventMasterId = :eventId AND e.dteTermsAcceptedOn IS NULL")
+	int recordTermsAccepted(@Param("eventId") Integer eventId, @Param("acceptedOn") Date acceptedOn);
+
+	/**
+	 * Puts an event under a booking, once, and only if it has none.
+	 *
+	 * <p>
+	 * The one deliberate write to {@code ser_booking_id}. The mapping on
+	 * {@link EventMaster} is {@code updatable = false} so that an ordinary save —
+	 * and this codebase saves entities built from DTOs, which have never carried
+	 * a booking id — cannot blank the column. That protection is exactly why an
+	 * explicit statement is needed here: two of the four create paths insert the
+	 * event row before they know its customer or its reference code, so by the
+	 * time the booking exists there is no insert left to carry the id.
+	 *
+	 * <p>
+	 * The {@code IS NULL} is the whole safety of it. This can only fill an empty
+	 * column, never move an event from one booking to another — that is a real
+	 * operation, with consequences for two budgets, and it belongs to the stage
+	 * that gives it an endpoint rather than arriving as a side effect.
+	 *
+	 * <p>
+	 * Native because JPQL will not write a column whose mapping calls it
+	 * read-only, and rightly so.
+	 */
+	@Modifying
+	@Query(value = "UPDATE event_master SET ser_booking_id = :bookingId "
+			+ "WHERE ser_event_master_id = :eventId AND ser_booking_id IS NULL", nativeQuery = true)
+	int attachToBooking(@Param("eventId") Integer eventId, @Param("bookingId") Long bookingId);
 }

@@ -21,6 +21,7 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "event_master")
@@ -45,6 +46,27 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	@Column(name = "dte_event_date")
 	private Date dteEventDate;
+
+	/**
+	 * When the customer accepted the terms and payment policy.
+	 *
+	 * <p>
+	 * Null means they have not. A timestamp rather than a flag because the
+	 * question asked in a dispute is never "did they agree" on its own; it is
+	 * "when" — and null carries exactly as much information as {@code false}
+	 * would, so the more useful column costs nothing.
+	 *
+	 * <p>
+	 * {@code updatable = false}, for the reason {@code serBookingId} spells
+	 * out: this codebase saves detached entities assembled from DTOs, and a
+	 * writable column would have Hibernate include it in every UPDATE as null,
+	 * erasing the record of agreement on the first re-save of each booking.
+	 * {@link #acceptTerms()} is the only way it is ever set, and it only ever
+	 * sets it — agreement is a thing that happened and cannot be un-happened by
+	 * a later save.
+	 */
+	@Column(name = "dte_terms_accepted_on", updatable = false)
+	private Date dteTermsAcceptedOn;
 
 	@Column(name = "num_number_of_guests")
 	private Integer numNumberOfGuests;
@@ -131,6 +153,55 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@Column(name = "num_form_state")
 	private Integer numFormState;
 
+	/**
+	 * How many times this booking has been saved.
+	 *
+	 * <p>
+	 * Maintained by Hibernate and never set by hand. It exists so that an
+	 * administrator and a customer editing the same booking cannot silently
+	 * overwrite one another — the second save is refused rather than winning.
+	 *
+	 * <p>
+	 * Hibernate's own check only covers overlapping transactions, which is the
+	 * rarer half. The case that actually happens is two people with the same
+	 * booking open for several minutes, and that is caught by comparing this
+	 * value against the copy the client is holding — together with
+	 * {@code updatedBy}, which says whether the change was somebody else's or
+	 * the caller's own previous step. See
+	 * {@code ServiceEventMasterImpl.hasChangedElsewhere}.
+	 */
+	@Version
+	@Column(name = "num_version")
+	private Long numVersion;
+
+	/**
+	 * The booking this event belongs to.
+	 *
+	 * <p>
+	 * Stage 2 of §15.3: written once, when the event is created, and never
+	 * again. Every event that existed when V11 ran was given one by the
+	 * backfill; every event created since stage 2 is given one by
+	 * {@code ServiceEventMasterImpl.giveItABooking}.
+	 *
+	 * <p>
+	 * {@code updatable = false} is the important part and not a detail.
+	 * Hibernate writes every updatable column on every save, and this codebase
+	 * saves detached entities built from DTOs — objects carrying the id and the
+	 * fields the caller sent, and nothing else. A DTO has never carried a
+	 * booking id and should not start: with the column updatable, the first save
+	 * of each event would write NULL over its parent, undoing the migration one
+	 * booking at a time, silently, starting with the events people touch most.
+	 * {@code BookingBackfillIT.savingAnEventLeavesTheBackfillAlone} is that
+	 * failure, written down.
+	 *
+	 * <p>
+	 * It is a plain id rather than a {@code @ManyToOne} because nothing needs to
+	 * navigate from an event to its booking yet. The association arrives in
+	 * stage 3, with the budget and the payments that make it worth loading.
+	 */
+	@Column(name = "ser_booking_id", updatable = false)
+	private Long serBookingId;
+
 	@ManyToOne
 	@JoinColumn(name = "ser_cust_id")
 	private CustomerMaster customerMaster;
@@ -172,10 +243,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@JoinColumn(name = "serVenueMasterId")
 	private VenueMaster venueMaster;
 
-	@ManyToOne
-	@JoinColumn(name = "ser_vendor_id")
-	private VendorMaster vendorMaster;
-
 	@OneToOne(mappedBy = "eventMaster", fetch = FetchType.LAZY)
 	private EventBudget eventBudget;
 
@@ -191,9 +258,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	@SQLRestriction("bln_is_services = false")
 	private List<EventDecorExtrasSelection> extrasSelections;
-	
-	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<EventVendorMasterSelection> vendorMasterSelections;
 	
 	@OneToMany(mappedBy = "eventMaster", cascade = CascadeType.ALL, orphanRemoval = true)
 	@SQLRestriction("bln_is_services = true")
@@ -225,6 +289,28 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public Date getDteEventDate() {
 		return dteEventDate;
+	}
+
+	public Date getDteTermsAcceptedOn() {
+		return dteTermsAcceptedOn;
+	}
+
+	public void setDteTermsAcceptedOn(Date dteTermsAcceptedOn) {
+		this.dteTermsAcceptedOn = dteTermsAcceptedOn;
+	}
+
+	/**
+	 * Records that the customer has agreed, the first time they do.
+	 *
+	 * <p>
+	 * Idempotent on purpose. A customer who returns to the last step and saves
+	 * it again has not agreed a second time, and moving the timestamp forward
+	 * would quietly destroy the only evidence of when they actually did.
+	 */
+	public void acceptTerms() {
+		if (this.dteTermsAcceptedOn == null) {
+			this.dteTermsAcceptedOn = new Date();
+		}
 	}
 
 	public void setDteEventDate(Date dteEventDate) {
@@ -327,14 +413,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 		this.foodSelections = foodSelections;
 	}
 
-	public VendorMaster getVendorMaster() {
-		return vendorMaster;
-	}
-
-	public void setVendorMaster(VendorMaster vendorMaster) {
-		this.vendorMaster = vendorMaster;
-	}
-
 	public String getTxtNumberOfGuests() {
 		return txtNumberOfGuests;
 	}
@@ -367,8 +445,28 @@ public class EventMaster extends BaseEntity implements Serializable {
 		return venueMasterDetail;
 	}
 
+	/**
+	 * Sets the hall, and with it the venue the hall belongs to.
+	 *
+	 * <p>
+	 * These two are one fact stored twice, and only one of them was ever
+	 * written: every call site set the hall and left {@code venueMaster} null,
+	 * so {@code event_master.ser_venue_master_id} was null on every booking in
+	 * the database. The venue could still be reached by going through the hall,
+	 * but anything joining an event straight to a venue — reporting, the admin
+	 * event list, the customer's own event document — found nothing there.
+	 *
+	 * <p>
+	 * There are eight places that set the hall in {@code ServiceEventMasterImpl}
+	 * alone. Deriving the venue here rather than at each of them means a ninth
+	 * cannot get it wrong, and there is nothing to ask the customer for: the
+	 * hall already knows its venue.
+	 */
 	public void setVenueMasterDetail(VenueMasterDetail venueMasterDetail) {
 		this.venueMasterDetail = venueMasterDetail;
+		if (venueMasterDetail != null && venueMasterDetail.getVenueMaster() != null) {
+			this.venueMaster = venueMasterDetail.getVenueMaster();
+		}
 	}
 
 	public String getTxtEventStatus() {
@@ -499,6 +597,37 @@ public class EventMaster extends BaseEntity implements Serializable {
 		this.numFormState = numFormState;
 	}
 
+	public Long getSerBookingId() {
+		return serBookingId;
+	}
+
+	/**
+	 * Attaches this event to a booking, once, before it is first saved.
+	 *
+	 * <p>
+	 * Calling this on an event that already exists does nothing to the database:
+	 * the column is {@code updatable = false}. That is deliberate — moving an
+	 * event from one booking to another is a real operation, but it is a
+	 * deliberate one with consequences for two budgets, and it belongs in stage
+	 * 3 with an endpoint of its own rather than arriving as a side effect of an
+	 * ordinary save.
+	 */
+	public void setSerBookingId(Long serBookingId) {
+		this.serBookingId = serBookingId;
+	}
+
+	public Long getNumVersion() {
+		return numVersion;
+	}
+
+	/**
+	 * Present for JPA and for tests that need to arrange a stale copy. Nothing in
+	 * the application should call it — Hibernate owns this value.
+	 */
+	public void setNumVersion(Long numVersion) {
+		this.numVersion = numVersion;
+	}
+
 	public Boolean getIsEditAllowed() {
 		return isEditAllowed;
 	}
@@ -569,14 +698,6 @@ public class EventMaster extends BaseEntity implements Serializable {
 
 	public void setBlnIsAllAdminEmailSend(Boolean blnIsAllAdminEmailSend) {
 		this.blnIsAllAdminEmailSend = blnIsAllAdminEmailSend;
-	}
-
-	public List<EventVendorMasterSelection> getVendorMasterSelections() {
-		return vendorMasterSelections;
-	}
-
-	public void setVendorMasterSelections(List<EventVendorMasterSelection> vendorMasterSelections) {
-		this.vendorMasterSelections = vendorMasterSelections;
 	}
 
 	public List<EventDecorExtrasSelection> getServicesSelections() {

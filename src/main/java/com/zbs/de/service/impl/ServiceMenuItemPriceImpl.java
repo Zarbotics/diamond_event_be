@@ -22,6 +22,7 @@ import com.zbs.de.service.ServiceMenuItemPrice;
 import com.zbs.de.service.ServicePriceVersion;
 import com.zbs.de.util.PriceConstants;
 import com.zbs.de.util.UtilDateAndTime;
+import com.zbs.de.util.UtilTransaction;
 
 @Service
 @Transactional
@@ -112,6 +113,7 @@ public class ServiceMenuItemPriceImpl implements ServiceMenuItemPrice {
 			return new DtoResult("Price created successfully.", null, mapper.toDto(entity), null);
 
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			LOGGER.error("Error creating menu item price", e);
 			return new DtoResult("Failed to create price: " + e.getMessage(), null, null, null);
 		}
@@ -146,6 +148,9 @@ public class ServiceMenuItemPriceImpl implements ServiceMenuItemPrice {
 			return new DtoResult("Price updated successfully.", null, mapper.toDto(entity), null);
 
 		} catch (Exception e) {
+			// Setting a price as the item's default first clears the flag on
+			// the current one, so a failed update must take that back with it.
+			UtilTransaction.markRollbackOnly();
 			LOGGER.error("Error updating menu item price", e);
 			return new DtoResult("Failed to update price: " + e.getMessage(), null, null, null);
 		}
@@ -175,6 +180,7 @@ public class ServiceMenuItemPriceImpl implements ServiceMenuItemPrice {
 			return new DtoResult("Price deleted successfully.", null, null, null);
 
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			LOGGER.error("Error deleting menu item price", e);
 			return new DtoResult("Failed to delete price: " + e.getMessage(), null, null, null);
 		}
@@ -443,8 +449,30 @@ public class ServiceMenuItemPriceImpl implements ServiceMenuItemPrice {
 				}
 			}
 
-			String message = String.format("Bulk price update completed. Success: %d, Skipped: %d, Failed: %d",
-					successCount, skipCount, errorCount);
+			/*
+			 * All of this ran in one transaction, so partial success was never
+			 * on offer: the whole batch commits or none of it does. Reporting
+			 * "Success: 12, Failed: 3" described an outcome the database cannot
+			 * produce, and an administrator reading it would go looking for the
+			 * three that failed rather than re-running the batch.
+			 *
+			 * Failing the batch is also the right answer on its own terms. A
+			 * bulk price change half-applied across a menu is worse than one
+			 * rejected: some dishes quote the new price and some the old, and
+			 * nothing on screen says which. Rerunning is cheap; reconciling a
+			 * half-priced menu is not.
+			 */
+			if (errorCount > 0) {
+				UtilTransaction.markRollbackOnly();
+				return new DtoResult(
+						String.format("Bulk price update failed for %d of %d menu items; no prices were changed. "
+								+ "Correct the items listed and run it again.", errorCount,
+								request.getMenuItemIds().size()),
+						errors, null, null);
+			}
+
+			String message = String.format("Bulk price update completed. Updated: %d, Skipped: %d", successCount,
+					skipCount);
 
 			Map<String, Object> result = new HashMap<>();
 			result.put("successCount", successCount);
@@ -455,6 +483,7 @@ public class ServiceMenuItemPriceImpl implements ServiceMenuItemPrice {
 			return new DtoResult(message, errors, result, null);
 
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			LOGGER.error("Error in bulk price update", e);
 			return new DtoResult("Failed to perform bulk price update: " + e.getMessage(), null, null, null);
 		}

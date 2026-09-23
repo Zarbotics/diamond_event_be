@@ -1,0 +1,41 @@
+-- The recipe tables, which nothing has ever used.
+--
+-- WHAT THEY WERE FOR
+--
+-- Breaking a dish down into ingredients: what goes into a biryani, in what
+-- quantity, so the kitchen could order against it. A reasonable thing for a
+-- catering ERP to have, and one this business has never done.
+--
+-- WHAT THEY ACTUALLY ARE
+--
+-- Empty. Both of them, in every database they exist in. The Java that mapped
+-- them — the entities, the repositories, the services — was deleted in M1,
+-- when the menu rework found there was nothing behind it. The tables stayed
+-- behind because dropping a table is not something to do while unsure, and at
+-- that point it was still an open question whether the feature was wanted.
+--
+-- It is not. So they go, and the schema stops describing a capability the
+-- product does not have.
+--
+-- WHAT IS NOT BEING DROPPED, AND WHY
+--
+-- `menu_component` is very much alive and must not be confused with these.
+-- It carries the sections of a composite dish — "Cheeses, choose 3", "Also on
+-- the table", "Includes" — which is what makes a grazing bar a grazing bar
+-- rather than a name with a price. It has rows, the pricing engine reads it,
+-- and menu validation depends on it.
+--
+-- It was grouped with the recipe tables in an earlier note as an open
+-- question, on the basis that all three were empty. That was true of the
+-- recipe tables and is not true of this one.
+--
+-- UNDOING IT
+--
+-- There is nothing to restore: no row has ever existed in either table, and
+-- nothing references them. A recipe feature built later should be designed
+-- against how this business actually orders, rather than inheriting a shape
+-- nobody chose.
+
+DROP TABLE IF EXISTS menu_item_ingredient;
+
+DROP TABLE IF EXISTS ingredient;

@@ -45,6 +45,7 @@ import com.zbs.de.service.ServiceMenuItem;
 import com.zbs.de.spec.SpecificationsCateringDeliveryBooking;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.UtilRandomKey;
+import com.zbs.de.util.UtilTransaction;
 
 import jakarta.transaction.Transactional;
 
@@ -68,7 +69,14 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCateringDeliveryBookingImpl.class);
 
+	/*
+	 * A catering booking, its delivery address, its menu selections and the
+	 * budget line that prices them. Committed in pieces, the booking exists
+	 * but the budget does not — so the event quotes a total that leaves the
+	 * catering out, and nobody notices until the invoice.
+	 */
 	@Override
+	@Transactional
 	public DtoResult saveOrUpdate(DtoCateringDeliveryBooking dto) {
 		DtoResult result = new DtoResult();
 
@@ -407,15 +415,19 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			result.setResult(MapperCateringDeliveryBooking.toDto(entity));
 
 		} catch (RuntimeException e) {
+			UtilTransaction.markRollbackOnly();
 			result.setTxtMessage("Error: " + e.getMessage());
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			result.setTxtMessage("Unexpected error while saving: " + e.getMessage());
 		}
 
 		return result;
 	}
 
+	/** Same writes as {@link #saveOrUpdate}, driven from the admin portal. */
 	@Override
+	@Transactional
 	public DtoResult saveOrUpdateCateringAdminPortal(DtoCateringDeliveryBooking dto) {
 		DtoResult result = new DtoResult();
 
@@ -813,8 +825,10 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 			result.setResult(MapperCateringDeliveryBooking.toDto(entity));
 
 		} catch (RuntimeException e) {
+			UtilTransaction.markRollbackOnly();
 			result.setTxtMessage("Error: " + e.getMessage());
 		} catch (Exception e) {
+			UtilTransaction.markRollbackOnly();
 			result.setTxtMessage("Unexpected error while saving: " + e.getMessage());
 		}
 

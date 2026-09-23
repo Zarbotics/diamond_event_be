@@ -42,9 +42,6 @@ public class DtoEventMaster {
 	private String txtVenueCode;
 	private String txtVenueName;
 
-	private Integer serVendorId;
-	private String txtVendorCode;
-	private String txtVendorName;
 	
 	
 	private String txtContactPersonFirstName;
@@ -55,6 +52,17 @@ public class DtoEventMaster {
 	private String txtDecoreRemarks;
 	private String txtCateringRemarks;
 	private String txtExternalSupplierRemarks;
+
+	/**
+	 * Whether the customer has accepted the terms and payment policy.
+	 *
+	 * <p>
+	 * A boolean here and a timestamp on the entity, deliberately. The journey
+	 * sends "I ticked the box"; when that happened is a fact about the server's
+	 * clock, and letting a DTO carry it would let a client choose the date on
+	 * its own record of agreement.
+	 */
+	private Boolean blnTermsAccepted;
 	private String txtEventExtrasRemarks;
 	private String txtVenueRemarks;
 	private String txtEventServicesRemarks;
@@ -66,7 +74,17 @@ public class DtoEventMaster {
 	private Boolean blnIsCE;
 
 	private Integer numFormState;
-	
+
+	/**
+	 * Which revision of the booking the client is holding.
+	 *
+	 * <p>
+	 * Sent out with the event and expected back on save. If it no longer matches
+	 * what is stored, somebody else has saved this booking since this copy was
+	 * fetched, and the save is refused rather than quietly overwriting them.
+	 */
+	private Long numVersion;
+
 	private BigDecimal numItineraryPrice;
 	private BigDecimal numServingDishesPrice;
 
@@ -86,7 +104,29 @@ public class DtoEventMaster {
 
 	private DtoEventQuoteAndStatus dtoEventQuoteAndStatus;
 	
-	private List<DtoEventVendorMasterSelection> vendorMasterSelections;
+
+	/**
+	 * The suppliers the customer is bringing themselves.
+	 *
+	 * <p>
+	 * Their photographer, their mehndi artist, the cake maker the family has
+	 * always used. The venue has to know who they are, and the journey used to
+	 * collect them as one paragraph of free text per booking.
+	 *
+	 * <p>
+	 * There is no longer a second, parallel notion of a supplier. `vendor_master`
+	 * modelled the firms the venue itself engages, twice over and unused — see
+	 * V20 for why it went rather than being repaired.
+	 */
+	private List<DtoEventExternalSupplier> externalSuppliers;
+
+	public List<DtoEventExternalSupplier> getExternalSuppliers() {
+		return externalSuppliers;
+	}
+
+	public void setExternalSuppliers(List<DtoEventExternalSupplier> externalSuppliers) {
+		this.externalSuppliers = externalSuppliers;
+	}
 
 	public Integer getSerEventMasterId() {
 		return serEventMasterId;
@@ -272,30 +312,6 @@ public class DtoEventMaster {
 //		this.foodSelections = foodSelections;
 //	}
 
-	public Integer getSerVendorId() {
-		return serVendorId;
-	}
-
-	public void setSerVendorId(Integer serVendorId) {
-		this.serVendorId = serVendorId;
-	}
-
-	public String getTxtVendorCode() {
-		return txtVendorCode;
-	}
-
-	public void setTxtVendorCode(String txtVendorCode) {
-		this.txtVendorCode = txtVendorCode;
-	}
-
-	public String getTxtVendorName() {
-		return txtVendorName;
-	}
-
-	public void setTxtVendorName(String txtVendorName) {
-		this.txtVendorName = txtVendorName;
-	}
-
 	public String getTxtNumberOfGuests() {
 		return txtNumberOfGuests;
 	}
@@ -416,6 +432,14 @@ public class DtoEventMaster {
 		this.txtCateringRemarks = txtCateringRemarks;
 	}
 
+	public Boolean getBlnTermsAccepted() {
+		return blnTermsAccepted;
+	}
+
+	public void setBlnTermsAccepted(Boolean blnTermsAccepted) {
+		this.blnTermsAccepted = blnTermsAccepted;
+	}
+
 	public String getTxtExternalSupplierRemarks() {
 		return txtExternalSupplierRemarks;
 	}
@@ -470,6 +494,14 @@ public class DtoEventMaster {
 
 	public void setNumFormState(Integer numFormState) {
 		this.numFormState = numFormState;
+	}
+
+	public Long getNumVersion() {
+		return numVersion;
+	}
+
+	public void setNumVersion(Long numVersion) {
+		this.numVersion = numVersion;
 	}
 
 	public Boolean getIsEditAllowed() {
@@ -534,14 +566,6 @@ public class DtoEventMaster {
 
 	public void setNumServingDishesPrice(BigDecimal numServingDishesPrice) {
 		this.numServingDishesPrice = numServingDishesPrice;
-	}
-
-	public List<DtoEventVendorMasterSelection> getVendorMasterSelections() {
-		return vendorMasterSelections;
-	}
-
-	public void setVendorMasterSelections(List<DtoEventVendorMasterSelection> vendorMasterSelections) {
-		this.vendorMasterSelections = vendorMasterSelections;
 	}
 
 	public List<DtoEventDecorExtrasSelection> getServicesSelections() {

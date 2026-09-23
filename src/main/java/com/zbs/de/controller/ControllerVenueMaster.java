@@ -65,12 +65,19 @@ public class ControllerVenueMaster {
 	public ResponseMessage saveVenue(@RequestPart("venueData") String venueJson,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) {
 
-		LOGGER.info("Save Venue VenueMaster by Dto: " + venueJson);
-
 		ResponseMessage responseMessage;
 
 		try {
 			DtoVenueMaster dto = new ObjectMapper().readValue(venueJson, DtoVenueMaster.class);
+			/*
+			 * What was saved, not the body that said so. These payloads are
+			 * several kilobytes each and the log is more useful with a name in
+			 * it than a blob. Bodies stay out of the log everywhere, at every
+			 * level, so that the rule is one a person can follow without having
+			 * to judge whether this particular one carries personal data —
+			 * RequestPayloadLoggingTest holds it.
+			 */
+			LOGGER.info("Saving venue {} ({})", dto.getSerVenueMasterId(), dto.getTxtVenueName());
 			DtoResult dtoResult = serviceVenueMaster.saveVenueWithDetails(dto, files);
 			if (dtoResult != null && dtoResult.getTxtMessage().equalsIgnoreCase("Success")) {
 				responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully", null);

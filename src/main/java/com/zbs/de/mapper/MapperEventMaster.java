@@ -25,6 +25,9 @@ public class MapperEventMaster {
 		if(entity.getDteEventDate() != null) {
 			dto.setDteEventDate(UtilDateAndTime.mmddyyyyDateToString(entity.getDteEventDate()));
 		}
+		// Whether, not when: the timestamp is the business's record, not the
+		// customer's, and the journey only needs to know to keep the box ticked.
+		dto.setBlnTermsAccepted(entity.getDteTermsAcceptedOn() != null);
 		if(entity.getCreatedDate() != null) {
 			dto.setDteCreatedDate(UtilDateAndTime.mmddyyyyDateToString(entity.getCreatedDate()));
 		}
@@ -49,6 +52,9 @@ public class MapperEventMaster {
 		dto.setTxtEventStatus(entity.getTxtEventStatus());
 		dto.setBlnIsCouple(entity.getBlnIsCouple());
 		dto.setNumFormState(entity.getNumFormState());
+		// Goes out with the event and is expected back on save, so a second
+		// person's changes cannot be quietly overwritten.
+		dto.setNumVersion(entity.getNumVersion());
 		dto.setNumDiscount(entity.getNumDiscount());
 
 		dto.setTxtCateringRemarks(entity.getTxtCateringRemarks());
@@ -103,15 +109,16 @@ public class MapperEventMaster {
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
 
-		if (UtilRandomKey.isNotNull(entity.getVendorMaster())) {
-			dto.setSerVendorId(entity.getVendorMaster().getSerVendorId());
-			dto.setTxtVendorCode(entity.getVendorMaster().getTxtVendorCode());
-			dto.setTxtVendorName(entity.getVendorMaster().getTxtVendorName());
-		}
 
 		if (UtilRandomKey.isNotNull(entity.getVenueMaster())) {
 			dto.setSerVenueMasterId(entity.getVenueMaster().getSerVenueMasterId());
-			dto.setTxtVendorCode(entity.getVenueMaster().getTxtVenueCode());
+			/*
+			  The venue's code used to be written into `txtVendorCode` here, in
+			  both mappers — the venue put into a field named for a vendor. It
+			  went unnoticed because nothing read it. Removing the vendor
+			  concept made it a compile error, which is the only reason it was
+			  found at all.
+			 */
 			dto.setTxtVenueName(entity.getVenueMaster().getTxtVenueName());
 		}
 
@@ -183,6 +190,11 @@ public class MapperEventMaster {
 		if (entity.getDteEventDate() != null) {
 			dto.setDteEventDate(UtilDateAndTime.mmddyyyyDateToString(entity.getDteEventDate()));
 		}
+		// Whether, not when: the timestamp is the business's record, not the
+		// customer's, and the journey only needs to know to keep the box ticked.
+		// The office wants the date, not the fact: "did they agree" is answered by
+		// the enquiry existing at all. "When" is what a dispute turns on.
+		dto.setDteTermsAcceptedOn(UtilDateAndTime.mmddyyyyDateToString(entity.getDteTermsAcceptedOn()));
 		if (entity.getCreatedDate() != null) {
 			dto.setDteCreatedDate(UtilDateAndTime.mmddyyyyDateToString(entity.getCreatedDate()));
 		}
@@ -192,6 +204,9 @@ public class MapperEventMaster {
 		dto.setNumNumberOfGuests(entity.getNumNumberOfGuests());
 		dto.setNumNumberOfTables(entity.getNumNumberOfTables());
 		dto.setNumInfoFilledStatus(entity.getNumInfoFilledStatus());
+		// Travels with the row so an administrator saving from the portal cannot
+		// overwrite a change the customer made while the form was open.
+		dto.setNumVersion(entity.getNumVersion());
 		dto.setTxtBrideName(entity.getTxtBrideName());
 		dto.setTxtBrideFirstName(entity.getTxtBrideFirstName());
 		dto.setTxtBrideLastName(entity.getTxtBrideLastName());
@@ -263,15 +278,9 @@ public class MapperEventMaster {
 			dto.setTxtEventTypeName(entity.getEventType().getTxtEventTypeName());
 		}
 
-		if (UtilRandomKey.isNotNull(entity.getVendorMaster())) {
-			dto.setSerVendorId(entity.getVendorMaster().getSerVendorId());
-			dto.setTxtVendorCode(entity.getVendorMaster().getTxtVendorCode());
-			dto.setTxtVendorName(entity.getVendorMaster().getTxtVendorName());
-		}
 
 		if (UtilRandomKey.isNotNull(entity.getVenueMaster())) {
 			dto.setSerVenueMasterId(entity.getVenueMaster().getSerVenueMasterId());
-			dto.setTxtVendorCode(entity.getVenueMaster().getTxtVenueCode());
 			dto.setTxtVenueName(entity.getVenueMaster().getTxtVenueName());
 		}
 

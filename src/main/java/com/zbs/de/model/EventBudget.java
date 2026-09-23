@@ -84,8 +84,104 @@ public class EventBudget extends BaseEntity implements Serializable {
 	@Column(name = "num_final_amount")
 	private BigDecimal numFinalAmount;
 	
+	/*
+	 * What the pricing engine made of the booking.
+	 *
+	 * These sit beside the figures above rather than replacing them. While
+	 * pricing.server.authoritative is off, both are written and only the
+	 * client's are used — which is what makes it possible to see where the two
+	 * disagree on real bookings before anything depends on the answer.
+	 */
+	@Column(name = "num_calculated_food")
+	private BigDecimal numCalculatedFood;
+
+	@Column(name = "num_calculated_decor")
+	private BigDecimal numCalculatedDecor;
+
+	@Column(name = "num_calculated_extras")
+	private BigDecimal numCalculatedExtras;
+
+	@Column(name = "num_calculated_services")
+	private BigDecimal numCalculatedServices;
+
+	@Column(name = "num_calculated_vat")
+	private BigDecimal numCalculatedVat;
+
+	@Column(name = "num_calculated_subtotal")
+	private BigDecimal numCalculatedSubtotal;
+
+	@Column(name = "num_calculated_total")
+	private BigDecimal numCalculatedTotal;
+
+	@Column(name = "dte_calculated_on")
+	private Date dteCalculatedOn;
+
 	@OneToMany(mappedBy = "eventBudget", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<EventPayment> payments = new ArrayList<>();
+
+	public BigDecimal getNumCalculatedFood() {
+		return numCalculatedFood;
+	}
+
+	public void setNumCalculatedFood(BigDecimal numCalculatedFood) {
+		this.numCalculatedFood = numCalculatedFood;
+	}
+
+	public BigDecimal getNumCalculatedDecor() {
+		return numCalculatedDecor;
+	}
+
+	public void setNumCalculatedDecor(BigDecimal numCalculatedDecor) {
+		this.numCalculatedDecor = numCalculatedDecor;
+	}
+
+	public BigDecimal getNumCalculatedExtras() {
+		return numCalculatedExtras;
+	}
+
+	public void setNumCalculatedExtras(BigDecimal numCalculatedExtras) {
+		this.numCalculatedExtras = numCalculatedExtras;
+	}
+
+	public BigDecimal getNumCalculatedServices() {
+		return numCalculatedServices;
+	}
+
+	public void setNumCalculatedServices(BigDecimal numCalculatedServices) {
+		this.numCalculatedServices = numCalculatedServices;
+	}
+
+	public BigDecimal getNumCalculatedVat() {
+		return numCalculatedVat;
+	}
+
+	public void setNumCalculatedVat(BigDecimal numCalculatedVat) {
+		this.numCalculatedVat = numCalculatedVat;
+	}
+
+	public BigDecimal getNumCalculatedSubtotal() {
+		return numCalculatedSubtotal;
+	}
+
+	public void setNumCalculatedSubtotal(BigDecimal numCalculatedSubtotal) {
+		this.numCalculatedSubtotal = numCalculatedSubtotal;
+	}
+
+	public BigDecimal getNumCalculatedTotal() {
+		return numCalculatedTotal;
+	}
+
+	public void setNumCalculatedTotal(BigDecimal numCalculatedTotal) {
+		this.numCalculatedTotal = numCalculatedTotal;
+	}
+
+	public Date getDteCalculatedOn() {
+		return dteCalculatedOn;
+	}
+
+	public void setDteCalculatedOn(Date dteCalculatedOn) {
+		this.dteCalculatedOn = dteCalculatedOn;
+	}
 
 	public Integer getSerEventBudgetId() {
 		return serEventBudgetId;
@@ -201,7 +297,9 @@ public class EventBudget extends BaseEntity implements Serializable {
 
 	public void addPayment(EventPayment p) {
 		this.payments.add(p);
-		p.setEventBudget(this);
+		// attachTo, not setEventBudget: a payment added through the budget must
+		// end up under the same booking as one added through the service.
+		p.attachTo(this);
 	}
 
 	public void removePayment(EventPayment p) {

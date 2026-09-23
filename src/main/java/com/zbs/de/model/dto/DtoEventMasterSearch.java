@@ -41,9 +41,6 @@ public class DtoEventMasterSearch {
 	private Integer serVenueMasterId;
 	private String txtVenueCode;
 	private String txtVenueName;
-	private Integer serVendorId;
-	private String txtVendorCode;
-	private String txtVendorName;
 
 	// remarks filters
 	private String txtEventRemarks;
@@ -330,30 +327,6 @@ public class DtoEventMasterSearch {
 
 	public void setTxtVenueName(String txtVenueName) {
 		this.txtVenueName = txtVenueName;
-	}
-
-	public Integer getSerVendorId() {
-		return serVendorId;
-	}
-
-	public void setSerVendorId(Integer serVendorId) {
-		this.serVendorId = serVendorId;
-	}
-
-	public String getTxtVendorCode() {
-		return txtVendorCode;
-	}
-
-	public void setTxtVendorCode(String txtVendorCode) {
-		this.txtVendorCode = txtVendorCode;
-	}
-
-	public String getTxtVendorName() {
-		return txtVendorName;
-	}
-
-	public void setTxtVendorName(String txtVendorName) {
-		this.txtVendorName = txtVendorName;
 	}
 
 	public String getTxtEventRemarks() {

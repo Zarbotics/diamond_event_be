@@ -59,6 +59,43 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!--
+			Flyway owns the database schema. Previously Hibernate did, via
+			ddl-auto=update, which only ever adds: it never drops a column, narrows a
+			type, or adds a constraint to existing data. Every schema mistake was
+			therefore permanent, and no deploy left a record of what it changed.
+		-->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+
+		<!--
+			The customer's event document is built as HTML and rendered to PDF.
+
+			The JasperReports pipeline it replaces embedded raw SQL in .jrxml
+			templates and filled them from a JDBC Connection, which bypassed both the
+			service layer and — once roles landed — the authorisation layer entirely.
+			It also committed compiled .jasper binaries alongside the sources, so no
+			change to a customer-facing document could be reviewed in a diff.
+
+			Jasper stays for the operational reports (kitchen itinerary), which are
+			genuinely tabular and print-only.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.openhtmltopdf</groupId>
+			<artifactId>openhtmltopdf-pdfbox</artifactId>
+			<version>1.1.22</version>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -152,6 +189,11 @@
 		  <version>3.6.1</version> <!-- or latest available -->
 		</dependency>
 
+		<dependency>
+		  <groupId>org.bouncycastle</groupId>
+		  <artifactId>bcprov-jdk18on</artifactId>
+		  <version>1.78</version>
+		</dependency>
 	</dependencies>
 	
 
@@ -181,6 +223,33 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+
+			<!--
+				Runs the *IT classes during `mvn verify`.
+
+				Surefire's default includes stop at *Test / Test*, so
+				StartupAndSecurityIT — which is the only test that boots the whole
+				application against a real database, and the one that covers the
+				startup, CORS and 401-vs-302 failures — was never executed by the
+				build at all. It only ran when somebody remembered to pass
+				-Dtest=StartupAndSecurityIT by hand, which is the same as not having
+				it.
+
+				It skips itself, rather than failing, on a machine with no
+				PostgreSQL, so this is safe to bind unconditionally.
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -77,14 +77,15 @@ public class ServiceCateringPaymentImpl implements ServiceCateringPayment {
 		 * =============================== MAP PAYMENT FIELDS
 		 * ===============================
 		 */
-		payment.setEventBudget(budget);
+		// Budget and booking together. A delivery has no booking; see attachTo.
+		payment.attachTo(budget);
 		payment.setSerDeliveryBookingId(
 				dtoPayment.getSerDeliveryBookingId() != null ? dtoPayment.getSerDeliveryBookingId()
 						: budget.getCateringDeliveryBooking().getSerDeliveryBookingId());
 		payment.setNumAmount(dtoPayment.getNumAmount());
 		payment.setTxtPaymentMode(dtoPayment.getTxtPaymentMode());
 		payment.setTxtTransactionRef(dtoPayment.getTxtTransactionRef());
-		payment.setDtePaymentDate(UtilDateAndTime.ddmmyyyyStringToDate(dtoPayment.getDtePaymentDate()));
+		payment.setDtePaymentDate(UtilDateAndTime.parseDateFromClient(dtoPayment.getDtePaymentDate()));
 		payment.setTxtPaymentStatus(dtoPayment.getTxtPaymentStatus());
 		payment.setTxtRemarks(dtoPayment.getTxtRemarks());
 

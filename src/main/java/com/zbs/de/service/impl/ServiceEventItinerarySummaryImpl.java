@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.zbs.de.model.EventItinerarySummary;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventMenuFoodSelection;
@@ -49,7 +50,14 @@ public class ServiceEventItinerarySummaryImpl implements ServiceEventItinerarySu
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceEventItinerarySummaryImpl.class);
 
+	/*
+	 * Clears the event's itinerary summary and rebuilds it from the current
+	 * menu. The clear and the rebuild are one operation: a failure between
+	 * them leaves the kitchen with an empty prep list for a booked event, and
+	 * nothing prompts a recalculation.
+	 */
 	@Override
+	@Transactional
 	public void calculateEventItinerary(Integer serEventMasterId) {
 
 		EventMaster event = serviceEventMaster.getEventMasterById(serEventMasterId);

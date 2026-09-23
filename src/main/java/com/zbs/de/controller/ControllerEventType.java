@@ -84,12 +84,19 @@ public class ControllerEventType {
 	public ResponseMessage saveVenue(@RequestPart("eventTypeData") String eventTypeJson,
 			@RequestPart("files") List<MultipartFile> files) {
 
-		LOGGER.info("Save Event Type EventTypeMaster by Dto: " + eventTypeJson);
-
 		ResponseMessage responseMessage;
 
 		try {
 			DtoEventType dto = new ObjectMapper().readValue(eventTypeJson, DtoEventType.class);
+			/*
+			 * What was saved, not the body that said so. These payloads are
+			 * several kilobytes each and the log is more useful with a name in
+			 * it than a blob. Bodies stay out of the log everywhere, at every
+			 * level, so that the rule is one a person can follow without having
+			 * to judge whether this particular one carries personal data —
+			 * RequestPayloadLoggingTest holds it.
+			 */
+			LOGGER.info("Saving event type {} ({})", dto.getSerEventTypeId(), dto.getTxtEventTypeName());
 			DtoResult dtoResult = serviceEventType.saveEventTypeWithDocuments(dto, files);
 			if (UtilRandomKey.isNotNull(dtoResult.getResult())) {
 				responseMessage = new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved successfully",

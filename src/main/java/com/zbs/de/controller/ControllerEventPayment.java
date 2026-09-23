@@ -60,9 +60,16 @@ public class ControllerEventPayment {
 	public ResponseMessage saveWithDocs(@RequestPart("payment") String payment,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
 
-		LOGGER.info("Saving Event Payment with documents: {}", payment);
-
 		DtoPayment dtoPayment = new ObjectMapper().readValue(payment, DtoPayment.class);
+
+		/*
+		 * The reference, not the body. This logged the whole request, which
+		 * carries the transaction reference and the payer's remarks — a free
+		 * text field staff have every reason to put a card detail or a bank
+		 * reference in. What a log needs is which event was paid and how much.
+		 */
+		LOGGER.info("Recording a {} payment of {} against event {}", dtoPayment.getTxtPaymentMode(),
+				dtoPayment.getNumAmount(), dtoPayment.getSerEventMasterId());
 
 		DtoResult result = serviceEventPayment.savePaymentWithFiles(dtoPayment, files);
 
