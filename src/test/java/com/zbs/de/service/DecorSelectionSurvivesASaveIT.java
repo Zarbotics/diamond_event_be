@@ -22,12 +22,17 @@ import org.springframework.test.context.TestPropertySource;
 
 import com.zbs.de.model.CustomerMaster;
 import com.zbs.de.model.DecorCategoryMaster;
+import com.zbs.de.model.DecorCategoryPropertyMaster;
+import com.zbs.de.model.DecorCategoryPropertyValue;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventType;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
+import com.zbs.de.model.dto.DtoEventDecorPropertySelection;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.repository.RepositoryCustomerMaster;
 import com.zbs.de.repository.RepositoryDecorCategoryMaster;
+import com.zbs.de.repository.RepositoryDecorCategoryPropertyMaster;
+import com.zbs.de.repository.RepositoryDecorCategoryPropertyValue;
 import com.zbs.de.repository.RepositoryEventDecorCategorySelection;
 import com.zbs.de.repository.RepositoryEventMaster;
 import com.zbs.de.repository.RepositoryEventType;
@@ -114,6 +119,12 @@ class DecorSelectionSurvivesASaveIT {
 	private RepositoryEventDecorCategorySelection repositoryEventDecorCategorySelection;
 
 	@Autowired
+	private RepositoryDecorCategoryPropertyMaster repositoryDecorCategoryPropertyMaster;
+
+	@Autowired
+	private RepositoryDecorCategoryPropertyValue repositoryDecorCategoryPropertyValue;
+
+	@Autowired
 	private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
 	private CustomerMaster customer;
@@ -168,6 +179,26 @@ class DecorSelectionSurvivesASaveIT {
 		  quietly, which is the right way round, but it fails in teardown where
 		  it reads as six broken tests.
 		*/
+		/*
+		  The décor property selections hang off the category selection, and
+		  their chosen values hang off those, so both go before it.
+		*/
+		String mine = "  SELECT e.ser_event_master_id FROM event_master e"
+				+ "  JOIN customer_master c ON c.ser_cust_id = e.ser_cust_id"
+				+ "  WHERE c.txt_cust_code LIKE ?";
+
+		jdbcTemplate.update("DELETE FROM event_decor_property_value_selection"
+				+ " WHERE ser_event_decor_property_id IN ("
+				+ "  SELECT p.ser_event_decor_property_id FROM event_decor_property_selection p"
+				+ "  JOIN event_decor_category_selection c"
+				+ "    ON c.ser_event_decor_category_selection_id = p.ser_event_decor_category_selection_id"
+				+ "  WHERE c.ser_event_master_id IN (" + mine + "))", MARKER + "%");
+
+		jdbcTemplate.update("DELETE FROM event_decor_property_selection"
+				+ " WHERE ser_event_decor_category_selection_id IN ("
+				+ "  SELECT c.ser_event_decor_category_selection_id FROM event_decor_category_selection c"
+				+ "  WHERE c.ser_event_master_id IN (" + mine + "))", MARKER + "%");
+
 		Map<String, String> children = new LinkedHashMap<>();
 		children.put("event_decor_category_selection", "ser_event_master_id");
 		children.put("event_decor_extras_selection", "ser_event_master_id");
@@ -197,7 +228,21 @@ class DecorSelectionSurvivesASaveIT {
 						+ "  SELECT ser_cust_id FROM customer_master WHERE txt_cust_code LIKE ?)",
 				MARKER + "%");
 
+		/*
+		  A booking posted through the service, rather than seeded straight into
+		  the table, also gets a `booking` row above it — every event does. It
+		  points at the customer, so it goes before them.
+		*/
+		jdbcTemplate.update("DELETE FROM booking WHERE ser_cust_id IN ("
+				+ "  SELECT ser_cust_id FROM customer_master WHERE txt_cust_code LIKE ?)", MARKER + "%");
+
 		jdbcTemplate.update("DELETE FROM customer_master WHERE txt_cust_code LIKE ?", MARKER + "%");
+
+		jdbcTemplate.update("DELETE FROM decor_category_property_value WHERE ser_property_id IN ("
+				+ "  SELECT ser_property_id FROM decor_category_property_master WHERE txt_property_code LIKE ?)",
+				MARKER + "%");
+		jdbcTemplate.update("DELETE FROM decor_category_property_master WHERE txt_property_code LIKE ?",
+				MARKER + "%");
 
 		jdbcTemplate.update("DELETE FROM decor_category_master WHERE txt_decor_category_code LIKE ?",
 				MARKER + "%");
@@ -300,7 +345,114 @@ class DecorSelectionSurvivesASaveIT {
 
 	// ── fixture ──────────────────────────────────────────────────────────
 
+	/**
+	 * D10c: the décor choices on a booking that does not exist yet.
+	 *
+	 * <h4>What happened</h4>
+	 *
+	 * The new-booking branch matched the décor catalogue by
+	 * {@code getSerEventDecorPropertyId()} — the <em>selection row's</em>
+	 * primary key — where the other three copies of this code use
+	 * {@code getSerPropertyId()}, the catalogue's. On a booking being created
+	 * the selection row does not exist, so that id is null and
+	 * {@code .intValue()} threw: the whole save failed. Where it did not throw
+	 * it compared two different numbering schemes, matching by coincidence or
+	 * not at all — a property silently attached to the wrong thing.
+	 *
+	 * <p>
+	 * It is likely never to have fired in the journey, which creates the
+	 * booking on an early step and reaches décor afterwards, by which point the
+	 * existing-booking branch runs instead. Anything that posts a complete
+	 * booking in one call hits it.
+	 */
+	@Test
+	@DisplayName("décor chosen on a booking that does not exist yet is matched to the catalogue")
+	void decorOnANewBookingFindsItsProperty() throws Exception {
+		DecorCategoryMaster stage = seedDecorCategory("Stage");
+		DecorCategoryPropertyMaster backdrop = seedProperty(stage, "Backdrop");
+		DecorCategoryPropertyValue floral = seedValue(backdrop, "Floral arch");
+
+		DtoEventDecorPropertySelection chosenProperty = new DtoEventDecorPropertySelection();
+		chosenProperty.setSerPropertyId(backdrop.getSerPropertyId());
+		chosenProperty.setSerPropertyValueIds(List.of(floral.getSerPropertyValueId()));
+
+		DtoEventDecorCategorySelection choice = new DtoEventDecorCategorySelection();
+		choice.setSerDecorCategoryId(stage.getSerDecorCategoryId());
+		choice.setTxtDecorCategoryCode(stage.getTxtDecorCategoryCode());
+		choice.setTxtDecorCategoryName(stage.getTxtDecorCategoryName());
+
+		DtoEventMaster dto = aBookingThatDoesNotExistYet();
+		dto.setDtoEventDecorSelections(List.of(choice));
+		choice.setSelectedProperties(List.of(chosenProperty));
+
+		save(dto);
+
+		Map<String, Object> stored = jdbcTemplate.queryForMap(
+				"SELECT p.ser_property_id FROM event_decor_property_selection p"
+						+ " JOIN event_decor_category_selection c"
+						+ "   ON c.ser_event_decor_category_selection_id = p.ser_event_decor_category_selection_id"
+						+ " JOIN event_master e ON e.ser_event_master_id = c.ser_event_master_id"
+						+ " JOIN customer_master cu ON cu.ser_cust_id = e.ser_cust_id"
+						+ " WHERE cu.txt_cust_code LIKE ?", MARKER + "%");
+
+		assertThat(stored.get("ser_property_id"))
+				.as("the property has to be matched by the catalogue's id, not the selection row's")
+				.isEqualTo(backdrop.getSerPropertyId());
+	}
+
+	/**
+	 * A booking posted in one call, with no id, exactly as a client that has
+	 * not created it first would send it.
+	 */
+	private DtoEventMaster aBookingThatDoesNotExistYet() {
+		seedCustomerAndType();
+
+		DtoEventMaster dto = new DtoEventMaster();
+		dto.setSerCustId(customer.getSerCustId());
+		dto.setSerEventTypeId(eventType.getSerEventTypeId());
+		dto.setIsEditAllowed(true);
+		dto.setTxtEventMasterName(MARKER + " walima");
+		dto.setDteEventDate(DAY.format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+		dto.setNumNumberOfGuests(100);
+		return dto;
+	}
+
+	private DecorCategoryPropertyMaster seedProperty(DecorCategoryMaster category, String name) {
+		DecorCategoryPropertyMaster property = new DecorCategoryPropertyMaster();
+		property.setDecorCategoryMaster(category);
+		property.setTxtPropertyCode(MARKER + "-" + System.nanoTime());
+		property.setTxtPropertyName(MARKER + " " + name);
+		property.setBlnIsActive(true);
+		property.setBlnIsDeleted(false);
+		return repositoryDecorCategoryPropertyMaster.saveAndFlush(property);
+	}
+
+	private DecorCategoryPropertyValue seedValue(DecorCategoryPropertyMaster property, String name) {
+		DecorCategoryPropertyValue value = new DecorCategoryPropertyValue();
+		value.setDecorCategoryProperty(property);
+		value.setTxtPropertyValue(MARKER + " " + name);
+		value.setBlnIsActive(true);
+		value.setBlnIsDeleted(false);
+		return repositoryDecorCategoryPropertyValue.saveAndFlush(value);
+	}
+
 	private EventMaster seedEvent() {
+		seedCustomerAndType();
+
+		EventMaster event = new EventMaster();
+		event.setTxtEventMasterName(MARKER + " walima");
+		event.setTxtEventMasterCode(MARKER + "-" + System.nanoTime());
+		event.setDteEventDate(Date.from(DAY.atStartOfDay(ZoneOffset.UTC).toInstant()));
+		event.setCustomerMaster(customer);
+		event.setEventType(eventType);
+		event.setNumNumberOfGuests(100);
+		event.setBlnIsActive(true);
+		event.setBlnIsDeleted(false);
+		event.setIsEditAllowed(true);
+		return repositoryEventMaster.saveAndFlush(event);
+	}
+
+	private void seedCustomerAndType() {
 		customer = new CustomerMaster();
 		customer.setTxtCustCode(MARKER + "-" + System.nanoTime());
 		customer.setTxtCustName(MARKER + " customer");
@@ -316,18 +468,6 @@ class DecorSelectionSurvivesASaveIT {
 					seeded.setBlnIsMainEvent(true);
 					return repositoryEventType.save(seeded);
 				});
-
-		EventMaster event = new EventMaster();
-		event.setTxtEventMasterName(MARKER + " walima");
-		event.setTxtEventMasterCode(MARKER + "-" + System.nanoTime());
-		event.setDteEventDate(Date.from(DAY.atStartOfDay(ZoneOffset.UTC).toInstant()));
-		event.setCustomerMaster(customer);
-		event.setEventType(eventType);
-		event.setNumNumberOfGuests(100);
-		event.setBlnIsActive(true);
-		event.setBlnIsDeleted(false);
-		event.setIsEditAllowed(true);
-		return repositoryEventMaster.saveAndFlush(event);
 	}
 
 	private DecorCategoryMaster seedDecorCategory(String name) {

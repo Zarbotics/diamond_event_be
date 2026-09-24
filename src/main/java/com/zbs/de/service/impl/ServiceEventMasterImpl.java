@@ -1393,9 +1393,26 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
 								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
 
+								/*
+								 * getSerPropertyId, the catalogue's id — not
+								 * getSerEventDecorPropertyId, which is the
+								 * selection row's own primary key.
+								 *
+								 * This branch runs when the booking does not
+								 * exist yet, so neither does that row, and the
+								 * id is null: intValue() threw. The throw was
+								 * then caught by the catch-all at the foot of
+								 * this method, logged at debug — invisible in
+								 * production — and answered as "Failure" with
+								 * no reason, so a booking posted complete in
+								 * one call was lost with nothing to say why.
+								 *
+								 * The other three copies of this code always
+								 * used the catalogue id.
+								 */
 								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
 										.filter(pm -> pm.getSerPropertyId().intValue() == property
-												.getSerEventDecorPropertyId().intValue())
+												.getSerPropertyId().intValue())
 										.findFirst().orElse(null);
 
 //								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
