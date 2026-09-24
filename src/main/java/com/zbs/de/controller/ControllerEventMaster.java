@@ -162,8 +162,16 @@ public class ControllerEventMaster {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
 						result.getResult());
 			} else {
+				/*
+				 * The reason, where the service was able to give one. It used to
+				 * answer the bare sentinel "Failure", so a caller whose booking
+				 * had just been lost was told only that something had gone
+				 * wrong — and the server had logged it at debug, which is off.
+				 */
+				String reason = result.getResult() instanceof String ? (String) result.getResult()
+						: result.getTxtMessage();
 				return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
-						result.getTxtMessage(), dtoEventMaster);
+						reason, dtoEventMaster);
 			}
 		} catch (Exception e) {
 			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
@@ -316,11 +324,14 @@ public class ControllerEventMaster {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(),
 						result.getResult());
 			} else {
+				/* The reason, where the service gave one — see the journey save above. */
+				String reason = result.getResult() instanceof String ? (String) result.getResult()
+						: result.getTxtMessage();
 				return new ResponseMessage(HttpStatus.METHOD_FAILURE.value(), HttpStatus.METHOD_FAILURE,
-						result.getTxtMessage(), dtoEventMaster);
+						reason, dtoEventMaster);
 			}
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Failed to save",
 					dtoEventMaster);
 		}
@@ -459,7 +470,7 @@ public class ControllerEventMaster {
 				return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, result.getTxtMessage(), null);
 			}
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Unable To Fetch Dates",
 					null);
 		}
@@ -484,7 +495,7 @@ public class ControllerEventMaster {
 						result.getTxtMessage(), null);
 			}
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST, "Unable To Validate Date",
 					null);
 		}

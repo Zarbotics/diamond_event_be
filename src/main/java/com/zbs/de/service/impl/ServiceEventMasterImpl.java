@@ -396,7 +396,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				dtoResult.setTxtMessage("No record found");
 			}
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
 		}
 
@@ -640,7 +640,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				dtoResult.setTxtMessage("No record found");
 			}
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
 		}
 
@@ -766,7 +766,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
 			return dtoResult;
 		}
@@ -787,7 +787,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				return dtoResult;
 			}
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
 			return dtoResult;
 		}
@@ -1365,120 +1365,12 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					return venueRefusal;
 				}
 
-				// Set Decore Item Selections
-				// **************************
-				if (UtilRandomKey.isNotNull(dtoEventMaster.getDtoEventDecorSelections())) {
-					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
-
-					for (DtoEventDecorCategorySelection dto : dtoEventMaster.getDtoEventDecorSelections()) {
-						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
-						decorSelection.setSerEventDecorCategorySelectionId(null);
-						decorSelection.setEventMaster(entity);
-
-						// if (decorSelection.getSelectedProperties() != null) {
-						// decorSelection.getSelectedProperties()
-						// .forEach(p -> p.setEventDecorCategorySelection(decorSelection));
-						// }
-
-						if (dto.getSelectedProperties() != null && !dto.getSelectedProperties().isEmpty()) {
-							if (decorSelection.getSelectedProperties() != null) {
-								decorSelection.getSelectedProperties().clear();
-							}
-
-							List<EventDecorPropertySelection> newSelectedProperties = new ArrayList<>();
-							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
-								EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
-								eventDecorPropertySelection.setBlnIsActive(true);
-								eventDecorPropertySelection.setBlnIsDeleted(false);
-								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
-								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
-
-								/*
-								 * getSerPropertyId, the catalogue's id — not
-								 * getSerEventDecorPropertyId, which is the
-								 * selection row's own primary key.
-								 *
-								 * This branch runs when the booking does not
-								 * exist yet, so neither does that row, and the
-								 * id is null: intValue() threw. The throw was
-								 * then caught by the catch-all at the foot of
-								 * this method, logged at debug — invisible in
-								 * production — and answered as "Failure" with
-								 * no reason, so a booking posted complete in
-								 * one call was lost with nothing to say why.
-								 *
-								 * The other three copies of this code always
-								 * used the catalogue id.
-								 */
-								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
-										.filter(pm -> pm.getSerPropertyId().intValue() == property
-												.getSerPropertyId().intValue())
-										.findFirst().orElse(null);
-
-//								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-//										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
-//												.getSerPropertyValueId().intValue())
-//										.findFirst().orElse(null);
-								
-								//************************************************
-								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
-
-								for (Integer valueId : property.getSerPropertyValueIds()) {
-
-								    DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-								        .filter(pv -> pv.getSerPropertyValueId().intValue() == valueId)
-								        .findFirst()
-								        .orElse(null);
-
-								    EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
-								    val.setEventDecorPropertySelection(eventDecorPropertySelection);
-								    val.setPropertyValue(matchedValue);
-
-								    selectedValues.add(val);
-								}
-
-								eventDecorPropertySelection.setSelectedValues(selectedValues);
-								
-								
-								//*************************************************
-
-								eventDecorPropertySelection.setProperty(matchedMaster);
-//								eventDecorPropertySelection.setSelectedValue(matchedValue);
-								newSelectedProperties.add(eventDecorPropertySelection);
-							}
-
-							decorSelection.getSelectedProperties().addAll(newSelectedProperties);
-						}
-
-						// Set reference image back reference
-
-						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
-							decorSelection.getUserUploadedDocuments().clear();
-							List<EventDecorReferenceDocument> documents = new ArrayList<>();
-							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-								MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-								if (file != null) {
-									String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-									doc.setDocumentName(file.getName());
-									doc.setOriginalName(file.getOriginalFilename());
-									doc.setDocumentType(file.getContentType());
-									doc.setSize(String.valueOf(file.getSize()));
-									doc.setFilePath(uploadPath);
-									doc.setEventDecorCategorySelection(decorSelection);
-									documents.add(doc);
-								}
-							}
-							// decorSelection.setUserUploadedDocuments(documents);
-							decorSelection.getUserUploadedDocuments().addAll(documents);
-						}
-
-						decorSelections.add(decorSelection);
-					}
-
-					entity.setDecorSelections(decorSelections);
-					// entity.setNumInfoFilledStatus(70);
-				}
+				// Set Decor Item Selections
+				// *************************
+				DecorTotals newDecorTotals = applyDecorSelections(dtoEventMaster.getDtoEventDecorSelections(), entity,
+						decorCategoryPropertyMasterLst, decorCategoryPropertyValueLst, files, fileMap, JOURNEY_DECOR);
+				numDecorCategoryPrice = numDecorCategoryPrice.add(newDecorTotals.categories());
+				numDecorPropertyPrice = numDecorPropertyPrice.add(newDecorTotals.properties());
 
 				// Set Food Menu Selection
 				// ***********************
@@ -1863,8 +1755,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			dtoResult.setResult(dtoEvent);
 			return dtoResult;
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			/*
+			 * Error, not debug. This caught everything this method can throw and
+			 * logged it at a level nobody enables in production, so a save that
+			 * failed left no trace at all — which is how a null id in the décor
+			 * block went unnoticed for as long as it did (D10c).
+			 */
+			LOGGER.error("Failed while saving a booking from the customer journey", e);
 			dtoResult.setTxtMessage("Failure");
+			/*
+			 * "Failure" is the sentinel the controller reads to answer 400
+			 * rather than 200, so it stays exactly as it is. The reason goes
+			 * beside it, where it can reach the person who hit it.
+			 */
+			dtoResult.setResult("The booking could not be saved.");
 			return dtoResult;
 		}
 	}
@@ -2147,7 +2051,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
 			return null;
 		}
@@ -2719,109 +2623,13 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 					return venueRefusal;
 				}
 
-				// Set Decore Item Selections
-				// **************************
-				if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getDtoEventDecorSelections())) {
-					List<EventDecorCategorySelection> decorSelections = new ArrayList<>();
-
-					for (DtoEventDecorCategorySelection dto : dtoEventMasterAdminPortal.getDtoEventDecorSelections()) {
-						EventDecorCategorySelection decorSelection = MapperEventDecorCategorySelection.toEntity(dto);
-						decorSelection.setEventMaster(entity);
-						if(decorSelection.getNumPrice() != null) {
-							numDecorCategoryPrice = numDecorCategoryPrice.add(decorSelection.getNumPrice());
-						}
-						
-
-						// if (decorSelection.getSelectedProperties() != null) {
-						// decorSelection.getSelectedProperties()
-						// .forEach(p -> p.setEventDecorCategorySelection(decorSelection));
-						// }
-
-						if (dto.getSelectedProperties() != null && !dto.getSelectedProperties().isEmpty()) {
-							if (decorSelection.getSelectedProperties() != null) {
-								decorSelection.getSelectedProperties().clear();
-							}
-
-							List<EventDecorPropertySelection> newSelectedProperties = new ArrayList<>();
-							for (DtoEventDecorPropertySelection property : dto.getSelectedProperties()) {
-								EventDecorPropertySelection eventDecorPropertySelection = new EventDecorPropertySelection();
-								eventDecorPropertySelection.setBlnIsActive(true);
-								eventDecorPropertySelection.setBlnIsDeleted(false);
-								eventDecorPropertySelection.setCreatedDate(UtilDateAndTime.getCurrentDate());
-								eventDecorPropertySelection.setEventDecorCategorySelection(decorSelection);
-								eventDecorPropertySelection.setNumPrice(property.getNumPrice());
-								if(eventDecorPropertySelection.getNumPrice() != null) {
-									numDecorPropertyPrice = numDecorPropertyPrice.add(eventDecorPropertySelection.getNumPrice());
-								}
-								DecorCategoryPropertyMaster matchedMaster = decorCategoryPropertyMasterLst.stream()
-										.filter(pm -> pm.getSerPropertyId().intValue() == property.getSerPropertyId()
-												.intValue())
-										.findFirst().orElse(null);
-
-//								DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-//										.filter(pv -> pv.getSerPropertyValueId().intValue() == property
-//												.getSerPropertyValueId().intValue())
-//										.findFirst().orElse(null);
-
-								// **********************************************
-								Set<EventDecorPropertyValueSelection> selectedValues = new HashSet<>();
-
-								if( property.getSerPropertyValueIds() != null && ! property.getSerPropertyValueIds().isEmpty()) {
-									for (Integer valueId : property.getSerPropertyValueIds()) {
-
-										DecorCategoryPropertyValue matchedValue = decorCategoryPropertyValueLst.stream()
-												.filter(pv -> pv.getSerPropertyValueId().intValue() == valueId).findFirst()
-												.orElse(null);
-
-										EventDecorPropertyValueSelection val = new EventDecorPropertyValueSelection();
-										val.setEventDecorPropertySelection(eventDecorPropertySelection);
-										val.setPropertyValue(matchedValue);
-
-										selectedValues.add(val);
-									}
-
-								}
-								
-								eventDecorPropertySelection.setSelectedValues(selectedValues);
-
-								// **********************************************
-								eventDecorPropertySelection.setProperty(matchedMaster);
-//								eventDecorPropertySelection.setSelectedValue(matchedValue);
-								newSelectedProperties.add(eventDecorPropertySelection);
-							}
-
-							decorSelection.getSelectedProperties().addAll(newSelectedProperties);
-						}
-
-						// Set reference image back reference
-
-						if (decorSelection.getUserUploadedDocuments() != null && UtilRandomKey.isNotNull(files)) {
-							decorSelection.getUserUploadedDocuments().clear();
-							List<EventDecorReferenceDocument> documents = new ArrayList<>();
-							for (DtoEventDecorReferenceDocument dtoImg : dto.getUserUploadedDocuments()) {
-								MultipartFile file = fileMap.get(dtoImg.getOriginalName());
-								if (file != null) {
-									String uploadPath = UtilFileStorage.saveFile(file, "UserReferenceDecor");
-									EventDecorReferenceDocument doc = new EventDecorReferenceDocument();
-									doc.setDocumentName(file.getName());
-									doc.setOriginalName(file.getOriginalFilename());
-									doc.setDocumentType(file.getContentType());
-									doc.setSize(String.valueOf(file.getSize()));
-									doc.setFilePath(uploadPath);
-									doc.setEventDecorCategorySelection(decorSelection);
-									documents.add(doc);
-								}
-							}
-							// decorSelection.setUserUploadedDocuments(documents);
-							decorSelection.getUserUploadedDocuments().addAll(documents);
-						}
-
-						decorSelections.add(decorSelection);
-					}
-
-					entity.setDecorSelections(decorSelections);
-					// entity.setNumInfoFilledStatus(70);
-				}
+				// Set Decor Item Selections
+				// *************************
+				DecorTotals newDecorTotals = applyDecorSelections(
+						dtoEventMasterAdminPortal.getDtoEventDecorSelections(), entity,
+						decorCategoryPropertyMasterLst, decorCategoryPropertyValueLst, files, fileMap, OFFICE_DECOR);
+				numDecorCategoryPrice = numDecorCategoryPrice.add(newDecorTotals.categories());
+				numDecorPropertyPrice = numDecorPropertyPrice.add(newDecorTotals.properties());
 
 
 				// entity.setNumInfoFilledStatus(100);
@@ -3200,8 +3008,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			dtoResult.setResult(dtoEvent);
 			return dtoResult;
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			/*
+			 * Error, not debug. This caught everything this method can throw and
+			 * logged it at a level nobody enables in production, so a save that
+			 * failed left no trace at all — which is how a null id in the décor
+			 * block went unnoticed for as long as it did (D10c).
+			 */
+			LOGGER.error("Failed while saving a booking from the control panel", e);
 			dtoResult.setTxtMessage("Failure");
+			/*
+			 * "Failure" is the sentinel the controller reads to answer 400
+			 * rather than 200, so it stays exactly as it is. The reason goes
+			 * beside it, where it can reach the person who hit it.
+			 */
+			dtoResult.setResult("The booking could not be saved.");
 			return dtoResult;
 		}
 	}
@@ -3363,7 +3183,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
 			return null;
 		}
@@ -3507,7 +3327,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage("Error occurred: " + e.getMessage());
 			return dtoResult;
 		}
@@ -3900,7 +3720,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			}
 
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			return null;
 		}
 	}
@@ -3954,7 +3774,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			    }
 			    return dtoResult;
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage(e.getMessage());
 			return dtoResult;
 		}
@@ -3975,7 +3795,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 //			dtoResult.setResult(strDates);
 //			return dtoResult;
 //		} catch (Exception e) {
-//			LOGGER.debug(e.getMessage(), e);
+//			LOGGER.error(e.getMessage(), e);
 //			dtoResult.setTxtMessage(e.getMessage());
 //			return dtoResult;
 //		}
@@ -4066,8 +3886,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			return dtoResult;
 
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			/*
+			 * Error, not debug. This caught everything this method can throw and
+			 * logged it at a level nobody enables in production, so a save that
+			 * failed left no trace at all — which is how a null id in the décor
+			 * block went unnoticed for as long as it did (D10c).
+			 */
+			LOGGER.error("Failed while reading the dates already booked", e);
 			dtoResult.setTxtMessage("Failure");
+			/*
+			 * "Failure" is the sentinel the controller reads to answer 400
+			 * rather than 200, so it stays exactly as it is. The reason goes
+			 * beside it, where it can reach the person who hit it.
+			 */
+			dtoResult.setResult("The booked dates could not be read.");
 			return dtoResult;
 		}
 	}
@@ -4086,7 +3918,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			dtoResult.setResulList(new ArrayList<>(repositoryEventMaster.findEventSummariesByCustomerId(serCustId)));
 			dtoResult.setTxtMessage("Success");
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage("Could not load your bookings");
 		}
 
@@ -4102,7 +3934,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			dtoResult.setResulList(new ArrayList<>(repositoryEventMaster.getCalendarEntries()));
 			dtoResult.setTxtMessage("Success");
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			dtoResult.setTxtMessage("Could not load the calendar");
 		}
 
@@ -4157,8 +3989,20 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			return dtoResult;
 
 		} catch (Exception e) {
-			LOGGER.debug(e.getMessage(), e);
+			/*
+			 * Error, not debug. This caught everything this method can throw and
+			 * logged it at a level nobody enables in production, so a save that
+			 * failed left no trace at all — which is how a null id in the décor
+			 * block went unnoticed for as long as it did (D10c).
+			 */
+			LOGGER.error("Failed while reading the days over capacity", e);
 			dtoResult.setTxtMessage("Failure");
+			/*
+			 * "Failure" is the sentinel the controller reads to answer 400
+			 * rather than 200, so it stays exactly as it is. The reason goes
+			 * beside it, where it can reach the person who hit it.
+			 */
+			dtoResult.setResult("The days over capacity could not be read.");
 			return dtoResult;
 		}
 	}
@@ -4790,16 +4634,27 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	 * office's, differing in the two things {@link DecorRules} names and
 	 * nothing else.
 	 *
-	 * <h3>Why only the bookings that already exist</h3>
+	 * <h3>All four blocks, not just the two</h3>
 	 *
-	 * Each save path has a second décor block for a booking being created, and
-	 * those two are <em>not</em> copies of these. They skip the running totals,
-	 * handle reference documents the older way, and assign the collection with
-	 * {@code setDecorSelections} rather than adding to it. The journey's also
-	 * matches the décor catalogue by the wrong identifier — the id of the
-	 * selection row, which is not set on a booking being created, rather than
-	 * the id of the catalogue property. Folding those in here would silently
-	 * change four behaviours at once, so they are left where they are.
+	 * Each save path used to have a second décor block for a booking being
+	 * created. Those two were left standing during the extraction because
+	 * folding them in would have changed four behaviours at once while the
+	 * change was meant to alter nothing. They are gone now, and what they were
+	 * doing differently was in every case wrong:
+	 *
+	 * <ul>
+	 * <li>The journey's matched the catalogue by the selection row's id rather
+	 * than the catalogue property's. On a booking being created that id is
+	 * null, so it threw — and the throw was swallowed and reported as
+	 * "Failure" with no reason (D10c).</li>
+	 * <li>Neither guarded a property with no chosen values, so a null
+	 * {@code serPropertyValueIds} threw.</li>
+	 * <li>Both handled reference pictures the older way, which stored them
+	 * only when a file came with them. A picture the client sent as metadata —
+	 * one already uploaded, on a booking being re-posted — was dropped.</li>
+	 * <li>Both assigned the collection with {@code setDecorSelections} rather
+	 * than adding to the one Hibernate manages.</li>
+	 * </ul>
 	 *
 	 * <h3>Why the collection is cleared and added to</h3>
 	 *
@@ -4819,7 +4674,16 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			return new DecorTotals(categoryTotal, propertyTotal);
 		}
 
-		if (entity.getDecorSelections() != null) {
+		/*
+		 * A booking being created has its collections nulled before the first
+		 * save, so that Hibernate is not asked to cascade half-built children.
+		 * It is given a list back here rather than at each call site, because
+		 * every caller needs the same thing and one of them forgetting is an
+		 * NPE inside a save.
+		 */
+		if (entity.getDecorSelections() == null) {
+			entity.setDecorSelections(new ArrayList<>());
+		} else {
 			entity.getDecorSelections().clear();
 		}
 

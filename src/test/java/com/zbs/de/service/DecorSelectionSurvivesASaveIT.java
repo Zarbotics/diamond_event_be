@@ -28,6 +28,7 @@ import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventType;
 import com.zbs.de.model.dto.DtoEventDecorCategorySelection;
 import com.zbs.de.model.dto.DtoEventDecorPropertySelection;
+import com.zbs.de.model.dto.DtoEventDecorReferenceDocument;
 import com.zbs.de.model.dto.DtoEventMaster;
 import com.zbs.de.repository.RepositoryCustomerMaster;
 import com.zbs.de.repository.RepositoryDecorCategoryMaster;
@@ -186,6 +187,11 @@ class DecorSelectionSurvivesASaveIT {
 		String mine = "  SELECT e.ser_event_master_id FROM event_master e"
 				+ "  JOIN customer_master c ON c.ser_cust_id = e.ser_cust_id"
 				+ "  WHERE c.txt_cust_code LIKE ?";
+
+		jdbcTemplate.update("DELETE FROM event_decor_reference_document"
+				+ " WHERE ser_event_decor_category_selection_id IN ("
+				+ "  SELECT c.ser_event_decor_category_selection_id FROM event_decor_category_selection c"
+				+ "  WHERE c.ser_event_master_id IN (" + mine + "))", MARKER + "%");
 
 		jdbcTemplate.update("DELETE FROM event_decor_property_value_selection"
 				+ " WHERE ser_event_decor_property_id IN ("
@@ -398,6 +404,52 @@ class DecorSelectionSurvivesASaveIT {
 		assertThat(stored.get("ser_property_id"))
 				.as("the property has to be matched by the catalogue's id, not the selection row's")
 				.isEqualTo(backdrop.getSerPropertyId());
+	}
+
+	/**
+	 * D10e: the pictures the customer had already uploaded.
+	 *
+	 * <h4>What happened</h4>
+	 *
+	 * The new-booking décor blocks stored reference pictures only when a file
+	 * arrived with them. A picture the client sent as metadata — one already
+	 * uploaded, on a booking being re-posted — was silently dropped, because
+	 * the inline code had no branch for it. The helper the existing-booking
+	 * paths use has always had one; collapsing the blocks into it is what
+	 * brings the behaviour across.
+	 */
+	@Test
+	@DisplayName("a picture already uploaded is kept on a booking posted without files")
+	void picturesAlreadyUploadedAreKept() throws Exception {
+		DecorCategoryMaster stage = seedDecorCategory("Stage");
+
+		DtoEventDecorReferenceDocument picture = new DtoEventDecorReferenceDocument();
+		picture.setDocumentName("stage.png");
+		picture.setOriginalName("stage.png");
+		picture.setDocumentType("image/png");
+		picture.setSize("2048");
+		picture.setTxtDocumentUrl("/uploads/UserReferenceDecor/stage.png");
+
+		DtoEventDecorCategorySelection choice = new DtoEventDecorCategorySelection();
+		choice.setSerDecorCategoryId(stage.getSerDecorCategoryId());
+		choice.setTxtDecorCategoryCode(stage.getTxtDecorCategoryCode());
+		choice.setTxtDecorCategoryName(stage.getTxtDecorCategoryName());
+		choice.setUserUploadedDocuments(List.of(picture));
+
+		DtoEventMaster dto = aBookingThatDoesNotExistYet();
+		dto.setDtoEventDecorSelections(List.of(choice));
+
+		save(dto);
+
+		assertThat(jdbcTemplate.queryForObject(
+				"SELECT count(*) FROM event_decor_reference_document d"
+						+ " JOIN event_decor_category_selection c"
+						+ "   ON c.ser_event_decor_category_selection_id = d.ser_event_decor_category_selection_id"
+						+ " JOIN event_master e ON e.ser_event_master_id = c.ser_event_master_id"
+						+ " JOIN customer_master cu ON cu.ser_cust_id = e.ser_cust_id"
+						+ " WHERE cu.txt_cust_code LIKE ?", Integer.class, MARKER + "%"))
+				.as("a picture sent without a file beside it used to be dropped")
+				.isEqualTo(1);
 	}
 
 	/**
