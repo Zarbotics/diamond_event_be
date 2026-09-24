@@ -15,6 +15,17 @@ public class DtoEventType {
 
 	private List<DtoEventType> subEvents;
 
+	/**
+	 * The moments a running order has for this kind of event, in the order the
+	 * day runs — e.g. ["txtGuestArrival", "txtNikah", ..., "txtEndOfNight"].
+	 *
+	 * <p>
+	 * The control panel used to hold this as a map keyed by event type id, which
+	 * is a surrogate key the business assigns. It drifted. It is answered here,
+	 * by the row the business edits.
+	 */
+	private List<String> txtRunningOrderMoments;
+
 	public Integer getSerEventTypeId() {
 		return serEventTypeId;
 	}
@@ -87,4 +98,11 @@ public class DtoEventType {
 		this.txtDocuments = txtDocuments;
 	}
 
+	public List<String> getTxtRunningOrderMoments() {
+		return txtRunningOrderMoments;
+	}
+
+	public void setTxtRunningOrderMoments(List<String> txtRunningOrderMoments) {
+		this.txtRunningOrderMoments = txtRunningOrderMoments;
+	}
 }

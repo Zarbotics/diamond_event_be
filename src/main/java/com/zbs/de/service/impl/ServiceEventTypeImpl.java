@@ -10,7 +10,9 @@ import com.zbs.de.model.EventTypeDocument;
 import com.zbs.de.model.dto.DtoEventType;
 import com.zbs.de.model.dto.DtoEventTypeDocument;
 import com.zbs.de.model.dto.DtoResult;
+import com.zbs.de.model.EventTypeRunningOrderMoment;
 import com.zbs.de.repository.RepositoryEventType;
+import com.zbs.de.repository.RepositoryEventTypeRunningOrderMoment;
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilFileStorage;
 import com.zbs.de.util.UtilRandomKey;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,6 +38,53 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 	@Autowired
 	RepositoryEventType repositoryEventType;
 
+	@Autowired
+	RepositoryEventTypeRunningOrderMoment repositoryRunningOrderMoment;
+
+	/**
+	 * Which moments each kind of event has, read once for the whole answer.
+	 *
+	 * <p>
+	 * The control panel asks for every event type at once to fill its dropdown,
+	 * so the moments ride along with them rather than costing a request each.
+	 */
+	private Map<Integer, List<String>> momentsByEventType() {
+		Map<Integer, List<String>> byType = new LinkedHashMap<>();
+
+		for (EventTypeRunningOrderMoment moment : repositoryRunningOrderMoment.findAllInDayOrder()) {
+			if (moment.getEventType() == null) {
+				continue;
+			}
+			byType.computeIfAbsent(moment.getEventType().getSerEventTypeId(), k -> new ArrayList<>())
+					.add(moment.getTxtField());
+		}
+
+		return byType;
+	}
+
+	/**
+	 * Attaches the moments to every type in the answer, sub-events included.
+	 *
+	 * <p>
+	 * The booking form flattens the sub-events and works from those, so a type
+	 * that carried its moments only at the top would arrive with none.
+	 */
+	private List<DtoEventType> withMoments(List<DtoEventType> dtos) {
+		attachMoments(dtos, momentsByEventType());
+		return dtos;
+	}
+
+	private void attachMoments(List<DtoEventType> dtos, Map<Integer, List<String>> byType) {
+		if (dtos == null) {
+			return;
+		}
+
+		for (DtoEventType dto : dtos) {
+			dto.setTxtRunningOrderMoments(byType.getOrDefault(dto.getSerEventTypeId(), List.of()));
+			attachMoments(dto.getSubEvents(), byType);
+		}
+	}
+
 	@Override
 	public List<DtoEventType> getAllData() {
 		List<EventType> list = repositoryEventType.findByBlnIsDeleted(false);
@@ -42,7 +92,7 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 		for (EventType type : list) {
 			dtos.add(MapperEventType.toDto(type));
 		}
-		return dtos;
+		return withMoments(dtos);
 	}
 
 	@Override
@@ -70,7 +120,7 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 			dtos.add(eventType);
 
 		}
-		return dtos;
+		return withMoments(dtos);
 	}
 	
 	
@@ -99,7 +149,7 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 			dtos.add(eventType);
 
 		}
-		return dtos;
+		return withMoments(dtos);
 	}
 	
 	@Override
@@ -123,7 +173,7 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 			}
 
 		}
-		return subEvents;
+		return withMoments(subEvents);
 	}
 
 	@Override
