@@ -594,11 +594,17 @@ an early step and reaches the décor step afterwards, by which point the
 "existing booking" path runs instead. That is also why it survived: the path is
 effectively unreachable for any payload that carries décor.
 
-**Not fixed here.** Correcting it changes behaviour, and this change was meant
-to alter nothing — mixing the two would make "nothing changed" unprovable. It
-is the reason the two "new booking" décor blocks were left standing while their
-"existing booking" twins were merged: folding them in would have silently
-changed four behaviours at once, that one included. Logged as D10c.
+**Not fixed here** — it was meant to alter nothing, and mixing the two would
+make "nothing changed" unprovable. It is the reason the two "new booking" décor
+blocks were left standing while their "existing booking" twins were merged.
+
+**Fixed since, as D10c.** The symptom was worse than this section predicted.
+The null id did throw, and the throw was caught by the catch-all at the foot of
+`saveAndUpdateWithDocs`, logged at `LOGGER.debug` — invisible in production —
+and answered as `"Failure"` with no reason. A booking posted complete in one
+call was lost, and the only record of why was a log line nobody has enabled.
+Collapsing the block into the helper, and making that catch-all explain itself,
+is **D10e**.
 
 #### Two totals that are written and never read
 
@@ -710,8 +716,14 @@ browser stops being able to influence what a booking costs.
 straight from the payload. **A client that posts a menu without prices does not
 get a booking priced at zero — it gets a constraint violation that loses the
 whole save.** Pre-existing, found because a test fixture omitted the prices.
-Logged as P2; it is an argument for the engine filling these in, which is a
-behaviour change and so is not part of this one.
+
+**Fixed since, as P2.** Both entities carry `priceAs(listed, charged)`: a
+missing listed price is recorded as zero rather than refused, and a missing
+charge falls back to the listed price, because an empty price box means "charge
+the usual" everywhere else in the portal. The selection is the part the business
+cannot replace, and the engine prices food from the dish rows — which are
+nullable precisely because a price can be unknown — so a defaulted figure here
+is not one anybody quotes from.
 
 ### 5.11 Notifications, and why the table was empty ✅ 🟡
 
@@ -1102,12 +1114,11 @@ the reasoning; this is the list.
 |---|---|---|---|
 | **UX1c** | Drop the screens nothing routes to, including the three pricing screens | Control panel | Small — needs a business decision on pricing |
 | **UX2d** | Route create to `QuickCreate` and edit to `BookingWorkspace` | Control panel | Large — needs the user's agreement first |
+| **D10e** | Collapse the fourth décor copy into `applyDecor`, and make save failures explain themselves | Backend | Medium |
 | **UX2c** | The running order ignores the event type | Control panel | Small — needs a data question answered first |
 | **UX3** | Redesign and professionalise notifications | All three | Large |
 | **P3** | Turn server pricing on, then stop the clients pricing | All three | Medium — business decision on timing |
 | **B1** | Booking above Event | Backend | Large |
-| **P2** | A menu posted without prices loses the whole save | Backend | Small |
-| **D10c** | New-booking décor matches the catalogue by the wrong id | Backend | Small |
 | **B6 / M5c** | Retire the menu price fallback | Backend | Small |
 | **P4** | Retire or fold in the old preview pricing engine | Backend | Small |
 | **C4** | Extend control panel test coverage | Control panel | Ongoing |
@@ -1242,9 +1253,10 @@ it threw at exactly the moment it was meant to help.
 | ~~D10~~ | ~~Do the four copies of the event save get unified?~~ **Investigated and half done — see §5.8.** There were never four live paths: two had no caller at all and are gone, 1,839 lines with them. The two that remain differ for real reasons and are best served by extracting their shared body rather than merging them. |
 
 | ~~D10b~~ | **Done — see §5.9.** The shared body was extracted into named helpers both entry points call, rather than merged behind a "who is saving this" flag. Running order 4 copies → 1, venue 4 → 1, menu 2 → 1, décor 4 → 2. The differences that are business rules were kept and are now pinned by tests. Proved against a characterisation suite written first and run green on unmodified code. |
-| D10c | **The journey's new-booking décor block matches the catalogue by the wrong id.** It uses `getSerEventDecorPropertyId()` — the selection row's id, unset on a booking that does not exist yet — where the other three copies use `getSerPropertyId()`. Almost certainly never fired, because the journey creates the booking before the décor step and the "existing booking" path runs instead. Left alone during the extraction so that "nothing changed" stayed provable. Fixing it would also let the two remaining décor copies collapse into the one helper. |
+| ~~D10c~~ | **Done.** ~~The journey's new-booking décor block matches the catalogue by the wrong id.~~ It uses `getSerEventDecorPropertyId()` — the selection row's id, unset on a booking that does not exist yet — where the other three copies use `getSerPropertyId()`. Almost certainly never fired, because the journey creates the booking before the décor step and the "existing booking" path runs instead. Left alone during the extraction so that "nothing changed" stayed provable. Fixed: it uses the catalogue id now, pinned by an integration test that creates a booking in one call and was confirmed to fail without the fix. It did not merely fail to match — the null id threw, and the throw was swallowed by a debug-level catch-all that answered `"Failure"` with no reason. Collapsing the block into the helper is **D10e**. |
 | ~~D10d~~ | **Answered by §5.10.** The four totals were the start of exactly this work. They are still accumulated, and the engine now produces the figures they were meant to feed. Removing them is tidy-up that belongs with P3, when the client stops sending prices at all. |
-| P2 | **A menu posted without prices loses the whole save.** `event_menu_category_selection.num_final_price` is NOT NULL and is written straight from the payload, so a client that omits it gets a constraint violation rather than a booking priced at zero. Found by a test fixture that omitted them. It is an argument for the engine filling these in before the insert — which is a behaviour change, so it was kept out of §5.10. |
+| ~~P2~~ | **Done.** ~~A menu posted without prices loses the whole save.~~ `event_menu_category_selection.num_final_price` is NOT NULL and is written straight from the payload, so a client that omits it gets a constraint violation rather than a booking priced at zero. Found by a test fixture that omitted them. Both entities now carry `priceAs(listed, charged)`: a missing listed price is recorded as zero rather than refused, and a missing charge falls back to the listed price. Six unit tests and an integration test confirmed to fail without the fix. |
+| **D10e** | **Collapse the new-booking décor block into `applyDecor`, now that D10c has made them the same.** ~70 lines and the fourth copy. Three differences to check first: the block ends with `setDecorSelections` where the helper uses `addAll`; it handles reference documents inline; and the helper returns `DecorTotals`, which this branch does not compute. Also worth doing there: the catch-all at the foot of `saveAndUpdateWithDocs` logs at debug and returns `"Failure"` with no reason, which is how D10c stayed invisible — **every** save failure in that method is currently unexplained in production. |
 | P3 | **Turn `pricing.server.authoritative` on, and then stop the clients sending prices at all.** The engine records its figures alongside the client's and logs every disagreement. Once those logs are quiet on real bookings, the switch goes on; after that `eventPayload.js` loses its pricing rules and the journey stops computing subtotals, because neither would be read. Business decision on timing; the log is the evidence. |
 | P4 | **Retire the old `price_version` / `price_entry` / `pricing_rule` engine, or fold it in.** `ServicePricingEngine.preview` is called by nothing in either portal, covers menu items only, and uses `double` for money. Left untouched during §5.10 so that one change could be verified at a time. |
 
