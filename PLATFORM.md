@@ -725,6 +725,55 @@ cannot replace, and the engine prices food from the dish rows — which are
 nullable precisely because a price can be unknown — so a defaulted figure here
 is not one anybody quotes from.
 
+### 5.12 The running order's moments ✅
+
+The control panel held `RUNNING_ORDER_FIELD_MAPPING`, a map of event type id to
+the moments that type's running order has. The function that read it was:
+
+```js
+const arr = RUNNING_ORDER_FIELD_MAPPING[2];
+// const arr = RUNNING_ORDER_FIELD_MAPPING[selectedEventTypeId] || …[2];
+```
+
+— the line that uses the booking's own type commented out directly above the
+line that does not.
+
+**What the data said.** Every one of the **312 live bookings is event type 7,
+Walima**. The map's keys are 2, 3, 4 and 5. So it has never once selected
+anything: every booking falls through to the literal and gets the sixteen
+wedding moments.
+
+And the keys do not mean what they were written to mean:
+
+| key | what it holds | what that id actually is |
+|---|---|---|
+| 2 | the sixteen **wedding** moments | Corporate Event |
+| 3 | six, with no Nikah and no Barat arrival | **Wedding** |
+| 4 | four, including "Bride entrance" | Mehndi |
+| 5 | four, including "Bride entrance" | Awards Dinner |
+
+`ser_event_type_id` is a surrogate key the business assigns by adding rows on
+the Event Types screen. Behaviour keyed to it was always going to drift, and it
+had.
+
+**This changes what the fix was.** Uncommenting that line — which is what the
+fix looked like — would have done nothing for today's bookings, and would have
+started handing wedding bookings a day with the Nikah missing as soon as
+anybody took one. Leaving it alone was right, for a different reason than the
+one recorded at the time.
+
+**What replaces it.** `event_type_running_order_moment`, carried on the event
+type DTO, so the control panel gets the moments with the types it already
+fetches. The question "which moments does a Walima have" is answered where the
+business defines what a Walima is.
+
+**Why nothing narrowed.** Every type was seeded with all sixteen. A form
+submits only the fields it has rendered, so the first save of a booking whose
+list had shrunk would clear whatever was stored in the moments that stopped
+being shown. Seeding the whole day reproduces exactly what was on screen, so
+the change is invisible; narrowing becomes the business's decision, per type,
+and needs a screen — **UX2e**.
+
 ### 5.11 Notifications, and why the table was empty ✅ 🟡
 
 `notification_master` held **zero rows** in a production database with 296
@@ -1114,7 +1163,7 @@ the reasoning; this is the list.
 |---|---|---|---|
 | **UX1c** | Drop the screens nothing routes to, including the three pricing screens | Control panel | Small — needs a business decision on pricing |
 | **UX2d** | Route create to `QuickCreate` and edit to `BookingWorkspace` | Control panel | Large — needs the user's agreement first |
-| **UX2c** | The running order ignores the event type | Control panel | Small — needs a data question answered first |
+| **UX2e** | Let the business choose which moments each event type has | Control panel | Medium |
 | **UX3** | Redesign and professionalise notifications | All three | Large |
 | **P3** | Turn server pricing on, then stop the clients pricing | All three | Medium — business decision on timing |
 | **B1** | Booking above Event | Backend | Large |
