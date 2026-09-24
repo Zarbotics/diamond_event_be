@@ -260,8 +260,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 					EventMenuCategorySelection catEntity = new EventMenuCategorySelection();
 					catEntity.setCateringDeliveryBooking(entity);
 					catEntity.setCategory(category);
-					catEntity.setNumTotalPrice(catDto.getNumPrice());
-					catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
+					catEntity.priceAs(catDto.getNumPrice(), catDto.getNumFinalPrice());
 
 					// Initialize collections
 					if (catEntity.getSubCategories() == null) {
@@ -278,8 +277,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 						EventMenuSubCategorySelection subEntity = new EventMenuSubCategorySelection();
 						subEntity.setEventCategory(catEntity);
 						subEntity.setSubCategory(subCategory);
-						subEntity.setNumTotalPrice(subDto.getNumPrice());
-						subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
+						subEntity.priceAs(subDto.getNumPrice(), subDto.getNumFinalPrice());
 
 						// Initialize items collection
 						if (subEntity.getItems() == null) {
@@ -589,8 +587,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 					EventMenuCategorySelection catEntity = new EventMenuCategorySelection();
 					catEntity.setCateringDeliveryBooking(entity);
 					catEntity.setCategory(category);
-					catEntity.setNumTotalPrice(catDto.getNumPrice());
-					catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
+					catEntity.priceAs(catDto.getNumPrice(), catDto.getNumFinalPrice());
 
 					// Initialize collections
 					if (catEntity.getSubCategories() == null) {
@@ -607,8 +604,7 @@ public class ServiceCateringDeliveryBookingImpl implements ServiceCateringDelive
 						EventMenuSubCategorySelection subEntity = new EventMenuSubCategorySelection();
 						subEntity.setEventCategory(catEntity);
 						subEntity.setSubCategory(subCategory);
-						subEntity.setNumTotalPrice(subDto.getNumPrice());
-						subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
+						subEntity.priceAs(subDto.getNumPrice(), subDto.getNumFinalPrice());
 
 						// Initialize items collection
 						if (subEntity.getItems() == null) {

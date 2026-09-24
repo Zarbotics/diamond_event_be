@@ -4603,8 +4603,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			EventMenuCategorySelection catEntity = new EventMenuCategorySelection();
 			catEntity.setEventMaster(entity);
 			catEntity.setCategory(menuItemById(menuItems, catDto.getCategoryId()));
-			catEntity.setNumTotalPrice(catDto.getNumPrice());
-			catEntity.setNumFinalPrice(catDto.getNumFinalPrice());
+			catEntity.priceAs(catDto.getNumPrice(), catDto.getNumFinalPrice());
 
 			if (catDto.getNumFinalPrice() != null) {
 				categoryTotal = categoryTotal.add(catDto.getNumFinalPrice());
@@ -4618,8 +4617,7 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 				EventMenuSubCategorySelection subEntity = new EventMenuSubCategorySelection();
 				subEntity.setEventCategory(catEntity);
 				subEntity.setSubCategory(menuItemById(menuItems, subDto.getSubCategoryId()));
-				subEntity.setNumTotalPrice(subDto.getNumPrice());
-				subEntity.setNumFinalPrice(subDto.getNumFinalPrice());
+				subEntity.priceAs(subDto.getNumPrice(), subDto.getNumFinalPrice());
 
 				if (subDto.getNumFinalPrice() != null) {
 					subCategoryTotal = subCategoryTotal.add(subDto.getNumFinalPrice());

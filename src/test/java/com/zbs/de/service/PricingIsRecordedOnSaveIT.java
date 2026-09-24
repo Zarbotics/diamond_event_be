@@ -294,6 +294,54 @@ class PricingIsRecordedOnSaveIT {
 				.isEqualByComparingTo("0.00");
 	}
 
+	/**
+	 * The save that used to be lost entirely.
+	 *
+	 * <h4>What happened</h4>
+	 *
+	 * {@code num_total_price} and {@code num_final_price} are NOT NULL on both
+	 * the category and the course, and both were written straight from the
+	 * payload. A client that posted a menu without prices — the customer
+	 * journey does not price its own menu — hit a constraint violation, and
+	 * because the save is one transaction the rollback took the customer, the
+	 * date, the guests and every other choice with it. The customer's enquiry
+	 * was lost over an absent decimal.
+	 *
+	 * <h4>What is asserted</h4>
+	 *
+	 * That the booking is there afterwards, that the menu is on it, and that
+	 * the engine still prices the dishes — because the dish rows carry the
+	 * figures the engine reads, and they were never the problem.
+	 */
+	@Test
+	@DisplayName("a menu posted with no prices saves the booking rather than losing it")
+	void menuWithoutPricesStillSaves() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMaster dto = journeySave(seeded);
+		dto.setMenuCategoriesSelection(anUnpricedMenu());
+		serviceEventMaster.saveAndUpdateWithDocs(dto, null);
+
+		Map<String, Object> category = jdbcTemplate.queryForMap(
+				"SELECT * FROM event_menu_category_selection WHERE ser_event_master_id = ?",
+				seeded.getSerEventMasterId());
+
+		assertThat(asDecimal(category.get("num_total_price")))
+				.as("recorded at zero rather than refused")
+				.isEqualByComparingTo("0.00");
+		assertThat(asDecimal(category.get("num_final_price"))).isEqualByComparingTo("0.00");
+
+		assertThat(jdbcTemplate.queryForObject(
+				"SELECT count(*) FROM event_menu_food_selection WHERE ser_event_master_id = ?",
+				Integer.class, seeded.getSerEventMasterId()))
+				.as("the dish the customer chose is still on the booking")
+				.isEqualTo(1);
+
+		assertThat(calculatedTotalOf(seeded))
+				.as("the engine prices the dish from the catalogue, which is where it always looked")
+				.isEqualByComparingTo("5000.00");
+	}
+
 	// ── reading back ─────────────────────────────────────────────────────
 
 	private BigDecimal calculatedTotalOf(EventMaster event) {
@@ -346,12 +394,10 @@ class PricingIsRecordedOnSaveIT {
 		}
 
 		/*
-		 * The category and course carry prices because the columns behind them
-		 * are NOT NULL and the save writes the payload's figures straight into
-		 * them. A client that posts a menu without prices does not get a
-		 * booking priced at zero — it gets a constraint violation that loses
-		 * the whole save. That is worth knowing and is recorded as P2; it is
-		 * not what this suite is testing, so the fixture supplies them.
+		 * The category and course carry prices because this suite is about what
+		 * the engine makes of a priced menu. A menu posted without them is no
+		 * longer a lost save — see menuWithoutPricesStillSaves below, and
+		 * MenuSelectionPricesAreNeverNullTest for the rule.
 		 */
 		DtoCustomerMenuSubCategory subCategory = new DtoCustomerMenuSubCategory();
 		subCategory.setSubCategoryId(course.getSerMenuItemId());
@@ -363,6 +409,29 @@ class PricingIsRecordedOnSaveIT {
 		chosenCategory.setCategoryId(category.getSerMenuItemId());
 		chosenCategory.setNumPrice(BigDecimal.ZERO);
 		chosenCategory.setNumFinalPrice(BigDecimal.ZERO);
+		chosenCategory.setSubCategories(List.of(subCategory));
+
+		return List.of(chosenCategory);
+	}
+
+	/**
+	 * The same menu with no prices on it at all — the shape a client that does
+	 * not price its own menu posts.
+	 */
+	private List<DtoCustomerMenuCategory> anUnpricedMenu() {
+		MenuItem category = seedDish("Mains", null, null, null);
+		MenuItem course = seedDish("Curries", null, null, null);
+		MenuItem dish = seedDish("ChickenKarahi", "25.00", EnmPriceMultiplierType.PER_GUEST, null);
+
+		DtoMenuItem chosen = new DtoMenuItem();
+		chosen.setSerMenuItemId(dish.getSerMenuItemId());
+
+		DtoCustomerMenuSubCategory subCategory = new DtoCustomerMenuSubCategory();
+		subCategory.setSubCategoryId(course.getSerMenuItemId());
+		subCategory.setItems(List.of(chosen));
+
+		DtoCustomerMenuCategory chosenCategory = new DtoCustomerMenuCategory();
+		chosenCategory.setCategoryId(category.getSerMenuItemId());
 		chosenCategory.setSubCategories(List.of(subCategory));
 
 		return List.of(chosenCategory);
