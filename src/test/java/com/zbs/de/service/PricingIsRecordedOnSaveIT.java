@@ -342,6 +342,54 @@ class PricingIsRecordedOnSaveIT {
 				.isEqualByComparingTo("5000.00");
 	}
 
+	/**
+	 * The discount, and the two columns that nearly cost the business money.
+	 *
+	 * <h4>What was wrong</h4>
+	 *
+	 * {@code num_discount} exists on <b>both</b> {@code event_master} and
+	 * {@code event_budget}. The save writes the budget's copy; this engine read
+	 * the event's. On the 312 bookings in the database the event's column is
+	 * null on every one and the budget's is set on every one — nothing has ever
+	 * written the event's copy.
+	 *
+	 * <p>
+	 * While the engine's figures were only recorded for comparison that was
+	 * harmless. The moment {@code pricing.server.authoritative} went on, every
+	 * discount the office had entered would have been silently dropped and the
+	 * customer billed the full amount. Both columns exist and both names read
+	 * correctly, so nothing about the code looked wrong.
+	 *
+	 * <h4>What is asserted</h4>
+	 *
+	 * That the engine's total comes down by the discount the office entered.
+	 * £1,000 of décor carries £200 of VAT; £150 off leaves £1,050.
+	 */
+	@Test
+	@DisplayName("the engine takes off the discount the office actually entered")
+	void theDiscountIsHonoured() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMaster dto = journeySave(seeded);
+		dto.setDtoEventDecorSelections(decorAt("1000.00"));
+
+		com.zbs.de.model.dto.DtoEventQuoteAndStatus money = new com.zbs.de.model.dto.DtoEventQuoteAndStatus();
+		money.setNumDiscount(new BigDecimal("150.00"));
+		dto.setDtoEventQuoteAndStatus(money);
+
+		serviceEventMaster.saveAndUpdateWithDocs(dto, null);
+
+		Map<String, Object> budget = budgetOf(seeded);
+
+		assertThat(asDecimal(budget.get("num_discount")))
+				.as("the discount is stored on the budget, which is where the save puts it")
+				.isEqualByComparingTo("150.00");
+
+		assertThat(asDecimal(budget.get("num_calculated_total")))
+				.as("£1,000 of décor plus £200 VAT, less £150 = £1,050")
+				.isEqualByComparingTo("1050.00");
+	}
+
 	// ── reading back ─────────────────────────────────────────────────────
 
 	private BigDecimal calculatedTotalOf(EventMaster event) {

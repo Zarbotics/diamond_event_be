@@ -88,7 +88,7 @@ class EventPricingTest {
 			event.getFoodSelections().add(dishOn(event, "Chicken Karahi", "25.00",
 					EnmPriceMultiplierType.PER_GUEST, null, null));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getFood()).isEqualByComparingTo("6250.00");
 			assertThat(priced.getLines().get(0).getTxtReason())
@@ -103,7 +103,7 @@ class EventPricingTest {
 			event.getFoodSelections().add(dishOn(event, "Table centrepiece platter", "18.00",
 					EnmPriceMultiplierType.PER_TABLE, null, null));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getFood()).isEqualByComparingTo("450.00");
 			assertThat(priced.getLines().get(0).getTxtReason())
@@ -126,7 +126,7 @@ class EventPricingTest {
 			event.getFoodSelections().add(dishOn(event, "Grazing bar", "400.00",
 					EnmPriceMultiplierType.PER_STATION, new BigDecimal("80"), null));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getFood()).isEqualByComparingTo("1600.00");
 			assertThat(priced.getLines().get(0).getTxtReason())
@@ -149,7 +149,7 @@ class EventPricingTest {
 			event.getFoodSelections().add(dishOn(event, "Dessert table", "600.00",
 					EnmPriceMultiplierType.PER_STATION, null, null));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getFood()).isEqualByComparingTo("600.00");
 		}
@@ -162,7 +162,7 @@ class EventPricingTest {
 			event.getFoodSelections().add(dishOn(event, "Cake cutting", "150.00",
 					EnmPriceMultiplierType.FLAT, null, null));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getFood()).isEqualByComparingTo("150.00");
 		}
@@ -183,7 +183,7 @@ class EventPricingTest {
 			EventMaster event = eventFor(100, 10);
 			event.getFoodSelections().add(dishOn(event, "Unstated", "10.00", null, null, null));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getFood()).isEqualByComparingTo("1000.00");
 		}
@@ -209,7 +209,7 @@ class EventPricingTest {
 					EnmPriceMultiplierType.PER_GUEST, null, null));
 			event.getDecorSelections().add(decorOn(event, "Stage", "1000.00"));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getFood()).isEqualByComparingTo("6250.00");
 			assertThat(priced.getDecor()).isEqualByComparingTo("1000.00");
@@ -239,7 +239,7 @@ class EventPricingTest {
 					EnmPriceMultiplierType.PER_GUEST, null, null));
 			event.getDecorSelections().add(decorOn(event, "Stage", "1000.00"));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getVat())
 					.as("20% of £7,250")
@@ -257,7 +257,7 @@ class EventPricingTest {
 			EventMaster event = eventFor(250, 25);
 			event.getDecorSelections().add(decorOn(event, "Stage", "1000.00"));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getVat()).isEqualByComparingTo("0.00");
 			assertThat(priced.getTotal()).isEqualByComparingTo("1000.00");
@@ -280,7 +280,7 @@ class EventPricingTest {
 					EnmPriceMultiplierType.PER_GUEST, null, null));
 			event.getDecorSelections().add(decorOn(event, "Stage", "500.00"));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getLines())
 					.filteredOn(line -> "FOOD".equals(line.getTxtSection()))
@@ -307,7 +307,7 @@ class EventPricingTest {
 			EventMaster event = eventFor(100, 10);
 			event.getDecorSelections().add(decorOn(event, "Stage", "1000.00"));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getVat()).isEqualByComparingTo("50.00");
 		}
@@ -334,7 +334,7 @@ class EventPricingTest {
 					EnmPriceMultiplierType.PER_GUEST, null, new BigDecimal("2000.00"));
 			event.getFoodSelections().add(selection);
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getFood())
 					.as("the office agreed £2,000, not the catalogue's £2,500")
@@ -353,7 +353,7 @@ class EventPricingTest {
 			event.getFoodSelections().add(dishOn(event, "Lamb Biryani", "25.00",
 					EnmPriceMultiplierType.PER_GUEST, null, new BigDecimal("2500.00")));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getLines().get(0).getBlnIsOverridden()).isFalse();
 		}
@@ -380,7 +380,7 @@ class EventPricingTest {
 			withOption(stage, "Ivory drape", "250.00");
 			event.getDecorSelections().add(stage);
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getDecor())
 					.as("the stage at £1,000, and its £250 drape included in that")
@@ -404,7 +404,7 @@ class EventPricingTest {
 			withOption(stage, "Ivory drape", "250.00");
 			event.getDecorSelections().add(stage);
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getLines())
 					.filteredOn(line -> "DECOR_PROPERTY".equals(line.getTxtSection()))
@@ -433,7 +433,7 @@ class EventPricingTest {
 			withOption(stage, "Ivory drape", "250.00");
 			event.getDecorSelections().add(stage);
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getDecor()).isEqualByComparingTo("250.00");
 		}
@@ -445,7 +445,7 @@ class EventPricingTest {
 			EventMaster event = eventFor(100, 10);
 			event.getDecorSelections().add(decorOn(event, "Stage", null));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getDecor()).isEqualByComparingTo("0.00");
 		}
@@ -461,9 +461,13 @@ class EventPricingTest {
 			todaysVatRules();
 			EventMaster event = eventFor(250, 25);
 			event.getDecorSelections().add(decorOn(event, "Stage", "1000.00"));
-			event.setNumDiscount(new BigDecimal("200.00"));
-
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+						/*
+			  The discount is an argument now, not something the engine goes
+			  looking for. It used to read `event.getNumDiscount()` — a column
+			  nothing writes: the save puts the discount on the budget, and
+			  `num_discount` exists on both tables.
+			*/
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, new BigDecimal("200.00"));
 
 			assertThat(priced.getSubtotal()).isEqualByComparingTo("1000.00");
 			assertThat(priced.getVat()).isEqualByComparingTo("200.00");
@@ -484,9 +488,13 @@ class EventPricingTest {
 			todaysVatRules();
 			EventMaster event = eventFor(100, 10);
 			event.getDecorSelections().add(decorOn(event, "Stage", "500.00"));
-			event.setNumDiscount(new BigDecimal("9000.00"));
-
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+						/*
+			  The discount is an argument now, not something the engine goes
+			  looking for. It used to read `event.getNumDiscount()` — a column
+			  nothing writes: the save puts the discount on the budget, and
+			  `num_discount` exists on both tables.
+			*/
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, new BigDecimal("9000.00"));
 
 			assertThat(priced.getTotal()).isEqualByComparingTo("0.00");
 		}
@@ -507,7 +515,7 @@ class EventPricingTest {
 			event.setNumItineraryPrice(new BigDecimal("75.00"));
 			event.setNumServingDishesPrice(new BigDecimal("40.00"));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getSubtotal()).isEqualByComparingTo("115.00");
 			assertThat(priced.getLines())
@@ -522,7 +530,7 @@ class EventPricingTest {
 			EventMaster event = eventFor(100, 10);
 			event.setNumItineraryPrice(BigDecimal.ZERO);
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getLines())
 					.as("a quote reading 'Itinerary — £0.00' invites the question of what it was for")
@@ -535,7 +543,7 @@ class EventPricingTest {
 		void emptyBooking() {
 			todaysVatRules();
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(eventFor(100, 10));
+			ServiceEventPricing.Priced priced = pricing.priceFor(eventFor(100, 10), BigDecimal.ZERO);
 
 			assertThat(priced.getSubtotal()).isEqualByComparingTo("0.00");
 			assertThat(priced.getVat()).isEqualByComparingTo("0.00");
@@ -558,7 +566,7 @@ class EventPricingTest {
 			event.getFoodSelections().add(dishOn(event, "Chicken Karahi", "25.00",
 					EnmPriceMultiplierType.PER_GUEST, null, null));
 
-			ServiceEventPricing.Priced priced = pricing.priceFor(event);
+			ServiceEventPricing.Priced priced = pricing.priceFor(event, BigDecimal.ZERO);
 
 			assertThat(priced.getFood()).isEqualByComparingTo("0.00");
 		}

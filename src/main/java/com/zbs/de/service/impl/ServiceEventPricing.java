@@ -15,10 +15,12 @@ import com.zbs.de.model.DecorCategoryMaster;
 import com.zbs.de.model.EventDecorCategorySelection;
 import com.zbs.de.model.EventDecorExtrasSelection;
 import com.zbs.de.model.EventDecorPropertySelection;
+import com.zbs.de.model.EventBudget;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventMenuFoodSelection;
 import com.zbs.de.model.EventPriceLine;
 import com.zbs.de.model.MenuItem;
+import com.zbs.de.repository.RepositoryEventBudget;
 import com.zbs.de.repository.RepositoryEventPriceLine;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.enums.EnmPriceMultiplierType;
@@ -88,6 +90,9 @@ public class ServiceEventPricing {
 
 	@Autowired
 	private RepositoryEventPriceLine repositoryEventPriceLine;
+
+	@Autowired
+	private RepositoryEventBudget repositoryEventBudget;
 
 	/**
 	 * What the whole booking comes to, and how.
@@ -171,7 +176,7 @@ public class ServiceEventPricing {
 	 * screen chose to send.
 	 */
 	@Transactional(readOnly = true)
-	public Priced priceFor(EventMaster event) {
+	public Priced priceFor(EventMaster event, BigDecimal discountEntered) {
 		List<EventPriceLine> lines = new ArrayList<>();
 
 		int guests = countOf(event.getNumNumberOfGuests());
@@ -215,7 +220,7 @@ public class ServiceEventPricing {
 		 * customer a negative amount is not something that should happen
 		 * quietly.
 		 */
-		BigDecimal discount = safe(event.getNumDiscount());
+		BigDecimal discount = safe(discountEntered);
 		BigDecimal total = money(subtotal.add(vat).subtract(discount));
 		if (total.signum() < 0) {
 			LOGGER.warn("Event {} has a discount of {} against a bill of {} — the total is held at zero",
@@ -229,6 +234,76 @@ public class ServiceEventPricing {
 
 		return new Priced(lines, money(food), money(decor), money(extras), money(services),
 				vat, subtotal, total);
+	}
+
+	/**
+	 * The discount the office has entered, from where it is actually kept.
+	 *
+	 * <h4>Why this is not {@code event.getNumDiscount()}</h4>
+	 *
+	 * Because {@code num_discount} exists on <em>two</em> tables — {@code
+	 * event_master} and {@code event_budget} — and the save writes it to the
+	 * budget. On the 312 bookings in the database, the event's own column is
+	 * null on every single one and the budget's is set on every single one.
+	 * Nothing has ever written the event's copy.
+	 *
+	 * <p>
+	 * This engine read the event's copy. It did not matter while the engine's
+	 * figures were only recorded for comparison — but the moment
+	 * {@code pricing.server.authoritative} went on, <b>every discount the office
+	 * had entered would have been silently ignored</b> and the customer billed
+	 * the full amount. That is the defect that would have made switching the
+	 * engine on a disaster, and it was invisible because both columns exist and
+	 * both names read correctly.
+	 *
+	 * <p>
+	 * The event's own column is still read as a fallback rather than deleted,
+	 * because a dead column that something might yet write is cheaper to read
+	 * than to prove empty forever. It is recorded as a thing to drop.
+	 */
+	/**
+	 * The discount the office has entered, from where it is actually kept.
+	 *
+	 * <h4>Why this is not {@code event.getNumDiscount()}</h4>
+	 *
+	 * Because {@code num_discount} exists on <em>two</em> tables — {@code
+	 * event_master} and {@code event_budget} — and the save writes it to the
+	 * budget. On the 312 bookings in the database, the event's own column is
+	 * null on every single one and the budget's is set on every single one.
+	 * Nothing has ever written the event's copy.
+	 *
+	 * <p>
+	 * This engine read the event's copy. It did not matter while its figures
+	 * were only recorded for comparison — but the moment
+	 * {@code pricing.server.authoritative} went on, <b>every discount the office
+	 * had entered would have been silently ignored</b> and the customer billed
+	 * the full amount. Both columns exist and both names read correctly, so
+	 * nothing about the code looked wrong.
+	 *
+	 * <h4>Why it is looked up rather than followed through the relation</h4>
+	 *
+	 * {@code event.getEventBudget()} is mapped correctly, but on a booking being
+	 * created the EventMaster exists in the persistence context before the
+	 * budget row does — so its lazy reference settles as null and stays null for
+	 * the rest of the transaction, which is exactly when the pricing runs.
+	 *
+	 * <h4>Why it is read here and not inside {@code priceFor}</h4>
+	 *
+	 * So that {@code priceFor} has no hidden dependency: it prices the booking
+	 * it is handed, with the discount it is told, and can be tested without a
+	 * database. The lookup belongs at the transactional edge.
+	 */
+	private BigDecimal discountOn(EventMaster event) {
+		EventBudget budget = event.getSerEventMasterId() == null
+				? null
+				: repositoryEventBudget.findByEventMaster_SerEventMasterId(event.getSerEventMasterId())
+						.orElse(null);
+
+		if (budget != null && budget.getNumDiscount() != null) {
+			return safe(budget.getNumDiscount());
+		}
+
+		return safe(event.getNumDiscount());
 	}
 
 	/**
@@ -295,7 +370,7 @@ public class ServiceEventPricing {
 	 */
 	@Transactional
 	public Priced priceAndRecord(EventMaster event) {
-		Priced priced = priceFor(event);
+		Priced priced = priceFor(event, discountOn(event));
 
 		if (event.getSerEventMasterId() == null) {
 			// Nothing to hang the working off yet. The figures are still
