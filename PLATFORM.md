@@ -725,6 +725,60 @@ cannot replace, and the engine prices food from the dish rows — which are
 nullable precisely because a price can be unknown — so a defaulted figure here
 is not one anybody quotes from.
 
+### 5.13 The system prices the booking, and the office overrides it ✅
+
+The business's own description of what was wanted: *"the system gives the
+pricing calculations on the base of selected decor and menu and other things,
+but admin also needed privilege to change any amount or price given by the
+system."*
+
+That is now what happens. `pricing.server.authoritative` is on (V27): the engine
+works every price out from what has been chosen and those are the figures on the
+booking. The office overrides any of them on the booking itself, and an empty
+price box means "charge what the rules say".
+
+It was seeded **off** in V24 so the engine's figures could be recorded beside the
+client's and compared on real bookings first. That caution paid for itself twice.
+
+**One: the engine was reading a discount column nothing writes.**
+`num_discount` exists on *both* `event_master` and `event_budget`. The save
+writes the budget's copy; the engine read the event's.
+
+| column | set on |
+|---|---|
+| `event_master.num_discount` | **0** of 312 bookings |
+| `event_budget.num_discount` | **312** of 312 |
+
+Switching the engine on before fixing this would have **silently ignored every
+discount the office had entered and billed the customer the full amount**. Both
+columns exist and both names read correctly, so nothing about the code looked
+wrong. `priceFor` now takes the discount as an argument rather than going looking
+for it, which is also why twenty-two unit tests can now state the discount they
+price with.
+
+**Two: there was nothing to lose.** Every one of the 312 bookings is quoted at
+zero — no quoted price, no final amount, nothing paid. The browser's arithmetic
+has never produced a figure that reached a customer through this path, so there
+was no existing quote for the engine to contradict and no override to preserve.
+
+**The guard that makes it safe.** A per-guest price multiplied by a guest count
+nobody entered is zero. Arithmetically correct, and as an answer a lie: the
+booking is not free, it is unpriced — and **94 of the 312 bookings have no guest
+count**. A quote of £0.00 looks exactly like a quote, which is the failure nobody
+notices until the event has happened. The engine now reports what it could not
+work out, the caller declines to impose an incomplete total, the calculated
+figures are still recorded, and the reason is logged where somebody can act on it.
+
+**What is left.** The admin's pinned summary still adds the booking up itself so
+the total moves while somebody is typing, which means the rules exist twice. Its
+wording had to be corrected — it was still telling people the screen's figure was
+the one being charged, which had become false. Removing the second
+implementation is **P3b**.
+
+**Two schema warts written down where they cost time:** `event_budget`'s VAT
+column is `num_deco_extras_vat`, mapped with a leading space in the name; and
+`app_setting`'s type column is `txt_value_type`.
+
 ### 5.12 The running order's moments ✅
 
 The control panel held `RUNNING_ORDER_FIELD_MAPPING`, a map of event type id to
@@ -1305,7 +1359,8 @@ it threw at exactly the moment it was meant to help.
 | ~~D10e~~ | **Done.** ~~Collapse the new-booking décor block into `applyDecor`.~~ ~70 lines and the fourth copy. Three differences to check first: the block ends with `setDecorSelections` where the helper uses `addAll`; it handles reference documents inline; and the helper returns `DecorTotals`, which this branch does not compute. Both blocks are gone — 243 lines out, 107 in, décor 4 copies → 1. Everything they did differently was wrong: a property with no chosen values threw; a picture sent as metadata without a file beside it was silently dropped; an empty multipart part was taken as a file to save; and the collection was assigned rather than added to under `orphanRemoval`. The helper now gives the entity a list when it finds none, because the new-booking path nulls its collections before the first save.
 
 And the reason D10c stayed invisible: the catch-all at the foot of each save logged at `LOGGER.debug` and answered the bare sentinel `"Failure"`. Debug is off in production, so a save that lost a customer's booking left no trace anywhere. All 16 swallowed exceptions in the service and 3 in the controller now log at **error**; the four sentinel failures carry a reason beside the sentinel — which stays, because the controller reads it to answer 400 rather than 200 — and both controllers pass that reason on instead of the word "Failure". |
-| P3 | **Turn `pricing.server.authoritative` on, and then stop the clients sending prices at all.** The engine records its figures alongside the client's and logs every disagreement. Once those logs are quiet on real bookings, the switch goes on; after that `eventPayload.js` loses its pricing rules and the journey stops computing subtotals, because neither would be read. Business decision on timing; the log is the evidence. |
+| ~~P3~~ | **Done.** The engine's figures are the ones charged. Two defects found on the way in, either of which would have made the switch harmful — see §5.13. What is left is removing the client's own arithmetic, which needs a preview endpoint so the pinned total does not go stale between saves: **P3b**. |
+| **P3b** | **A pricing preview endpoint, so only the server knows the rules.** `eventPayload.js` still adds the booking up so the pinned total moves while somebody types. `priceFor` never needed a persisted entity, so the server can answer "what would this come to" without saving; what is missing is building a transient booking from a payload, which is the save's mapping minus the persistence. Then `eventPayload.js` loses its 556 lines of pricing rules and there is one implementation of what anything costs. |
 | P4 | **Retire the old `price_version` / `price_entry` / `pricing_rule` engine, or fold it in.** `ServicePricingEngine.preview` is called by nothing in either portal, covers menu items only, and uses `double` for money. Left untouched during §5.10 so that one change could be verified at a time. |
 
 
