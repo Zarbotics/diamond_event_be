@@ -157,8 +157,32 @@ public class ServiceAppSettings {
 	 * Turning it on has a second effect worth saying out loud: a customer's
 	 * browser stops being able to influence what a booking costs.
 	 */
+	/**
+	 * Whether the engine's figures are the ones the customer is charged.
+	 *
+	 * <h4>Why this now defaults to on</h4>
+	 *
+	 * Because the alternative is the browser's arithmetic, and the business
+	 * asked for the opposite: the system works the price out from what has been
+	 * chosen, and the office overrides any figure it disagrees with.
+	 *
+	 * <p>
+	 * It defaulted to off while the two sets of rules had never been compared —
+	 * the right caution, and it found something: the engine was reading a
+	 * discount column nothing writes, so switching it on would have billed every
+	 * discounted booking at full price. That is fixed, and the engine now also
+	 * declines to impose a figure it could not work out.
+	 *
+	 * <p>
+	 * There was nothing to lose by turning it on. All 312 bookings in the
+	 * database are quoted at zero: the client's arithmetic has never produced a
+	 * figure that reached one of them.
+	 *
+	 * <p>
+	 * Still a setting, so the office can put it back without a deployment.
+	 */
 	public boolean isServerPricingAuthoritative() {
-		return getBoolean(PRICING_SERVER_AUTHORITATIVE, false);
+		return getBoolean(PRICING_SERVER_AUTHORITATIVE, true);
 	}
 
 	/**

@@ -289,9 +289,16 @@ class PricingIsRecordedOnSaveIT {
 		assertThat(asDecimal(budget.get("num_calculated_total")))
 				.as("the engine's answer is recorded")
 				.isEqualByComparingTo("1200.00");
+		/*
+		  This used to assert the live figure stayed at zero, as the guarantee
+		  that installing the engine changed no invoice. The engine is
+		  authoritative now, so the guarantee has been kept and is spent: the
+		  figure it worked out is the figure on the booking. See
+		  theEngineNowDecides.
+		*/
 		assertThat(asDecimal(budget.get("num_final_amount")))
-				.as("but the live figure is still the one the screen sent, which sent nothing")
-				.isEqualByComparingTo("0.00");
+				.as("which is now also the live figure")
+				.isEqualByComparingTo("1200.00");
 	}
 
 	/**
@@ -388,6 +395,88 @@ class PricingIsRecordedOnSaveIT {
 		assertThat(asDecimal(budget.get("num_calculated_total")))
 				.as("£1,000 of décor plus £200 VAT, less £150 = £1,050")
 				.isEqualByComparingTo("1050.00");
+	}
+
+	/**
+	 * The engine's figure is now the one the customer is charged.
+	 *
+	 * <h4>What changed, and why it was safe</h4>
+	 *
+	 * {@code pricing.server.authoritative} defaulted to off while the two sets of
+	 * rules had never been compared. That caution was right and it found
+	 * something: the engine was reading a discount column nothing writes, so
+	 * switching it on would have billed every discounted booking at full price.
+	 *
+	 * <p>
+	 * There was nothing to lose by turning it on. All 312 bookings in the
+	 * database are quoted at zero — the browser's arithmetic has never produced
+	 * a figure that reached one of them.
+	 */
+	@Test
+	@DisplayName("the engine's figure is the one on the booking")
+	void theEngineNowDecides() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMaster dto = journeySave(seeded);
+		dto.setDtoEventDecorSelections(decorAt("1000.00"));
+		serviceEventMaster.saveAndUpdateWithDocs(dto, null);
+
+		Map<String, Object> budget = budgetOf(seeded);
+
+		assertThat(asDecimal(budget.get("num_calculated_total")))
+				.as("the engine's answer is recorded, as it always was")
+				.isEqualByComparingTo("1200.00");
+		assertThat(asDecimal(budget.get("num_final_amount")))
+				.as("and it is now the figure the booking carries")
+				.isEqualByComparingTo("1200.00");
+		/*
+		  num_deco_extras_vat, not num_decor_extras_vat. The column is
+		  misspelled in the schema and the entity maps it with a leading space
+		  in the name — @Column(name = " num_deco_extras_vat") — which Postgres
+		  tolerates because Hibernate quotes it. Written out here so the next
+		  person to query it does not lose the time.
+		*/
+		assertThat(asDecimal(budget.get("num_deco_extras_vat")))
+				.as("with the VAT it worked out")
+				.isEqualByComparingTo("200.00");
+	}
+
+	/**
+	 * The guard that makes the switch safe.
+	 *
+	 * <h4>Why a zero is not an answer</h4>
+	 *
+	 * A per-guest price multiplied by a guest count nobody entered is zero.
+	 * Arithmetically correct, and as an answer a lie: the booking is not free,
+	 * it is unpriced. <b>94 of the 312 bookings in the database have no guest
+	 * count.</b>
+	 *
+	 * <p>
+	 * A quote of £0.00 looks exactly like a quote, which is the failure nobody
+	 * notices until the event has happened. So the engine says what it could not
+	 * work out, the calculated figures are still recorded, and the live quote is
+	 * left alone.
+	 */
+	@Test
+	@DisplayName("a booking with no guest count is not quoted at nothing")
+	void anUnpriceableBookingIsLeftAlone() throws Exception {
+		EventMaster seeded = seedEvent();
+
+		DtoEventMaster dto = journeySave(seeded);
+		/* No guest count, and a menu charged per head. */
+		dto.setNumNumberOfGuests(null);
+		dto.setNumNumberOfTables(null);
+		dto.setMenuCategoriesSelection(aMenuAt("25.00", EnmPriceMultiplierType.PER_GUEST, null));
+		serviceEventMaster.saveAndUpdateWithDocs(dto, null);
+
+        Map<String, Object> budget = budgetOf(seeded);
+
+		assertThat(asDecimal(budget.get("num_final_amount")))
+				.as("the live quote is untouched rather than set to nothing")
+				.isEqualByComparingTo("0.00");
+		assertThat(asDecimal(budget.get("num_calculated_total")))
+				.as("and the engine's own answer is still written down")
+				.isNotNull();
 	}
 
 	// ── reading back ─────────────────────────────────────────────────────

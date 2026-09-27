@@ -5039,13 +5039,27 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			budget.setNumCalculatedTotal(priced.getTotal());
 			budget.setDteCalculatedOn(UtilDateAndTime.getCurrentDate());
 
-			if (serviceAppSettings.isServerPricingAuthoritative()) {
+			/*
+			 * The engine's figures are recorded either way, above. Whether they
+			 * become the figures the customer is charged is this decision.
+			 */
+			if (serviceAppSettings.isServerPricingAuthoritative() && priced.isSafeToImpose()) {
 				budget.setNumFoodAmount(priced.getFood());
 				budget.setNumDecorAmount(priced.getDecor().add(priced.getExtras()));
 				budget.setNumServicesAmount(priced.getServices());
 				budget.setNumDecorExtrasVat(priced.getVat());
 				budget.setNumQuotedPrice(priced.getSubtotal().add(priced.getVat()));
 				budget.setNumFinalAmount(priced.getTotal());
+			} else if (serviceAppSettings.isServerPricingAuthoritative()) {
+				/*
+				 * The engine has said its answer is incomplete — a per-guest
+				 * line with no guest count prices at nothing, and £0.00 looks
+				 * exactly like a quote. The calculated figures are kept, the
+				 * live ones are left alone, and the reason is said out loud
+				 * where somebody can act on it.
+				 */
+				LOGGER.warn("Event {} was not priced: {}. The quote on the booking is unchanged.",
+						eventId, String.join("; ", priced.getCannotPrice()));
 			} else {
 				serviceEventPricing.reportDisagreement(eventId,
 						fromClient == null ? null : fromClient.getNumFinalAmount(),

@@ -113,9 +113,12 @@ public class ServiceEventPricing {
 		private final BigDecimal vat;
 		private final BigDecimal subtotal;
 		private final BigDecimal total;
+		private final List<String> cannotPrice;
 
 		Priced(List<EventPriceLine> lines, BigDecimal food, BigDecimal decor, BigDecimal extras,
-				BigDecimal services, BigDecimal vat, BigDecimal subtotal, BigDecimal total) {
+				BigDecimal services, BigDecimal vat, BigDecimal subtotal, BigDecimal total,
+				List<String> cannotPrice) {
+			this.cannotPrice = cannotPrice == null ? List.of() : List.copyOf(cannotPrice);
 			this.lines = lines;
 			this.food = food;
 			this.decor = decor;
@@ -128,6 +131,38 @@ public class ServiceEventPricing {
 
 		public List<EventPriceLine> getLines() {
 			return lines;
+		}
+
+		/**
+		 * Why this figure must not be imposed on the booking, where it must not.
+		 *
+		 * <h4>What this is for</h4>
+		 *
+		 * A per-guest price multiplied by a guest count nobody has entered is
+		 * zero. Arithmetically that is correct and as an answer it is a lie: the
+		 * booking is not free, it is unpriced. 94 of the 312 bookings in the
+		 * database have no guest count.
+		 *
+		 * <p>
+		 * While the engine only recorded its figures alongside the client's, a
+		 * zero here was harmless. Once the engine is authoritative it would
+		 * overwrite the live quote with nothing, and a quote of £0.00 looks
+		 * exactly like a quote — which is the failure nobody notices until the
+		 * event has happened.
+		 *
+		 * <p>
+		 * So the engine says what it could not work out, and the caller declines
+		 * to impose a total it has been told is incomplete. The figures are
+		 * still recorded, because "what would this come to if the counts were
+		 * filled in" is worth knowing.
+		 */
+		public List<String> getCannotPrice() {
+			return cannotPrice;
+		}
+
+		/** True when this figure is safe to charge a customer. */
+		public boolean isSafeToImpose() {
+			return cannotPrice.isEmpty();
 		}
 
 		public BigDecimal getFood() {
@@ -233,7 +268,7 @@ public class ServiceEventPricing {
 		}
 
 		return new Priced(lines, money(food), money(decor), money(extras), money(services),
-				vat, subtotal, total);
+				vat, subtotal, total, whatCouldNotBePriced(lines, guests, tables));
 	}
 
 	/**
@@ -701,6 +736,41 @@ public class ServiceEventPricing {
 		return category == null || category.getSerDecorCategoryId() == null
 				? null
 				: Long.valueOf(category.getSerDecorCategoryId());
+	}
+
+	/**
+	 * The counts a line needed and the booking did not have.
+	 *
+	 * <p>
+	 * A per-guest line with no guest count is not a line worth nothing — it is a
+	 * line nobody can price yet. Said in words, by name, so that whoever reads
+	 * it knows which field to fill in rather than being told the booking is
+	 * free.
+	 */
+	private static List<String> whatCouldNotBePriced(List<EventPriceLine> lines, int guests, int tables) {
+		List<String> reasons = new ArrayList<>();
+
+		long perGuest = lines.stream()
+				/* PER_STATION is one station per so many guests, so it needs the
+				   guest count just as much as PER_GUEST does. */
+				.filter(line -> line.getEnmBasis() == EnmPriceMultiplierType.PER_GUEST
+						|| line.getEnmBasis() == EnmPriceMultiplierType.PER_STATION)
+				.count();
+		long perTable = lines.stream()
+				.filter(line -> line.getEnmBasis() == EnmPriceMultiplierType.PER_TABLE)
+				.count();
+
+		if (guests <= 0 && perGuest > 0) {
+			reasons.add(perGuest + (perGuest == 1 ? " line is" : " lines are")
+					+ " charged per guest and this booking has no guest count");
+		}
+
+		if (tables <= 0 && perTable > 0) {
+			reasons.add(perTable + (perTable == 1 ? " line is" : " lines are")
+					+ " charged per table and this booking has no table count");
+		}
+
+		return reasons;
 	}
 
 	private static int countOf(Integer given) {
