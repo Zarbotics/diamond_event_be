@@ -970,6 +970,141 @@ marketing site returns or the WordPress site stays is a business decision.
 
 ---
 
+### 5.14 The control panel's second half: dialogs, forms and row actions ✅
+
+The list screens went onto the design system in UX1b. The **dialogs and forms
+did not**, and that is where the portal still read as assembled rather than
+designed — seventeen dialogs at nine different widths, twenty forms each
+picking their own column spans, and row actions that were a different set of
+bare icons on every table.
+
+#### The fault worth naming first
+
+Fifteen of the seventeen dialogs passed `footer={null}` and then rendered their
+buttons as the last thing in the body. **A dialog body scrolls.** So on any
+form longer than the viewport — which is most of them, and all of the décor
+ones — Save scrolled out of sight, and the way to find it was to scroll an
+inner pane that gives no hint it is scrollable.
+
+`ds/AppModal` makes the footer a sibling of the body rather than the end of it,
+caps the height so a long form cannot push it off the bottom, and replaces the
+nine widths (520, 600, 620, 640, 680, 720, 800, 60vw, and an 80vw/90vh "full"
+one) with four names chosen by what the dialog holds. `StyledFullModal` is
+deleted.
+
+#### What the conversion found
+
+Three dialogs — customer, décor category and booking — had **no busy state on
+Save at all**. The button was always live, so a second press while the first
+request was outstanding sent the whole form again. On the booking dialog that
+is a duplicate booking.
+
+None of these dialogs had ever been rendered in a test: every list screen that
+opens one mocks it out, reasonably, with the result that the place where every
+catalogue save happens had no coverage. The first run of the new tests found
+the décor property dialog reading `initialData.parentCategory.serDecorCategoryId`
+straight through — so a property whose category did not come back on the row
+threw inside an effect and took the screen with it. A white page, with the
+reason only in the console.
+
+#### Search, which ten screens did not have
+
+Including itinerary assignments, which holds **261 rows** generated one per
+dish and named after it — so the list is the menu in alphabetical order and
+finding one meant paging through twenty-seven pages of ten.
+
+`useListSearch` is one implementation. The filtering happens in the browser
+because these lists arrive whole; bookings and catering deliveries keep their
+server-side search, because 312 bookings is not a list anybody wants delivered
+entire. The part that is easy to get wrong is `isFiltered`: a list empty
+because of a filter and a list empty because nothing has been added need
+different words, and a screen that cannot tell them apart shows the wrong one.
+
+#### Row actions
+
+`ds/ActionMenu`: one visible action, the rest behind More, destructive items
+below a divider. An eye beside a pencil asks somebody to choose between viewing
+and editing before they know what is in the record, which is a decision nobody
+can make; a bin one pixel from a pencil is a delete waiting to happen. Every
+control is named for its own row — forty rows used to end in forty identical
+unnamed icon buttons.
+
+The bookings list was the worst of these: five icon buttons, two already
+commented out, each styled inline with `color: '#a0a0a0'`. That is **2.5:1**
+against the white row where an icon carrying meaning needs 3:1, so the controls
+on the busiest screen in the portal were the hardest ones on it to see. Its
+booking reference and name were `<Link to="#">` — links a keyboard user reaches
+and a screen reader announces, to the same place on every row, which is
+nowhere. They open the booking now.
+
+#### Destructive actions
+
+Nine hand-written `Modal.confirm` calls, plus an unused hook whose entire
+content was "This action cannot be undone" — which asks somebody to confirm a
+decision without telling them what the decision does. `confirmDestructive`
+takes the consequence as a **required** argument that throws when omitted,
+because a helper that lets it be omitted gets it omitted.
+
+Converting them fixed a real fault one of their own comments described: antd
+keeps a confirm dialog open and spinning when `onOk` rejects, so a network
+failure left a box stuck on "Removing…" saying nothing about what went wrong.
+
+#### The three screens the business sent screenshots of
+
+**Services and extras** collided with itself. The item name and its price sat
+in one `space-between` flex row, the price `nowrap` and nothing stopping the
+name growing, so at three columns "Tableware & Service" and "charged at
+£1,320.00" ran out of their column and across the heading of the one beside it.
+Each thing is a card now, on a grid, with `min-width: 0`.
+
+The same layout repeated the name of the thing in every field: "Charger
+Plates", "Option for Charger Plates", "Price for Charger Plates" — the same two
+words three times inside eighty pixels, which is what happens when a label is
+assembled by concatenation rather than written.
+
+**The calendar** clipped a day's second booking against `.rbc-month-row`'s
+`overflow: hidden`, and the venue takes two or three a day. It offered only a
+month, which answers "is that Saturday free" but not "what is happening on
+Saturday" — the question asked on the Thursday before. And its status was
+carried by colour alone, with the legend explaining the colours marked
+`aria-hidden`, so a screen reader was given the colour names and then told to
+ignore them.
+
+Its toolbar reached into the document on mount, found its own anchors and
+rewired their `onclick` to move an `active` class about — which set the
+highlight and told the calendar nothing. That is why the one view it offered
+was also the only one it could offer.
+
+**Itinerary assignments** nested an antd `Form` inside another. antd renders
+each as a real `<form>`, and nesting those is invalid HTML: the browser closes
+the outer one at the inner one's start tag, so which fields belong to which
+form is left to the parser.
+
+#### What was measured rather than assumed
+
+Every route at 1440, 1280, 1024, 834 and 768 pixels, checked for horizontal
+overflow with the element that would have caused it named: **none, at any
+width**. Every semantic colour against its own background: the lowest is 5.12:1
+where AA wants 4.5:1.
+
+Every button in the portal gained a focus ring of its own. Focus had been
+styled together with hover, so a keyboard user got the hover colour and nothing
+else — indistinguishable from the button the mouse happens to be over.
+
+#### An ambiguity for the business, not invented away
+
+"Itinerary" is used two different ways in this system. The itinerary *type* and
+*item* screens describe it as a running order — "a speech, a course, an
+entrance". The itinerary *assignment* tables carry `PER_GUEST`, `PER_TABLE` and
+`PER_PORTION` multipliers, which are quantities of things rather than moments
+in an evening. Both readings cannot be right.
+
+Guessing which would be inventing a business rule rather than reading one, so
+the screens are improved and the concept is left named as it was. **This one is
+for the business to settle.**
+
+---
+
 ## 6. Admin portal
 
 182 components. Screens, by route:
