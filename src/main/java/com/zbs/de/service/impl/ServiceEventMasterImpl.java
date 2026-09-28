@@ -1587,87 +1587,14 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			
 
 			// ****** Setting Event Decor Extras ******
-			if (entity.getExtrasSelections() != null) {
-				entity.getExtrasSelections().clear();
-			}
-
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getExtrasSelections())
-					&& !dtoEventMaster.getExtrasSelections().isEmpty()) {
-				// serviceEventDecorExtrasSelection.deleteByEventMasterId(entity.getSerEventMasterId());
-
-				List<EventDecorExtrasSelection> newSelections = new ArrayList<>();
-				for (DtoEventDecorExtrasSelection dto : dtoEventMaster.getExtrasSelections()) {
-					EventDecorExtrasSelection selection = new EventDecorExtrasSelection();
-					selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
-					selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
-					selection.setEventMaster(entity);
-					selection.setNumPrice(dto.getNumPrice());
-			        selection.setBlnIsServices(false);
-			    	if(selection.getNumPrice() != null) {
-						numDecorCategoryPrice = numDecorCategoryPrice.add(selection.getNumPrice());
-					}
-					if (dto.getSerExtrasId() != null) {
-						selection.setDecorExtrasMaster(
-								serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
-					}
-					if (dto.getSerExtraOptionId() != null) {
-						selection.setDecorExtrasOption(
-								serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
-					}
-
-					// selection = serviceEventDecorExtrasSelection.save(selection);
-					newSelections.add(selection);
-				}
-				// entity.setExtrasSelections(newSelections);
-				// entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-				entity.getExtrasSelections().addAll(newSelections);
-			}
+			numDecorCategoryPrice = numDecorCategoryPrice
+					.add(applyExtrasSelections(dtoEventMaster.getExtrasSelections(), entity, false));
 			
 			
 			
 			// ****** Setting Event Services ******
-
-			if (entity.getServicesSelections() != null) {
-			    entity.getServicesSelections().clear();
-			} else {
-			    entity.setServicesSelections(new ArrayList<>());
-			}
-
-			if (UtilRandomKey.isNotNull(dtoEventMaster.getServicesSelections())
-			        && !dtoEventMaster.getServicesSelections().isEmpty()) {
-
-			    List<EventDecorExtrasSelection> newServiceSelections = new ArrayList<>();
-
-			    for (DtoEventDecorExtrasSelection dto : dtoEventMaster.getServicesSelections()) {
-
-			        EventDecorExtrasSelection selection = new EventDecorExtrasSelection();
-
-			        selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
-			        selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
-			        selection.setNumPrice(dto.getNumPrice());
-			        selection.setEventMaster(entity);
-			        if(dto.getNumPrice()!=null) {
-			        	numServicesPrice = numServicesPrice.add(dto.getNumPrice());
-			        }
-
-			        // 🔥 THIS IS THE DIFFERENCE
-			        selection.setBlnIsServices(true);
-
-			        if (dto.getSerExtrasId() != null) {
-			            selection.setDecorExtrasMaster(
-			                serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
-			        }
-
-			        if (dto.getSerExtraOptionId() != null) {
-			            selection.setDecorExtrasOption(
-			                serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
-			        }
-
-			        newServiceSelections.add(selection);
-			    }
-
-			    entity.getServicesSelections().addAll(newServiceSelections);
-			}
+			numServicesPrice = numServicesPrice
+					.add(applyExtrasSelections(dtoEventMaster.getServicesSelections(), entity, true));
 			
 			//*********************************************************************************************
 			//*********************************************************************************************
@@ -2824,90 +2751,13 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 			//*********************************************************************************************
 
 			// ****** Setting Event Decor Extras ******
-			if (entity.getExtrasSelections() != null) {
-				entity.getExtrasSelections().clear();
-			}
-
-			if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getExtrasSelections())
-					&& !dtoEventMasterAdminPortal.getExtrasSelections().isEmpty()) {
-				// serviceEventDecorExtrasSelection.deleteByEventMasterId(entity.getSerEventMasterId());
-
-				List<EventDecorExtrasSelection> newSelections = new ArrayList<>();
-				for (DtoEventDecorExtrasSelection dto : dtoEventMasterAdminPortal.getExtrasSelections()) {
-					EventDecorExtrasSelection selection = new EventDecorExtrasSelection();
-					selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
-					selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
-					selection.setNumPrice(dto.getNumPrice());
-					selection.setBlnIsServices(false);
-					selection.setEventMaster(entity);
-					if(selection.getNumPrice() != null) {
-						numDecorCategoryPrice = numDecorCategoryPrice.add(selection.getNumPrice());
-					}
-					if (dto.getSerExtrasId() != null) {
-						selection.setDecorExtrasMaster(
-								serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
-					}
-					if (dto.getSerExtraOptionId() != null) {
-						selection.setDecorExtrasOption(
-								serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
-					}
-
-					// selection = serviceEventDecorExtrasSelection.save(selection);
-					newSelections.add(selection);
-				}
-//				entity.setExtrasSelections(newSelections);
-//				entity.setNumInfoFilledStatus(entity.getNumInfoFilledStatus() + 1);
-				if(entity.getExtrasSelections() == null) {
-					entity.setExtrasSelections(newSelections);
-				}else {
-					entity.getExtrasSelections().addAll(newSelections);
-				}
-				
-			}
+			numDecorCategoryPrice = numDecorCategoryPrice
+					.add(applyExtrasSelections(dtoEventMasterAdminPortal.getExtrasSelections(), entity, false));
 			
 			
 			// ****** Setting Event Services ******
-
-			if (entity.getServicesSelections() != null) {
-			    entity.getServicesSelections().clear();
-			} else {
-			    entity.setServicesSelections(new ArrayList<>());
-			}
-
-			if (UtilRandomKey.isNotNull(dtoEventMasterAdminPortal.getServicesSelections())
-			        && !dtoEventMasterAdminPortal.getServicesSelections().isEmpty()) {
-
-			    List<EventDecorExtrasSelection> newServiceSelections = new ArrayList<>();
-
-			    for (DtoEventDecorExtrasSelection dto : dtoEventMasterAdminPortal.getServicesSelections()) {
-
-			        EventDecorExtrasSelection selection = new EventDecorExtrasSelection();
-
-			        selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
-			        selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
-			        selection.setNumPrice(dto.getNumPrice());
-			        selection.setEventMaster(entity);
-			        if(dto.getNumPrice() != null) {
-			        	numServicesPrice = numServicesPrice.add(dto.getNumPrice());
-			        }
-			        // 🔥 THIS IS THE DIFFERENCE
-			        selection.setBlnIsServices(true);
-
-			        if (dto.getSerExtrasId() != null) {
-			            selection.setDecorExtrasMaster(
-			                serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
-			        }
-
-			        if (dto.getSerExtraOptionId() != null) {
-			            selection.setDecorExtrasOption(
-			                serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
-			        }
-
-			        newServiceSelections.add(selection);
-			    }
-
-			    entity.getServicesSelections().addAll(newServiceSelections);
-			}
+			numServicesPrice = numServicesPrice
+					.add(applyExtrasSelections(dtoEventMasterAdminPortal.getServicesSelections(), entity, true));
 			
 			
 			
@@ -4406,6 +4256,89 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	 * the same reason: taking them out is a separate decision from writing this
 	 * once instead of twice.
 	 */
+	/**
+	 * The extras and the services a booking has.
+	 *
+	 * <h3>Why one method for both, and for both save paths</h3>
+	 *
+	 * Because they were the same thirty lines four times — extras and services,
+	 * in each of the two saves — and the only differences were the boolean on
+	 * the row and which running total they added to. One of the four carried a
+	 * comment reading "THIS IS THE DIFFERENCE" over
+	 * {@code setBlnIsServices(true)}, which is a fair summary: everything else
+	 * was identical.
+	 *
+	 * <p>
+	 * The totals are the ones D10d found are never read. They are still
+	 * returned and still accumulated by the callers, so nothing about what they
+	 * do changes here.
+	 *
+	 * <h3>The behaviour that depended on an entity's state rather than a choice</h3>
+	 *
+	 * {@code orphanRemoval} needs the managed collection cleared and added to;
+	 * assigning a new list leaves Hibernate holding one it no longer manages and
+	 * the old rows are never deleted. Three of the four added to it. The fourth
+	 * assigned when the collection happened to be null and added to it
+	 * otherwise — so which of the two behaviours a booking got depended on
+	 * whether something earlier in the save had nulled the field.
+	 *
+	 * @param wantServices true for the services list, false for the extras.
+	 * @return what the chosen ones come to, for the callers' running totals.
+	 */
+	private BigDecimal applyExtrasSelections(List<DtoEventDecorExtrasSelection> given, EventMaster entity,
+			boolean wantServices) {
+
+		List<EventDecorExtrasSelection> existing = wantServices
+				? entity.getServicesSelections()
+				: entity.getExtrasSelections();
+
+		if (existing == null) {
+			existing = new ArrayList<>();
+			if (wantServices) {
+				entity.setServicesSelections(existing);
+			} else {
+				entity.setExtrasSelections(existing);
+			}
+		} else {
+			existing.clear();
+		}
+
+		BigDecimal total = BigDecimal.ZERO;
+
+		if (UtilRandomKey.isNull(given) || given.isEmpty()) {
+			return total;
+		}
+
+		List<EventDecorExtrasSelection> chosen = new ArrayList<>();
+
+		for (DtoEventDecorExtrasSelection dto : given) {
+			EventDecorExtrasSelection selection = new EventDecorExtrasSelection();
+			selection.setEventMaster(entity);
+			selection.setBlnIsServices(wantServices);
+			selection.setTxtDynamicProperty1(dto.getTxtDynamicProperty1());
+			selection.setTxtDynamicProperty2(dto.getTxtDynamicProperty2());
+			selection.setNumPrice(dto.getNumPrice());
+
+			if (dto.getNumPrice() != null) {
+				total = total.add(dto.getNumPrice());
+			}
+
+			if (dto.getSerExtrasId() != null) {
+				selection.setDecorExtrasMaster(serviceDecorExtrasMaster.getByIdAndNotDeleted(dto.getSerExtrasId()));
+			}
+
+			if (dto.getSerExtraOptionId() != null) {
+				selection.setDecorExtrasOption(
+						serviceDecorExtrasOption.getByIdAndNotDeleted(dto.getSerExtraOptionId()));
+			}
+
+			chosen.add(selection);
+		}
+
+		existing.addAll(chosen);
+		return total;
+	}
+
 	private record MenuResult(EventMaster entity, BigDecimal categories, BigDecimal subCategories) {
 	}
 
