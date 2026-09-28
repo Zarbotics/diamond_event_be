@@ -23,4 +23,7 @@ public interface RepositoryEventTypeRunningOrderMoment extends JpaRepository<Eve
 			+ " WHERE m.blnIsDeleted = false AND m.blnIsActive = true"
 			+ " ORDER BY m.eventType.serEventTypeId ASC, m.numDisplayOrder ASC")
 	List<EventTypeRunningOrderMoment> findAllInDayOrder();
+
+	/** Everything this kind of event asks for, so the set can be replaced whole. */
+	void deleteByEventType_SerEventTypeId(Integer serEventTypeId);
 }

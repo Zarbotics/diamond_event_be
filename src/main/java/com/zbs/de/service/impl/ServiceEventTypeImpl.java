@@ -3,6 +3,7 @@ package com.zbs.de.service.impl;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.transaction.annotation.Transactional;
 import com.zbs.de.service.ServiceEventType;
 import com.zbs.de.mapper.MapperEventType;
 import com.zbs.de.model.EventType;
@@ -239,6 +240,96 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 			res.setMessage("Unexpected error occurred while saving event type.");
 		}
 		return res;
+	}
+
+	/**
+	 * Which moments a kind of event's running order asks for.
+	 *
+	 * <h4>Why unticking one does not delete anything</h4>
+	 *
+	 * Because it cannot. This changes what the booking screen <em>asks for</em>
+	 * and touches no booking: a time already recorded against a booking stays in
+	 * the database, and the booking screen goes on showing it, marked as not
+	 * usually asked for this kind of event.
+	 *
+	 * <p>
+	 * That is deliberate and it is the whole design. A form submits only the
+	 * fields it has rendered, so hiding a moment that some booking already has a
+	 * time in would clear that time on the booking's next save — for an
+	 * unrelated reason, months later, by somebody who did nothing wrong.
+	 *
+	 * <h4>Why the rows are replaced rather than edited</h4>
+	 *
+	 * The answer is the whole set, not a diff. Working out which to add and
+	 * which to remove is two chances to get it wrong for no gain, and an
+	 * unticked moment leaves no history worth keeping — the booking's own time
+	 * is the thing that matters and that is untouched.
+	 */
+	@Override
+	@Transactional
+	public DtoResult setRunningOrderMoments(Integer serEventTypeId, List<String> fields) {
+		DtoResult result = new DtoResult();
+
+		try {
+			if (serEventTypeId == null) {
+				result.setTxtMessage("Failure");
+				result.setResult("Which kind of event?");
+				return result;
+			}
+
+			Optional<EventType> found = repositoryEventType.findById(serEventTypeId);
+			if (found.isEmpty()) {
+				result.setTxtMessage("Failure");
+				result.setResult("That kind of event no longer exists.");
+				return result;
+			}
+
+			/*
+			 * Only the ones a running order actually has, in the order the day
+			 * runs. A field name the screen invented would otherwise become a
+			 * column nothing can fill.
+			 */
+			List<String> wanted = THE_WHOLE_DAY.stream()
+					.filter(field -> fields != null && fields.contains(field))
+					.toList();
+
+			repositoryRunningOrderMoment.deleteByEventType_SerEventTypeId(serEventTypeId);
+			/*
+			 * Flushed, so the delete reaches the database before the inserts.
+			 * Hibernate orders inserts before deletes within a transaction, so
+			 * without this a moment being kept is inserted while its old row is
+			 * still there and the unique key on (event type, field) refuses it.
+			 * The transaction is then doomed, and the catch below would answer
+			 * a tidy "could not be saved" over a rollback that takes everything
+			 * else in the request with it.
+			 */
+			repositoryRunningOrderMoment.flush();
+
+			List<EventTypeRunningOrderMoment> moments = new ArrayList<>();
+			int order = 10;
+			for (String field : wanted) {
+				EventTypeRunningOrderMoment moment = new EventTypeRunningOrderMoment();
+				moment.setEventType(found.get());
+				moment.setTxtField(field);
+				moment.setNumDisplayOrder(order);
+				moment.setBlnIsActive(true);
+				moment.setBlnIsDeleted(false);
+				moments.add(moment);
+				order += 10;
+			}
+
+			repositoryRunningOrderMoment.saveAll(moments);
+
+			result.setTxtMessage("Success");
+			result.setResult(wanted);
+
+		} catch (Exception e) {
+			LOGGER.error("Could not set the running order moments for event type {}", serEventTypeId, e);
+			result.setTxtMessage("Failure");
+			result.setResult("The running order could not be saved.");
+		}
+
+		return result;
 	}
 
 	/**

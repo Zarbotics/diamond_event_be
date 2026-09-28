@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import com.zbs.de.model.dto.DtoEventTypeRunningOrder;
 import com.zbs.de.util.ResponseMessage;
 import com.zbs.de.util.UtilRandomKey;
 
@@ -78,6 +79,36 @@ public class ControllerEventType {
 	public ResponseMessage getAllActiveSubEventsOnlyCP() {
 		List<DtoEventType> list = serviceEventType.getAllActiveSubEventsOnlyCP();
 		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Fetched Event Types", list);
+	}
+
+	/**
+	 * Which moments this kind of event's running order asks for.
+	 *
+	 * <h4>What this does not do</h4>
+	 *
+	 * Touch a booking. Unticking a moment changes what the booking screen asks
+	 * for from here on; a time already recorded against a booking stays in the
+	 * database and the screen goes on showing it, marked as not usually asked
+	 * for this kind of event.
+	 *
+	 * <p>
+	 * That is the point. A form submits only the fields it has rendered, so
+	 * hiding a moment some booking already has a time in would clear it on that
+	 * booking's next save — for an unrelated reason, months later, by somebody
+	 * who did nothing wrong.
+	 */
+	@PostMapping(value = "/setRunningOrderMoments", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage setRunningOrderMoments(@RequestBody DtoEventTypeRunningOrder request) {
+		DtoResult result = serviceEventType.setRunningOrderMoments(
+				request.getSerEventTypeId(), request.getTxtRunningOrderMoments());
+
+		if (!"Success".equalsIgnoreCase(result.getTxtMessage())) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					String.valueOf(result.getResult()), null);
+		}
+
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Saved", result.getResult());
 	}
 
 	@PostMapping(value = "/saveEventType", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

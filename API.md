@@ -10,7 +10,7 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 317 |
+| Endpoints | 318 |
 | Controllers | 43 |
 | Named like a read (`get…`, `search…`, `is…`) | 142 |
 
@@ -322,6 +322,7 @@ most of this inventory carries no audience marker.
 | `POST` | `/eventType/getById` |  |
 | `POST` | `/eventType/saveEventType` |  |
 | `POST` | `/eventType/saveOrUpdate` |  |
+| `POST` | `/eventType/setRunningOrderMoments` |  |
 
 ### ControllerExternalSupplierCategory
 

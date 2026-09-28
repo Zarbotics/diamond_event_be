@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
+import com.zbs.de.model.dto.DtoResult;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -77,6 +79,35 @@ class RunningOrderMomentsIT {
 
 	@Autowired
 	private ServiceEventType serviceEventType;
+
+	/** Put back after each test, so narrowing one does not narrow the next. */
+	@AfterEach
+	void giveThemTheirDayBack() {
+		for (Integer type : jdbcTemplate.queryForList(
+				"SELECT ser_event_type_id FROM event_type WHERE COALESCE(bln_is_deleted,false)=false",
+				Integer.class)) {
+			serviceEventType.setRunningOrderMoments(type, THE_WHOLE_DAY);
+		}
+	}
+
+	private Integer someEventType() {
+		return jdbcTemplate.queryForObject(
+				"SELECT ser_event_type_id FROM event_type"
+						+ " WHERE COALESCE(bln_is_deleted,false)=false ORDER BY ser_event_type_id LIMIT 1",
+				Integer.class);
+	}
+
+	private List<String> momentsOf(Integer type) {
+		return jdbcTemplate.queryForList(
+				"SELECT txt_field FROM event_type_running_order_moment"
+						+ " WHERE ser_event_type_id = ? AND bln_is_deleted = false"
+						+ " ORDER BY num_display_order",
+				String.class, type);
+	}
+
+	private long countOf(String table) {
+		return jdbcTemplate.queryForObject("SELECT count(*) FROM " + table, Long.class);
+	}
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -171,6 +202,83 @@ class RunningOrderMomentsIT {
 						.isNotEmpty());
 			}
 		});
+	}
+
+	/**
+	 * Narrowing what a kind of event asks for.
+	 *
+	 * <p>
+	 * A corporate dinner does not have a Barat arrival or a Nikah, and until now
+	 * it was asked for both.
+	 */
+	@Test
+	@DisplayName("a kind of event can be narrowed to the moments it actually has")
+	void canBeNarrowed() {
+		Integer type = someEventType();
+
+		serviceEventType.setRunningOrderMoments(type,
+				List.of("txtGuestArrival", "txtSpeeches", "txtMeal", "txtEndOfNight"));
+
+		assertThat(momentsOf(type))
+				.as("and kept in the order the day runs, whatever order they were sent in")
+				.containsExactly("txtGuestArrival", "txtSpeeches", "txtMeal", "txtEndOfNight");
+	}
+
+	/**
+	 * The guarantee the whole design rests on.
+	 *
+	 * <p>
+	 * Unticking a moment changes what the booking screen <em>asks for</em>. It
+	 * must not touch a booking: a form submits only the fields it has rendered,
+	 * so a time that stopped being shown would be cleared on that booking's next
+	 * save — for an unrelated reason, months later, by somebody who did nothing
+	 * wrong. The screen goes on showing it instead, marked as unusual.
+	 */
+	@Test
+	@DisplayName("narrowing a kind of event does not touch a single booking")
+	void narrowingTouchesNoBooking() {
+		Integer type = someEventType();
+
+		long runningOrdersBefore = countOf("event_running_order");
+		long eventsBefore = countOf("event_master");
+
+		serviceEventType.setRunningOrderMoments(type, List.of("txtGuestArrival"));
+
+		assertThat(countOf("event_running_order"))
+				.as("a recorded time is a fact about a booking, not about its kind of event")
+				.isEqualTo(runningOrdersBefore);
+		assertThat(countOf("event_master")).isEqualTo(eventsBefore);
+	}
+
+	@Test
+	@DisplayName("a field name the screen invented is refused rather than stored")
+	void onlyRealMoments() {
+		Integer type = someEventType();
+
+		serviceEventType.setRunningOrderMoments(type,
+				List.of("txtGuestArrival", "txtSomethingNobodyHasAColumnFor"));
+
+		assertThat(momentsOf(type)).containsExactly("txtGuestArrival");
+	}
+
+	@Test
+	@DisplayName("a kind of event can be given the whole day back")
+	void canBeWidenedAgain() {
+		Integer type = someEventType();
+
+		serviceEventType.setRunningOrderMoments(type, List.of("txtMeal"));
+		serviceEventType.setRunningOrderMoments(type, THE_WHOLE_DAY);
+
+		assertThat(momentsOf(type)).containsExactlyElementsOf(THE_WHOLE_DAY);
+	}
+
+	@Test
+	@DisplayName("refuses a kind of event that does not exist, in words")
+	void refusesAnUnknownType() {
+		DtoResult result = serviceEventType.setRunningOrderMoments(987654, List.of("txtMeal"));
+
+		assertThat(result.getTxtMessage()).isEqualTo("Failure");
+		assertThat(String.valueOf(result.getResult())).contains("no longer exists");
 	}
 
 	/**

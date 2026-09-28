@@ -31,4 +31,13 @@ public interface ServiceEventType {
 	List<DtoEventType> getAllActiveEventTypesWithSubEvents();
 	
 	List<DtoEventType> getAllActiveSubEventsOnlyCP();
+
+	/**
+	 * Which moments this kind of event's running order asks for.
+	 *
+	 * <p>
+	 * Changes what is asked for on new bookings and touches no booking: a time
+	 * already recorded stays, and the booking screen goes on showing it.
+	 */
+	DtoResult setRunningOrderMoments(Integer serEventTypeId, List<String> fields);
 }
