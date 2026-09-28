@@ -9,15 +9,12 @@ import org.springframework.stereotype.Component;
 
 import com.zbs.de.model.PriceVersion;
 import com.zbs.de.model.dto.price.DtoPriceVersion;
-import com.zbs.de.repository.RepositoryMenuItemPrice;
 import com.zbs.de.util.UtilDateAndTime;
 import com.zbs.de.util.enums.EnmPriceVersionStatus;
 
 @Component
 public class MapperPriceVersion {
 
-	@Autowired
-	private RepositoryMenuItemPrice menuItemPriceRepository;
 
 	public DtoPriceVersion toDto(PriceVersion entity) {
 		if (entity == null) {
@@ -40,13 +37,17 @@ public class MapperPriceVersion {
 			dto.setTxtPriceVersionStatus(status);
 		}
 
-		// Add statistics
-		if (entity.getSerPriceVersionId() != null) {
-			Integer total = menuItemPriceRepository.countByPriceVersionId(entity.getSerPriceVersionId());
-			Integer active = menuItemPriceRepository.countActiveByPriceVersionId(entity.getSerPriceVersionId());
-			dto.setTotalPrices(total);
-			dto.setActivePrices(active);
-		}
+		/*
+		 * The two counts here were of menu_item_price rows — the old pricing
+		 * engine's table, which holds none and which nothing reads. A version's
+		 * prices live in menu_offering_price, which is a different table with a
+		 * different shape, so these counts were not merely stale: they answered
+		 * a question about a feature that was never used and reported it as
+		 * this version's price count.
+		 *
+		 * Left unset rather than recounted against the live table, because
+		 * nothing asks for them — see P4.
+		 */
 
 		return dto;
 	}

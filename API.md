@@ -10,9 +10,9 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 344 |
-| Controllers | 46 |
-| Named like a read (`get…`, `search…`, `is…`) | 154 |
+| Endpoints | 317 |
+| Controllers | 43 |
+| Named like a read (`get…`, `search…`, `is…`) | 142 |
 
 Almost every endpoint is `POST`, including the reads. Nothing is cacheable,
 no intermediary can safely retry a read, and which of these change data is
@@ -463,27 +463,6 @@ most of this inventory carries no audience marker.
 | `POST` | `/menu/item/tree` |  |
 | `POST` | `/menu/item/update` |  |
 
-### ControllerMenuItemPrice
-
-| Verb | Path | Who |
-|---|---|---|
-| `POST` | `/api/menu-item-price/bulkSet` |  |
-| `POST` | `/api/menu-item-price/calculateForMenuItem` |  |
-| `POST` | `/api/menu-item-price/copy` |  |
-| `POST` | `/api/menu-item-price/create` |  |
-| `POST` | `/api/menu-item-price/delete` |  |
-| `POST` | `/api/menu-item-price/getAll` |  |
-| `POST` | `/api/menu-item-price/getAllActive` |  |
-| `POST` | `/api/menu-item-price/getApplicablePrice` |  |
-| `POST` | `/api/menu-item-price/getById` |  |
-| `POST` | `/api/menu-item-price/getByMenuItem` |  |
-| `POST` | `/api/menu-item-price/getByMenuItemAndVersion` |  |
-| `POST` | `/api/menu-item-price/getByPriceVersion` |  |
-| `POST` | `/api/menu-item-price/getDefaultByMenuItem` |  |
-| `POST` | `/api/menu-item-price/update` |  |
-| `POST` | `/api/menu-item-price/updateStatus` |  |
-| `POST` | `/api/menu-item-price/validate` |  |
-
 ### ControllerMenuItemRole
 
 | Verb | Path | Who |
@@ -527,27 +506,6 @@ most of this inventory carries no audience marker.
 | `GET` | `/notification/unread-count` |  |
 | `POST` | `/notification/{id}/dismiss` |  |
 | `POST` | `/notification/{id}/read` |  |
-
-### ControllerPriceCalculator
-
-| Verb | Path | Who |
-|---|---|---|
-| `POST` | `/api/price-calculator/calculate` |  |
-| `POST` | `/api/price-calculator/quote` |  |
-
-### ControllerPriceEntry
-
-| Verb | Path | Who |
-|---|---|---|
-| `POST` | `/menu/price-entry/export` |  |
-| `POST` | `/menu/price-entry/getEntriesByVersion` |  |
-| `POST` | `/menu/price-entry/getFilters` |  |
-| `POST` | `/menu/price-entry/getMenuTree` |  |
-| `POST` | `/menu/price-entry/getQuantityBreaks` |  |
-| `POST` | `/menu/price-entry/preview` |  |
-| `POST` | `/menu/price-entry/{versionId}/bulk-update` |  |
-| `POST` | `/menu/price-entry/{versionId}/bulkAssign` |  |
-| `POST` | `/menu/price-entry/{versionId}/bulkDelete` |  |
 
 ### ControllerPriceVersion
 
