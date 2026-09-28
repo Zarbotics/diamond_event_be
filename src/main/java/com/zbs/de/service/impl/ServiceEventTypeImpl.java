@@ -224,7 +224,13 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 				entity.setUpdatedDate(new Date());
 			}
 
+			boolean isNew = entity.getSerEventTypeId() == null;
 			EventType saved = repositoryEventType.saveAndFlush(entity);
+
+			if (isNew) {
+				giveItTheWholeDay(saved);
+			}
+
 			res.setMessage("Saved successfully");
 			res.setResult(saved);
 
@@ -234,6 +240,58 @@ public class ServiceEventTypeImpl implements ServiceEventType {
 		}
 		return res;
 	}
+
+	/**
+	 * A new kind of event starts with every moment a running order can have.
+	 *
+	 * <h4>Why it is seeded rather than left empty</h4>
+	 *
+	 * V26 gave every event type that existed at the time the full sixteen, so
+	 * that nothing narrowed and no stored time was lost. A type created
+	 * afterwards would have had none — and a running order with no moments is
+	 * one that asks for nothing, so a booking for the business's newest kind of
+	 * event would silently have nowhere to record when the guests arrive.
+	 *
+	 * <p>
+	 * The whole day is also the only safe starting point. Narrowing is a
+	 * decision with a consequence — a moment that stops being shown is a time
+	 * that gets cleared on the next save — so it belongs to the business,
+	 * deliberately, and not to whatever a new row happened to default to.
+	 *
+	 * <p>
+	 * Failing here does not fail the save. The event type is the thing that
+	 * matters and its moments can be set afterwards; losing the type because a
+	 * secondary insert failed would be the worse outcome.
+	 */
+	private void giveItTheWholeDay(EventType type) {
+		try {
+			List<EventTypeRunningOrderMoment> moments = new ArrayList<>();
+			int order = 10;
+
+			for (String field : THE_WHOLE_DAY) {
+				EventTypeRunningOrderMoment moment = new EventTypeRunningOrderMoment();
+				moment.setEventType(type);
+				moment.setTxtField(field);
+				moment.setNumDisplayOrder(order);
+				moment.setBlnIsActive(true);
+				moment.setBlnIsDeleted(false);
+				moments.add(moment);
+				order += 10;
+			}
+
+			repositoryRunningOrderMoment.saveAll(moments);
+
+		} catch (Exception e) {
+			LOGGER.error("Could not give event type {} its running order moments", type.getSerEventTypeId(), e);
+		}
+	}
+
+	/** In the order the day runs. The same sixteen V26 seeded. */
+	private static final List<String> THE_WHOLE_DAY = List.of(
+			"txtGuestArrival", "txtBrideGuestArrival", "txtGroomGuestArrival", "txtBaratArrival",
+			"txtNikah", "txtBrideEntrance", "txtGroomEntrance", "txtCouplesEntrance",
+			"txtDua", "txtRingExchange", "txtCakeCutting", "txtRams",
+			"txtSpeeches", "txtDance", "txtMeal", "txtEndOfNight");
 
 	@Override
 	public ResponseMessage getById(Integer id) {

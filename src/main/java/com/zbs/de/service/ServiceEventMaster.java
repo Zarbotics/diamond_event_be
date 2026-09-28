@@ -50,6 +50,15 @@ public interface ServiceEventMaster {
 	
 	EventMaster getEventMasterById(Integer serEventMasterId);
 	
+	/**
+	 * What a booking would come to, without saving it.
+	 *
+	 * <p>
+	 * So the control panel can show a live total without holding a second
+	 * implementation of the pricing rules.
+	 */
+	DtoResult pricePreview(DtoEventMaster dtoEventMaster);
+
 	DtoResult validateEventDateAvailability(Date eventDate);
 	
 	/**

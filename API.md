@@ -10,7 +10,7 @@ Base address `http://localhost:8080/diamond`. Paths below are relative to it.
 
 | | |
 |---|---|
-| Endpoints | 343 |
+| Endpoints | 344 |
 | Controllers | 46 |
 | Named like a read (`get…`, `search…`, `is…`) | 154 |
 
@@ -289,6 +289,7 @@ most of this inventory carries no audience marker.
 | `POST` | `/eventMaster/getEventStats` |  |
 | `POST` | `/eventMaster/getSummariesByCustomerId` | 👤 |
 | `POST` | `/eventMaster/isDateAlreadyBooked` | 👤 |
+| `POST` | `/eventMaster/pricePreview` |  |
 | `POST` | `/eventMaster/saveWithDocs` | 👤 |
 | `POST` | `/eventMaster/saveWithDocsAdminPortal` |  |
 | `POST` | `/eventMaster/search` |  |

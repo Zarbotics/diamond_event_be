@@ -40,6 +40,7 @@ import com.zbs.de.model.EventDecorExtrasSelection;
 import com.zbs.de.model.EventDecorPropertySelection;
 import com.zbs.de.model.EventDecorPropertyValueSelection;
 import com.zbs.de.model.EventDecorReferenceDocument;
+import com.zbs.de.model.EventPriceLine;
 import com.zbs.de.model.EventMaster;
 import com.zbs.de.model.EventMenuCategorySelection;
 import com.zbs.de.model.EventMenuFoodSelection;
@@ -63,6 +64,7 @@ import com.zbs.de.model.dto.DtoEventMasterAdminPortal;
 import com.zbs.de.model.dto.DtoEventMasterSearch;
 import com.zbs.de.model.dto.DtoEventMasterStats;
 import com.zbs.de.model.dto.DtoEventMasterTableView;
+import com.zbs.de.model.dto.DtoEventPricePreview;
 import com.zbs.de.model.dto.DtoEventQuoteAndStatus;
 import com.zbs.de.model.dto.DtoEventExternalSupplier;
 import com.zbs.de.model.dto.DtoEventRunningOrder;
@@ -4285,6 +4287,128 @@ public class ServiceEventMasterImpl implements ServiceEventMaster {
 	 * @param wantServices true for the services list, false for the extras.
 	 * @return what the chosen ones come to, for the callers' running totals.
 	 */
+	/**
+	 * What a booking would come to, without saving it.
+	 *
+	 * <h3>Why this exists</h3>
+	 *
+	 * So that there is one implementation of what anything costs. The control
+	 * panel adds the booking up itself so that the total pinned beside the form
+	 * moves while somebody is changing the menu — a second set of pricing rules,
+	 * written at a different time from these, and two sets that both look right
+	 * is the whole problem §5.10 to §5.13 have been unwinding.
+	 *
+	 * <h3>Why it can reuse the save's mapping</h3>
+	 *
+	 * Because the engine walks the entity it is handed and never asks whether it
+	 * has been persisted. So this builds the booking exactly as the save builds
+	 * it, through the same helpers, and then prices it and throws it away. Using
+	 * the same helpers is the point: a second mapping would be a second place
+	 * for the answer to drift, which is what this is for removing.
+	 *
+	 * <h3>The one thing the database would have done and does not</h3>
+	 *
+	 * The dishes hang off the courses, and {@code event.getFoodSelections()} —
+	 * which is what the engine prices food from — is the inverse side of a
+	 * relation that Hibernate fills in when a saved booking is read back. Here
+	 * nothing is saved, so the same graph has to be assembled by hand. Without
+	 * it the food silently prices at nothing, which is the failure this whole
+	 * area keeps producing.
+	 *
+	 * <p>
+	 * Read-only and transactional: it loads catalogues and writes nothing.
+	 */
+	@Override
+	/* Spring's, spelled out: this class imports jakarta.transaction.Transactional,
+	   which has no readOnly. */
+	@org.springframework.transaction.annotation.Transactional(readOnly = true)
+	public DtoResult pricePreview(DtoEventMaster dtoEventMaster) {
+		DtoResult result = new DtoResult();
+
+		try {
+			EventMaster draft = new EventMaster();
+			draft.setNumNumberOfGuests(dtoEventMaster.getNumNumberOfGuests());
+			draft.setNumNumberOfTables(dtoEventMaster.getNumNumberOfTables());
+			draft.setMenuCategorySelections(new ArrayList<>());
+			draft.setFoodSelections(new ArrayList<>());
+			draft.setDecorSelections(new ArrayList<>());
+			draft.setExtrasSelections(new ArrayList<>());
+			draft.setServicesSelections(new ArrayList<>());
+
+			applyMenuSelections(dtoEventMaster.getMenuCategoriesSelection(), draft,
+					serviceMenuItem.getAllMenuItems());
+
+			/*
+			 * The inverse side Hibernate would have filled in. See above.
+			 */
+			for (EventMenuCategorySelection category : draft.getMenuCategorySelections()) {
+				if (category.getSubCategories() == null) {
+					continue;
+				}
+				for (EventMenuSubCategorySelection course : category.getSubCategories()) {
+					if (course.getItems() != null) {
+						draft.getFoodSelections().addAll(course.getItems());
+					}
+				}
+			}
+
+			applyDecorSelections(dtoEventMaster.getDtoEventDecorSelections(), draft,
+					serviceDecorCategoryPropertyMaster.getAllPropertiesMaster(),
+					serviceDecorCategoryPropertyValue.getAllPropertyValueMaster(),
+					null, null, JOURNEY_DECOR);
+
+			applyExtrasSelections(dtoEventMaster.getExtrasSelections(), draft, false);
+			applyExtrasSelections(dtoEventMaster.getServicesSelections(), draft, true);
+
+			DtoEventQuoteAndStatus money = dtoEventMaster.getDtoEventQuoteAndStatus();
+			BigDecimal discount = money == null || money.getNumDiscount() == null
+					? BigDecimal.ZERO
+					: money.getNumDiscount();
+
+			result.setResult(asPreview(serviceEventPricing.priceFor(draft, discount), discount));
+			result.setTxtMessage("Success");
+
+		} catch (Exception e) {
+			LOGGER.error("Failed while pricing a proposed booking", e);
+			result.setTxtMessage("Failure");
+			result.setResult("The price could not be worked out.");
+		}
+
+		return result;
+	}
+
+	private static DtoEventPricePreview asPreview(ServiceEventPricing.Priced priced, BigDecimal discount) {
+		DtoEventPricePreview preview = new DtoEventPricePreview();
+		preview.setNumFood(priced.getFood());
+		preview.setNumDecor(priced.getDecor());
+		preview.setNumExtras(priced.getExtras());
+		preview.setNumServices(priced.getServices());
+		preview.setNumVat(priced.getVat());
+		preview.setNumSubtotal(priced.getSubtotal());
+		preview.setNumDiscount(discount);
+		preview.setNumTotal(priced.getTotal());
+		preview.setTxtCannotPrice(priced.getCannotPrice());
+
+		List<DtoEventPricePreview.DtoEventPriceLine> lines = new ArrayList<>();
+		for (EventPriceLine line : priced.getLines()) {
+			DtoEventPricePreview.DtoEventPriceLine dto = new DtoEventPricePreview.DtoEventPriceLine();
+			dto.setTxtSection(line.getTxtSection());
+			dto.setTxtDescription(line.getTxtDescription());
+			dto.setNumUnitPrice(line.getNumUnitPrice());
+			dto.setEnmBasis(line.getEnmBasis() == null ? null : line.getEnmBasis().name());
+			dto.setNumQuantity(line.getNumQuantity());
+			dto.setNumLineTotal(line.getNumLineTotal());
+			dto.setNumCatalogueTotal(line.getNumCatalogueTotal());
+			dto.setBlnIsOverridden(line.getBlnIsOverridden());
+			dto.setNumVat(line.getNumVat());
+			dto.setTxtReason(line.getTxtReason());
+			lines.add(dto);
+		}
+		preview.setLines(lines);
+
+		return preview;
+	}
+
 	private BigDecimal applyExtrasSelections(List<DtoEventDecorExtrasSelection> given, EventMaster entity,
 			boolean wantServices) {
 

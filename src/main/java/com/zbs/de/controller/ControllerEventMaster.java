@@ -115,6 +115,49 @@ public class ControllerEventMaster {
 				result.getResulList());
 	}
 
+	/**
+	 * What a booking would come to, without saving it.
+	 *
+	 * <h3>Why the server answers this at all</h3>
+	 *
+	 * So there is one implementation of what anything costs. The control panel
+	 * adds the booking up itself so the total pinned beside the form moves while
+	 * somebody is changing the menu — a second set of pricing rules, written at
+	 * a different time from the server's. Two sets of rules that both look right
+	 * is the problem §5.10 to §5.13 have been unwinding, and this is what lets
+	 * the second one go.
+	 *
+	 * <h3>Why it writes nothing</h3>
+	 *
+	 * It is a question, not an instruction. Somebody moving the guest count up
+	 * and down to see what happens is not editing the booking, and a preview
+	 * that saved would turn every keystroke into a revision of a customer's
+	 * quote.
+	 *
+	 * <p>
+	 * Ownership is still asserted. The figures describe a real customer's
+	 * booking whether or not anything is written, and an endpoint that prices
+	 * any payload you hand it is one that answers what a competitor's event
+	 * costs.
+	 */
+	@PostMapping(value = "/pricePreview", consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage pricePreview(@RequestBody DtoEventMaster dtoEventMaster) {
+		accessGuard.assertCanAccessCustomer(dtoEventMaster.getSerCustId());
+		if (dtoEventMaster.getSerEventMasterId() != null) {
+			accessGuard.assertCanAccessEvent(dtoEventMaster.getSerEventMasterId());
+		}
+
+		DtoResult result = serviceEventMaster.pricePreview(dtoEventMaster);
+
+		if (!"Success".equalsIgnoreCase(result.getTxtMessage())) {
+			return new ResponseMessage(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST,
+					String.valueOf(result.getResult()), null);
+		}
+
+		return new ResponseMessage(HttpStatus.OK.value(), HttpStatus.OK, "Priced", result.getResult());
+	}
+
 	@PostMapping(value = "/saveWithDocs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseMessage saveWithDocs(@RequestPart("eventMaster") String eventMaster,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
