@@ -769,11 +769,40 @@ notices until the event has happened. The engine now reports what it could not
 work out, the caller declines to impose an incomplete total, the calculated
 figures are still recorded, and the reason is logged where somebody can act on it.
 
-**What is left.** The admin's pinned summary still adds the booking up itself so
-the total moves while somebody is typing, which means the rules exist twice. Its
-wording had to be corrected — it was still telling people the screen's figure was
-the one being charged, which had become false. Removing the second
-implementation is **P3b**.
+**And then there was one.** The portal's pinned summary still added the booking
+up itself, so the total moved while somebody typed — the reason it is pinned.
+That was the last second implementation, and it meant a booking's price had three
+answers: the figure on the screen, the figure in the payload, and the figure the
+server would produce.
+
+`POST /eventMaster/pricePreview` now prices a booking **without saving it**, and
+the portal asks it. The engine never needed a persisted entity — it walks the
+booking it is handed — so the preview builds one through *the save's own mapping
+helpers* and throws it away. Using the same helpers is the point: a separate
+mapping would have been a second place for the answer to drift, which is what
+this removes.
+
+Two things that had to come first, and one the preview turned up:
+
+- **The extras and services mapping was inline four times** — extras and
+  services in each of the two saves — so there was nothing for the preview to
+  reuse. Extracted (D10f), 4 copies → 1. One of the four assigned the collection
+  when it happened to be null and added to it otherwise, so which of two
+  `orphanRemoval` behaviours a booking got depended on whether something earlier
+  in the save had nulled the field.
+- **The dishes hang off the courses.** `event.getFoodSelections()`, which is
+  what the engine prices food from, is the inverse side of a relation Hibernate
+  fills in when a saved booking is read back. Nothing is saved here, so that
+  graph is assembled by hand — without it the food silently prices at nothing.
+- **An event type created after V26 had no running order moments at all**, so a
+  booking for the business's newest kind of event would have had nowhere to
+  record when the guests arrive. Creating one now seeds the whole day.
+  `RunningOrderMomentsIT` caught it, by failing when a new test suite leaked a
+  type.
+
+`QuoteSummary` and `summariseQuote` are gone. `eventPayload.js` still builds the
+payload and has stopped having an opinion about what anything costs. The customer
+journey never priced anything, so there was nothing to remove there.
 
 **Two schema warts written down where they cost time:** `event_budget`'s VAT
 column is `num_deco_extras_vat`, mapped with a leading space in the name; and
@@ -1360,7 +1389,7 @@ it threw at exactly the moment it was meant to help.
 
 And the reason D10c stayed invisible: the catch-all at the foot of each save logged at `LOGGER.debug` and answered the bare sentinel `"Failure"`. Debug is off in production, so a save that lost a customer's booking left no trace anywhere. All 16 swallowed exceptions in the service and 3 in the controller now log at **error**; the four sentinel failures carry a reason beside the sentinel — which stays, because the controller reads it to answer 400 rather than 200 — and both controllers pass that reason on instead of the word "Failure". |
 | ~~P3~~ | **Done.** The engine's figures are the ones charged. Two defects found on the way in, either of which would have made the switch harmful — see §5.13. What is left is removing the client's own arithmetic, which needs a preview endpoint so the pinned total does not go stale between saves: **P3b**. |
-| **P3b** | **A pricing preview endpoint, so only the server knows the rules.** `eventPayload.js` still adds the booking up so the pinned total moves while somebody types. `priceFor` never needed a persisted entity, so the server can answer "what would this come to" without saving; what is missing is building a transient booking from a payload, which is the save's mapping minus the persistence. Then `eventPayload.js` loses its 556 lines of pricing rules and there is one implementation of what anything costs. |
+| ~~P3b~~ | **Done.** `POST /eventMaster/pricePreview` prices a booking without saving it, and the portal's pinned total comes from it. `QuoteSummary` and `summariseQuote` are deleted — `eventPayload.js` still builds the payload but no longer has an opinion about what anything costs. The customer journey never priced anything, so there was nothing to remove there. See §5.13. |
 | P4 | **Retire the old `price_version` / `price_entry` / `pricing_rule` engine, or fold it in.** `ServicePricingEngine.preview` is called by nothing in either portal, covers menu items only, and uses `double` for money. Left untouched during §5.10 so that one change could be verified at a time. |
 
 
