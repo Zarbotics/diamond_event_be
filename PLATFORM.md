@@ -854,8 +854,32 @@ business defines what a Walima is.
 submits only the fields it has rendered, so the first save of a booking whose
 list had shrunk would clear whatever was stored in the moments that stopped
 being shown. Seeding the whole day reproduces exactly what was on screen, so
-the change is invisible; narrowing becomes the business's decision, per type,
-and needs a screen — **UX2e**.
+the change was invisible.
+
+**Narrowing it — UX2e ✅.** A clock beside each row on Event Types opens the
+sixteen moments in the order the day runs. A corporate dinner stops being asked
+for its Barat arrival and its Nikah.
+
+The business was offered two ways to build it and chose the safer. **Unticking
+changes what is asked for and never what is already recorded:** a booking with a
+time in a moment goes on showing it, marked *"Not usually asked for this kind of
+event"*, so nothing is lost and it can be cleared deliberately. Without that,
+taking the Nikah off the corporate event would have wiped last year's corporate
+booking that happened to have one — on its next save, for an unrelated reason,
+months later, by somebody who did nothing wrong. An integration test asserts it
+directly: narrowing a type changes no `event_running_order` row and no
+`event_master` row.
+
+The screen says so at the top, because the obvious reading of a tick box is
+"delete the ones I untick" and somebody who believes that will hesitate over
+exactly the change they should be making.
+
+**Found building it:** replacing the set deletes then inserts, and Hibernate
+orders inserts before deletes within a transaction — so a moment being *kept*
+was inserted while its old row was still there, the unique key refused it, and
+the transaction was doomed while the catch-all answered a tidy "could not be
+saved". Visible only because D10e raised these catch-alls from debug to error.
+That is the second defect that one change has surfaced.
 
 ### 5.11 Notifications, and why the table was empty ✅ 🟡
 
@@ -1244,7 +1268,6 @@ the reasoning; this is the list.
 
 | # | Item | Where | Size |
 |---|---|---|---|
-| **UX2e** | Let the business choose which moments each event type has | Control panel | Medium |
 | **UX3** | Redesign and professionalise notifications | All three | Large |
 | **P3** | Turn server pricing on, then stop the clients pricing | All three | Medium — business decision on timing |
 | **B1** | Booking above Event | Backend | Large |
