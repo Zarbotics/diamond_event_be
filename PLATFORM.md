@@ -1187,6 +1187,134 @@ reads as though session validation is wired up.
 
 ---
 
+### 5.16 What only a browser could find ✅
+
+Two rounds of control-panel work had been reported as verified. The office
+opened the portal and said nothing had changed. They were right about more
+than they knew, and the reason is in how the verifying was done.
+
+#### The check that could not fail
+
+The previous round asserted "no horizontal overflow on any of 21 routes at
+five widths" by reading `document.scrollWidth` per page. A label clipped
+inside a flex child whose parent hides its overflow never reaches the page's
+scroll width. Screens that were visibly cut off passed a test that had no
+mechanism for catching them.
+
+Two scripts now open the running portal against a real backend and measure
+what a person actually sees go wrong — text wider than the box drawn for it,
+controls that overlap, form rows at different heights, labels addressing an
+element that is not there, targets under 24px. They live in the admin
+repository with a note on why they exist.
+
+#### Six faults behind one screenshot
+
+**A stylesheet that was never in the bundle.** `src/static/css/style.css`,
+3,145 lines, imported by nothing — not `index.js`, not `App.js`, not
+`public/index.html`, not craco's config. It had never been loaded. `.sr-only`
+lived in it, so every screen-reader-only span rendered as ordinary visible
+text: the booking's section rail read "The booking — complete", "Running
+order — nothing yet" on screen, and since the rail set `white-space: nowrap`
+the extra words ran under the panel beside it and were clipped mid-word. The
+calendar's event markers and the notification bell leaked the same way.
+
+The rules that were needed are eleven lines, now in a `createGlobalStyle`
+that App mounts. The old file is deleted rather than imported: nothing has
+ever been laid out against it, so loading three thousand unproven rules over
+a working interface would change every screen at once. Its test asserts both
+halves — what the rule says, and that the application mounts the thing
+carrying it, which is the half no test of the old file could have had.
+
+**Theme tokens that did not exist.** `theme['card-background']` was
+undefined. `Panel`, `FormSection` and `AppModal` all take their surface from
+it, so every section of a booking was a thin border with the page showing
+through — and because the section header carries a white background of its
+own, the heading read as a white bar floating on grey. Three more were used
+and never defined, and `sucess-color` was a misspelling of `success-color`
+that drew two ticks in no colour at all.
+
+All of it silent: styled-components interpolates `undefined` to nothing, so
+`background: ;` is emitted and the browser drops the declaration. A test now
+reads every `theme['token']` in the source and fails on any the theme does
+not define.
+
+**Read-only values shown as dead inputs.** A booking's reference, and its
+name and kind once it exists, were `<Input disabled>`. antd greys a disabled
+input's text to its placeholder colour and clips it to one unscrollable line,
+so DE-26-1119 read as a hint in an empty box and "Qasim Hameed Walima" read
+as "Qasim Hameed W" with no way to see the rest — and, being disabled, all
+three were out of the tab order, so somebody working the form by keyboard was
+never told the booking's name at all. They are values now, with the field
+kept in the form store so the payload is unchanged.
+
+**A workspace mounted under a list.** `EventGrid` rendered the booking
+workspace unconditionally below the bookings list. It imported
+`EventStatFormModal` — which despite its name is not a modal but a routed
+screen taking no props at all — and passed it `visible`, `onCancel` and
+`eventData`, every one of which was discarded. So the office saw the bookings
+list, its status tabs, its "No Events Found!", and beneath all of that a full
+booking open for editing with a Save button, belonging to no row anybody had
+clicked. The whole catalogue was fetched on every visit to the list.
+
+**Mixed control sizes and a fixed three-column grid.** The date and time
+pickers asked for `size="large"` and the inputs beside them took antd's
+default, so one row of three fields stood at two different heights. One
+`ConfigProvider` sets it once now. And the booking's fields were laid out at
+a third of the *viewport* each inside a panel that is itself a third of it —
+142px per field — so the date read "19-09-202" with the year cut off.
+
+**A form label clipped by three pixels.** antd hides the overflow on a
+vertical form item's label and sizes it from one line, so a label wrapping to
+three lost the bottom of the last one — the depth of a descender. These are
+the business's own words for its own fields and are not ours to shorten, so
+the box gives way instead.
+
+#### The one that mattered most 🔴
+
+**The address did not name the booking.** Opening `/event-master/107` did not
+open booking 107. It showed the "Take a booking" dialogue over an empty form.
+
+The workspace never read the id in its address. The bookings list wrote the
+whole row into `localStorage['serEventMasterData']` and the workspace read it
+back, so the `:eventId` was decoration. What followed:
+
+- a bookmark, a refresh, or a link sent to a colleague showed the create
+  dialogue over an empty form — which somebody would fill in and save as a
+  second booking for a customer who already had one;
+- whatever was last clicked stayed in storage, so the screen could show a
+  booking nobody had asked for;
+- two tabs share one storage key. Opening a booking in each left both editing
+  whichever was clicked second, and saving from the other wrote those figures
+  onto the wrong booking;
+- a row out of the browser's own storage cannot be checked against who is
+  logged in.
+
+It fetches by id now, through `eventMaster/getEventById`, which asserts that
+access and returns the whole booking rather than the summary the list
+carries. Five writers of that key are gone.
+
+The catering form read the same key, and it is not a booking screen at all. A
+catering delivery is keyed by `serDeliveryBookingId` and has no event id, so
+its "Update Event" wording, its two report downloads and a disabled field
+were all driven by whichever booking somebody had last opened elsewhere.
+
+And taking a booking redirected to `/admin/event-master/:id`. The router's
+basename is already `/admin`, so that resolved to `/admin/admin/...` and every
+newly taken booking landed on a page that does not exist. The test harness had
+the same prefix baked into it, which is why it had always passed.
+
+#### Where it stands
+
+Every route at 1440, 1280 and 1024, and every section of a booking at 1440
+and 1280: nothing clipped, nothing overlapping, no uneven form rows, no
+orphaned labels, no undersized targets — except antd's own switch on
+Settings, at 35x18, which is the size that control is in every antd
+application and is left alone deliberately.
+
+557 admin tests pass.
+
+---
+
 ## 6. Admin portal
 
 182 components. Screens, by route:
