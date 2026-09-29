@@ -1105,6 +1105,88 @@ for the business to settle.**
 
 ---
 
+### 5.15 The journey had no tests at all ✅
+
+Eleven Playwright specs, and **no component tests whatsoever** — on 8,224 lines
+across nineteen steps, on the surface the standing brief calls the highest UX
+priority.
+
+The Playwright specs are worth having: they are the only thing proving a
+booking can be taken end to end. But they need the backend running against a
+seeded database, which makes them the slowest and most fragile place to find
+out that a date formatter mishandles a value.
+
+#### What the 88 new tests pin
+
+Mostly the **refusals**, because those are the parts somebody deletes for
+looking like missing features.
+
+A date the formatter cannot read comes back as nothing rather than as a guess —
+the implementation this replaced substituted the current year, which turned a
+data problem into a confidently wrong date on the customer's own confirmation
+screen. A dish priced at zero shows no price at all, because zero here never
+means free; it means the catalogue has no price yet, and "£0.00 per head" is a
+specific, wrong and very attractive claim the customer is entitled to hold us
+to. The same rule governs the menu's running total: no guest count, no figure.
+
+A 409 is not a fault — it means an administrator saved the booking while the
+customer had it open — so the server's own sentence wins for a 409 and only a
+409. A 500's message is written for whoever keeps the server running, not for a
+customer choosing napkins.
+
+A consultation calendar that cannot be reached answers "no consultation" rather
+than throwing, because every caller is drawing a screen that has to appear
+either way.
+
+And `StepActions` is tested as three **properties over every step** rather than
+as claims about one: every step ends in a control or an explanation, every step
+but the first has a way backwards, and a step reached from Review offers the way
+home. Those are exactly the properties nine separate implementations could not
+hold — five of them used to render nothing at all on a locked booking, so a
+customer reached the foot of the page and found neither a control nor a reason.
+
+#### Two failures the customer was never told about
+
+Found by going through every `console.error` and asking whether anything
+reached the customer. Most do. Two did not.
+
+The décor step caught its fetch failure, logged it to a console on the
+customer's phone and returned — so the step rendered with nothing on it and no
+sentence saying why, which is indistinguishable from a business that offers no
+décor.
+
+Worse, because the consequence lands so much later: the already-booked dates
+failed the same way. Those are the dates the venue cannot take, and without them
+the calendar offers every Saturday. The customer picks one, fills in six more
+steps, and is refused at the end for a reason they were given no chance to
+avoid.
+
+#### The rule tokens.css states about itself
+
+Its header says: "Application code references these, never a raw hex value."
+Twenty-two did not, and two were failing WCAG — placeholder text at **1.32:1**,
+and the required marker at 3.01:1. Others were the **retired palette still
+drawing live pixels**: `#C55698` is the champagne-era pink, and it was the date
+field's underline and calendar icon, so the one control on that step carrying
+brand colour was carrying the brand the journey stopped using.
+
+One subtlety worth recording: the icon's strokes had to become `currentColor`
+rather than `var(--de-accent)`. An SVG presentation attribute parses its value
+as an SVG paint, which does not accept `var()`, so the obvious substitution
+would have silently drawn the icon black and looked like a rendering bug rather
+than a colour one.
+
+#### And the dead weight
+
+15 debug `console.log` calls shipping to production — one of them a loop
+printing every field of the décor submission, customer data included, into the
+browser console. 293 lines of commented-out markup across twelve files. 28
+imports loaded and never used, including a session validator imported but never
+called, sitting beside a `validateInterval` declared and never read, which
+reads as though session validation is wired up.
+
+---
+
 ## 6. Admin portal
 
 182 components. Screens, by route:
@@ -1406,6 +1488,7 @@ the reasoning; this is the list.
 | **B1** | Booking above Event — stage 3 onwards | Backend | Large |
 | **B6 / M5c** | Retire the menu price fallback, and the three names that are really lists | Backend | Small |
 | **C4** | Extend control panel test coverage | Control panel | Ongoing |
+| **C5** | Extend the journey's test coverage to its steps | Journey | Ongoing |
 
 Nothing else is open. **UX3** was rebuilt — §5.11. **P3** and **P3b** are done:
 the engine's figures are the ones charged, and neither client prices anything
@@ -1459,7 +1542,8 @@ guessed host. Migrations V26 and V27 are waiting with it.
 | ~~C1~~ | ~~Admin operations dashboard~~ | ✅ | **The dashboard is about events now.** Everything below the over-capacity warning came with the template — "Sales Report", "Sales Growth", "Top Selling Products". This business does not sell products, and the number that matters on a Monday morning is not revenue this month but what is booked for Saturday. Those panels are replaced by **Coming up**: the next three weeks grouped by day, with the count on each day so that a third event stands out, today marked, and a line for consultations waiting on us. Built entirely from endpoints that already existed — `calendarEntries` and `consultation/bookings/pending` — because inventing an endpoint per panel is how a dashboard becomes the most expensive screen in an application. Twelve tests, including the one that matters: an unreachable server and a genuinely empty diary render identically unless one of them says so, and only one means the team has nothing on. |
 | C2 | Itinerary table | ❓ | **Moved to a business question — see D6.** The row said only "itinerary table", and investigating it found the feature is built and unused: seven tables (`itinerary_item`, `itinerary_item_type`, `itinerary_assignment`, `itinerary_assignment_detail`, `menu_item_itinerary_map`, `event_menu_itinerary`, `event_itinerary_summary`) with **zero rows in every one of them**, three admin screens that manage them, and a Jasper kitchen itinerary report that already renders one per event. Building a table on top of that would be guessing at what is wanted and then maintaining the guess. |
 | ~~C3~~ | ~~Admin portal accessibility review~~ | ✅ | **Audited, and the portal was in better shape than a first scan suggested.** A line-by-line grep reported seventeen images with no alt text and two hundred unlabelled inputs; a scan that understands multi-line JSX found *zero* images without alt text, and antd's `Form.Item label` covers almost every control. Two real defects: the three consultation-diary filters were placeheld rather than labelled — and a placeholder vanishes the moment a value is chosen, leaving a screen-reader user hearing "Aisha" with no idea what it filters — and the sidebar toggle's accessible name came from its icon's alt text, "menu", which says nothing about pressing it or which way it goes. Both fixed, with the diary's labels asserted by test. The mobile menu backdrop is now `aria-hidden`: it is a convenience, not the way out, and it was being announced as a control that cannot be operated. **One gap this audit missed, found later by the end-to-end harness: the portal has no headings at all.** antd's `PageHeader` renders its title as a styled `div`, so there is no `h1` on any screen and the pages cannot be navigated by heading structure — which is how somebody using a screen reader moves around a page they already know. The static scan was looking for missing labels rather than missing structure. **Now fixed**: `PageHeader` wraps a string title in an `h1`, with the styling made to inherit so the change is structural and nothing moves on screen. A title that is already an element is left alone — those pass their own markup, and wrapping it would nest headings inside headings. Asserted on two screens rather than one, because a fix to a shared component that only works on the dashboard is a fix to the dashboard; checked by taking the `h1` out again and watching the test fail. |
-| C4 | Admin portal test suite | 🟡 | 19 → 489 tests across 44 files. The blocker was never the tests: Create React App excludes `node_modules` from Jest transformation wholesale, so any test that rendered a real screen died on `Cannot use import statement outside a module` before reaching an assertion, and portal components throw from inside a stylesheet without a styled-components provider. Both fixed once, in `customize-cra-config.js` and `utility/testRender.js`, which is what makes any of the rest possible. Covered so far: the consultation API client, the event progress rule, the Events grid, the over-capacity panel, the "Coming up" dashboard panel, the consultation diary, and error reporting. **The event form is now covered from outside instead.** It is 2,500 lines and assembles its save payload across four hundred of them, so it needs breaking up before it can be unit-tested — and breaking it up without a safety net is how a working save path stops working quietly. So the portal gained an end-to-end suite first: sign in through the form, the dashboard, the over-capacity panel, the events list, the card/table filter bug from A1b, and opening a booking. The order is deliberate — prove the screen works from outside, then change its inside. **The first step of the refactor is now taken:** the payload assembly — four hundred lines in the middle of `onFinish` — is `src/utility/eventPayload.js`, a pure function with 35 tests of its own, and `onFinish` is down to forty-five lines. Every pricing rule the business depends on is now assertable without a browser: what VAT is charged on (decor and extras, nothing else), whether a decor category price replaces its properties or adds to them, what an unpriced food category contributes, how composite dishes are separated from plain ones. Extracting it found a rule that looks like a bug and is not — categories 4, 5 and 6 are quoted as one line under 4, and the lookup that implements it compares a string id against a list of numbers, so it never matches and 5 and 6 contribute nothing, which is the wanted answer. Correcting the types would charge the group three times. That one has a test and a comment naming the trap. **The components inside it are now the next slice no longer — UX2b and UX2d took them out.** `EventStatFormModal.js` is 2,939 → ~1,640 lines, the twelve booking sections are their own files under `booking/sections/`, and the rules that used to be buried in the render — which sections are complete, what a booking cannot exist without — are `completeness.js` and `essentials.js`, tested on their own. The pricing arithmetic the row describes is gone entirely with P3b; `eventPayload.js` builds the payload and has no opinion about what anything costs. What is left under C4 is ordinary coverage as screens change, which is why it stays open rather than closing. |
+| C4 | Admin portal test suite | 🟡 | 19 → 531 tests across 44 files. The blocker was never the tests: Create React App excludes `node_modules` from Jest transformation wholesale, so any test that rendered a real screen died on `Cannot use import statement outside a module` before reaching an assertion, and portal components throw from inside a stylesheet without a styled-components provider. Both fixed once, in `customize-cra-config.js` and `utility/testRender.js`, which is what makes any of the rest possible. Covered so far: the consultation API client, the event progress rule, the Events grid, the over-capacity panel, the "Coming up" dashboard panel, the consultation diary, and error reporting. **The event form is now covered from outside instead.** It is 2,500 lines and assembles its save payload across four hundred of them, so it needs breaking up before it can be unit-tested — and breaking it up without a safety net is how a working save path stops working quietly. So the portal gained an end-to-end suite first: sign in through the form, the dashboard, the over-capacity panel, the events list, the card/table filter bug from A1b, and opening a booking. The order is deliberate — prove the screen works from outside, then change its inside. **The first step of the refactor is now taken:** the payload assembly — four hundred lines in the middle of `onFinish` — is `src/utility/eventPayload.js`, a pure function with 35 tests of its own, and `onFinish` is down to forty-five lines. Every pricing rule the business depends on is now assertable without a browser: what VAT is charged on (decor and extras, nothing else), whether a decor category price replaces its properties or adds to them, what an unpriced food category contributes, how composite dishes are separated from plain ones. Extracting it found a rule that looks like a bug and is not — categories 4, 5 and 6 are quoted as one line under 4, and the lookup that implements it compares a string id against a list of numbers, so it never matches and 5 and 6 contribute nothing, which is the wanted answer. Correcting the types would charge the group three times. That one has a test and a comment naming the trap. **The components inside it are now the next slice no longer — UX2b and UX2d took them out.** `EventStatFormModal.js` is 2,939 → ~1,640 lines, the twelve booking sections are their own files under `booking/sections/`, and the rules that used to be buried in the render — which sections are complete, what a booking cannot exist without — are `completeness.js` and `essentials.js`, tested on their own. The pricing arithmetic the row describes is gone entirely with P3b; `eventPayload.js` builds the payload and has no opinion about what anything costs. What is left under C4 is ordinary coverage as screens change, which is why it stays open rather than closing. |
+| C5 | Customer journey test suite | 🟡 | **From nothing to 88, and the harness is the point.** The journey had eleven Playwright specs and no component tests at all — on 8,224 lines across nineteen steps, on the surface the standing brief calls the highest UX priority. The Playwright ones are worth having, because they are the only thing proving a booking can be taken end to end, but they need the backend running against a seeded database, which makes them the slowest and most fragile place to find out that a date formatter mishandles a value. Vitest and Testing Library in jsdom now cover the pure logic and the shared components in milliseconds with no server. What they pin is mostly the *refusals*, because those are the parts somebody deletes for looking like missing features — see §5.15. Open rather than closed: nineteen step components are still covered only from the browser, and `Decor.jsx`, `EventDetails.jsx` and `BookCatering.jsx` are 700+ lines each and need breaking up before they can be unit-tested, which is the same order C4 followed for the event form. |
 | ~~C4b~~ | ~~The event form's save~~ | ✅ | **Four faults, and one of my own findings corrected.** The E2E called "a booking can be opened and saved" never pressed Save, so the payload it exists to protect had never once been sent. Making it press turned up: **(1)** the seed carried no event at all, so the portal test could only run after the journey test had left one behind — an invisible ordering, reported as "no events to open". The seed now carries `DEV-EV-001`, complete with a date five years out, a guest count and a table count, and the test opens it by name through the search box. **(2)** A date the API could not read was accepted and the event saved **with no date at all** — and a dateless event is worse than it sounds, because the capacity check on an edit reads `newDate != null && entity.getDteEventDate() != null`, so it skips entirely and the next save can put that booking on a day that is already full. Now refused with a 400 and a sentence saying so, on all four save paths. **(3)** The four save paths did not agree on what a date looks like: three read `dd-MM-yyyy`, `saveOrUpdate` read `dd/MM/yyyy` falling back to ISO — and both frontends send dashes. They now share one parser that accepts all three, strictly. **(4)** Every refusal the API is careful to explain arrived at the admin form and was replaced with "Failed to save event." — the same five words for "somebody else saved this", "that day is full" and "that date is not a date". Also fixed while in there: `setLoading(true)` was commented out, so the in-flight guard could never fire and neither Save button ever showed its spinner. **Two things I recorded here were wrong.** The date was not "silently ignored": `SimpleDateFormat` is lenient by default, so `2033-08-01` parsed as day 2033 of month 8 of year 1 — **Wednesday 23 February in the year 7** — and `31-02-2026` parsed as the 3rd of March. And the date input is not `readonly` to a person: rc-picker marks it readonly only until it is focused, so clicking or tabbing into it makes it typable; what cannot type into it is a script calling `fill()` cold, which is what the earlier run hit. The double-submit suspicion was also unfounded — the Save buttons sit after `</Form>`, where `htmlType="submit"` is inert — but eight screens carried that misleading pair and a scanning test now refuses it. **One more thing fell out of seeding a booking:** a row whose completion percentage has never been recorded took the whole Events list down. antd's `Progress` calls `percent.toString()` unguarded, and because it threw during render React discarded the tree — not the row, the screen, replaced by a red error overlay. `num_inof_filled_status` is null on any event predating the column and on any enquiry the journey has not touched, so this was one telephone booking away from happening in production. |
 | ~~C4c~~ | ~~The event save replaces, it does not patch~~ | ✅ | **Closed on the date, and deliberately only on the date.** Saving an event with a field omitted did not leave that field as it was — it cleared it. `{serEventMasterId, serCustId, serEventTypeId}` and nothing else returned 200 and wiped a booked wedding's date, because `parseDateFromClient` answers null for a date nobody sent exactly as it does for one it cannot read, and every save path wrote that null straight onto the entity. The damage is not only the missing date: the capacity check on the next save reads `newDate != null && entity.getDteEventDate() != null`, so a booking whose date has been wiped skips it and can then be put on a day that is already full — C4b's hazard, reached by omission instead of by a typo. All four save paths now go through `setEventDate`, which keeps the stored date when the request carries none. **Why this is silence rather than a refusal, unlike its sibling C4b:** the admin portal builds its payload from the form's values, so a date absent because its field was never mounted is indistinguishable from a date absent because nobody meant to send one — and refusing would block a legitimate save in a case that cannot be seen from the server. What is given up is clearing a date by omitting it, which neither frontend does and which can be given an explicit route the day somebody needs one. A malformed date is still a 400, because that is the case where the caller did mean something. **And only the date.** A guest count or a name arriving empty still overwrites what is stored: emptying one of those in a form is something a person does on purpose, and quietly keeping the old value would be its own silent failure. So the endpoint is still a PUT and is still named as though it were a PATCH — what has changed is that the one field whose loss disables a safety check can no longer be lost by accident. Four tests, including the two that stop the fix becoming a worse bug: a date that *is* supplied still moves the booking, and an event that has never had a date is still allowed to have none — the journey creates the booking before the customer reaches the calendar. Verified by reverting the fix and watching `anOmittedDateIsKept` fail. |
 | ~~C5~~ | ~~API documentation~~ | ✅ | **`API.md`, generated from the controllers and checked by the build.** 333 endpoints across 44 controllers, each with the one thing an OpenAPI document generated from the controllers alone could not tell you: who is allowed to call it. Authorisation lives in `PortalEndpoints`, not in the annotations, so the audience column is derived by matching each path against the allowlists. `ApiInventoryTest` regenerates the file with `-Dapi.docs.write=true` and fails when it drifts — documentation that is generated but never checked is documentation nobody trusts after the second month. Writing it found a real gap: a third of the controllers use the older `@RequestMapping(method = RequestMethod.POST)` form, and the first scan missed every one of them, reporting four live customer-facing endpoints as pointing at nothing. **springdoc-openapi is still the right long-term answer** and should be added when the build can resolve a new dependency again — see §16. |
