@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.zbs.de.model.dto.DtoDailyCreatedCount;
 import com.zbs.de.model.dto.DtoDailyDateEventSale;
+import com.zbs.de.model.dto.DtoBusinessSummary;
 import com.zbs.de.model.dto.DtoDashboard;
 import com.zbs.de.model.dto.DtoPercentageChange;
 import com.zbs.de.model.dto.DtoTypeSales;
@@ -20,7 +21,13 @@ import java.util.*;
 public class ServiceDashboard {
 
 	private final JdbcTemplate jdbc;
-	private final ZoneId tz = ZoneId.of("Asia/Karachi"); // use Pakistan timezone per your context
+	/*
+	 * Europe/London. This read Asia/Karachi, which is five hours ahead — so
+	 * "this month" and "today" rolled over at 7pm or 8pm UK time depending on
+	 * the season, and every count near a month boundary was taken against the
+	 * wrong day. The business, its venues and its customers are in the UK.
+	 */
+	private final ZoneId tz = ZoneId.of("Europe/London");
 
 	public ServiceDashboard(JdbcTemplate jdbc) {
 		this.jdbc = jdbc;
@@ -195,5 +202,182 @@ public class ServiceDashboard {
 		}
 		double pct = ((double) (c - l) / (double) l) * 100.0;
 		return BigDecimal.valueOf(pct).setScale(2, RoundingMode.HALF_UP);
+	}
+
+	/**
+	 * The pipeline, the year ahead, and what is waiting on somebody.
+	 *
+	 * <p>
+	 * See {@link DtoBusinessSummary} for what each figure is and why it is that
+	 * one rather than the ones the old dashboard showed.
+	 */
+	public DtoBusinessSummary getBusinessSummary() {
+		DtoBusinessSummary summary = new DtoBusinessSummary();
+
+		LocalDate today = LocalDate.now(tz);
+		LocalDate firstOfThisMonth = today.withDayOfMonth(1);
+		Timestamp fromTs = Timestamp.valueOf(firstOfThisMonth.atStartOfDay());
+		Timestamp toTs = Timestamp.valueOf(firstOfThisMonth.plusMonths(MONTHS_AHEAD).atStartOfDay());
+
+		/*
+		 * What a booking is worth: its priced lines plus their VAT. Written by
+		 * the pricing engine at save, so it is the same arithmetic the customer
+		 * was quoted — see DtoBusinessSummary for why not the budget column.
+		 */
+		final String VALUE_CTE = "WITH value AS ("
+				+ "  SELECT ser_event_master_id,"
+				+ "         SUM(COALESCE(num_line_total,0) + COALESCE(num_vat,0)) AS total"
+				+ "  FROM event_price_line"
+				+ "  GROUP BY ser_event_master_id"
+				+ ") ";
+
+		// --- The pipeline -------------------------------------------------
+		List<DtoBusinessSummary.Stage> pipeline = jdbc.query(
+				VALUE_CTE
+						+ "SELECT COALESCE(NULLIF(TRIM(b.txt_status),''), 'Enquiry') AS stage,"
+						+ "       COUNT(*) AS bookings,"
+						+ "       COALESCE(SUM(v.total),0) AS value "
+						+ "FROM event_master e "
+						+ "LEFT JOIN event_budget b ON b.ser_event_master_id = e.ser_event_master_id "
+						+ "LEFT JOIN value v ON v.ser_event_master_id = e.ser_event_master_id "
+						+ "WHERE COALESCE(e.bln_is_deleted,false) = false "
+						+ "GROUP BY 1",
+				(rs, i) -> {
+					DtoBusinessSummary.Stage stage = new DtoBusinessSummary.Stage();
+					stage.setTxtStage(rs.getString("stage"));
+					stage.setNumBookings(rs.getLong("bookings"));
+					stage.setNumValue(nonNull(rs.getBigDecimal("value")));
+					return stage;
+				});
+
+		/* In the order the business works through them, not alphabetically. */
+		pipeline.sort(Comparator.comparingInt(s -> stageOrder(s.getTxtStage())));
+		summary.setPipeline(pipeline);
+
+		long taken = 0;
+		long confirmed = 0;
+		for (DtoBusinessSummary.Stage stage : pipeline) {
+			taken += stage.getNumBookings();
+			if (isConfirmed(stage.getTxtStage())) {
+				confirmed += stage.getNumBookings();
+				summary.setNumConfirmedValue(summary.getNumConfirmedValue().add(stage.getNumValue()));
+			} else {
+				summary.setNumPipelineValue(summary.getNumPipelineValue().add(stage.getNumValue()));
+			}
+		}
+
+		if (taken > 0) {
+			summary.setNumConversionRate(BigDecimal.valueOf(confirmed)
+					.multiply(BigDecimal.valueOf(100))
+					.divide(BigDecimal.valueOf(taken), 1, RoundingMode.HALF_UP));
+		}
+
+		if (confirmed > 0) {
+			summary.setNumAverageBookingValue(summary.getNumConfirmedValue()
+					.divide(BigDecimal.valueOf(confirmed), 2, RoundingMode.HALF_UP));
+		}
+
+		// --- The months ahead ---------------------------------------------
+		Map<String, DtoBusinessSummary.Month> months = new LinkedHashMap<>();
+		for (int i = 0; i < MONTHS_AHEAD; i += 1) {
+			DtoBusinessSummary.Month month = new DtoBusinessSummary.Month();
+			month.setTxtMonth(firstOfThisMonth.plusMonths(i).toString().substring(0, 7));
+			months.put(month.getTxtMonth(), month);
+		}
+
+		jdbc.query(
+				VALUE_CTE
+						+ "SELECT to_char(e.dte_event_date, 'YYYY-MM') AS ym,"
+						+ "       COUNT(*) AS bookings,"
+						+ "       COALESCE(SUM(e.num_number_of_guests),0) AS guests,"
+						+ "       COALESCE(SUM(v.total),0) AS value "
+						+ "FROM event_master e "
+						+ "LEFT JOIN value v ON v.ser_event_master_id = e.ser_event_master_id "
+						+ "WHERE COALESCE(e.bln_is_deleted,false) = false "
+						+ "  AND e.dte_event_date >= ? AND e.dte_event_date < ? "
+						+ "GROUP BY 1",
+				rs -> {
+					/*
+					 * Into the months already laid out, so a month with nothing
+					 * in it is a gap in the line rather than a missing point —
+					 * a chart that skips empty months reads as busier than the
+					 * year actually is.
+					 */
+					DtoBusinessSummary.Month month = months.get(rs.getString("ym"));
+					if (month != null) {
+						month.setNumBookings(rs.getLong("bookings"));
+						month.setNumGuests(rs.getLong("guests"));
+						month.setNumValue(nonNull(rs.getBigDecimal("value")));
+					}
+				},
+				fromTs, toTs);
+
+		summary.setMonthsAhead(new ArrayList<>(months.values()));
+		summary.setNumBookingsAhead(months.values().stream().mapToLong(DtoBusinessSummary.Month::getNumBookings).sum());
+		summary.setNumGuestsAhead(months.values().stream().mapToLong(DtoBusinessSummary.Month::getNumGuests).sum());
+
+		// --- The mix ------------------------------------------------------
+		summary.setByType(jdbc.query(
+				"SELECT COALESCE(NULLIF(TRIM(t.txt_event_type_name),''), 'Not set') AS type,"
+						+ "       COUNT(*) AS bookings,"
+						+ "       COALESCE(SUM(e.num_number_of_guests),0) AS guests "
+						+ "FROM event_master e "
+						+ "LEFT JOIN event_type t ON t.ser_event_type_id = e.ser_event_type_id "
+						+ "WHERE COALESCE(e.bln_is_deleted,false) = false "
+						+ "  AND e.dte_event_date >= ? AND e.dte_event_date < ? "
+						+ "GROUP BY 1 ORDER BY 2 DESC",
+				(rs, i) -> {
+					DtoBusinessSummary.TypeShare share = new DtoBusinessSummary.TypeShare();
+					share.setTxtEventType(rs.getString("type"));
+					share.setNumBookings(rs.getLong("bookings"));
+					share.setNumGuests(rs.getLong("guests"));
+					return share;
+				},
+				fromTs, toTs));
+
+		// --- Waiting on somebody ------------------------------------------
+		summary.setNumWithoutDate(count(
+				"SELECT COUNT(*) FROM event_master e "
+						+ "WHERE COALESCE(e.bln_is_deleted,false) = false AND e.dte_event_date IS NULL"));
+
+		summary.setNumWithoutPrice(count(
+				"SELECT COUNT(*) FROM event_master e "
+						+ "WHERE COALESCE(e.bln_is_deleted,false) = false "
+						+ "  AND e.dte_event_date >= CURRENT_DATE "
+						+ "  AND NOT EXISTS (SELECT 1 FROM event_price_line l "
+						+ "                  WHERE l.ser_event_master_id = e.ser_event_master_id)"));
+
+		return summary;
+	}
+
+	/** How many months of the year ahead the dashboard shows. */
+	private static final int MONTHS_AHEAD = 12;
+
+	private long count(String sql) {
+		Long value = jdbc.queryForObject(sql, Long.class);
+		return value == null ? 0L : value;
+	}
+
+	private static BigDecimal nonNull(BigDecimal value) {
+		return value == null ? BigDecimal.ZERO : value;
+	}
+
+	private static boolean isConfirmed(String stage) {
+		return stage != null && stage.trim().equalsIgnoreCase("Confirmed");
+	}
+
+	/**
+	 * Enquiry, then Quoted, then Confirmed — the order the business works
+	 * through them. Anything it does not recognise goes last rather than
+	 * being dropped, because a stage nobody expected is worth seeing.
+	 */
+	private static int stageOrder(String stage) {
+		if (stage == null) return 99;
+		switch (stage.trim().toLowerCase()) {
+			case "enquiry": return 0;
+			case "quoted": return 1;
+			case "confirmed": return 2;
+			default: return 98;
+		}
 	}
 }
