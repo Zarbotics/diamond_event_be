@@ -18,6 +18,7 @@ import com.zbs.de.config.security.SsoHandoffService;
 import com.zbs.de.model.EmailVerificationToken;
 import com.zbs.de.model.RefreshToken;
 import com.zbs.de.model.UserMaster;
+import com.zbs.de.model.dto.DtoSignedInUser;
 import com.zbs.de.model.dto.DtoLoginRequest;
 import com.zbs.de.model.dto.DtoSignupRequest;
 import com.zbs.de.repository.RepositoryUserMaster;
@@ -150,12 +151,34 @@ public class AuthController {
 		}
 	}
 
+	/**
+	 * Who is signed in.
+	 *
+	 * <p>
+	 * Answered with {@link DtoSignedInUser} rather than with the principal.
+	 * The principal is the {@link UserMaster} entity, and returning it
+	 * serialised nineteen fields to the browser on every page load — among
+	 * them {@code txtPassword}, the bcrypt hash of the account's password.
+	 * See the DTO for what that reached.
+	 */
 	@GetMapping("/status")
 	public ResponseEntity<?> checkAuthStatus(Authentication authentication) {
 		if (authentication == null || !authentication.isAuthenticated()) {
 			return ResponseEntity.status(401).body("Not logged in");
 		}
-		return ResponseEntity.ok(authentication.getPrincipal());
+
+		Object principal = authentication.getPrincipal();
+
+		if (principal instanceof UserMaster) {
+			return ResponseEntity.ok(DtoSignedInUser.from((UserMaster) principal));
+		}
+
+		/*
+		 * Anything else is not an account this application issued a token for.
+		 * Saying so is the whole answer: echoing an unknown principal back is
+		 * how the password hash got out in the first place.
+		 */
+		return ResponseEntity.status(401).body("Not logged in");
 	}
 
 	@GetMapping("/me")
