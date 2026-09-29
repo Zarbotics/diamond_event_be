@@ -68,9 +68,9 @@ screen titled Bookings. Those four should read **Reference**, **Booking**,
 | Catalogue → Venues | **Venues** | High | |
 | Catalogue → Event types | **Types of event** | High | |
 | Catalogue → Supplier categories | **Supplier types** | High | A photographer, a DJ, a videographer. "Category" adds nothing. |
-| Catalogue → Equipment | **Equipment** | Low | Overlaps Itinerary. See §7.1 — do not rename until that is settled. |
+| Catalogue → Equipment | **Equipment** | High | Settled: it is the model that replaced Itinerary. See §7.1. |
 | Settings | **Settings** | High | |
-| **Itinerary** (group) | — | **Low** | See §7.1. Nothing renamed. |
+| ~~Itinerary (group)~~ | *removed* | High | Retired. Equipment replaced it. See §7.1. |
 
 ### Proposed shape
 
@@ -87,8 +87,9 @@ Catalogue      Menu · Services · Extras · Venues · Types of event ·
 
 ## 3. The Itinerary screens
 
-The three screens under **Itinerary** are the largest terminology problem in
-the portal, and renaming them is not the fix. What they are:
+These three screens are gone — see §7.1 for why and for what replaced them.
+The section is kept because the words are still in the database and in the
+API, and anybody reading those needs to know what they meant.
 
 | Screen | What the code says it is |
 |---|---|
@@ -105,11 +106,8 @@ So an "itinerary" here is what the kitchen has to send out with the food.
 
 Meanwhile the booking has a section genuinely called **Running order** — the
 sixteen moments of the evening, guest arrival through end of night. That is
-the schedule. Two unrelated concepts, and the one named after a schedule is
-the one that is not.
-
-**Nothing here is renamed yet**, because §7.1 may remove these screens
-entirely and renaming a screen twice is worse than leaving it.
+the schedule. Two unrelated concepts, and the one named after a schedule was
+the one that was not. The running order is unaffected and keeps its name.
 
 ---
 
@@ -175,40 +173,66 @@ they differ by accident rather than by intent:
 These need a decision from the business. Nothing has been changed for any of
 them.
 
-### 7.1 Equipment and Itinerary appear to be the same idea, built twice 🔴
+### 7.1 Equipment and Itinerary were the same idea, built twice ✅ DECIDED
 
-**What we found.** Both answer "given what was sold, what does this event
-need, and how many?"
+**They are the same concept. Equipment is the one that works. The three
+Itinerary screens have been retired from the control panel.**
 
-- **Itinerary** — types, items, and one assignment per dish, counted
-  `PER_GUEST, PER_TABLE, PER_ITEM, PER_PORTION, FLAT`.
-- **Equipment** — items and rules, counted `PER_GUEST, PER_TABLE,
-  PER_STATION, PER_EVENT`.
+Both answer "given the dishes sold and the numbers coming, what does this
+event need and how many?" Equipment is a strict superset: it can express
+everything the itinerary rules could, plus rules that apply to the whole event
+rather than to a dish, stations, spares, and a line that says what asked for
+it.
 
-Equipment's own source says it replaced the other: *"The itinerary model this
-replaces had two [vocabularies]... `PER_ITEM`, `PER_PORTION` and `PER_DISH`
-are gone."*
+#### The evidence
 
-**Why it is not settled.** The replacement was never finished.
+Four independent findings, any one of which would settle it:
 
-- **Itinerary is live.** It feeds `ServiceEventItinerarySummaryImpl`, which
-  produces the **Kitchen itinerary** report — a thing the kitchen actually
-  prints and works from.
-- **Equipment produces no report at all.** It feeds a calculation and a panel
-  on the booking, and nothing else.
+1. **Nothing called the calculation.** `/eventItinerary/calulate` is
+   referenced by neither client — zero occurrences in the control panel, zero
+   in the customer journey. Nor are its two read endpoints.
 
-So the old model drives the paperwork and the new model drives the screen.
+2. **The Kitchen itinerary report does not use it.** This was the reason it
+   looked live. It does not: `master_kitchen_itinerary.jrxml` and its
+   sub-reports read `event_master`, `customer_master`, `event_type`,
+   `venue_master`, `event_running_order` and the three
+   `event_menu_*_selection` tables. `event_itinerary_summary` and
+   `event_menu_itinerary` appear nowhere in it. "Kitchen itinerary" there
+   means the kitchen's *schedule and menu* — an itinerary in the ordinary
+   sense — not this model.
 
-**What we need to know.** Is Equipment intended to replace Itinerary
-completely — in which case the kitchen report has to be moved onto it before
-the three Itinerary screens can go — or are they genuinely two things:
-Itinerary being what leaves the kitchen *with a dish*, and Equipment being
-what the venue puts out *for the room*?
+3. **The calculation was one-fifth implemented.** `calculateQuantity` handles
+   `PER_GUEST`. `PER_TABLE`, `PER_ITEM`, `PER_PORTION` and `FLAT` all fall
+   through to returning the raw multiplier, so a rule marked "per table" was
+   never multiplied by the table count.
 
-If it is the second, they both stay and both need better names. If it is the
-first, three screens and 261 rows of configuration disappear.
+4. **The database rejects a value the screen offers.** The check constraint on
+   `itinerary_assignment_detail.enm_multiplier_type` permits `PER_GUEST`,
+   `PER_ITEM`, `PER_PORTION` and `FLAT` only. The Java enum has `PER_TABLE`
+   and the form offered it as "Per table — multiplied by the table count".
+   Choosing it failed the save with a constraint violation. Nobody had ever
+   hit that, which says as much as anything else about how used this was.
 
-**This is why none of the Itinerary screens has been renamed.**
+`numItineraryPrice` is the same story: carried between DTO and entity, never
+computed, never priced.
+
+#### What was done
+
+The three screens, their routes and their service calls are gone from the
+control panel. **The tables, the entities and the API are untouched** — no
+configured data is destroyed, and restoring the routes would bring the screens
+back exactly as they were.
+
+`db/migration-aids/itinerary-to-equipment.sql` carries the configuration
+across: an itinerary item becomes an equipment item, and each assignment
+detail becomes an equipment rule against the same dish. It is idempotent, it
+is not part of the Flyway chain, and it reports what came over. Proven on a
+seeded case: two items and two rules migrated, with the ambiguous one flagged.
+
+`PER_GUEST` and `FLAT` map exactly. `PER_ITEM` and `PER_PORTION` have no
+equipment equivalent and are recorded as `PER_EVENT` — which is what the old
+calculation did with them — each carrying a note saying so, so the business
+can correct the ones that should be per guest or per station.
 
 ### 7.2 What is a "station"? 🟡
 
