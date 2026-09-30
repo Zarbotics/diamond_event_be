@@ -23,6 +23,40 @@ Only what a person reads changes.
 
 ---
 
+## 0. What has been applied
+
+Everything rated High or Medium below is now in the two clients, except where
+an entry here says otherwise. The Low entries, and everything in §7, are still
+open and still need the business.
+
+| | |
+|---|---|
+| §1 The bookings list | **Applied.** Reference, Booking, Type, Date. The search also now spans every stage, which the screen had always claimed it did and did not — see below. |
+| §2 Navigation | **Applied.** Services and Extras moved out of Décor into the Catalogue; Option values → Option choices; Event types → Types of event; Supplier categories → Supplier types. |
+| §2 Dashboard → Statistics → Overview | **Overtaken.** That group had exactly one child, so the group went and Dashboard is a direct link. There is no longer a "Statistics" entry to rename. |
+| §2 Calendar → Diary | **Not done, deliberately.** Rated Low, and §7.3 explains why renaming Calendar would make the collision worse rather than better. It needs the business. |
+| §3 The Itinerary screens | **Applied.** Retired — see §7.1. |
+| §4 Offered / Retired | **Applied** as Available / Withdrawn, across 18 screens and dialogs. |
+| §4 Active / Deactivated | **Applied** as Active / Closed, on Customers. |
+| §4 "Offered" meaning two things | **Applied.** The flag is "Available to customers"; the interval is "Slot every". |
+| §6 The journey's spellings | **Applied.** "Decor" → "Décor" and "Service" → "Services" on the step rail and the two step headings. The review page already had both right. |
+
+### One thing the audit found that was not a naming problem
+
+The bookings screen says "the search looks through all of them", and its empty
+state said "The search looks through every status". Neither was true: the stage
+was sent with every request, so the search only ever looked inside the tab that
+happened to be open. Measured against the running server, a confirmed booking's
+reference searched from the Enquiry tab returned 0 results and the same search
+from the Confirmed tab returned 1.
+
+This is the case the brief describes as needing the workflow changed rather
+than the label: the words were right and the behaviour was wrong. The search
+now spans every stage and says so on screen, and the tab applies again as soon
+as the search is cleared.
+
+---
+
 ## 1. The core entities
 
 | Now shown as | Proposed | Confidence | What it actually is |
